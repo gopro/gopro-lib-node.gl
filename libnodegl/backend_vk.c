@@ -508,7 +508,7 @@ static VkResult create_swapchain(struct glcontext *vk)
         .imageColorSpace = vk->surface_format.colorSpace,
         .imageExtent = vk->extent,
         .imageArrayLayers = 1,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .preTransform = swap->caps.currentTransform,
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
@@ -880,6 +880,9 @@ static void vulkan_uninit(struct glcontext *vk)
         vkDestroySemaphore(vk->device, vk->sem_img_avail[i], NULL);
         vkDestroyFence(vk->device, vk->fences[i], NULL);
     }
+    free(vk->sem_render_finished);
+    free(vk->sem_img_avail);
+    free(vk->fences);
 
     cleanup_swapchain(vk);
 
@@ -929,6 +932,69 @@ static int vk_configure(struct ngl_ctx *s, const struct ngl_config *config)
     return 0;
 }
 
+static int vk_clear(struct glcontext *vk)
+{
+    vk->clear = 1;
+
+    const float *rgba = vk->config.clear_color;
+    VkClearColorValue clearColor = {
+        { rgba[0], rgba[1], rgba[2], rgba[3] }
+    };
+
+    VkCommandBuffer cmd_buf = vk->command_buffers[vk->img_index];
+
+    VkCommandBufferBeginInfo command_buffer_begin_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
+    };
+
+    VkResult ret = vkBeginCommandBuffer(cmd_buf, &command_buffer_begin_info);
+    if (ret != VK_SUCCESS)
+        return -1;
+
+    VkImageSubresourceRange sub_ressource_range = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+    };
+
+    VkImageMemoryBarrier present_to_clear_barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+        .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .srcQueueFamilyIndex = vk->queue_family_graphics_id,
+        .dstQueueFamilyIndex = vk->queue_family_graphics_id,
+        .image = vk->images[vk->img_index],
+        .subresourceRange = sub_ressource_range,
+    };
+
+    VkImageMemoryBarrier clear_to_present_barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+        .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+        .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .srcQueueFamilyIndex = vk->queue_family_present_id,
+        .dstQueueFamilyIndex = vk->queue_family_present_id,
+        .image = vk->images[vk->img_index],
+        .subresourceRange = sub_ressource_range,
+    };
+
+    vkCmdPipelineBarrier(cmd_buf, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &present_to_clear_barrier);
+    vkCmdClearColorImage(cmd_buf, vk->images[vk->img_index], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clearColor, 1, &sub_ressource_range);
+    vkCmdPipelineBarrier(cmd_buf, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 0, 0, NULL, 0, NULL, 1, &clear_to_present_barrier);
+
+    ret = vkEndCommandBuffer(cmd_buf);
+    if (ret != VK_SUCCESS)
+        return -1;
+
+    return 0;
+}
+
 static int vk_pre_draw(struct ngl_ctx *s)
 {
     int ret;
@@ -956,6 +1022,12 @@ static int vk_pre_draw(struct ngl_ctx *s)
     } else {
         ret = 0;
     }
+
+    if (ret < 0)
+        return ret;
+
+    if (!s->scene)
+        return vk_clear(vk);
 
     return ret;
 }

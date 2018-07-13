@@ -99,12 +99,14 @@ struct glcontext {
     //int nb_allocated_pipeline_layouts
 
     VkCommandBuffer *command_buffers;
+    VkCommandBuffer *clear_command_buffers;
     int nb_command_buffers;
 
     uint32_t img_index;
 
     int nb_in_flight_frames;
     int current_frame;
+    int clear;
 #else
     /* GL context */
     const struct glcontext_class *class;

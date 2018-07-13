@@ -50,15 +50,18 @@ int ngli_spirv_get_name_location(const uint32_t *code, size_t size,
         const uint32_t opcode0    = code[0];
         const uint16_t opcode     = opcode0 & 0xffff;
         const uint16_t word_count = opcode0 >> 16;
+        
+        // check instruction size
+        const uint32_t instruction_size = word_count * sizeof(*code);
+        if (size < instruction_size)
+            return -1;
 
         if (opcode == 5) { // OpName
-            if (size < 3 * sizeof(*code))
-                return -1;
             const uint32_t target = code[1];
             const char *target_name = (const char *)&code[2];
-            if (!strncmp(name, target_name, (size - 2) * sizeof(*code)))
+            if (!strncmp(name, target_name, (word_count - 2) * sizeof(*code)))
                 target_id = target;
-        } else if (opcode == 71 && size >= 4 * sizeof(*code)) { // OpDecorate
+        } else if (opcode == 71) { // OpDecorate
             const uint32_t target     = code[1];
             const uint32_t decoration = code[2];
             if (target == target_id && decoration == 30 /* location */)
@@ -66,7 +69,7 @@ int ngli_spirv_get_name_location(const uint32_t *code, size_t size,
         }
 
         code += word_count;
-        size -= word_count * sizeof(*code);
+        size -= instruction_size;
     }
 
     return -1;

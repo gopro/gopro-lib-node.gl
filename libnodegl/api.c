@@ -155,10 +155,11 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
     VkQueue present_queue;
     vkGetDeviceQueue(vk->device, vk->queue_family_present_id, 0, &present_queue);
 
-    vkQueueWaitIdle(present_queue);
+    vkWaitForFences(vk->device, 1, &vk->fences[vk->current_frame], VK_TRUE, UINT64_MAX);
+    vkResetFences(vk->device, 1, &vk->fences[vk->current_frame]);
 
     VkResult vkret = vkAcquireNextImageKHR(vk->device, vk->swapchain, UINT64_MAX,
-                                           vk->sem_img_avail, NULL, &vk->img_index);
+                                           vk->sem_img_avail[vk->current_frame], NULL, &vk->img_index);
 
     if (vkret == VK_ERROR_OUT_OF_DATE_KHR) {
         LOG(ERROR, "ACQUIRE OUT OF DATE");

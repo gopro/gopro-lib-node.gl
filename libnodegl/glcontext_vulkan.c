@@ -483,6 +483,9 @@ static VkResult create_vulkan_device(struct glcontext *vk)
 
 static VkResult create_swapchain(struct glcontext *vk)
 {
+    // set maximum in flight frames
+    vk->nb_in_flight_frames = 2;
+
     // re-query the swapchain to get current extent
     VkResult ret = query_swapchain_support(&vk->swapchain_support, vk->surface, vk->physical_device);
     if (ret != VK_SUCCESS)
@@ -687,15 +690,38 @@ static VkResult create_command_buffers(struct glcontext *vk)
 static VkResult create_semaphores(struct glcontext *vk)
 {
     VkResult ret;
+
+    vk->sem_img_avail = calloc(vk->nb_in_flight_frames, sizeof(VkSemaphore));
+    if (!vk->sem_img_avail)
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+    vk->sem_render_finished = calloc(vk->nb_in_flight_frames, sizeof(VkSemaphore));
+    if (!vk->sem_render_finished)
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+    vk->fences = calloc(vk->nb_in_flight_frames, sizeof(VkFence));
+    if (!vk->fences)
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+
     VkSemaphoreCreateInfo semaphore_create_info = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
     };
 
-    if ((ret = vkCreateSemaphore(vk->device, &semaphore_create_info, NULL,
-                                 &vk->sem_img_avail)) != VK_SUCCESS ||
-        (ret = vkCreateSemaphore(vk->device, &semaphore_create_info, NULL,
-                                 &vk->sem_render_finished)) != VK_SUCCESS)
-        return ret;
+    VkFenceCreateInfo fence_create_info = {
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+    };
+
+    for (int i = 0; i < vk->nb_in_flight_frames; i++) {
+        if ((ret = vkCreateSemaphore(vk->device, &semaphore_create_info, NULL,
+                                    &vk->sem_img_avail[i])) != VK_SUCCESS ||
+            (ret = vkCreateSemaphore(vk->device, &semaphore_create_info, NULL,
+                                    &vk->sem_render_finished[i])) != VK_SUCCESS ||
+            (ret = vkCreateFence(vk->device, &fence_create_info, NULL,
+                                 &vk->fences[i])) != VK_SUCCESS) {
+            return ret;
+        }
+    }
     return VK_SUCCESS;
 }
 
@@ -773,8 +799,8 @@ static void vulkan_swap_buffers(struct glcontext *vk)
     VkQueue present_queue;
     vkGetDeviceQueue(vk->device, vk->queue_family_present_id, 0, &present_queue);
 
-    VkSemaphore wait_sem[] = {vk->sem_img_avail};
-    VkSemaphore sig_sem[] = {vk->sem_render_finished};
+    VkSemaphore wait_sem[] = {vk->sem_img_avail[vk->current_frame]};
+    VkSemaphore sig_sem[] = {vk->sem_render_finished[vk->current_frame]};
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
     VkSubmitInfo submit_info = {
@@ -788,7 +814,7 @@ static void vulkan_swap_buffers(struct glcontext *vk)
         .pSignalSemaphores = sig_sem,
     };
 
-    VkResult ret = vkQueueSubmit(graphic_queue, 1, &submit_info, NULL);
+    VkResult ret = vkQueueSubmit(graphic_queue, 1, &submit_info, vk->fences[vk->current_frame]);
     if (ret != VK_SUCCESS)
         fprintf(stderr, "submit failed\n");
 
@@ -809,6 +835,8 @@ static void vulkan_swap_buffers(struct glcontext *vk)
     } else if (ret != VK_SUCCESS) {
         LOG(ERROR, "failed to present image %s", vk_res2str(ret));
     }
+
+    vk->current_frame = (vk->current_frame + 1) % vk->nb_in_flight_frames;
 }
 
 static void cleanup_swapchain(struct glcontext *vk)
@@ -860,8 +888,11 @@ static int vulkan_resize(struct glcontext *vk, int width, int height)
 
 static void vulkan_uninit(struct glcontext *vk)
 {
-    vkDestroySemaphore(vk->device, vk->sem_render_finished, NULL);
-    vkDestroySemaphore(vk->device, vk->sem_img_avail, NULL);
+    for (int i = 0; i < vk->nb_in_flight_frames; i++) {
+        vkDestroySemaphore(vk->device, vk->sem_render_finished[i], NULL);
+        vkDestroySemaphore(vk->device, vk->sem_img_avail[i], NULL);
+        vkDestroyFence(vk->device, vk->fences[i], NULL);
+    }
 
     cleanup_swapchain(vk);
 

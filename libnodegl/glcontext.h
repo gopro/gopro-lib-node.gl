@@ -98,8 +98,9 @@ struct glcontext {
     VkFramebuffer *framebuffers;
     int nb_framebuffers;
     VkCommandPool command_pool;
-    VkSemaphore sem_img_avail;
-    VkSemaphore sem_render_finished;
+    VkSemaphore *sem_img_avail;
+    VkSemaphore *sem_render_finished;
+    VkFence *fences;
     VkStructureType surface_create_type;
 
     VkPipeline graphic_pipelines[64]; // XXX
@@ -114,6 +115,9 @@ struct glcontext {
     int nb_command_buffers;
 
     uint32_t img_index;
+
+    int nb_in_flight_frames;
+    int current_frame;
 #else
     /* GL api */
     int version;

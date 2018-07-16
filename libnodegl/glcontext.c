@@ -92,28 +92,12 @@ static int glcontext_choose_platform(int platform)
 #endif
 }
 
-static int glcontext_choose_backend(int backend)
-{
-    if (backend != NGL_BACKEND_AUTO)
-        return backend;
-
-#if defined(TARGET_IPHONE) || defined(TARGET_ANDROID)
-    return NGL_BACKEND_OPENGLES;
-#else
-    return NGL_BACKEND_OPENGL;
-#endif
-}
-
 struct glcontext *ngli_glcontext_new(const struct ngl_config *config)
 {
     struct glcontext *glcontext = NULL;
 
     int platform = glcontext_choose_platform(config->platform);
     if (platform < 0)
-        return NULL;
-
-    int backend = glcontext_choose_backend(config->backend);
-    if (backend < 0)
         return NULL;
 
     if (platform < 0 || platform >= NGLI_ARRAY_NB(glcontext_class_map))
@@ -132,7 +116,7 @@ struct glcontext *ngli_glcontext_new(const struct ngl_config *config)
     }
 
     glcontext->platform = platform;
-    glcontext->backend = backend;
+    glcontext->backend = config->backend;
     glcontext->wrapped = config->wrapped;
     glcontext->offscreen = config->offscreen;
     glcontext->width = config->width;

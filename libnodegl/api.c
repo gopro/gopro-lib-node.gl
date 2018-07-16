@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
-#include <string.h>
 
 #if defined(TARGET_ANDROID)
 #include <jni.h>
@@ -30,10 +29,10 @@
 #include "jni_utils.h"
 #endif
 
+#include "backend.h"
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
-#include "glcontext.h"
 
 struct ngl_ctx *ngl_create(void)
 {
@@ -48,71 +47,13 @@ struct ngl_ctx *ngl_create(void)
 
 static int cmd_reconfigure(struct ngl_ctx *s, void *arg)
 {
-    if (s->glcontext->wrapped)
-        return -1;
-
-    const struct ngl_config *config = arg;
-
-    int ret = ngli_glcontext_resize(s->glcontext, config->width, config->height);
-    if (ret < 0)
-        return ret;
-
-    struct ngl_config *current_config = &s->config;
-    current_config->width = config->width;
-    current_config->height = config->height;
-
-    const int *viewport = config->viewport;
-    if (viewport[2] > 0 && viewport[3] > 0) {
-        ngli_glViewport(s->glcontext, viewport[0], viewport[1], viewport[2], viewport[3]);
-        memcpy(current_config->viewport, config->viewport, sizeof(config->viewport));
-    }
-
-    const float *rgba = config->clear_color;
-    ngli_glClearColor(s->glcontext, rgba[0], rgba[1], rgba[2], rgba[3]);
-    memcpy(current_config->clear_color, config->clear_color, sizeof(config->clear_color));
-
-    return 0;
+    return s->backend->reconfigure(s, arg);
 }
 
 static int cmd_configure(struct ngl_ctx *s, void *arg)
 {
-    const struct ngl_config *config = arg;
-    memcpy(&s->config, config, sizeof(s->config));
-
-    s->glcontext = ngli_glcontext_new(&s->config);
-    if (!s->glcontext)
-        return -1;
-
-    if (!s->glcontext->wrapped) {
-        ngli_glcontext_make_current(s->glcontext, 1);
-        if (s->config.swap_interval >= 0)
-            ngli_glcontext_set_swap_interval(s->glcontext, s->config.swap_interval);
-    }
-
-    int ret = ngli_glcontext_load_extensions(s->glcontext);
-    if (ret < 0)
-        return ret;
-
-    ngli_glstate_probe(s->glcontext, &s->glstate);
-
-    const int *viewport = config->viewport;
-    if (viewport[2] > 0 && viewport[3] > 0)
-        ngli_glViewport(s->glcontext, viewport[0], viewport[1], viewport[2], viewport[3]);
-
-    const float *rgba = config->clear_color;
-    ngli_glClearColor(s->glcontext, rgba[0], rgba[1], rgba[2], rgba[3]);
-
-    return 0;
+    return s->backend->configure(s, arg);
 }
-
-#if TARGET_IPHONE
-static int cmd_make_current(struct ngl_ctx *s, void *arg)
-{
-    const int current = *(int *)arg;
-    ngli_glcontext_make_current(s->glcontext, current);
-    return 0;
-}
-#endif
 
 static int cmd_set_scene(struct ngl_ctx *s, void *arg)
 {
@@ -136,9 +77,8 @@ static int cmd_set_scene(struct ngl_ctx *s, void *arg)
 static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
 {
     const double t = *(double *)arg;
-    const struct glcontext *gl = s->glcontext;
 
-    ngli_glClear(gl, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    s->backend->pre_draw(s);
 
     struct ngl_node *scene = s->scene;
     if (!scene) {
@@ -164,7 +104,6 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
 static int cmd_draw(struct ngl_ctx *s, void *arg)
 {
     const double t = *(double *)arg;
-    struct glcontext *gl = s->glcontext;
 
     int ret = cmd_prepare_draw(s, arg);
     if (ret < 0)
@@ -174,26 +113,17 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
         LOG(DEBUG, "draw scene %s @ t=%f", s->scene->name, t);
         ngli_node_draw(s->scene);
     }
+
 end:
-    if (ret == 0 && ngli_glcontext_check_gl_error(gl, __FUNCTION__))
-        ret = -1;
-
-    if (gl->set_surface_pts)
-        ngli_glcontext_set_surface_pts(gl, t);
-
-    if (!gl->wrapped)
-        ngli_glcontext_swap_buffers(gl);
-
-    return ret;
+    return s->backend->post_draw(s, t, ret);
 }
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
-    ngli_glcontext_freep(&s->glcontext);
-    return 0;
+    return s->backend->destroy(s);
 }
 
-static int dispatch_cmd(struct ngl_ctx *s, cmd_func_type cmd_func, void *arg)
+int ngli_dispatch_cmd(struct ngl_ctx *s, cmd_func_type cmd_func, void *arg)
 {
     if (!s->has_thread)
         return cmd_func(s, arg);
@@ -232,39 +162,42 @@ static void *worker_thread(void *arg)
     return NULL;
 }
 
-#if TARGET_IPHONE
-#define MAKE_CURRENT &(int[]){1}
-#define DONE_CURRENT &(int[]){0}
-static int reconfigure_ios(struct ngl_ctx *s, struct ngl_config *config)
-{
-    if (!s->has_thread)
-        return cmd_reconfigure(s, config);
-
-    int ret = dispatch_cmd(s, cmd_make_current, DONE_CURRENT);
-    if (ret < 0)
-        return ret;
-
-    cmd_make_current(s, MAKE_CURRENT);
-    ret = cmd_reconfigure(s, config);
-    cmd_make_current(s, DONE_CURRENT);
-
-    int ret_dispatch = dispatch_cmd(s, cmd_make_current, MAKE_CURRENT);
-    return ret ? ret : ret_dispatch;
-}
-
-static int configure_ios(struct ngl_ctx *s, struct ngl_config *config)
-{
-    if (!s->has_thread)
-        return cmd_configure(s, config);
-
-    int ret = cmd_configure(s, config);
-    if (ret < 0)
-        return ret;
-    cmd_make_current(s, DONE_CURRENT);
-
-    return dispatch_cmd(s, cmd_make_current, MAKE_CURRENT);
-}
+#if defined(TARGET_IPHONE) || defined(TARGET_ANDROID)
+# define DEFAULT_BACKEND NGL_BACKEND_OPENGLES;
+#else
+# define DEFAULT_BACKEND NGL_BACKEND_OPENGL;
 #endif
+
+extern const struct backend ngli_backend_gl;
+extern const struct backend ngli_backend_gles;
+
+static const struct backend *backend_map[] = {
+    [NGL_BACKEND_OPENGL]   = &ngli_backend_gl,
+    [NGL_BACKEND_OPENGLES] = &ngli_backend_gles,
+};
+
+static int configure(struct ngl_ctx *s, struct ngl_config *config)
+{
+    if (config->backend == NGL_BACKEND_AUTO)
+        config->backend = DEFAULT_BACKEND;
+    s->backend = backend_map[config->backend];
+    if (!s->backend)
+        return -1;
+    LOG(INFO, "selected backend: %s", s->backend->name);
+
+    int ret = s->backend->int_cfg_dp ? cmd_configure(s, config)
+                                     : ngli_dispatch_cmd(s, cmd_configure, config);
+    if (ret < 0)
+        return ret;
+    s->configured = 1;
+    return ret;
+}
+
+static int reconfigure(struct ngl_ctx *s, struct ngl_config *config)
+{
+    return s->backend->int_cfg_dp ? cmd_reconfigure(s, config)
+                                  : ngli_dispatch_cmd(s, cmd_reconfigure, config);
+}
 
 int ngl_configure(struct ngl_ctx *s, struct ngl_config *config)
 {
@@ -274,11 +207,7 @@ int ngl_configure(struct ngl_ctx *s, struct ngl_config *config)
     }
 
     if (s->configured)
-#if TARGET_IPHONE
-        return reconfigure_ios(s, config);
-#else
-        return dispatch_cmd(s, cmd_reconfigure, config);
-#endif
+        return reconfigure(s, config);
 
     s->has_thread = !config->wrapped;
     if (s->has_thread) {
@@ -294,16 +223,7 @@ int ngl_configure(struct ngl_ctx *s, struct ngl_config *config)
         }
     }
 
-#if TARGET_IPHONE
-    int ret = configure_ios(s, config);
-#else
-    int ret = dispatch_cmd(s, cmd_configure, config);
-#endif
-    if (ret < 0)
-        return ret;
-
-    s->configured = 1;
-    return 0;
+    return configure(s, config);
 }
 
 int ngl_set_scene(struct ngl_ctx *s, struct ngl_node *scene)
@@ -313,7 +233,7 @@ int ngl_set_scene(struct ngl_ctx *s, struct ngl_node *scene)
         return -1;
     }
 
-    return dispatch_cmd(s, cmd_set_scene, scene);
+    return ngli_dispatch_cmd(s, cmd_set_scene, scene);
 }
 
 int ngli_prepare_draw(struct ngl_ctx *s, double t)
@@ -323,7 +243,7 @@ int ngli_prepare_draw(struct ngl_ctx *s, double t)
         return -1;
     }
 
-    return dispatch_cmd(s, cmd_prepare_draw, &t);
+    return ngli_dispatch_cmd(s, cmd_prepare_draw, &t);
 }
 
 int ngl_draw(struct ngl_ctx *s, double t)
@@ -333,7 +253,7 @@ int ngl_draw(struct ngl_ctx *s, double t)
         return -1;
     }
 
-    return dispatch_cmd(s, cmd_draw, &t);
+    return ngli_dispatch_cmd(s, cmd_draw, &t);
 }
 
 void ngl_free(struct ngl_ctx **ss)
@@ -342,10 +262,9 @@ void ngl_free(struct ngl_ctx **ss)
 
     if (!s)
         return;
-
     if (s->configured) {
         ngl_set_scene(s, NULL);
-        dispatch_cmd(s, cmd_stop, NULL);
+        ngli_dispatch_cmd(s, cmd_stop, NULL);
 
         if (s->has_thread) {
             pthread_join(s->worker_tid, NULL);

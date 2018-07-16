@@ -61,6 +61,7 @@ struct ngl_ctx {
 
     /* Worker-only fields */
     struct glcontext *glcontext;
+    const struct backend *backend;
     struct glstate glstate;
     struct ngl_node *scene;
     struct ngl_config config;
@@ -591,6 +592,8 @@ struct node_class {
 };
 
 void ngli_node_print_specs(void);
+
+int ngli_dispatch_cmd(struct ngl_ctx *s, cmd_func_type cmd_func, void *arg);
 
 int ngli_node_init(struct ngl_node *node);
 int ngli_node_visit(struct ngl_node *node, int is_active, double t);

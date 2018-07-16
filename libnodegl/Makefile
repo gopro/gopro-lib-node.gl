@@ -52,6 +52,7 @@ LIB_NAME     = $(LIB_BASENAME).$(LIBSUFFIX)
 LIB_PCNAME   = $(LIB_BASENAME).pc
 
 LIB_OBJS = api.o                    \
+           backend_gl.o             \
            bstr.o                   \
            deserialize.o            \
            dot.o                    \

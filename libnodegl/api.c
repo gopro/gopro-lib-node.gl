@@ -193,8 +193,38 @@ static int configure(struct ngl_ctx *s, struct ngl_config *config)
     return ret;
 }
 
+static void cleanup_ctx(struct ngl_ctx *s)
+{
+    if (s->configured) {
+        ngl_set_scene(s, NULL);
+        ngli_dispatch_cmd(s, cmd_stop, NULL);
+
+        if (s->has_thread) {
+            pthread_join(s->worker_tid, NULL);
+            pthread_cond_destroy(&s->cond_ctl);
+            pthread_cond_destroy(&s->cond_wkr);
+            pthread_mutex_destroy(&s->lock);
+        }
+        s->configured = 0;
+    }
+}
+
 static int reconfigure(struct ngl_ctx *s, struct ngl_config *config)
 {
+    if (config->backend != s->config.backend ||
+        config->samples != s->config.samples) {
+        struct ngl_node *scene = ngl_node_ref(s->scene);
+        cleanup_ctx(s);
+
+        int ret = ngl_configure(s, config);
+        if (ret < 0) {
+            ngl_node_unrefp(&scene);
+            return ret;
+        }
+        ret = ngl_set_scene(s, scene);
+        ngl_node_unrefp(&scene);
+        return ret;
+    }
     return s->backend->int_cfg_dp ? cmd_reconfigure(s, config)
                                   : ngli_dispatch_cmd(s, cmd_reconfigure, config);
 }
@@ -262,17 +292,7 @@ void ngl_free(struct ngl_ctx **ss)
 
     if (!s)
         return;
-    if (s->configured) {
-        ngl_set_scene(s, NULL);
-        ngli_dispatch_cmd(s, cmd_stop, NULL);
-
-        if (s->has_thread) {
-            pthread_join(s->worker_tid, NULL);
-            pthread_cond_destroy(&s->cond_ctl);
-            pthread_cond_destroy(&s->cond_wkr);
-            pthread_mutex_destroy(&s->lock);
-        }
-    }
+    cleanup_ctx(s);
     free(*ss);
     *ss = NULL;
 }

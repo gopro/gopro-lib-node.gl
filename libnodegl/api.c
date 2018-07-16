@@ -93,9 +93,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         return ret;
 
-    s->glstate = ngli_glstate_create(s->glcontext);
-    if (!s->glstate)
-        return -1;
+    ngli_glstate_probe(s->glcontext, &s->glstate);
 
     const int *viewport = config->viewport;
     if (viewport[2] > 0 && viewport[3] > 0)
@@ -192,7 +190,6 @@ end:
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
     ngli_glcontext_freep(&s->glcontext);
-    ngli_glstate_freep(&s->glstate);
     return 0;
 }
 

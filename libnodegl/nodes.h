@@ -61,7 +61,7 @@ struct ngl_ctx {
 
     /* Worker-only fields */
     struct glcontext *glcontext;
-    struct glstate *glstate;
+    struct glstate glstate;
     struct ngl_node *scene;
     struct ngl_config config;
     int timer_active;

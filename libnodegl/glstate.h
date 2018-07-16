@@ -47,12 +47,11 @@ struct glstate {
     GLenum stencil_depth_pass;
 };
 
-struct glstate *ngli_glstate_create(const struct glcontext *gl);
+void ngli_glstate_probe(const struct glcontext *gl,
+                        struct glstate *glstate);
 
 void ngli_glstate_honor_state(const struct glcontext *gl,
                               const struct glstate *next,
                               const struct glstate *prev);
-
-void ngli_glstate_freep(struct glstate **glstatep);
 
 #endif

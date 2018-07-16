@@ -184,7 +184,7 @@ static void honor_config(struct ngl_node *node, int restore)
     struct glstate *next = restore ? &s->states[1] : &s->states[0];
 
     if (!restore) {
-        *next = *ctx->glstate;
+        *next = ctx->glstate;
 
         COPY_PARAM(blend);
         COPY_PARAM(blend_dst_factor);
@@ -213,8 +213,8 @@ static void honor_config(struct ngl_node *node, int restore)
         COPY_PARAM(stencil_depth_pass);
     }
 
-    *prev = *ctx->glstate;
-    *ctx->glstate = *next;
+    *prev = ctx->glstate;
+    ctx->glstate = *next;
 
     ngli_glstate_honor_state(gl, next, prev);
 }

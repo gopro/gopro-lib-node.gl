@@ -25,12 +25,8 @@
 #include "glincludes.h"
 #include "glstate.h"
 
-struct glstate *ngli_glstate_create(const struct glcontext *gl)
+void ngli_glstate_probe(const struct glcontext *gl, struct glstate *state)
 {
-    struct glstate *state = calloc(1, sizeof(*state));
-    if (!state)
-        return NULL;
-
     /* Blend */
     ngli_glGetIntegerv(gl, GL_BLEND,                   (GLint *)&state->blend);
     ngli_glGetIntegerv(gl, GL_BLEND_SRC_RGB,           (GLint *)&state->blend_src_factor);
@@ -57,8 +53,6 @@ struct glstate *ngli_glstate_create(const struct glcontext *gl)
     ngli_glGetIntegerv(gl, GL_STENCIL_FAIL,            (GLint *)&state->stencil_fail);
     ngli_glGetIntegerv(gl, GL_STENCIL_PASS_DEPTH_FAIL, (GLint *)&state->stencil_depth_fail);
     ngli_glGetIntegerv(gl, GL_STENCIL_PASS_DEPTH_PASS, (GLint *)&state->stencil_depth_pass);
-
-    return state;
 }
 
 void ngli_glstate_honor_state(const struct glcontext *gl,
@@ -145,10 +139,4 @@ void ngli_glstate_honor_state(const struct glcontext *gl,
                          next->stencil_depth_fail,
                          next->stencil_depth_pass);
     }
-}
-
-void ngli_glstate_freep(struct glstate **glstatep)
-{
-    free(*glstatep);
-    *glstatep = NULL;
 }

@@ -241,10 +241,8 @@ class Player(QtCore.QThread):
         self._duration = cfg['duration']
         self._clear_color = cfg['clear_color']
         self._aspect_ratio = cfg['aspect_ratio']
-        if self._samples != cfg['samples'] or self._backend != cfg['backend']:
-            self._samples = cfg['samples']
-            self._backend = cfg['backend']
-            self._viewer = ngl.Viewer()
+        self._backend = cfg['backend']
+        self._samples = cfg['samples']
         self._viewer.set_scene_from_string(self._scene)
         self._configure_viewer()
         self._clock.configure(self._framerate, self._duration)
@@ -267,7 +265,6 @@ class Player(QtCore.QThread):
 
     def _set_samples(self, samples):
         self._samples = samples
-        self._viewer = ngl.Viewer()
         self._configure_viewer()
         return False
 
@@ -293,6 +290,5 @@ class Player(QtCore.QThread):
 
     def _set_backend(self, backend):
         self._backend = backend
-        self._viewer = ngl.Viewer()
         self._configure_viewer()
         return False

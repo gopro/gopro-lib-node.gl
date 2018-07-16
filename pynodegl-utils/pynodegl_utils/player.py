@@ -115,7 +115,6 @@ class Player(QtCore.QThread):
         self._samples = config.get('samples')
         self._backend = config.get('backend')
 
-        self._viewer = None
         self._events = []
         self._wait_first_frame = True
         self._clock = Clock(self._framerate, self._duration)

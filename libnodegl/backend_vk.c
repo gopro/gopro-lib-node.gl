@@ -472,7 +472,13 @@ static VkResult create_vulkan_device(struct glcontext *vk)
         .enabledExtensionCount = NGLI_ARRAY_NB(my_device_extension_names),
         .ppEnabledExtensionNames = my_device_extension_names,
     };
-    return vkCreateDevice(vk->physical_device, &device_create_info, NULL, &vk->device);
+    VkResult ret = vkCreateDevice(vk->physical_device, &device_create_info, NULL, &vk->device);
+    if (ret != VK_SUCCESS)
+        return ret;
+
+    vkGetDeviceQueue(vk->device, vk->queue_family_graphics_id, 0, &vk->graphic_queue);
+    vkGetDeviceQueue(vk->device, vk->queue_family_present_id, 0, &vk->present_queue);
+    return ret;
 }
 
 static VkResult create_swapchain(struct glcontext *vk)
@@ -789,12 +795,6 @@ static int vulkan_init(struct glcontext *vk, uintptr_t display, uintptr_t window
 
 static void vulkan_swap_buffers(struct glcontext *vk)
 {
-    // XXX: store it in context
-    VkQueue graphic_queue;
-    vkGetDeviceQueue(vk->device, vk->queue_family_graphics_id, 0, &graphic_queue);
-    VkQueue present_queue;
-    vkGetDeviceQueue(vk->device, vk->queue_family_present_id, 0, &present_queue);
-
     VkSemaphore wait_sem[] = {vk->sem_img_avail[vk->current_frame]};
     VkSemaphore sig_sem[] = {vk->sem_render_finished[vk->current_frame]};
     VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -810,7 +810,7 @@ static void vulkan_swap_buffers(struct glcontext *vk)
         .pSignalSemaphores = sig_sem,
     };
 
-    VkResult ret = vkQueueSubmit(graphic_queue, 1, &submit_info, vk->fences[vk->current_frame]);
+    VkResult ret = vkQueueSubmit(vk->graphic_queue, 1, &submit_info, vk->fences[vk->current_frame]);
     if (ret != VK_SUCCESS)
         LOG(ERROR, "submit failed");
 
@@ -823,7 +823,7 @@ static void vulkan_swap_buffers(struct glcontext *vk)
         .pImageIndices = &vk->img_index,
     };
 
-    ret = vkQueuePresentKHR(present_queue, &present_info);
+    ret = vkQueuePresentKHR(vk->present_queue, &present_info);
     if (ret == VK_ERROR_OUT_OF_DATE_KHR) {
         LOG(ERROR, "PRESENT OUT OF DATE");
     } else if (ret == VK_SUBOPTIMAL_KHR) {
@@ -999,10 +999,6 @@ static int vk_pre_draw(struct ngl_ctx *s)
 {
     int ret;
     struct glcontext *vk = s->glcontext;
-
-    // XXX: store it in context
-    VkQueue present_queue;
-    vkGetDeviceQueue(vk->device, vk->queue_family_present_id, 0, &present_queue);
 
     vkWaitForFences(vk->device, 1, &vk->fences[vk->current_frame], VK_TRUE, UINT64_MAX);
     vkResetFences(vk->device, 1, &vk->fences[vk->current_frame]);

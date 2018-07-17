@@ -67,6 +67,9 @@ struct glcontext {
     VkExtent2D extent;
     VkRenderPass render_pass;
 
+    VkQueue graphic_queue;
+    VkQueue present_queue;
+
     VkInstance instance;
     VkDebugReportCallbackEXT report_callback;
     VkPhysicalDevice physical_device;

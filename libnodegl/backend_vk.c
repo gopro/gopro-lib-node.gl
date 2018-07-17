@@ -934,8 +934,6 @@ static int vk_configure(struct ngl_ctx *s, const struct ngl_config *config)
 
 static int vk_clear(struct glcontext *vk)
 {
-    vk->clear = 1;
-
     const float *rgba = vk->config.clear_color;
     VkClearColorValue clearColor = {
         { rgba[0], rgba[1], rgba[2], rgba[3] }

@@ -384,7 +384,7 @@ int ngli_texture_update_local_texture(struct ngl_node *node,
 
 struct uniformprograminfo {
 #ifdef VULKAN_BACKEND
-    // TODO
+    uint32_t offset;
 #else
     GLint id;
     GLint size;
@@ -435,6 +435,10 @@ struct render {
     VkBuffer vkbuffers[64]; // FIXME alloc
     VkDeviceSize offsets[64]; // FIXME alloc
     int nb_binds;
+
+    uint32_t uniform_buffer_size;
+    VkBuffer *uniform_buffers;
+    VkDeviceMemory *uniform_device_memory;
 #else
     GLint *attribute_ids;
     GLint *buffer_ids;

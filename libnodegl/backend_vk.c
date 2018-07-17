@@ -687,6 +687,62 @@ static VkResult create_command_buffers(struct glcontext *vk)
     return VK_SUCCESS;
 }
 
+static VkResult create_descriptor_pool(struct glcontext *vk)
+{
+    // TODO: uniform specific
+    VkDescriptorPoolSize descriptor_pool_size = {
+        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = vk->nb_framebuffers,
+    };
+
+    VkDescriptorPoolCreateInfo descriptor_pool_create_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .poolSizeCount = 1,
+        .pPoolSizes = &descriptor_pool_size,
+        .maxSets = vk->nb_framebuffers,
+    };
+
+    return vkCreateDescriptorPool(vk->device, &descriptor_pool_create_info, NULL, &vk->descriptor_pool);
+}
+
+static VkResult create_descriptor_sets(struct glcontext *vk)
+{
+    VkDescriptorSetLayoutBinding descriptor_set_layout_binding = {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .pImmutableSamplers = NULL,
+    };
+
+    VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .bindingCount = 1,
+        .pBindings = &descriptor_set_layout_binding,
+    };
+    
+    VkResult ret = vkCreateDescriptorSetLayout(vk->device, &descriptor_set_layout_create_info, NULL, &vk->descriptor_set_layout);
+    if (ret != VK_SUCCESS)
+        return ret;
+
+    vk->descriptor_sets = calloc(vk->nb_framebuffers, sizeof(*vk->descriptor_sets));
+    VkDescriptorSetLayout *descriptor_set_layouts = calloc(vk->nb_framebuffers, sizeof(*descriptor_set_layouts));
+    for (uint32_t i = 0; i < vk->nb_framebuffers; i++) {
+        descriptor_set_layouts[i] = vk->descriptor_set_layout;
+    }
+
+    VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .descriptorPool = vk->descriptor_pool,
+        .descriptorSetCount = vk->nb_framebuffers,
+        .pSetLayouts = descriptor_set_layouts,
+    };
+    ret = vkAllocateDescriptorSets(vk->device, &descriptor_set_allocate_info, vk->descriptor_sets);
+    free(descriptor_set_layouts);
+
+    return ret;
+}
+
 static VkResult create_semaphores(struct glcontext *vk)
 {
     VkResult ret;
@@ -784,6 +840,9 @@ static int vulkan_init(struct glcontext *vk, uintptr_t display, uintptr_t window
         (ret = create_swapchain_framebuffers(vk)) != VK_SUCCESS ||
         (ret = create_command_pool(vk)) != VK_SUCCESS ||
         (ret = create_command_buffers(vk)) != VK_SUCCESS ||
+
+        (ret = create_descriptor_pool(vk)) != VK_SUCCESS ||
+        (ret = create_descriptor_sets(vk)) != VK_SUCCESS ||
 
         (ret = create_semaphores(vk)) != VK_SUCCESS) {
         //vulkan_uninit(vk);
@@ -885,6 +944,10 @@ static void vulkan_uninit(struct glcontext *vk)
     free(vk->fences);
 
     cleanup_swapchain(vk);
+
+    vkDestroyDescriptorSetLayout(vk->device, vk->descriptor_set_layout, NULL);
+    vkDestroyDescriptorPool(vk->device, vk->descriptor_pool, NULL);
+    free(vk->descriptor_sets);
 
     vkDestroyCommandPool(vk->device, vk->command_pool, NULL);
 

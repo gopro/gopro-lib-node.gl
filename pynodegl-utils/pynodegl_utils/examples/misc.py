@@ -667,3 +667,27 @@ def vktest(cfg):
     camera.set_perspective(45.0, cfg.aspect_ratio_float, 1.0, 10.0)
 
     return camera
+
+@scene()
+def vkuniform(cfg):
+
+    vertices_data = array.array('f', [-0.5, -0.5, 0.0,
+                                       0.5, -0.5, 0.0,
+                                       0.5,  0.5, 0.0,
+                                      -0.5,  0.5, 0.0])
+
+    indices_data = array.array('i', [0, 1, 2, 2, 3, 0])
+
+    color_uniform0 = UniformVec4(value=[1.0, 0.0, 0.0, 1.0])
+    color_uniform1 = UniformVec4(value=[0.0, 1.0, 0.0, 1.0])
+    speed_uniform2 = UniformFloat(value=0.5)
+    vertices_buffer = BufferVec3(data=vertices_data)
+    indices_buffer = BufferUInt(data=indices_data)
+
+    geometry = Geometry(vertices_buffer, indices=indices_buffer)
+    program = Program(fragment=get_vk_frag('vkuniform'),
+                      vertex=get_vk_vert('vkuniform'))
+    render = Render(geometry, program)
+    render.update_uniforms(color0=color_uniform0)
+
+    return render

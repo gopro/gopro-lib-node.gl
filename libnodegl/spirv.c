@@ -56,18 +56,36 @@ int ngli_spirv_get_name_location(const uint32_t *code, size_t size,
         if (size < instruction_size)
             return -1;
 
-        if (opcode == 5) { // OpName
-            const uint32_t target = code[1];
-            const char *target_name = (const char *)&code[2];
-            if (!strncmp(name, target_name, (word_count - 2) * sizeof(*code)))
-                target_id = target;
-        } else if (opcode == 71) { // OpDecorate
-            const uint32_t target     = code[1];
-            const uint32_t decoration = code[2];
-            if (target == target_id && decoration == 30 /* location */)
-                return code[3];
-        }
+        switch(opcode) {
+            // OpName
+            case 5: {
+                const uint32_t target = code[1];
+                const char *target_name = (const char *)&code[2];
+                if (!strncmp(name, target_name, (word_count - 2) * sizeof(*code)))
+                    target_id = target;
+                break;
+            }
 
+            // OpMemberName - TODO: implement proper reflection 
+            // this is a workaround to check if there is an uniforn
+            case 6: {
+                const uint32_t type = code[1];
+                const uint32_t index = code[2];
+                const char *target_name = (const char *)&code[3];
+                if (!strncmp(name, target_name, (word_count - 3 * sizeof(*code))))
+                    return index;
+                break;
+            }
+
+            // OpDecorate
+            case 71: {
+                const uint32_t target     = code[1];
+                const uint32_t decoration = code[2];
+                if (target == target_id && decoration == 30 /* location */)
+                    return code[3];
+                break;
+            }
+        }
         code += word_count;
         size -= instruction_size;
     }

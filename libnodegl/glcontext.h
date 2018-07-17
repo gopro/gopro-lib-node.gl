@@ -104,6 +104,10 @@ struct glcontext {
     VkCommandBuffer *command_buffers;
     int nb_command_buffers;
 
+    VkDescriptorPool descriptor_pool;
+    VkDescriptorSetLayout descriptor_set_layout;
+    VkDescriptorSet *descriptor_sets;
+
     uint32_t img_index;
 
     int nb_in_flight_frames;

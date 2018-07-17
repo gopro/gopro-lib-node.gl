@@ -83,13 +83,17 @@ static int animatedbuffer_update(struct ngl_node *node, double t)
         memcpy(dst, kf->data, s->data_size);
     }
 
-    struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
 
     if (s->generate_gl_buffer) {
+#ifdef VULKAN_BACKEND
+        // TODO
+#else
+        struct ngl_ctx *ctx = node->ctx;
+        struct glcontext *gl = ctx->glcontext;
         ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->buffer_id);
         ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, 0, s->data_size, s->data);
         ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, 0);
+#endif
     }
 
     return 0;
@@ -98,8 +102,6 @@ static int animatedbuffer_update(struct ngl_node *node, double t)
 static int animatedbuffer_init(struct ngl_node *node)
 {
     struct buffer *s = node->priv_data;
-    struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
     double prev_time = 0;
 
     s->data_comp = node->class->id - NGL_NODE_ANIMATEDBUFFERFLOAT + 1;
@@ -138,16 +140,26 @@ static int animatedbuffer_init(struct ngl_node *node)
     if (!s->data)
         return -1;
 
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     s->usage  = GL_DYNAMIC_DRAW;
     s->data_comp_type = GL_FLOAT;
+#endif
 
     s->data_size = s->count * s->data_stride;
 
     if (s->generate_gl_buffer) {
+#ifdef VULKAN_BACKEND
+        // TODO
+#else
+        struct ngl_ctx *ctx = node->ctx;
+        struct glcontext *gl = ctx->glcontext;
         ngli_glGenBuffers(gl, 1, &s->buffer_id);
         ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->buffer_id);
         ngli_glBufferData(gl, GL_ARRAY_BUFFER, s->data_size, s->data, s->usage);
         ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, 0);
+#endif
     }
 
     return 0;
@@ -155,12 +167,16 @@ static int animatedbuffer_init(struct ngl_node *node)
 
 static void animatedbuffer_uninit(struct ngl_node *node)
 {
+    struct buffer *s = node->priv_data;
+
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
 
-    struct buffer *s = node->priv_data;
-
     ngli_glDeleteBuffers(gl, 1, &s->buffer_id);
+#endif
 
     free(s->data);
     s->data = NULL;

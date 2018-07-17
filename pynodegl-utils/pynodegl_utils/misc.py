@@ -1,3 +1,4 @@
+import array
 import os.path as op
 import platform
 import math
@@ -44,6 +45,25 @@ def scene(**widgets_specs):
         return func_wrapper
 
     return real_decorator
+
+
+def get_vk_shader(name, stype, shader_path=None):
+    if shader_path is None:
+        shader_path = op.join(op.dirname(__file__), 'examples', 'shaders')
+    src_path = op.join(shader_path, '%s.%s' % (name, stype))
+    dst_path = op.join(shader_path, '%s-%s.spv' % (name, stype))
+    print 'SPV: %s -> %s' % (src_path, dst_path)
+    ret = subprocess.call(['glslangValidator', '-V', '-o', dst_path, src_path])
+    assert ret == 0
+    return array.array('b', open(dst_path).read())
+
+
+def get_vk_frag(name, shader_path=None):
+    return get_vk_shader(name, 'frag', shader_path)
+
+
+def get_vk_vert(name, shader_path=None):
+    return get_vk_shader(name, 'vert', shader_path)
 
 
 def get_shader(filename, shader_path=None):
@@ -168,5 +188,6 @@ def get_backend(backend):
     backend_map = {
         'gl': ngl.BACKEND_OPENGL,
         'gles': ngl.BACKEND_OPENGLES,
+        'vk': ngl.BACKEND_VULKAN,
     }
     return backend_map[backend]

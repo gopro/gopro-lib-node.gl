@@ -19,6 +19,8 @@
  * under the License.
  */
 
+#include <inttypes.h>
+
 #include "hmap.h"
 #include "nodegl.h"
 #include "nodes.h"

@@ -52,14 +52,11 @@ LIB_NAME     = $(LIB_BASENAME).$(LIBSUFFIX)
 LIB_PCNAME   = $(LIB_BASENAME).pc
 
 LIB_OBJS = api.o                    \
-           backend_gl.o             \
            bstr.o                   \
            deserialize.o            \
            dot.o                    \
-           glcontext.o              \
            glstate.o                \
            hmap.o                   \
-           hwupload.o               \
            log.o                    \
            math_utils.o             \
            node_animatedbuffer.o    \
@@ -92,6 +89,7 @@ LIB_OBJS = api.o                    \
            nodes.o                  \
            params.o                 \
            serialize.o              \
+           spirv.o                  \
            transforms.o             \
            utils.o                  \
 
@@ -99,14 +97,28 @@ LIB_OBJS_ARCH_aarch64 = asm_aarch64.o
 
 LIB_OBJS += $(LIB_OBJS_ARCH_$(ARCH))
 
+ifeq ($(BACKEND),vk)
+LIB_OBJS += backend_vk.o            \
+
+else
+LIB_OBJS += backend_gl.o            \
+            glcontext.o             \
+            hwupload.o              \
+
 LIB_EXTRA_OBJS_Linux     = glcontext_x11.o glcontext_egl.o
+endif
+
 LIB_EXTRA_OBJS_Darwin    = glcontext_nsgl.o
 LIB_EXTRA_OBJS_Android   = glcontext_egl.o jni_utils.o android_utils.o android_looper.o android_surface.o android_handler.o android_handlerthread.o
 LIB_EXTRA_OBJS_iPhone    = glcontext_eagl.o
 LIB_EXTRA_OBJS_MinGW-w64 = glcontext_wgl.o
 
 LIB_CFLAGS                 = -fPIC
+ifeq ($(BACKEND),vk)
+LIB_EXTRA_CFLAGS_Linux     = -DHAVE_PLATFORM_VULKAN
+else
 LIB_EXTRA_CFLAGS_Linux     = -DHAVE_PLATFORM_GLX -DHAVE_PLATFORM_EGL
+endif
 LIB_EXTRA_CFLAGS_Darwin    = -DHAVE_PLATFORM_NSGL
 LIB_EXTRA_CFLAGS_Android   = -DHAVE_PLATFORM_EGL
 LIB_EXTRA_CFLAGS_iPhone    = -DHAVE_PLATFORM_EAGL
@@ -120,10 +132,18 @@ LIB_EXTRA_LDLIBS_iPhone    = -framework CoreMedia
 LIB_EXTRA_LDLIBS_MinGW-w64 = -lopengl32
 
 LIB_PKG_CONFIG_LIBS               = "libsxplayer >= 9.2.0"
+ifeq ($(BACKEND),vk)
+LIB_EXTRA_PKG_CONFIG_LIBS_Linux   = x11 vulkan
+else
 LIB_EXTRA_PKG_CONFIG_LIBS_Linux   = x11 gl egl
+endif
 LIB_EXTRA_PKG_CONFIG_LIBS_Darwin  =
 LIB_EXTRA_PKG_CONFIG_LIBS_Android = libavcodec
 LIB_EXTRA_PKG_CONFIG_LIBS_iPhone  =
+
+ifeq ($(BACKEND),vk)
+LIB_PKG_CONFIG_LIBS += vulkan
+endif
 
 LIB_OBJS   += $(LIB_EXTRA_OBJS_$(TARGET_OS))
 LIB_CFLAGS += $(LIB_EXTRA_CFLAGS_$(TARGET_OS))
@@ -222,6 +242,7 @@ gl.xml:
 #
 TESTS = asm             \
         hmap            \
+        spirv           \
         utils           \
 
 TESTPROGS = $(addprefix test_,$(TESTS))
@@ -234,6 +255,7 @@ test_asm: LDLIBS = $(PROJECT_LDLIBS) -lm
 test_asm: test_asm.o math_utils.o $(LIB_OBJS_ARCH_$(ARCH))
 test_hmap: test_hmap.o utils.o
 test_utils: test_utils.o utils.o
+test_spirv: test_spirv.o spirv.o
 
 
 #

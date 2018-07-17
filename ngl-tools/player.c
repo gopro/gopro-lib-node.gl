@@ -20,6 +20,10 @@
  */
 
 #include <string.h>
+
+#ifdef VULKAN_BACKEND
+#define GLFW_INCLUDE_VULKAN
+#endif
 #include <GLFW/glfw3.h>
 
 #include "common.h"

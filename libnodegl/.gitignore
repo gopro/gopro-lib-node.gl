@@ -7,4 +7,5 @@
 /libnodegl.symexport
 /test_asm
 /test_hmap
+/test_spirv
 /test_utils

@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -29,6 +30,9 @@
 #include "nodegl.h"
 #include "nodes.h"
 
+#ifdef VULKAN_BACKEND
+// TODO
+#else
 static const struct param_choices usage_choices = {
     .name = "buffer_usage",
     .consts = {
@@ -53,6 +57,7 @@ static const struct param_choices usage_choices = {
         {NULL}
     }
 };
+#endif
 
 #define OFFSET(x) offsetof(struct buffer, x)
 static const struct node_param buffer_params[] = {
@@ -64,9 +69,13 @@ static const struct node_param buffer_params[] = {
                .desc=NGLI_DOCSTRING("filename from which the buffer will be read, cannot be used with `data`")},
     {"stride", PARAM_TYPE_INT,    OFFSET(data_stride),
                .desc=NGLI_DOCSTRING("stride of 1 element, in bytes")},
+#ifdef VULKAN_BACKEND
+// TODO
+#else
     {"usage",  PARAM_TYPE_SELECT, OFFSET(usage),  {.i64=GL_STATIC_DRAW},
                .desc=NGLI_DOCSTRING("buffer usage hint"),
                .choices=&usage_choices},
+#endif
     {NULL}
 };
 
@@ -146,11 +155,19 @@ static int buffer_init_from_count(struct ngl_node *node)
     return 0;
 }
 
+// XXX: move to backend
+#ifdef VULKAN_BACKEND
+static int find_memory_type(struct glcontext *vk, uint32_t type_filter, VkMemoryPropertyFlags props)
+{
+    for (int i = 0; i < vk->phydev_mem_props.memoryTypeCount; i++)
+        if ((type_filter & (1<<i)) && (vk->phydev_mem_props.memoryTypes[i].propertyFlags & props) == props)
+            return i;
+    return -1;
+}
+#endif
+
 static int buffer_init(struct ngl_node *node)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
-
     struct buffer *s = node->priv_data;
 
     if (s->data && s->filename) {
@@ -162,6 +179,45 @@ static int buffer_init(struct ngl_node *node)
     int ret;
     int data_comp_size;
     int nb_comp;
+
+#ifdef VULKAN_BACKEND
+    VkFormat format;
+
+    switch (node->class->id) {
+    case NGL_NODE_BUFFERBYTE:   data_comp_size = 1; nb_comp = 1; format = VK_FORMAT_R8_SINT;                break;
+    case NGL_NODE_BUFFERBVEC2:  data_comp_size = 1; nb_comp = 2; format = VK_FORMAT_R8G8_SINT;              break;
+    case NGL_NODE_BUFFERBVEC3:  data_comp_size = 1; nb_comp = 3; format = VK_FORMAT_R8G8B8_SINT;            break;
+    case NGL_NODE_BUFFERBVEC4:  data_comp_size = 1; nb_comp = 4; format = VK_FORMAT_R8G8B8A8_SINT;          break;
+    case NGL_NODE_BUFFERINT:    data_comp_size = 4; nb_comp = 1; format = VK_FORMAT_R32_SINT;               break;
+    case NGL_NODE_BUFFERIVEC2:  data_comp_size = 4; nb_comp = 2; format = VK_FORMAT_R32G32_SINT;            break;
+    case NGL_NODE_BUFFERIVEC3:  data_comp_size = 4; nb_comp = 3; format = VK_FORMAT_R32G32B32_SINT;         break;
+    case NGL_NODE_BUFFERIVEC4:  data_comp_size = 4; nb_comp = 4; format = VK_FORMAT_R32G32B32A32_SINT;      break;
+    case NGL_NODE_BUFFERSHORT:  data_comp_size = 2; nb_comp = 1; format = VK_FORMAT_R16_SINT;               break;
+    case NGL_NODE_BUFFERSVEC2:  data_comp_size = 2; nb_comp = 2; format = VK_FORMAT_R16G16_SINT;            break;
+    case NGL_NODE_BUFFERSVEC3:  data_comp_size = 2; nb_comp = 3; format = VK_FORMAT_R16G16B16_SINT;         break;
+    case NGL_NODE_BUFFERSVEC4:  data_comp_size = 2; nb_comp = 4; format = VK_FORMAT_R16G16B16A16_SINT;      break;
+    case NGL_NODE_BUFFERUBYTE:  data_comp_size = 1; nb_comp = 1; format = VK_FORMAT_R8_UINT;                break;
+    case NGL_NODE_BUFFERUBVEC2: data_comp_size = 1; nb_comp = 2; format = VK_FORMAT_R8G8_UINT;              break;
+    case NGL_NODE_BUFFERUBVEC3: data_comp_size = 1; nb_comp = 3; format = VK_FORMAT_R8G8B8_UINT;            break;
+    case NGL_NODE_BUFFERUBVEC4: data_comp_size = 1; nb_comp = 4; format = VK_FORMAT_R8G8B8A8_UINT;          break;
+    case NGL_NODE_BUFFERUINT:   data_comp_size = 4; nb_comp = 1; format = VK_FORMAT_R32_UINT;               break;
+    case NGL_NODE_BUFFERUIVEC2: data_comp_size = 4; nb_comp = 2; format = VK_FORMAT_R32G32_UINT;            break;
+    case NGL_NODE_BUFFERUIVEC3: data_comp_size = 4; nb_comp = 3; format = VK_FORMAT_R32G32B32_UINT;         break;
+    case NGL_NODE_BUFFERUIVEC4: data_comp_size = 4; nb_comp = 4; format = VK_FORMAT_R32G32B32A32_UINT;      break;
+    case NGL_NODE_BUFFERUSHORT: data_comp_size = 2; nb_comp = 1; format = VK_FORMAT_R16_UINT;               break;
+    case NGL_NODE_BUFFERUSVEC2: data_comp_size = 2; nb_comp = 2; format = VK_FORMAT_R16G16_UINT;            break;
+    case NGL_NODE_BUFFERUSVEC3: data_comp_size = 2; nb_comp = 3; format = VK_FORMAT_R16G16B16_UINT;         break;
+    case NGL_NODE_BUFFERUSVEC4: data_comp_size = 2; nb_comp = 4; format = VK_FORMAT_R16G16B16A16_UINT;      break;
+    case NGL_NODE_BUFFERFLOAT:  data_comp_size = 4; nb_comp = 1; format = VK_FORMAT_R32_SFLOAT;             break;
+    case NGL_NODE_BUFFERVEC2:   data_comp_size = 4; nb_comp = 2; format = VK_FORMAT_R32G32_SFLOAT;          break;
+    case NGL_NODE_BUFFERVEC3:   data_comp_size = 4; nb_comp = 3; format = VK_FORMAT_R32G32B32_SFLOAT;       break;
+    case NGL_NODE_BUFFERVEC4:   data_comp_size = 4; nb_comp = 4; format = VK_FORMAT_R32G32B32A32_SFLOAT;    break;
+    default:
+        ngli_assert(0);
+    }
+
+    s->data_format = format;
+#else
     GLenum comp_type;
 
     switch (node->class->id) {
@@ -197,8 +253,10 @@ static int buffer_init(struct ngl_node *node)
         ngli_assert(0);
     }
 
-    s->data_comp = nb_comp;
     s->data_comp_type = comp_type;
+#endif
+
+    s->data_comp = nb_comp;
 
     if (!s->data_stride)
         s->data_stride = s->data_comp * data_comp_size;
@@ -213,10 +271,50 @@ static int buffer_init(struct ngl_node *node)
         return ret;
 
     if (s->generate_gl_buffer) {
+        struct ngl_ctx *ctx = node->ctx;
+
+#ifdef VULKAN_BACKEND
+        struct glcontext *vk = ctx->glcontext;
+
+        VkBufferCreateInfo buffer_create_info = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = s->data_size,
+            .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+                   | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+                   | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, // XXX: allow more usage / filter them?
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+        if (vkCreateBuffer(vk->device, &buffer_create_info, NULL, &s->vkbuf) != VK_SUCCESS)
+            return -1;
+
+        /* alloc madness */
+        VkMemoryRequirements mem_req;
+        vkGetBufferMemoryRequirements(vk->device, s->vkbuf, &mem_req);
+        VkMemoryAllocateInfo alloc_info = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = mem_req.size,
+            .memoryTypeIndex = find_memory_type(vk, mem_req.memoryTypeBits,
+                                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT),
+        };
+        VkResult vkret = vkAllocateMemory(vk->device, &alloc_info, NULL, &s->vkmem);
+        if (vkret != VK_SUCCESS)
+            return -1;
+        vkBindBufferMemory(vk->device, s->vkbuf, s->vkmem, 0);
+
+        /* transfer cpu data to gpu with a memory map */
+        void *mapped_mem;
+        vkMapMemory(vk->device, s->vkmem, 0, s->data_size, 0, &mapped_mem);
+        memcpy(mapped_mem, s->data, s->data_size);
+        vkUnmapMemory(vk->device, s->vkmem);
+
+#else
+        struct glcontext *gl = ctx->glcontext;
+
         ngli_glGenBuffers(gl, 1, &s->buffer_id);
         ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->buffer_id);
         ngli_glBufferData(gl, GL_ARRAY_BUFFER, s->data_size, s->data, s->usage);
         ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, 0);
+#endif
     }
 
     return 0;
@@ -225,8 +323,6 @@ static int buffer_init(struct ngl_node *node)
 static void buffer_uninit(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
-
     struct buffer *s = node->priv_data;
 
     if (s->filename && s->fd) {
@@ -236,7 +332,14 @@ static void buffer_uninit(struct ngl_node *node)
         }
     }
 
+#ifdef VULKAN_BACKEND
+    struct glcontext *vk = ctx->glcontext;
+    vkDestroyBuffer(vk->device, s->vkbuf, NULL);
+    vkFreeMemory(vk->device, s->vkmem, NULL);
+#else
+    struct glcontext *gl = ctx->glcontext;
     ngli_glDeleteBuffers(gl, 1, &s->buffer_id);
+#endif
 }
 
 #define DEFINE_BUFFER_CLASS(class_id, class_name, type)     \

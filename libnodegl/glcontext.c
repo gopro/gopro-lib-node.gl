@@ -123,14 +123,7 @@ struct glcontext *ngli_glcontext_new(const struct ngl_config *config)
     glcontext->height = config->height;
     glcontext->samples = config->samples;
     glcontext->set_surface_pts = config->set_surface_pts;
-
-    if (glcontext->offscreen && (glcontext->width <= 0 || glcontext->height <= 0)) {
-        LOG(ERROR,
-            "could not initialize offscreen rendering with invalid dimensions (%dx%d)",
-            glcontext->width,
-            glcontext->height);
-        goto fail;
-    }
+    memcpy(glcontext->clear_color, config->clear_color, sizeof(config->clear_color));
 
     if (glcontext->class->init) {
         uintptr_t handle = glcontext->wrapped ? config->handle : 0;
@@ -342,6 +335,7 @@ static int glcontext_probe_settings(struct glcontext *glcontext)
 
     return 0;
 }
+#endif
 
 int ngli_glcontext_load_extensions(struct glcontext *glcontext)
 {
@@ -503,3 +497,4 @@ int ngli_glcontext_check_gl_error(const struct glcontext *glcontext, const char 
 
     return error;
 }
+#endif

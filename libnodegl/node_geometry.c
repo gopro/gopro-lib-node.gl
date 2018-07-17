@@ -63,12 +63,12 @@ fail:
 
 struct ngl_node *ngli_geometry_generate_indices_buffer(struct ngl_ctx *ctx, int count)
 {
-    int size = count * sizeof(GLushort);
-    uint8_t *data = calloc(count, sizeof(GLushort));
+    int size = count * sizeof(short);
+    uint8_t *data = calloc(count, sizeof(short));
     if (!data)
         return NULL;
 
-    SET_INDICES(GLushort, count, data);
+    SET_INDICES(short, count, data);
 
     struct ngl_node *node = ngli_geometry_generate_buffer(ctx,
                                                           NGL_NODE_BUFFERUSHORT,
@@ -79,9 +79,30 @@ struct ngl_node *ngli_geometry_generate_indices_buffer(struct ngl_ctx *ctx, int 
     return node;
 }
 
+//VK_PRIMITIVE_TOPOLOGY_POINT_LIST = 0,
+//VK_PRIMITIVE_TOPOLOGY_LINE_LIST = 1,
+//VK_PRIMITIVE_TOPOLOGY_LINE_STRIP = 2,
+//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST = 3,
+//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP = 4,
+//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN = 5,
+//VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY = 6,
+//VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY = 7,
+//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY = 8,
+//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY = 9,
+//VK_PRIMITIVE_TOPOLOGY_PATCH_LIST = 10,
+
 static const struct param_choices draw_mode_choices = {
     .name = "draw_mode",
     .consts = {
+#ifdef VULKAN_BACKEND
+        {"points",         VK_PRIMITIVE_TOPOLOGY_POINT_LIST,         .desc=NGLI_DOCSTRING("points")},
+        {"line_strip",     VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,         .desc=NGLI_DOCSTRING("line strip")},
+        //{"line_loop",      VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,      .desc=NGLI_DOCSTRING("line loop")},
+        {"lines",          VK_PRIMITIVE_TOPOLOGY_LINE_LIST,          .desc=NGLI_DOCSTRING("lines")},
+        {"triangle_strip", VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,     .desc=NGLI_DOCSTRING("triangle strip")},
+        {"triangle_fan",   VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,       .desc=NGLI_DOCSTRING("triangle fan")},
+        {"triangles",      VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,      .desc=NGLI_DOCSTRING("triangles")},
+#else
         {"points",         GL_POINTS,         .desc=NGLI_DOCSTRING("points")},
         {"line_strip",     GL_LINE_STRIP,     .desc=NGLI_DOCSTRING("line strip")},
         {"line_loop",      GL_LINE_LOOP,      .desc=NGLI_DOCSTRING("line loop")},
@@ -89,6 +110,7 @@ static const struct param_choices draw_mode_choices = {
         {"triangle_strip", GL_TRIANGLE_STRIP, .desc=NGLI_DOCSTRING("triangle strip")},
         {"triangle_fan",   GL_TRIANGLE_FAN,   .desc=NGLI_DOCSTRING("triangle fan")},
         {"triangles",      GL_TRIANGLES,      .desc=NGLI_DOCSTRING("triangles")},
+#endif
         {NULL}
     }
 };
@@ -119,9 +141,16 @@ static const struct node_param geometry_params[] = {
                   .node_types=(const int[]){NGL_NODE_BUFFERUBYTE, NGL_NODE_BUFFERUINT, NGL_NODE_BUFFERUSHORT, -1},
                   .flags=PARAM_FLAG_DOT_DISPLAY_FIELDNAME,
                   .desc=NGLI_DOCSTRING("indices defining the drawing order of the `vertices`, auto-generated if not set")},
+    // XXX: rename to "topology"?
+#ifdef VULKAN_BACKEND
+    {"draw_mode", PARAM_TYPE_SELECT, OFFSET(draw_mode), {.i64=VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST},
+                  .choices=&draw_mode_choices,
+                  .desc=NGLI_DOCSTRING("drawing mode")},
+#else
     {"draw_mode", PARAM_TYPE_SELECT, OFFSET(draw_mode), {.i64=GL_TRIANGLES},
                   .choices=&draw_mode_choices,
                   .desc=NGLI_DOCSTRING("drawing mode")},
+#endif
     {NULL}
 };
 

@@ -90,7 +90,11 @@ static int triangle_init(struct ngl_node *node)
     if (!s->indices_buffer)
         return -1;
 
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     s->draw_mode = GL_TRIANGLES;
+#endif
 
     return 0;
 }

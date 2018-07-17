@@ -44,6 +44,12 @@ TOOLS_LDLIBS += $(shell $(PKG_CONFIG) --libs   gl)
 endif
 endif
 
+# Vulkan
+ifeq ($(BACKEND),vk)
+TOOLS_CFLAGS += $(shell $(PKG_CONFIG) --cflags vulkan)
+TOOLS_LDLIBS += $(shell $(PKG_CONFIG) --libs   vulkan)
+endif
+
 HAS_PYTHON := $(if $(shell pkg-config --exists python2 && echo 1),yes,no)
 
 TOOLS = player render

@@ -22,7 +22,11 @@
 #ifndef GLCONTEXT_H
 #define GLCONTEXT_H
 
+#ifdef VULKAN_BACKEND
+#include <vulkan/vulkan.h>
+#else
 #include "glfunctions.h"
+#endif
 #include "nodegl.h"
 
 #define NGLI_FEATURE_VERTEX_ARRAY_OBJECT          (1 << 0)
@@ -43,9 +47,61 @@
                                          NGLI_FEATURE_SHADER_IMAGE_LOAD_STORE  | \
                                          NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)
 
+#ifdef VULKAN_BACKEND
+struct vk_swapchain_support {
+    VkSurfaceCapabilitiesKHR caps;
+    VkSurfaceFormatKHR *formats;
+    uint32_t nb_formats;
+    VkPresentModeKHR *present_modes;
+    uint32_t nb_present_modes;
+};
+#else
 struct glcontext_class;
+#endif
 
 struct glcontext {
+#ifdef VULKAN_BACKEND
+    struct ngl_config config;
+
+    VkDevice device;
+    VkExtent2D extent;
+    VkRenderPass render_pass;
+
+    VkInstance instance;
+    VkDebugReportCallbackEXT report_callback;
+    VkPhysicalDevice physical_device;
+    VkPhysicalDeviceMemoryProperties phydev_mem_props;
+    int queue_family_graphics_id;
+    int queue_family_present_id;
+    VkSurfaceKHR surface;
+    struct vk_swapchain_support swapchain_support;
+    VkSurfaceFormatKHR surface_format;
+    VkPresentModeKHR present_mode;
+    VkSwapchainKHR swapchain;
+    VkImage *images;
+    uint32_t nb_images;
+    VkImageView *image_views;
+    uint32_t nb_image_views;
+    VkFramebuffer *framebuffers;
+    int nb_framebuffers;
+    VkCommandPool command_pool;
+    VkSemaphore sem_img_avail;
+    VkSemaphore sem_render_finished;
+    VkStructureType surface_create_type;
+
+    VkPipeline graphic_pipelines[64]; // XXX
+    int nb_graphic_pipelines;
+    //int nb_allocated_graphic_pipelines;
+
+    VkPipelineLayout pipeline_layouts[64]; // XXX
+    int nb_pipeline_layouts;
+    //int nb_allocated_pipeline_layouts
+
+    VkCommandBuffer *command_buffers;
+    int nb_command_buffers;
+
+    uint32_t img_index;
+#else
     /* GL context */
     const struct glcontext_class *class;
     void *priv_data;
@@ -59,6 +115,7 @@ struct glcontext {
     int height;
     int samples;
     int set_surface_pts;
+    float clear_color[4]; // FIXME: update it
 
     /* GL api */
     int version;
@@ -73,6 +130,7 @@ struct glcontext {
 
     /* GL functions */
     struct glfunctions funcs;
+#endif
 };
 
 struct glcontext_class {
@@ -102,6 +160,10 @@ void ngli_glcontext_freep(struct glcontext **glcontext);
 int ngli_glcontext_check_extension(const char *extension, const char *extensions);
 int ngli_glcontext_check_gl_error(const struct glcontext *glcontext, const char *context);
 
+#ifdef VULKAN_BACKEND
+// TODO
+#else
 #include "glwrappers.h"
+#endif
 
 #endif /* GLCONTEXT_H */

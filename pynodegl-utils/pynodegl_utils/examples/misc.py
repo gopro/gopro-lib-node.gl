@@ -14,6 +14,7 @@ from pynodegl import (
         AnimatedVec4,
         AnimatedQuat,
         BufferFloat,
+        BufferUInt,
         BufferUBVec3,
         BufferUBVec4,
         BufferUIVec4,
@@ -45,6 +46,7 @@ from pynodegl import (
 )
 
 from pynodegl_utils.misc import scene, get_frag, get_vert, get_comp
+from pynodegl_utils.misc import get_vk_frag, get_vk_vert
 
 
 @scene(xsplit={'type': 'range', 'range': [0, 1], 'unit_base': 100},
@@ -623,3 +625,45 @@ def mountain(cfg, ndim=3, nb_layers=7,
                           blend_src_factor_a='zero',
                           blend_dst_factor_a='one')
     return blend
+
+@scene()
+def vktest(cfg):
+    cfg.duration = 4
+    colors_data = array.array('f', [1.0, 0.0, 0.0,
+                                    0.0, 1.0, 0.0,
+                                    0.0, 0.0, 1.0,
+                                    1.0, 1.0, 1.0])
+    vertices_data = array.array('f', [-0.5, -0.5, 0.0,
+                                       0.5, -0.5, 0.0,
+                                       0.5,  0.5, 0.0,
+                                      -0.5,  0.5, 0.0])
+
+    indices_data = array.array('i', [0, 1, 2, 2, 3, 0])
+
+    colors_buffer = BufferVec3(data=colors_data)
+    vertices_buffer = BufferVec3(data=vertices_data)
+    indices_buffer = BufferUInt(data=indices_data)
+
+    geometry = Geometry(vertices_buffer, indices=indices_buffer)
+    program = Program(fragment=get_vk_frag('vktest'),
+                      vertex=get_vk_vert('vktest'))
+    render = Render(geometry, program)
+    render.update_attributes(color=colors_buffer)
+
+    animkf = [AnimKeyFrameFloat(0, 0),
+              AnimKeyFrameFloat(1*cfg.duration/4., -1*360/4., 'exp_in_out'),
+              AnimKeyFrameFloat(2*cfg.duration/4., -2*360/4., 'exp_in_out'),
+              AnimKeyFrameFloat(3*cfg.duration/4., -3*360/4., 'exp_in_out'),
+              AnimKeyFrameFloat(4*cfg.duration/4., -4*360/4., 'exp_in_out')]
+    rotate = Rotate(render, anim=AnimatedFloat(animkf))
+
+    gc = GraphicConfig(rotate,
+                       color_write_mask='r+g+a')
+
+    camera = Camera(gc)
+    camera.set_eye(0.0, 0.0, 4.0)
+    camera.set_center(0.0, 0.0, 0.0)
+    camera.set_up(0.0, 1.0, 0.0)
+    camera.set_perspective(45.0, cfg.aspect_ratio_float, 1.0, 10.0)
+
+    return camera

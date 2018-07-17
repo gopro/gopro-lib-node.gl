@@ -88,6 +88,9 @@ static int camera_init(struct ngl_node *node)
         if (!s->pipe_buf)
             return -1;
 
+#ifdef VULKAN_BACKEND
+        // TODO
+#else
 #if defined(TARGET_DARWIN) || defined(TARGET_LINUX)
         struct ngl_ctx *ctx = node->ctx;
         struct glcontext *gl = ctx->glcontext;
@@ -110,6 +113,7 @@ static int camera_init(struct ngl_node *node)
         ngli_assert(ngli_glCheckFramebufferStatus(gl, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
         ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, framebuffer_id);
+#endif
 #endif
     }
 
@@ -187,14 +191,17 @@ static int camera_update(struct ngl_node *node, double t)
 
 static void camera_draw(struct ngl_node *node)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
-
     struct camera *s = node->priv_data;
     ngli_node_draw(s->child);
 
     if (s->pipe_fd) {
+#ifdef VULKAN_BACKEND
+        // TODO
+#else
 #if defined(TARGET_DARWIN) || defined(TARGET_LINUX)
+        struct ngl_ctx *ctx = node->ctx;
+        struct glcontext *gl = ctx->glcontext;
+
         GLint multisampling = 0;
         GLuint framebuffer_read_id;
         GLuint framebuffer_draw_id;
@@ -223,6 +230,7 @@ static void camera_draw(struct ngl_node *node)
             ngli_glBindFramebuffer(gl, GL_DRAW_FRAMEBUFFER, framebuffer_draw_id);
         }
 #endif
+#endif
     }
 
 }
@@ -233,6 +241,9 @@ static void camera_uninit(struct ngl_node *node)
     if (s->pipe_fd) {
         free(s->pipe_buf);
 
+#ifdef VULKAN_BACKEND
+        // TODO
+#else
 #if defined(TARGET_DARWIN) || defined(TARGET_LINUX)
         struct ngl_ctx *ctx = node->ctx;
         struct glcontext *gl = ctx->glcontext;
@@ -242,6 +253,7 @@ static void camera_uninit(struct ngl_node *node)
 
         ngli_glDeleteRenderbuffers(gl, 1, &s->framebuffer_id);
         ngli_glDeleteTextures(gl, 1, &s->texture_id);
+#endif
 #endif
     }
 }

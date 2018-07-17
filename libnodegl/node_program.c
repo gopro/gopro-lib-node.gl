@@ -27,6 +27,7 @@
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "spirv.h"
 
 #ifdef TARGET_ANDROID
 static const char default_fragment_shader[] =
@@ -87,13 +88,21 @@ static const char default_vertex_shader[] =
 
 #define OFFSET(x) offsetof(struct program, x)
 static const struct node_param program_params[] = {
+#if VULKAN_BACKEND
+    {"vertex",   PARAM_TYPE_DATA, OFFSET(vert_data),
+                 .desc=NGLI_DOCSTRING("vertex SPIR-V shader")},
+    {"fragment", PARAM_TYPE_DATA, OFFSET(frag_data),
+                 .desc=NGLI_DOCSTRING("fragment SPIR-V shader")},
+#else
     {"vertex",   PARAM_TYPE_STR, OFFSET(vertex),   {.str=default_vertex_shader},
                  .desc=NGLI_DOCSTRING("vertex shader")},
     {"fragment", PARAM_TYPE_STR, OFFSET(fragment), {.str=default_fragment_shader},
                  .desc=NGLI_DOCSTRING("fragment shader")},
+#endif
     {NULL}
 };
 
+#ifndef VULKAN_BACKEND
 #define DEFINE_GET_INFO_LOG_FUNCTION(func, name)                                      \
 static void get_##func##_info_log(const struct glcontext *gl, GLuint id,              \
                                   char **info_logp, int *info_log_lengthp)            \
@@ -185,13 +194,59 @@ fail:
 
     return 0;
 }
+#else
+static VkResult create_shader_module(VkShaderModule *shader_module, VkDevice device,
+                                     uint8_t *code, int code_size)
+{
+    VkShaderModuleCreateInfo shader_module_create_info = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = code_size,
+        .pCode = (const uint32_t *)code,
+    };
+    return vkCreateShaderModule(device, &shader_module_create_info, NULL, shader_module);
+}
+#endif
 
 static int program_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
 
     struct program *s = node->priv_data;
+
+#ifdef VULKAN_BACKEND
+    struct glcontext *vk = ctx->glcontext;
+    int ret;
+
+    if ((ret = create_shader_module(&s->vert_shader, vk->device,
+                                    s->vert_data, s->vert_data_size)) != VK_SUCCESS ||
+        (ret = create_shader_module(&s->frag_shader, vk->device,
+                                    s->frag_data, s->frag_data_size)) != VK_SUCCESS)
+        return -1;
+
+    VkPipelineShaderStageCreateInfo shader_stage_create_info[2] = {
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = s->vert_shader,
+            .pName = "main",
+        },{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = s->frag_shader,
+            .pName = "main",
+        },
+    };
+    memcpy(s->shader_stage_create_info, shader_stage_create_info,
+           sizeof(shader_stage_create_info));
+
+    s->position_location_id          = ngli_spirv_get_name_location((const uint32_t *)s->vert_data, s->vert_data_size, "ngl_position");
+    s->uvcoord_location_id           = ngli_spirv_get_name_location((const uint32_t *)s->vert_data, s->vert_data_size, "ngl_uvcoord");
+    s->normal_location_id            = ngli_spirv_get_name_location((const uint32_t *)s->vert_data, s->vert_data_size, "ngl_normal");
+    s->modelview_matrix_location_id  = ngli_spirv_get_name_location((const uint32_t *)s->vert_data, s->vert_data_size, "ngl_modelview_matrix");
+    s->projection_matrix_location_id = ngli_spirv_get_name_location((const uint32_t *)s->vert_data, s->vert_data_size, "ngl_projection_matrix");
+    s->normal_matrix_location_id     = ngli_spirv_get_name_location((const uint32_t *)s->vert_data, s->vert_data_size, "ngl_normal_matrix");
+#else
+    struct glcontext *gl = ctx->glcontext;
 
     s->program_id = load_program(node, s->vertex, s->fragment);
     if (!s->program_id)
@@ -203,6 +258,7 @@ static int program_init(struct ngl_node *node)
     s->modelview_matrix_location_id  = ngli_glGetUniformLocation(gl, s->program_id, "ngl_modelview_matrix");
     s->projection_matrix_location_id = ngli_glGetUniformLocation(gl, s->program_id, "ngl_projection_matrix");
     s->normal_matrix_location_id     = ngli_glGetUniformLocation(gl, s->program_id, "ngl_normal_matrix");
+#endif
 
     return 0;
 }
@@ -210,11 +266,17 @@ static int program_init(struct ngl_node *node)
 static void program_uninit(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
 
     struct program *s = node->priv_data;
 
+#ifdef VULKAN_BACKEND
+    struct glcontext *vk = ctx->glcontext;
+    vkDestroyShaderModule(vk->device, s->frag_shader, NULL);
+    vkDestroyShaderModule(vk->device, s->vert_shader, NULL);
+#else
+    struct glcontext *gl = ctx->glcontext;
     ngli_glDeleteProgram(gl, s->program_id);
+#endif
 }
 
 const struct node_class ngli_program_class = {

@@ -29,6 +29,7 @@
 #include "math_utils.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "spirv.h"
 #include "utils.h"
 
 #define UNIFORMS_TYPES_LIST (const int[]){NGL_NODE_BUFFERFLOAT,       \
@@ -103,6 +104,9 @@ static const struct node_param render_params[] = {
 #define SAMPLING_MODE_NV12         3
 
 
+#ifdef VULKAN_BACKEND
+// TODO
+#else
 #ifdef TARGET_ANDROID
 static void update_sampler2D(const struct glcontext *gl,
                              struct render *s,
@@ -393,12 +397,41 @@ static int update_uniforms(struct ngl_node *node)
 
     return 0;
 }
+#endif
 
-static int update_vertex_attribs(struct ngl_node *node)
+static void register_bind(struct ngl_node *node, struct buffer *buffer, int location)
 {
+    struct render *s = node->priv_data;
+
+#ifdef VULKAN_BACKEND
+    VkVertexInputBindingDescription bind_desc = {
+        .binding = s->nb_binds,
+        .stride = buffer->data_stride,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX, // XXX: here for instanced rendering
+    };
+
+    VkVertexInputAttributeDescription attr_desc = {
+        .binding = s->nb_binds,
+        .location = location,
+        .format = buffer->data_format,
+    };
+
+    s->bind_descs[s->nb_binds] = bind_desc;
+    s->attr_descs[s->nb_binds] = attr_desc;
+    s->vkbuffers[s->nb_binds] = buffer->vkbuf;
+    s->nb_binds++;
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
 
+    ngli_glEnableVertexAttribArray(gl, location);
+    ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer->buffer_id);
+    ngli_glVertexAttribPointer(gl, location, buffer->data_comp, GL_FLOAT, GL_FALSE, buffer->data_stride, NULL);
+#endif
+}
+
+static int update_vertex_attribs(struct ngl_node *node)
+{
     struct render *s = node->priv_data;
     struct geometry *geometry = s->geometry->priv_data;
     struct program *program = s->program->priv_data;
@@ -406,27 +439,21 @@ static int update_vertex_attribs(struct ngl_node *node)
     if (geometry->vertices_buffer) {
         struct buffer *buffer = geometry->vertices_buffer->priv_data;
         if (program->position_location_id >= 0) {
-            ngli_glEnableVertexAttribArray(gl, program->position_location_id);
-            ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer->buffer_id);
-            ngli_glVertexAttribPointer(gl, program->position_location_id, buffer->data_comp, GL_FLOAT, GL_FALSE, buffer->data_stride, NULL);
+            register_bind(node, buffer, program->position_location_id);
         }
     }
 
     if (geometry->uvcoords_buffer) {
         struct buffer *buffer = geometry->uvcoords_buffer->priv_data;
         if (program->uvcoord_location_id >= 0) {
-            ngli_glEnableVertexAttribArray(gl, program->uvcoord_location_id);
-            ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer->buffer_id);
-            ngli_glVertexAttribPointer(gl, program->uvcoord_location_id, buffer->data_comp, GL_FLOAT, GL_FALSE, buffer->data_stride, NULL);
+            register_bind(node, buffer, program->uvcoord_location_id);
         }
     }
 
     if (geometry->normals_buffer) {
         struct buffer *buffer = geometry->normals_buffer->priv_data;
         if (program->normal_location_id >= 0) {
-            ngli_glEnableVertexAttribArray(gl, program->normal_location_id);
-            ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer->buffer_id);
-            ngli_glVertexAttribPointer(gl, program->normal_location_id, buffer->data_comp, GL_FLOAT, GL_FALSE, buffer->data_stride, NULL);
+            register_bind(node, buffer, program->normal_location_id);
         }
     }
 
@@ -438,9 +465,7 @@ static int update_vertex_attribs(struct ngl_node *node)
                 continue;
             struct ngl_node *anode = entry->data;
             struct buffer *buffer = anode->priv_data;
-            ngli_glEnableVertexAttribArray(gl, s->attribute_ids[i]);
-            ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer->buffer_id);
-            ngli_glVertexAttribPointer(gl, s->attribute_ids[i], buffer->data_comp, GL_FLOAT, GL_FALSE, buffer->data_stride, NULL);
+            register_bind(node, buffer, s->attribute_ids[i]);
             i++;
         }
     }
@@ -448,6 +473,7 @@ static int update_vertex_attribs(struct ngl_node *node)
     return 0;
 }
 
+#ifndef VULKAN_BACKEND
 static int disable_vertex_attribs(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
@@ -509,13 +535,157 @@ static int update_buffers(struct ngl_node *node)
 
     return 0;
 }
+#endif
+
+#ifdef VULKAN_BACKEND
+static VkResult create_graphics_pipeline(struct ngl_node *node)
+{
+    struct ngl_ctx *ctx = node->ctx;
+    struct glcontext *vk = ctx->glcontext;
+
+    struct render *s = node->priv_data;
+
+    VkResult ret;
+
+    const struct program *program = s->program->priv_data;
+
+    /* Vertex input state */
+    VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .vertexBindingDescriptionCount = s->nb_binds,
+        .pVertexBindingDescriptions = s->nb_binds ? s->bind_descs : NULL,
+        .vertexAttributeDescriptionCount = s->nb_binds,
+        .pVertexAttributeDescriptions = s->nb_binds ? s->attr_descs : NULL,
+    };
+
+    struct geometry *geometry = s->geometry->priv_data;
+
+    /* Input Assembly State */
+    VkPipelineInputAssemblyStateCreateInfo input_assembly_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .topology = geometry->draw_mode,
+    };
+
+    /* Viewport */
+    VkViewport viewport = {
+        .width = vk->config.width,
+        .height = vk->config.height,
+        .minDepth = 0.f,
+        .maxDepth = 1.f,
+    };
+
+    VkRect2D scissor = {
+        .extent = vk->extent,
+    };
+
+    VkPipelineViewportStateCreateInfo viewport_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .viewportCount = 1,
+        .pViewports = &viewport,
+        .scissorCount = 1,
+        .pScissors = &scissor,
+    };
+
+    /* Rasterization */
+    VkPipelineRasterizationStateCreateInfo rasterization_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .lineWidth = 1.f,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
+        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+    };
+
+    /* Multisampling */
+    VkPipelineMultisampleStateCreateInfo multisampling_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+    };
+
+    /* Depth & stencil */
+    // XXX
+
+    /* Blend */
+    const struct glstate *vkstate = &ctx->glstate;
+    VkPipelineColorBlendAttachmentState colorblend_attachment_state = {
+        .blendEnable = vkstate->blend,
+        .srcColorBlendFactor = vkstate->blend_src_factor,
+        .dstColorBlendFactor = vkstate->blend_dst_factor,
+        .colorBlendOp = vkstate->blend_op,
+        .srcAlphaBlendFactor = vkstate->blend_src_factor_a,
+        .dstAlphaBlendFactor = vkstate->blend_dst_factor_a,
+        .alphaBlendOp = vkstate->blend_op_a,
+        .colorWriteMask = vkstate->color_write_mask,
+    };
+
+    VkPipelineColorBlendStateCreateInfo colorblend_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .attachmentCount = 1,
+        .pAttachments = &colorblend_attachment_state,
+    };
+
+    /* Dynamic states */
+#if 0
+    VkDynamicState dynamic_states[] = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_LINE_WIDTH,
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamic_state_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = NGLI_ARRAY_NB(dynamic_states),
+        .pDynamicStates = dynamic_states,
+
+    };
+#endif
+
+    VkPushConstantRange push_constant_range[] = {
+        {
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT, // XXX: fragment too?
+            .offset = 0,
+            .size = sizeof(node->modelview_matrix)
+                  + sizeof(node->projection_matrix),
+        }
+    };
+
+    /* Pipeline layout */
+    VkPipelineLayoutCreateInfo pipeline_layout_create_info = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pushConstantRangeCount = NGLI_ARRAY_NB(push_constant_range),
+        .pPushConstantRanges = push_constant_range,
+    };
+    ret = vkCreatePipelineLayout(vk->device, &pipeline_layout_create_info, NULL,
+                                 &vk->pipeline_layouts[s->pipeline_id]);
+    if (ret != VK_SUCCESS)
+        return ret;
+
+    VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = NGLI_ARRAY_NB(program->shader_stage_create_info),
+        .pStages = program->shader_stage_create_info,
+        .pVertexInputState = &vertex_input_state_create_info,
+        .pInputAssemblyState = &input_assembly_state_create_info,
+        .pViewportState = &viewport_state_create_info,
+        .pRasterizationState = &rasterization_state_create_info,
+        .pMultisampleState = &multisampling_state_create_info,
+        .pDepthStencilState = NULL,
+        .pColorBlendState = &colorblend_state_create_info,
+        .pDynamicState = NULL,
+        .layout = vk->pipeline_layouts[s->pipeline_id],
+        .renderPass = vk->render_pass,
+        .subpass = 0,
+    };
+
+    return vkCreateGraphicsPipelines(vk->device, NULL, 1,
+                                     &graphics_pipeline_create_info,
+                                     NULL, &vk->graphic_pipelines[s->pipeline_id]);
+}
+#endif
 
 static int render_init(struct ngl_node *node)
 {
     int ret;
 
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
 
     struct render *s = node->priv_data;
 
@@ -537,6 +707,15 @@ static int render_init(struct ngl_node *node)
         return ret;
 
     struct program *program = s->program->priv_data;
+
+#ifdef VULKAN_BACKEND
+    struct glcontext *vk = ctx->glcontext;
+    s->pipeline_id = vk->nb_pipeline_layouts++; // FIXME: must probably be on top due to uninit using it
+    //VkResult vret = create_graphics_pipeline(node);
+    //if (vret != VK_SUCCESS)
+    //    return -1;
+#else
+    struct glcontext *gl = ctx->glcontext;
 
     int nb_uniforms = s->uniforms ? ngli_hmap_count(s->uniforms) : 0;
     if (nb_uniforms > 0) {
@@ -573,6 +752,7 @@ static int render_init(struct ngl_node *node)
             *infop = info;
         }
     }
+#endif
 
     int nb_attributes = s->attributes ? ngli_hmap_count(s->attributes) : 0;
     if (nb_attributes > 0) {
@@ -600,11 +780,21 @@ static int render_init(struct ngl_node *node)
                     vertices->count);
                 return -1;
             }
+#ifdef VULKAN_BACKEND
+            s->attribute_ids[i] = ngli_spirv_get_name_location((const uint32_t *)program->vert_data,
+                                                               program->vert_data_size, entry->key);
+#else
             s->attribute_ids[i] = ngli_glGetAttribLocation(gl, program->program_id, entry->key);
+#endif
+            if (!s->attribute_ids[i]) {
+                LOG(ERROR, "unable to find %s attribute in vertex shader", entry->key);
+                return -1;
+            }
             i++;
         }
     }
 
+#ifndef VULKAN_BACKEND
     int nb_textures = s->textures ? ngli_hmap_count(s->textures) : 0;
     if (nb_textures > gl->max_texture_image_units) {
         LOG(ERROR, "attached textures count (%d) exceeds driver limit (%d)",
@@ -745,6 +935,9 @@ static int render_init(struct ngl_node *node)
         ngli_glBindVertexArray(gl, s->vao_id);
         update_vertex_attribs(node);
     }
+#else
+    update_vertex_attribs(node);
+#endif
 
     return 0;
 }
@@ -752,25 +945,31 @@ static int render_init(struct ngl_node *node)
 static void render_uninit(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
-
     struct render *s = node->priv_data;
+
+#ifdef VULKAN_BACKEND
+    // TODO
+
+    struct glcontext *vk = ctx->glcontext;
+    vkDestroyPipeline(vk->device, vk->graphic_pipelines[s->pipeline_id], NULL);
+    vkDestroyPipelineLayout(vk->device, vk->pipeline_layouts[s->pipeline_id], NULL);
+#else
+    struct glcontext *gl = ctx->glcontext;
 
     if (gl->features & NGLI_FEATURE_VERTEX_ARRAY_OBJECT) {
         ngli_glDeleteVertexArrays(gl, 1, &s->vao_id);
     }
+#endif
+    free(s->attribute_ids);
+    free(s->buffer_ids);
 
     free(s->textureprograminfos);
     free(s->uniform_ids);
-    free(s->attribute_ids);
-    free(s->buffer_ids);
 }
 
 
 static int render_update(struct ngl_node *node, double t)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
     struct render *s = node->priv_data;
 
     int ret = ngli_node_update(s->geometry, t);
@@ -795,6 +994,29 @@ static int render_update(struct ngl_node *node, double t)
         }
     }
 
+    struct ngl_ctx *ctx = node->ctx;
+
+#ifdef VULKAN_BACKEND
+    struct glcontext *vk = ctx->glcontext;
+    if (s->last_width != vk->config.width ||
+        s->last_height != vk->config.height) {
+        LOG(ERROR, "RECONFIGURE FROM %dx%d to %dx%d",
+            s->last_width, s->last_height,
+            vk->config.width, vk->config.height);
+        vkDestroyPipeline(vk->device, vk->graphic_pipelines[s->pipeline_id], NULL);
+        vkDestroyPipelineLayout(vk->device, vk->pipeline_layouts[s->pipeline_id], NULL);
+
+        VkResult vret = create_graphics_pipeline(node);
+        if (vret != VK_SUCCESS)
+            return -1;
+
+        s->last_width = vk->config.width;
+        s->last_height = vk->config.height;
+    }
+
+    // TODO storage buffer object
+#else
+    struct glcontext *gl = ctx->glcontext;
     if (s->buffers &&
         gl->features & NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT) {
         const struct hmap_entry *entry = NULL;
@@ -804,6 +1026,7 @@ static int render_update(struct ngl_node *node, double t)
                 return ret;
         }
     }
+#endif
 
     return ngli_node_update(s->program, t);
 }
@@ -811,9 +1034,66 @@ static int render_update(struct ngl_node *node, double t)
 static void render_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
-
     struct render *s = node->priv_data;
+
+#ifdef VULKAN_BACKEND
+    struct glcontext *vk = ctx->glcontext;
+
+    //LOG(ERROR, "draw on %d", vk->img_index);
+
+    VkCommandBuffer cmd_buf = vk->command_buffers[vk->img_index];
+
+    VkCommandBufferBeginInfo command_buffer_begin_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
+    };
+
+    VkResult ret = vkBeginCommandBuffer(cmd_buf, &command_buffer_begin_info);
+    if (ret != VK_SUCCESS)
+        return;
+
+    const float *rgba = vk->config.clear_color;
+    VkClearValue clear_color = {.color.float32={rgba[0], rgba[1], rgba[2], rgba[3]}};
+    VkRenderPassBeginInfo render_pass_begin_info = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .renderPass = vk->render_pass,
+        .framebuffer = vk->framebuffers[vk->img_index],
+        .renderArea = {
+            .extent = vk->extent,
+        },
+        .clearValueCount = 1,
+        .pClearValues = &clear_color,
+    };
+
+    vkCmdBeginRenderPass(cmd_buf, &render_pass_begin_info,
+                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      vk->graphic_pipelines[s->pipeline_id]);
+
+    vkCmdBindVertexBuffers(cmd_buf, 0, s->nb_binds, s->vkbuffers, s->offsets);
+
+    vkCmdPushConstants(cmd_buf, vk->pipeline_layouts[s->pipeline_id],
+                       VK_SHADER_STAGE_VERTEX_BIT,
+                       0, sizeof(node->modelview_matrix), node->modelview_matrix);
+    vkCmdPushConstants(cmd_buf, vk->pipeline_layouts[s->pipeline_id],
+                       VK_SHADER_STAGE_VERTEX_BIT,
+                       sizeof(node->modelview_matrix),
+                       sizeof(node->projection_matrix), node->projection_matrix);
+
+    const struct geometry *geometry = s->geometry->priv_data;
+    const struct buffer *indices_buffer = geometry->indices_buffer->priv_data;
+    vkCmdBindIndexBuffer(cmd_buf, indices_buffer->vkbuf, 0, VK_INDEX_TYPE_UINT32); // FIXME type
+
+    vkCmdDrawIndexed(cmd_buf, indices_buffer->count, 1, 0, 0, 0);
+    vkCmdEndRenderPass(cmd_buf);
+
+    ret = vkEndCommandBuffer(cmd_buf);
+    if (ret != VK_SUCCESS)
+        return;
+
+    // TODO VAO?
+#else
+    struct glcontext *gl = ctx->glcontext;
 
     const struct program *program = s->program->priv_data;
     ngli_glUseProgram(gl, program->program_id);
@@ -837,6 +1117,7 @@ static void render_draw(struct ngl_node *node)
     if (!(gl->features & NGLI_FEATURE_VERTEX_ARRAY_OBJECT)) {
         disable_vertex_attribs(node);
     }
+#endif
 }
 
 const struct node_class ngli_render_class = {

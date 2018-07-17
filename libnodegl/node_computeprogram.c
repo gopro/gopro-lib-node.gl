@@ -35,6 +35,9 @@ static const struct node_param computeprogram_params[] = {
     {NULL}
 };
 
+#ifdef VULKAN_BACKEND
+// TODO
+#else
 #define DEFINE_GET_INFO_LOG_FUNCTION(func, name)                                      \
 static void get_##func##_info_log(const struct glcontext *gl, GLuint id,              \
                                   char **info_logp, int *info_log_lengthp)            \
@@ -110,26 +113,35 @@ fail:
 
     return 0;
 }
+#endif
 
 static int computeprogram_init(struct ngl_node *node)
 {
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct computeprogram *s = node->priv_data;
 
     s->program_id = load_shader(node, s->compute);
     if (!s->program_id)
         return -1;
+#endif
 
     return 0;
 }
 
 static void computeprogram_uninit(struct ngl_node *node)
 {
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
 
     struct computeprogram *s = node->priv_data;
 
     ngli_glDeleteProgram(gl, s->program_id);
+#endif
 }
 
 const struct node_class ngli_computeprogram_class = {

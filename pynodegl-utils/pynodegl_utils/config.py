@@ -56,6 +56,7 @@ class Config(QtCore.QObject):
         'backend': [
             'gl',
             'gles',
+            'vk',
         ],
     }
 

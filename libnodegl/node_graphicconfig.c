@@ -32,6 +32,18 @@ static const struct param_choices blend_factor_choices = {
     .name = "blend_factor",
     .consts = {
         {"unset",               -1,                     .desc=NGLI_DOCSTRING("unset")},
+#ifdef VULKAN_BACKEND
+        {"zero",                VK_BLEND_FACTOR_ZERO,                .desc=NGLI_DOCSTRING("`0`")},
+        {"one",                 VK_BLEND_FACTOR_ONE,                 .desc=NGLI_DOCSTRING("`1`")},
+        {"src_color",           VK_BLEND_FACTOR_SRC_COLOR,           .desc=NGLI_DOCSTRING("`src_color`")},
+        {"one_minus_src_color", VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, .desc=NGLI_DOCSTRING("`1 - src_color`")},
+        {"dst_color",           VK_BLEND_FACTOR_DST_COLOR,           .desc=NGLI_DOCSTRING("`dst_color`")},
+        {"one_minus_dst_color", VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, .desc=NGLI_DOCSTRING("`1 - dst_color`")},
+        {"src_alpha",           VK_BLEND_FACTOR_SRC_ALPHA,           .desc=NGLI_DOCSTRING("`src_alpha`")},
+        {"one_minus_src_alpha", VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, .desc=NGLI_DOCSTRING("`1 - src_alpha`")},
+        {"dst_alpha",           VK_BLEND_FACTOR_DST_ALPHA,           .desc=NGLI_DOCSTRING("`dst_alpha`")},
+        {"one_minus_dst_alpha", VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA, .desc=NGLI_DOCSTRING("`1 - dst_alpha`")},
+#else
         {"zero",                GL_ZERO,                .desc=NGLI_DOCSTRING("`0`")},
         {"one",                 GL_ONE,                 .desc=NGLI_DOCSTRING("`1`")},
         {"src_color",           GL_SRC_COLOR,           .desc=NGLI_DOCSTRING("`src_color`")},
@@ -42,6 +54,7 @@ static const struct param_choices blend_factor_choices = {
         {"one_minus_src_alpha", GL_ONE_MINUS_SRC_ALPHA, .desc=NGLI_DOCSTRING("`1 - src_alpha`")},
         {"dst_alpha",           GL_DST_ALPHA,           .desc=NGLI_DOCSTRING("`dst_alpha`")},
         {"one_minus_dst_alpha", GL_ONE_MINUS_DST_ALPHA, .desc=NGLI_DOCSTRING("`1 - dst_alpha`")},
+#endif
         {NULL}
     }
 };
@@ -50,11 +63,19 @@ static const struct param_choices blend_op_choices = {
     .name = "blend_operation",
     .consts = {
         {"unset",  -1,                       .desc=NGLI_DOCSTRING("unset")},
+#ifdef VULKAN_BACKEND
+        {"add",    VK_BLEND_OP_ADD,              .desc=NGLI_DOCSTRING("`src + dst`")},
+        {"sub",    VK_BLEND_OP_SUBTRACT,         .desc=NGLI_DOCSTRING("`src - dst`")},
+        {"revsub", VK_BLEND_OP_REVERSE_SUBTRACT, .desc=NGLI_DOCSTRING("`dst - src`")},
+        {"min",    VK_BLEND_OP_MIN,              .desc=NGLI_DOCSTRING("`min(src, dst)`")},
+        {"max",    VK_BLEND_OP_MAX,              .desc=NGLI_DOCSTRING("`max(src, dst)`")},
+#else
         {"add",    GL_FUNC_ADD,              .desc=NGLI_DOCSTRING("`src + dst`")},
         {"sub",    GL_FUNC_SUBTRACT,         .desc=NGLI_DOCSTRING("`src - dst`")},
         {"revsub", GL_FUNC_REVERSE_SUBTRACT, .desc=NGLI_DOCSTRING("`dst - src`")},
         {"min",    GL_MIN,                   .desc=NGLI_DOCSTRING("`min(src, dst)`")},
         {"max",    GL_MAX,                   .desc=NGLI_DOCSTRING("`max(src, dst)`")},
+#endif
         {NULL}
     }
 };
@@ -62,10 +83,17 @@ static const struct param_choices blend_op_choices = {
 static const struct param_choices component_choices = {
     .name = "component",
     .consts = {
+#ifdef VULKAN_BACKEND
+        {"r", VK_COLOR_COMPONENT_R_BIT, .desc=NGLI_DOCSTRING("red")},
+        {"g", VK_COLOR_COMPONENT_G_BIT, .desc=NGLI_DOCSTRING("green")},
+        {"b", VK_COLOR_COMPONENT_B_BIT, .desc=NGLI_DOCSTRING("blue")},
+        {"a", VK_COLOR_COMPONENT_A_BIT, .desc=NGLI_DOCSTRING("alpha")},
+#else
         {"r", 1<<0, .desc=NGLI_DOCSTRING("red")},
         {"g", 1<<1, .desc=NGLI_DOCSTRING("green")},
         {"b", 1<<2, .desc=NGLI_DOCSTRING("blue")},
         {"a", 1<<3, .desc=NGLI_DOCSTRING("alpha")},
+#endif
         {NULL}
     }
 };
@@ -74,6 +102,17 @@ static const struct param_choices func_choices = {
     .name = "function",
     .consts = {
         {"unset",    -1,          .desc=NGLI_DOCSTRING("unset")},
+#ifdef VULKAN_BACKEND
+        {"never",    VK_COMPARE_OP_NEVER,               .desc=NGLI_DOCSTRING("`f(a,b) = 0`")},
+        {"less",     VK_COMPARE_OP_LESS,                .desc=NGLI_DOCSTRING("`f(a,b) = a < b`")},
+        {"equal",    VK_COMPARE_OP_EQUAL,               .desc=NGLI_DOCSTRING("`f(a,b) = a == b`")},
+        {"lequal",   VK_COMPARE_OP_LESS_OR_EQUAL,       .desc=NGLI_DOCSTRING("`f(a,b) = a ≤ b`")},
+        {"greater",  VK_COMPARE_OP_GREATER,             .desc=NGLI_DOCSTRING("`f(a,b) = a > b`")},
+        {"notequal", VK_COMPARE_OP_NOT_EQUAL,           .desc=NGLI_DOCSTRING("`f(a,b) = a ≠ b`")},
+        {"gequal",   VK_COMPARE_OP_GREATER_OR_EQUAL,    .desc=NGLI_DOCSTRING("`f(a,b) = a ≥ b`")},
+        {"always",   VK_COMPARE_OP_ALWAYS,              .desc=NGLI_DOCSTRING("`f(a,b) = 1`")},
+
+#else
         {"never",    GL_NEVER,    .desc=NGLI_DOCSTRING("`f(a,b) = 0`")},
         {"less",     GL_LESS,     .desc=NGLI_DOCSTRING("`f(a,b) = a < b`")},
         {"equal",    GL_EQUAL,    .desc=NGLI_DOCSTRING("`f(a,b) = a == b`")},
@@ -82,6 +121,7 @@ static const struct param_choices func_choices = {
         {"notequal", GL_NOTEQUAL, .desc=NGLI_DOCSTRING("`f(a,b) = a ≠ b`")},
         {"gequal",   GL_GEQUAL,   .desc=NGLI_DOCSTRING("`f(a,b) = a ≥ b`")},
         {"always",   GL_ALWAYS,   .desc=NGLI_DOCSTRING("`f(a,b) = 1`")},
+#endif
         {NULL}
     }
 };
@@ -90,6 +130,16 @@ static const struct param_choices stencil_op_choices = {
     .name = "stencil_operation",
     .consts = {
         {"unset",       -1,           .desc=NGLI_DOCSTRING("unset")},
+#ifdef VULKAN_BACKEND
+        {"keep",        VK_STENCIL_OP_KEEP,                 .desc=NGLI_DOCSTRING("keeps the current value")},
+        {"zero",        VK_STENCIL_OP_ZERO,                 .desc=NGLI_DOCSTRING("sets the stencil buffer value to 0")},
+        {"replace",     VK_STENCIL_OP_REPLACE,              .desc=NGLI_DOCSTRING("sets the stencil buffer value to ref, as specified by the stencil function")},
+        {"incr",        VK_STENCIL_OP_INCREMENT_AND_CLAMP,  .desc=NGLI_DOCSTRING("increments the current stencil buffer value and clamps it")},
+        {"incr_wrap",   VK_STENCIL_OP_INCREMENT_AND_WRAP,   .desc=NGLI_DOCSTRING("increments the current stencil buffer value and wraps it")},
+        {"decr",        VK_STENCIL_OP_DECREMENT_AND_CLAMP,  .desc=NGLI_DOCSTRING("decrements the current stencil buffer value and clamps it")},
+        {"decr_wrap",   VK_STENCIL_OP_DECREMENT_AND_WRAP,   .desc=NGLI_DOCSTRING("decrements the current stencil buffer value and wraps it")},
+        {"decr_invert", VK_STENCIL_OP_INVERT,               .desc=NGLI_DOCSTRING("bitwise inverts the current stencil buffer value")},
+#else
         {"keep",        GL_KEEP,      .desc=NGLI_DOCSTRING("keeps the current value")},
         {"zero",        GL_ZERO,      .desc=NGLI_DOCSTRING("sets the stencil buffer value to 0")},
         {"replace",     GL_REPLACE,   .desc=NGLI_DOCSTRING("sets the stencil buffer value to ref, as specified by the stencil function")},
@@ -98,6 +148,7 @@ static const struct param_choices stencil_op_choices = {
         {"decr",        GL_DECR,      .desc=NGLI_DOCSTRING("decrements the current stencil buffer value and clamps it")},
         {"decr_wrap",   GL_DECR_WRAP, .desc=NGLI_DOCSTRING("decrements the current stencil buffer value and wraps it")},
         {"decr_invert", GL_INVERT,    .desc=NGLI_DOCSTRING("bitwise inverts the current stencil buffer value")},
+#endif
         {NULL}
     }
 };
@@ -159,15 +210,6 @@ static const struct node_param graphicconfig_params[] = {
     {NULL}
 };
 
-static int graphicconfig_update(struct ngl_node *node, double t)
-{
-    struct graphicconfig *s = node->priv_data;
-    struct ngl_node *child = s->child;
-
-    ngli_node_transfer_matrices(child, node);
-    return ngli_node_update(child, t);
-}
-
 #define COPY_PARAM(name) do {        \
     if (s->name != -1) {             \
         next->name = s->name;        \
@@ -177,7 +219,6 @@ static int graphicconfig_update(struct ngl_node *node, double t)
 static void honor_config(struct ngl_node *node, int restore)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
 
     struct graphicconfig *s = node->priv_data;
     struct glstate *prev = restore ? &s->states[0] : &s->states[1];
@@ -194,11 +235,16 @@ static void honor_config(struct ngl_node *node, int restore)
         COPY_PARAM(blend_op);
         COPY_PARAM(blend_op_a);
 
+#ifdef VULKAN_BACKEND
+        COPY_PARAM(color_write_mask);
+#else
         if (s->color_write_mask != -1) {
             for (int i = 0; i < 4; i++)
                 next->color_write_mask[i] = s->color_write_mask >> i & 1;
         }
+#endif
 
+#ifndef VULKAN_BACKEND /* FIXME: implement */
         COPY_PARAM(depth_test);
         COPY_PARAM(depth_write_mask);
         COPY_PARAM(depth_func);
@@ -211,21 +257,46 @@ static void honor_config(struct ngl_node *node, int restore)
         COPY_PARAM(stencil_fail);
         COPY_PARAM(stencil_depth_fail);
         COPY_PARAM(stencil_depth_pass);
+#endif
     }
 
     *prev = ctx->glstate;
     ctx->glstate = *next;
 
+#ifndef VULKAN_BACKEND
+    struct glcontext *gl = ctx->glcontext;
     ngli_glstate_honor_state(gl, next, prev);
+#endif
+}
+
+static int graphicconfig_update(struct ngl_node *node, double t)
+{
+    struct graphicconfig *s = node->priv_data;
+    struct ngl_node *child = s->child;
+
+    ngli_node_transfer_matrices(child, node);
+
+#ifdef VULKAN_BACKEND
+    honor_config(node, 0);
+    int ret = ngli_node_update(child, t);
+    honor_config(node, 1);
+    return ret;
+#else
+    return ngli_node_update(child, t);
+#endif
 }
 
 static void graphicconfig_draw(struct ngl_node *node)
 {
     struct graphicconfig *s = node->priv_data;
 
+#ifndef VULKAN_BACKEND
     honor_config(node, 0);
     ngli_node_draw(s->child);
     honor_config(node, 1);
+#else
+    ngli_node_draw(s->child);
+#endif
 }
 
 const struct node_class ngli_graphicconfig_class = {

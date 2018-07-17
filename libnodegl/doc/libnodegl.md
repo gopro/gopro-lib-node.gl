@@ -153,7 +153,6 @@ Parameter | Ctor. | Type | Description | Default
 `data` |  | [`data`](#parameter-types) | buffer of `count` elements | 
 `filename` |  | [`string`](#parameter-types) | filename from which the buffer will be read, cannot be used with `data` | 
 `stride` |  | [`int`](#parameter-types) | stride of 1 element, in bytes | `0`
-`usage` |  | [`buffer_usage`](#buffer_usage-choices) | buffer usage hint | `static_draw`
 
 
 **Source**: [node_buffer.c](/libnodegl/node_buffer.c)
@@ -341,8 +340,8 @@ Parameter | Ctor. | Type | Description | Default
 
 Parameter | Ctor. | Type | Description | Default
 --------- | :---: | ---- | ----------- | :-----:
-`vertex` |  | [`string`](#parameter-types) | vertex shader | 
-`fragment` |  | [`string`](#parameter-types) | fragment shader | 
+`vertex` |  | [`data`](#parameter-types) | vertex SPIR-V shader | 
+`fragment` |  | [`data`](#parameter-types) | fragment SPIR-V shader | 
 
 
 **Source**: [node_program.c](/libnodegl/node_program.c)
@@ -422,16 +421,8 @@ Parameter | Ctor. | Type | Description | Default
 
 Parameter | Ctor. | Type | Description | Default
 --------- | :---: | ---- | ----------- | :-----:
-`format` |  | [`format`](#format-choices) | format of the pixel data | `rgba`
-`type` |  | [`type`](#type-choices) | data type of the pixel data | `unsigned_byte`
-`width` |  | [`int`](#parameter-types) | width of the texture | `0`
-`height` |  | [`int`](#parameter-types) | height of the texture | `0`
-`min_filter` |  | [`min_filter`](#min_filter-choices) | texture minifying function | `nearest`
-`mag_filter` |  | [`mag_filter`](#mag_filter-choices) | texture magnification function | `nearest`
 `wrap_s` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the s dimension (horizontal) | `clamp_to_edge`
 `wrap_t` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the t dimension (vertical) | `clamp_to_edge`
-`data_src` |  | [`Node`](#parameter-types) ([Media](#media), [HUD](#hud), [AnimatedBufferFloat](#animatedbuffer), [AnimatedBufferVec2](#animatedbuffer), [AnimatedBufferVec3](#animatedbuffer), [AnimatedBufferVec4](#animatedbuffer), [BufferByte](#buffer), [BufferBVec2](#buffer), [BufferBVec3](#buffer), [BufferBVec4](#buffer), [BufferInt](#buffer), [BufferIVec2](#buffer), [BufferIVec3](#buffer), [BufferIVec4](#buffer), [BufferShort](#buffer), [BufferSVec2](#buffer), [BufferSVec3](#buffer), [BufferSVec4](#buffer), [BufferUByte](#buffer), [BufferUBVec2](#buffer), [BufferUBVec3](#buffer), [BufferUBVec4](#buffer), [BufferUInt](#buffer), [BufferUIVec2](#buffer), [BufferUIVec3](#buffer), [BufferUIVec4](#buffer), [BufferUShort](#buffer), [BufferUSVec2](#buffer), [BufferUSVec3](#buffer), [BufferUSVec4](#buffer), [BufferFloat](#buffer), [BufferVec2](#buffer), [BufferVec3](#buffer), [BufferVec4](#buffer)) | data source | 
-`access` |  | [`access`](#access-choices) | texture access (only honored by the `Compute` node) | `read_write`
 `direct_rendering` |  | [`bool`](#parameter-types) | whether direct rendering is enabled or not for media playback | `unset`
 `immutable` |  | [`bool`](#parameter-types) | whether the texture is immutable or not | `0`
 
@@ -443,18 +434,9 @@ Parameter | Ctor. | Type | Description | Default
 
 Parameter | Ctor. | Type | Description | Default
 --------- | :---: | ---- | ----------- | :-----:
-`format` |  | [`format`](#format-choices) | format of the pixel data | `rgba`
-`type` |  | [`type`](#type-choices) | data type of the pixel data | `unsigned_byte`
-`width` |  | [`int`](#parameter-types) | width of the texture | `0`
-`height` |  | [`int`](#parameter-types) | height of the texture | `0`
-`depth` |  | [`int`](#parameter-types) | depth of the texture | `0`
-`min_filter` |  | [`min_filter`](#min_filter-choices) | texture minifying function | `nearest`
-`mag_filter` |  | [`mag_filter`](#mag_filter-choices) | texture magnification function | `nearest`
 `wrap_s` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the s dimension (horizontal) | `clamp_to_edge`
 `wrap_t` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the t dimension (vertical) | `clamp_to_edge`
 `wrap_r` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the r dimension (depth) | `clamp_to_edge`
-`data_src` |  | [`Node`](#parameter-types) ([AnimatedBufferFloat](#animatedbuffer), [AnimatedBufferVec2](#animatedbuffer), [AnimatedBufferVec3](#animatedbuffer), [AnimatedBufferVec4](#animatedbuffer), [BufferByte](#buffer), [BufferBVec2](#buffer), [BufferBVec3](#buffer), [BufferBVec4](#buffer), [BufferInt](#buffer), [BufferIVec2](#buffer), [BufferIVec3](#buffer), [BufferIVec4](#buffer), [BufferShort](#buffer), [BufferSVec2](#buffer), [BufferSVec3](#buffer), [BufferSVec4](#buffer), [BufferUByte](#buffer), [BufferUBVec2](#buffer), [BufferUBVec3](#buffer), [BufferUBVec4](#buffer), [BufferUInt](#buffer), [BufferUIVec2](#buffer), [BufferUIVec3](#buffer), [BufferUIVec4](#buffer), [BufferUShort](#buffer), [BufferUSVec2](#buffer), [BufferUSVec3](#buffer), [BufferUSVec4](#buffer), [BufferFloat](#buffer), [BufferVec2](#buffer), [BufferVec3](#buffer), [BufferVec4](#buffer)) | data source | 
-`access` |  | [`access`](#access-choices) | whether direct rendering is enabled or not for media playback | `read_write`
 `immutable` |  | [`bool`](#parameter-types) | whether the texture is immutable or not | `0`
 
 
@@ -686,27 +668,12 @@ Constant | Description
 `back_in_out` | combination of `back_in` then `back_out`
 `back_out_in` | combination of `back_out` then `back_in`
 
-## buffer_usage choices
-
-Constant | Description
--------- | -----------
-`stream_draw` | modified once by the application and used at most a few times as a source for drawing
-`stream_read` | modified once by reading data from the graphic pipeline and used at most a few times to return the data to the application
-`stream_copy` | modified once by reading data from the graphic pipeline and used at most a few times as a source for drawing
-`static_draw` | modified once by the application and used many times as a source for drawing
-`static_read` | modified once by reading data from the graphic pipeline and used many times to return the data to the application
-`static_copy` | modified once by reading data from the graphic pipeline and used at most a few times a source for drawing
-`dynamic_draw` | modified repeatedly by the application and used many times as a source for drawing
-`dynamic_read` | modified repeatedly by reading data from the graphic pipeline and used many times to return data to the application
-`dynamic_copy` | modified repeatedly by reading data from the graphic pipeline and used many times as a source for drawing
-
 ## draw_mode choices
 
 Constant | Description
 -------- | -----------
 `points` | points
 `line_strip` | line strip
-`line_loop` | line loop
 `lines` | lines
 `triangle_strip` | triangle strip
 `triangle_fan` | triangle fan
@@ -776,57 +743,6 @@ Constant | Description
 `decr_wrap` | decrements the current stencil buffer value and wraps it
 `decr_invert` | bitwise inverts the current stencil buffer value
 
-## format choices
-
-Constant | Description
--------- | -----------
-`red` | red
-`red_integer` | red integer
-`rg` | rg
-`rg_integer` | rg integer
-`rgb` | rgb
-`rgb_integer` | rgb integer
-`rgba` | rgba
-`rgba_integer` | rgba integer
-`bgra` | bgra
-`depth_component` | depth component
-`depth_stencil` | depth stencil
-`alpha` | alpha (OpenGLES only)
-`luminance` | luminance (OpenGLES only)
-`luminance_alpha` | luminance alpha (OpenGLES only)
-
-## type choices
-
-Constant | Description
--------- | -----------
-`byte` | byte
-`unsigned_byte` | unsigned byte
-`short` | short
-`unsigned_short` | unsigned short
-`int` | integer
-`unsigned_int` | unsigned integer
-`half_float` | half float
-`float` | float
-`unsigned_int_24_8` | pair of two unsigned integers (24 bits and 8 bits)
-
-## min_filter choices
-
-Constant | Description
--------- | -----------
-`nearest` | nearest filtering
-`linear` | linear filtering
-`nearest_mipmap_nearest` | nearest filtering, nearest mipmap filtering
-`linear_mipmap_nearest` | linear filtering, nearest mipmap filtering
-`nearest_mipmap_linear` | nearest filtering, linear mipmap filtering
-`linear_mipmap_linear` | linear filtering, linear mipmap filtering
-
-## mag_filter choices
-
-Constant | Description
--------- | -----------
-`nearest` | nearest filtering
-`linear` | linear filtering
-
 ## wrap choices
 
 Constant | Description
@@ -834,11 +750,3 @@ Constant | Description
 `clamp_to_edge` | clamp to edge wrapping
 `mirrored_repeat` | mirrored repeat wrapping
 `repeat` | repeat pattern wrapping
-
-## access choices
-
-Constant | Description
--------- | -----------
-`read_only` | read only
-`write_only` | write only
-`read_write` | read-write

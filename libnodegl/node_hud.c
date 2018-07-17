@@ -226,16 +226,23 @@ static void reset_buf(struct hud *s)
         p = set_color(p, s->bg_color_u32);
 }
 
+#ifdef VULKAN_BACKEND
+// TODO
+#else
 static void noop(const struct glcontext *gl, ...)
 {
 }
+#endif
 
 static int hud_init(struct ngl_node *node)
 {
+    struct hud *s = node->priv_data;
+
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
-
-    struct hud *s = node->priv_data;
 
     if (gl->features & NGLI_FEATURE_TIMER_QUERY) {
         s->glGenQueries          = ngli_glGenQueries;
@@ -258,6 +265,7 @@ static int hud_init(struct ngl_node *node)
     }
 
     s->glGenQueries(gl, 1, &s->query);
+#endif
 
     ngli_assert(NGLI_ARRAY_NB(ops) == NB_OPS);
     ngli_assert(NGLI_ARRAY_NB(ops) == NGLI_ARRAY_NB(s->measures));
@@ -432,6 +440,14 @@ static int hud_update(struct ngl_node *node, double t)
 
     ngli_node_transfer_matrices(child, node);
 
+#ifdef VULKAN_BACKEND
+    // TODO
+    int64_t update_start = ngli_gettime();
+    ret = ngli_node_update(child, t);
+    int64_t update_end = ngli_gettime();
+
+    register_time(s, OP_UPDATE_CPU, update_end - update_start);
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
 
@@ -457,6 +473,7 @@ static int hud_update(struct ngl_node *node, double t)
 
     register_time(s, OP_UPDATE_CPU, update_end - update_start);
     register_time(s, OP_UPDATE_GPU, gpu_tupdate);
+#endif
 
     return ret;
 }
@@ -465,6 +482,9 @@ static void hud_draw(struct ngl_node *node)
 {
     struct hud *s = node->priv_data;
 
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
 
@@ -497,6 +517,7 @@ static void hud_draw(struct ngl_node *node)
     const int64_t gpu_tupdate = gpu_up->times[last_gpu_up_pos];
     register_time(s, OP_TOTAL_CPU, cpu_tdraw + cpu_tupdate);
     register_time(s, OP_TOTAL_GPU, gpu_tdraw + gpu_tupdate);
+#endif
 
     if (s->need_refresh) {
         reset_buf(s);
@@ -541,10 +562,13 @@ static void hud_uninit(struct ngl_node *node)
         free(s->graph[i].values);
     }
 
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
-
     s->glDeleteQueries(gl, 1, &s->query);
+#endif
 
     if (s->export_filename) {
         close(s->fd_export);

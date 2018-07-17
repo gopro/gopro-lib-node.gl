@@ -78,6 +78,7 @@ static const struct node_param compute_params[] = {
     {NULL}
 };
 
+#ifndef VULKAN_BACKEND
 static int update_uniforms(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
@@ -174,9 +175,13 @@ static int update_uniforms(struct ngl_node *node)
 
     return 0;
 }
+#endif
 
 static int compute_init(struct ngl_node *node)
 {
+#ifdef VULKAN_BACKEND
+// TODO
+#else
     int ret;
 
     struct ngl_ctx *ctx = node->ctx;
@@ -321,7 +326,7 @@ static int compute_init(struct ngl_node *node)
             i++;
         }
     }
-
+#endif
     return 0;
 }
 
@@ -331,7 +336,11 @@ static void compute_uninit(struct ngl_node *node)
 
     free(s->textureprograminfos);
     free(s->uniform_ids);
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     free(s->buffer_ids);
+#endif
 }
 
 static int compute_update(struct ngl_node *node, double t)
@@ -370,6 +379,9 @@ static int compute_update(struct ngl_node *node, double t)
 
 static void compute_draw(struct ngl_node *node)
 {
+#ifdef VULKAN_BACKEND
+    // TODO
+#else
     struct ngl_ctx *ctx = node->ctx;
     struct glcontext *gl = ctx->glcontext;
 
@@ -383,6 +395,7 @@ static void compute_draw(struct ngl_node *node)
     ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
     ngli_glDispatchCompute(gl, s->nb_group_x, s->nb_group_y, s->nb_group_z);
     ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
+#endif
 }
 
 const struct node_class ngli_compute_class = {

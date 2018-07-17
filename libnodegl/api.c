@@ -164,26 +164,53 @@ static void *worker_thread(void *arg)
 
 #if defined(TARGET_IPHONE) || defined(TARGET_ANDROID)
 # define DEFAULT_BACKEND NGL_BACKEND_OPENGLES;
+#elif defined(VULKAN_BACKEND)
+# define DEFAULT_BACKEND NGL_BACKEND_VULKAN
 #else
 # define DEFAULT_BACKEND NGL_BACKEND_OPENGL;
 #endif
 
+#ifdef VULKAN_BACKEND
+extern const struct backend ngli_backend_vk;
+#else
 extern const struct backend ngli_backend_gl;
 extern const struct backend ngli_backend_gles;
+#endif
 
 static const struct backend *backend_map[] = {
+#ifdef VULKAN_BACKEND
+    [NGL_BACKEND_VULKAN]   = &ngli_backend_vk,
+#else
     [NGL_BACKEND_OPENGL]   = &ngli_backend_gl,
     [NGL_BACKEND_OPENGLES] = &ngli_backend_gles,
+#endif
 };
 
 static int configure(struct ngl_ctx *s, struct ngl_config *config)
 {
     if (config->backend == NGL_BACKEND_AUTO)
         config->backend = DEFAULT_BACKEND;
+
+    if (config->backend < 0 ||
+        config->backend >= NGLI_ARRAY_NB(backend_map) ||
+        !backend_map[config->backend]) {
+        ngli_assert(backend_map[DEFAULT_BACKEND]);
+        LOG(INFO, "unknown backend %d, fallback on %s",
+            config->backend, backend_map[DEFAULT_BACKEND]->name);
+        config->backend = DEFAULT_BACKEND;
+    }
+
     s->backend = backend_map[config->backend];
     if (!s->backend)
         return -1;
     LOG(INFO, "selected backend: %s", s->backend->name);
+
+    if (config->offscreen && (config->width <= 0 || config->height <= 0)) {
+        LOG(ERROR,
+            "could not initialize offscreen rendering with invalid dimensions (%dx%d)",
+            config->width, config->height);
+        return -1;
+    }
 
     int ret = s->backend->int_cfg_dp ? cmd_configure(s, config)
                                      : ngli_dispatch_cmd(s, cmd_configure, config);
@@ -238,6 +265,13 @@ int ngl_configure(struct ngl_ctx *s, struct ngl_config *config)
 
     if (s->configured)
         return reconfigure(s, config);
+
+#ifdef VULKAN_BACKEND
+    if (config->wrapped) {
+        LOG(ERROR, "wrapped mode unsupported with Vulkan");
+        return -1;
+    }
+#endif
 
     s->has_thread = !config->wrapped;
     if (s->has_thread) {

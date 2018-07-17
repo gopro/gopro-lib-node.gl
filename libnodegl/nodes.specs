@@ -90,7 +90,6 @@
         - [data, data]
         - [filename, string]
         - [stride, int]
-        - [usage, select]
 
 - BufferBVec2: _Buffer
 
@@ -245,8 +244,8 @@
 
 - Program:
     optional:
-        - [vertex, string]
-        - [fragment, string]
+        - [vertex, data]
+        - [fragment, data]
 
 - Quad:
     optional:
@@ -294,33 +293,16 @@
 
 - Texture2D:
     optional:
-        - [format, select]
-        - [type, select]
-        - [width, int]
-        - [height, int]
-        - [min_filter, select]
-        - [mag_filter, select]
         - [wrap_s, select]
         - [wrap_t, select]
-        - [data_src, Node]
-        - [access, select]
         - [direct_rendering, bool]
         - [immutable, bool]
 
 - Texture3D:
     optional:
-        - [format, select]
-        - [type, select]
-        - [width, int]
-        - [height, int]
-        - [depth, int]
-        - [min_filter, select]
-        - [mag_filter, select]
         - [wrap_s, select]
         - [wrap_t, select]
         - [wrap_r, select]
-        - [data_src, Node]
-        - [access, select]
         - [immutable, bool]
 
 - TimeRangeFilter:

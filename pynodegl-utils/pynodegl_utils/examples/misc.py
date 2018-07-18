@@ -629,35 +629,47 @@ def mountain(cfg, ndim=3, nb_layers=7,
 @scene()
 def vktest(cfg):
     cfg.duration = 4
-    colors_data = array.array('f', [1.0, 0.0, 0.0,
-                                    0.0, 1.0, 0.0,
-                                    0.0, 0.0, 1.0,
-                                    1.0, 1.0, 1.0])
-    vertices_data = array.array('f', [-0.5, -0.5, 0.0,
-                                       0.5, -0.5, 0.0,
-                                       0.5,  0.5, 0.0,
-                                      -0.5,  0.5, 0.0])
 
-    indices_data = array.array('i', [0, 1, 2, 2, 3, 0])
+    random.seed(0)
+    group = Group()
 
-    colors_buffer = BufferVec3(data=colors_data)
-    vertices_buffer = BufferVec3(data=vertices_data)
-    indices_buffer = BufferUInt(data=indices_data)
-
-    geometry = Geometry(vertices_buffer, indices=indices_buffer)
     program = Program(fragment=get_vk_frag('vktest'),
                       vertex=get_vk_vert('vktest'))
-    render = Render(geometry, program)
-    render.update_attributes(color=colors_buffer)
 
-    animkf = [AnimKeyFrameFloat(0, 0),
-              AnimKeyFrameFloat(1*cfg.duration/4., -1*360/4., 'exp_in_out'),
-              AnimKeyFrameFloat(2*cfg.duration/4., -2*360/4., 'exp_in_out'),
-              AnimKeyFrameFloat(3*cfg.duration/4., -3*360/4., 'exp_in_out'),
-              AnimKeyFrameFloat(4*cfg.duration/4., -4*360/4., 'exp_in_out')]
-    rotate = Rotate(render, anim=AnimatedFloat(animkf))
+    for i in range(3):
+        colors_data = array.array('f', [1.0, 0.0, 0.0,
+                                        0.0, 1.0, 0.0,
+                                        0.0, 0.0, 1.0,
+                                        1.0, 1.0, 1.0])
+        vertices_data = array.array('f', [-0.5, -0.5, 0.0,
+                                           0.5, -0.5, 0.0,
+                                           0.5,  0.5, 0.0,
+                                          -0.5,  0.5, 0.0])
 
-    gc = GraphicConfig(rotate,
+        indices_data = array.array('i', [0, 1, 2, 2, 3, 0])
+
+        colors_buffer = BufferVec3(data=colors_data)
+        vertices_buffer = BufferVec3(data=vertices_data)
+        indices_buffer = BufferUInt(data=indices_data)
+
+        geometry = Geometry(vertices_buffer, indices=indices_buffer)
+        render = Render(geometry, program)
+        render.update_attributes(color=colors_buffer)
+
+        animkf = [AnimKeyFrameFloat(0, 0),
+                  AnimKeyFrameFloat(1*cfg.duration/4., -1*360/4., 'exp_in_out'),
+                  AnimKeyFrameFloat(2*cfg.duration/4., -2*360/4., 'exp_in_out'),
+                  AnimKeyFrameFloat(3*cfg.duration/4., -3*360/4., 'exp_in_out'),
+                  AnimKeyFrameFloat(4*cfg.duration/4., -4*360/4., 'exp_in_out')]
+        rotate = Rotate(render, anim=AnimatedFloat(animkf))
+
+        tr = [random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)]
+        print tr
+        node = Translate(rotate, tr)
+
+        group.add_children(node)
+
+    gc = GraphicConfig(group,
                        color_write_mask='r+g+a')
 
     camera = Camera(gc)

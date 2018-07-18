@@ -654,7 +654,7 @@ static VkResult create_swapchain_framebuffers(struct glcontext *vk)
     return VK_SUCCESS;
 }
 
-static VkResult create_command_pool(struct glcontext *vk)
+static VkResult create_clear_command_pool(struct glcontext *vk)
 {
     VkCommandPoolCreateInfo command_pool_create_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -662,25 +662,25 @@ static VkResult create_command_pool(struct glcontext *vk)
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // XXX
     };
 
-    return vkCreateCommandPool(vk->device, &command_pool_create_info, NULL, &vk->command_pool);
+    return vkCreateCommandPool(vk->device, &command_pool_create_info, NULL, &vk->clear_pool);
 }
 
-static VkResult create_command_buffers(struct glcontext *vk)
+static VkResult create_clear_command_buffers(struct glcontext *vk)
 {
-    vk->nb_command_buffers = vk->nb_framebuffers;
-    vk->command_buffers = calloc(vk->nb_command_buffers, sizeof(*vk->command_buffers));
-    if (!vk->command_buffers)
+    vk->nb_clear_cmd_buf = vk->nb_framebuffers;
+    vk->clear_cmd_buf = calloc(vk->nb_clear_cmd_buf, sizeof(*vk->clear_cmd_buf));
+    if (!vk->clear_cmd_buf)
         return VK_ERROR_OUT_OF_HOST_MEMORY;
 
     VkCommandBufferAllocateInfo command_buffers_allocate_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = vk->command_pool,
+        .commandPool = vk->clear_pool,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = vk->nb_command_buffers,
+        .commandBufferCount = vk->nb_clear_cmd_buf,
     };
 
     VkResult ret = vkAllocateCommandBuffers(vk->device, &command_buffers_allocate_info,
-                                            vk->command_buffers);
+                                            vk->clear_cmd_buf);
     if (ret != VK_SUCCESS)
         return ret;
 
@@ -836,10 +836,9 @@ static int vulkan_init(struct glcontext *vk, uintptr_t display, uintptr_t window
         (ret = create_swapchain_images(vk)) != VK_SUCCESS ||
         (ret = create_swapchain_image_views(vk)) != VK_SUCCESS ||
         (ret = create_render_pass(vk)) != VK_SUCCESS ||
-        //(ret = create_graphics_pipelines(vk)) != VK_SUCCESS ||
         (ret = create_swapchain_framebuffers(vk)) != VK_SUCCESS ||
-        (ret = create_command_pool(vk)) != VK_SUCCESS ||
-        (ret = create_command_buffers(vk)) != VK_SUCCESS ||
+        (ret = create_clear_command_pool(vk)) != VK_SUCCESS ||
+        (ret = create_clear_command_buffers(vk)) != VK_SUCCESS ||
 
         (ret = create_descriptor_pool(vk)) != VK_SUCCESS ||
         (ret = create_descriptor_sets(vk)) != VK_SUCCESS ||
@@ -863,13 +862,16 @@ static void vulkan_swap_buffers(struct glcontext *vk)
         .waitSemaphoreCount = NGLI_ARRAY_NB(wait_sem),
         .pWaitSemaphores = wait_sem,
         .pWaitDstStageMask = wait_stages,
-        .commandBufferCount = 1,
-        .pCommandBuffers = &vk->command_buffers[vk->img_index],
+        .commandBufferCount = vk->nb_command_buffers,
+        .pCommandBuffers = vk->command_buffers,
         .signalSemaphoreCount = NGLI_ARRAY_NB(sig_sem),
         .pSignalSemaphores = sig_sem,
     };
 
+    //LOG(ERROR, "submit %d command buffers", vk->nb_command_buffers);
+
     VkResult ret = vkQueueSubmit(vk->graphic_queue, 1, &submit_info, vk->fences[vk->current_frame]);
+    vk->nb_command_buffers = 0;
     if (ret != VK_SUCCESS)
         LOG(ERROR, "submit failed");
 
@@ -896,14 +898,13 @@ static void vulkan_swap_buffers(struct glcontext *vk)
 
 static void cleanup_swapchain(struct glcontext *vk)
 {
-    vkFreeCommandBuffers(vk->device, vk->command_pool,
-                         vk->nb_command_buffers, vk->command_buffers);
-
     for (uint32_t i = 0; i < vk->nb_framebuffers; i++)
         vkDestroyFramebuffer(vk->device, vk->framebuffers[i], NULL);
 
-    //vkDestroyPipeline(vk->device, vk->graphics_pipeline, NULL);
-    //vkDestroyPipelineLayout(vk->device, vk->pipeline_layout, NULL);
+    vkFreeCommandBuffers(vk->device, vk->clear_pool,
+                         vk->nb_clear_cmd_buf, vk->clear_cmd_buf);
+    free(vk->clear_cmd_buf);
+
     vkDestroyRenderPass(vk->device, vk->render_pass, NULL);
 
     for (uint32_t i = 0; i < vk->nb_image_views; i++)
@@ -924,9 +925,8 @@ static int reset_swapchain(struct glcontext *vk)
         (ret = create_swapchain_images(vk)) != VK_SUCCESS ||
         (ret = create_swapchain_image_views(vk)) != VK_SUCCESS ||
         (ret = create_render_pass(vk)) != VK_SUCCESS ||
-        //(ret = create_graphics_pipelines(vk)) != VK_SUCCESS ||
         (ret = create_swapchain_framebuffers(vk)) != VK_SUCCESS ||
-        (ret = create_command_buffers(vk)) != VK_SUCCESS)
+        (ret = create_clear_command_buffers(vk)) != VK_SUCCESS)
         return -1;
 
     return 0;
@@ -949,7 +949,7 @@ static void vulkan_uninit(struct glcontext *vk)
     vkDestroyDescriptorPool(vk->device, vk->descriptor_pool, NULL);
     free(vk->descriptor_sets);
 
-    vkDestroyCommandPool(vk->device, vk->command_pool, NULL);
+    vkDestroyCommandPool(vk->device, vk->clear_pool, NULL);
 
     free(vk->swapchain_support.formats);
     free(vk->swapchain_support.present_modes);
@@ -1002,7 +1002,8 @@ static int vk_clear(struct glcontext *vk)
         { rgba[0], rgba[1], rgba[2], rgba[3] }
     };
 
-    VkCommandBuffer cmd_buf = vk->command_buffers[vk->img_index];
+
+    VkCommandBuffer cmd_buf = vk->clear_cmd_buf[vk->img_index];
 
     VkCommandBufferBeginInfo command_buffer_begin_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -1053,6 +1054,8 @@ static int vk_clear(struct glcontext *vk)
     if (ret != VK_SUCCESS)
         return -1;
 
+    vk->command_buffers[vk->nb_command_buffers++] = cmd_buf;
+
     return 0;
 }
 
@@ -1083,15 +1086,16 @@ static int vk_pre_draw(struct ngl_ctx *s)
     if (ret < 0)
         return ret;
 
-    if (!s->scene)
-        return vk_clear(vk);
-
     return ret;
 }
 
 static int vk_post_draw(struct ngl_ctx *s, double t, int ret)
 {
     struct glcontext *vk = s->glcontext;
+
+    if (!vk->nb_command_buffers)
+        return vk_clear(vk);
+
     vulkan_swap_buffers(vk);
     return ret;
 }

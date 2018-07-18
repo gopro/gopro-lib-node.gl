@@ -580,6 +580,62 @@ static int update_buffers(struct ngl_node *node)
 #endif
 
 #ifdef VULKAN_BACKEND
+static void destroy_pipeline(struct ngl_node *node)
+{
+    struct ngl_ctx *ctx = node->ctx;
+    struct glcontext *vk = ctx->glcontext;
+    struct render *s = node->priv_data;
+
+    vkDeviceWaitIdle(vk->device);
+
+    vkFreeCommandBuffers(vk->device, s->command_pool,
+                         s->nb_command_buffers, s->command_buffers);
+    free(s->command_buffers);
+    vkDestroyPipeline(vk->device, s->pipeline, NULL);
+    vkDestroyPipelineLayout(vk->device, s->pipeline_layout, NULL);
+}
+
+static VkResult create_command_pool(struct ngl_node *node)
+{
+    struct ngl_ctx *ctx = node->ctx;
+    struct glcontext *vk = ctx->glcontext;
+    struct render *s = node->priv_data;
+
+    VkCommandPoolCreateInfo command_pool_create_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .queueFamilyIndex = vk->queue_family_graphics_id,
+        .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, // XXX
+    };
+
+    return vkCreateCommandPool(vk->device, &command_pool_create_info, NULL, &s->command_pool);
+}
+
+static VkResult create_command_buffers(struct ngl_node *node)
+{
+    struct ngl_ctx *ctx = node->ctx;
+    struct glcontext *vk = ctx->glcontext;
+    struct render *s = node->priv_data;
+
+    s->nb_command_buffers = vk->nb_framebuffers;
+    s->command_buffers = calloc(s->nb_command_buffers, sizeof(*s->command_buffers));
+    if (!s->command_buffers)
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+
+    VkCommandBufferAllocateInfo command_buffers_allocate_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = s->command_pool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = s->nb_command_buffers,
+    };
+
+    VkResult ret = vkAllocateCommandBuffers(vk->device, &command_buffers_allocate_info,
+                                            s->command_buffers);
+    if (ret != VK_SUCCESS)
+        return ret;
+
+    return VK_SUCCESS;
+}
+
 static VkResult create_graphics_pipeline(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
@@ -587,7 +643,9 @@ static VkResult create_graphics_pipeline(struct ngl_node *node)
 
     struct render *s = node->priv_data;
 
-    VkResult ret;
+    VkResult ret = create_command_buffers(node);
+    if (ret != VK_SUCCESS)
+        return ret;
 
     const struct program *program = s->program->priv_data;
 
@@ -703,7 +761,7 @@ static VkResult create_graphics_pipeline(struct ngl_node *node)
     }
 
     ret = vkCreatePipelineLayout(vk->device, &pipeline_layout_create_info, NULL,
-                                 &vk->pipeline_layouts[s->pipeline_id]);
+                                 &s->pipeline_layout);
     if (ret != VK_SUCCESS)
         return ret;
 
@@ -719,14 +777,14 @@ static VkResult create_graphics_pipeline(struct ngl_node *node)
         .pDepthStencilState = NULL,
         .pColorBlendState = &colorblend_state_create_info,
         .pDynamicState = NULL,
-        .layout = vk->pipeline_layouts[s->pipeline_id],
+        .layout = s->pipeline_layout,
         .renderPass = vk->render_pass,
         .subpass = 0,
     };
 
     return vkCreateGraphicsPipelines(vk->device, NULL, 1,
                                      &graphics_pipeline_create_info,
-                                     NULL, &vk->graphic_pipelines[s->pipeline_id]);
+                                     NULL, &s->pipeline);
 }
 #endif
 
@@ -759,10 +817,9 @@ static int render_init(struct ngl_node *node)
 
 #ifdef VULKAN_BACKEND
     struct glcontext *vk = ctx->glcontext;
-    s->pipeline_id = vk->nb_pipeline_layouts++; // FIXME: must probably be on top due to uninit using it
-    //VkResult vret = create_graphics_pipeline(node);
-    //if (vret != VK_SUCCESS)
-    //    return -1;
+    VkResult vkret = create_command_pool(node);
+    if (vkret != VK_SUCCESS)
+        return -1;
 
     // uniforms test
     s->uniform_buffers = NULL;
@@ -1084,7 +1141,6 @@ static void render_uninit(struct ngl_node *node)
     struct render *s = node->priv_data;
 
 #ifdef VULKAN_BACKEND
-    // TODO
     struct glcontext *vk = ctx->glcontext;
 
     if (s->uniform_buffers) {
@@ -1097,8 +1153,8 @@ static void render_uninit(struct ngl_node *node)
         free(s->uniform_device_memory);
     }
 
-    vkDestroyPipeline(vk->device, vk->graphic_pipelines[s->pipeline_id], NULL);
-    vkDestroyPipelineLayout(vk->device, vk->pipeline_layouts[s->pipeline_id], NULL);
+    destroy_pipeline(node);
+    vkDestroyCommandPool(vk->device, s->command_pool, NULL);
 #else
     struct glcontext *gl = ctx->glcontext;
 
@@ -1146,11 +1202,11 @@ static int render_update(struct ngl_node *node, double t)
     struct glcontext *vk = ctx->glcontext;
     if (s->last_width != vk->config.width ||
         s->last_height != vk->config.height) {
-        LOG(ERROR, "RECONFIGURE FROM %dx%d to %dx%d",
+        LOG(INFO, "reconfigure from %dx%d to %dx%d",
             s->last_width, s->last_height,
             vk->config.width, vk->config.height);
-        vkDestroyPipeline(vk->device, vk->graphic_pipelines[s->pipeline_id], NULL);
-        vkDestroyPipelineLayout(vk->device, vk->pipeline_layouts[s->pipeline_id], NULL);
+
+        destroy_pipeline(node);
 
         VkResult vret = create_graphics_pipeline(node);
         if (vret != VK_SUCCESS)
@@ -1187,7 +1243,7 @@ static void render_draw(struct ngl_node *node)
 
     //LOG(ERROR, "draw on %d", vk->img_index);
 
-    VkCommandBuffer cmd_buf = vk->command_buffers[vk->img_index];
+    VkCommandBuffer cmd_buf = s->command_buffers[vk->img_index];
 
     VkCommandBufferBeginInfo command_buffer_begin_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -1213,15 +1269,14 @@ static void render_draw(struct ngl_node *node)
 
     vkCmdBeginRenderPass(cmd_buf, &render_pass_begin_info,
                          VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                      vk->graphic_pipelines[s->pipeline_id]);
+    vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, s->pipeline);
 
     vkCmdBindVertexBuffers(cmd_buf, 0, s->nb_binds, s->vkbuffers, s->offsets);
 
-    vkCmdPushConstants(cmd_buf, vk->pipeline_layouts[s->pipeline_id],
+    vkCmdPushConstants(cmd_buf, s->pipeline_layout,
                        VK_SHADER_STAGE_VERTEX_BIT,
                        0, sizeof(node->modelview_matrix), node->modelview_matrix);
-    vkCmdPushConstants(cmd_buf, vk->pipeline_layouts[s->pipeline_id],
+    vkCmdPushConstants(cmd_buf, s->pipeline_layout,
                        VK_SHADER_STAGE_VERTEX_BIT,
                        sizeof(node->modelview_matrix),
                        sizeof(node->projection_matrix), node->projection_matrix);
@@ -1232,7 +1287,7 @@ static void render_draw(struct ngl_node *node)
 
     if (s->nb_uniform_ids > 0) {
         update_uniforms(node);
-        vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, vk->pipeline_layouts[s->pipeline_id], 0, 1, &vk->descriptor_sets[vk->img_index], 0, NULL);
+        vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, s->pipeline_layout, 0, 1, &vk->descriptor_sets[vk->img_index], 0, NULL);
     }
 
     vkCmdDrawIndexed(cmd_buf, indices_buffer->count, 1, 0, 0, 0);
@@ -1241,6 +1296,8 @@ static void render_draw(struct ngl_node *node)
     ret = vkEndCommandBuffer(cmd_buf);
     if (ret != VK_SUCCESS)
         return;
+
+    vk->command_buffers[vk->nb_command_buffers++] = cmd_buf;
 
     // TODO VAO?
 #else

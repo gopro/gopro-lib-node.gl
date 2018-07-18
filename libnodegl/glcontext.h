@@ -87,22 +87,10 @@ struct glcontext {
     uint32_t nb_image_views;
     VkFramebuffer *framebuffers;
     int nb_framebuffers;
-    VkCommandPool command_pool;
     VkSemaphore *sem_img_avail;
     VkSemaphore *sem_render_finished;
     VkFence *fences;
     VkStructureType surface_create_type;
-
-    VkPipeline graphic_pipelines[64]; // XXX
-    int nb_graphic_pipelines;
-    //int nb_allocated_graphic_pipelines;
-
-    VkPipelineLayout pipeline_layouts[64]; // XXX
-    int nb_pipeline_layouts;
-    //int nb_allocated_pipeline_layouts
-
-    VkCommandBuffer *command_buffers;
-    int nb_command_buffers;
 
     VkDescriptorPool descriptor_pool;
     VkDescriptorSetLayout descriptor_set_layout;
@@ -112,6 +100,15 @@ struct glcontext {
 
     int nb_in_flight_frames;
     int current_frame;
+
+    VkCommandPool clear_pool;
+    VkCommandBuffer *clear_cmd_buf;
+    int nb_clear_cmd_buf;
+
+    // final command buffers queue
+    VkCommandBuffer command_buffers[64]; // FIXME
+    int nb_command_buffers;
+
 #else
     /* GL context */
     const struct glcontext_class *class;

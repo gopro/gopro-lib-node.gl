@@ -428,7 +428,13 @@ struct render {
     int last_width;
     int last_height;
 
-    int pipeline_id;
+    VkPipelineLayout pipeline_layout;
+    VkPipeline pipeline;
+    VkCommandBuffer *command_buffers;
+    int nb_command_buffers; // XXX drop for vk->nb_framebuffers
+
+    VkCommandPool command_pool;
+
 
     VkVertexInputBindingDescription bind_descs[64]; // FIXME alloc
     VkVertexInputAttributeDescription attr_descs[64]; // FIXME alloc

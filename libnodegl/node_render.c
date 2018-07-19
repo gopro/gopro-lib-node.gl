@@ -305,7 +305,6 @@ static int update_uniforms(struct ngl_node *node)
 
 #ifdef VULKAN_BACKEND
     if (s->nb_uniform_ids > 0) {
-        const struct hmap_entry *entry = NULL;
 
         void *mapped_memory;
         vkMapMemory(vk->device, s->uniform_device_memory[vk->img_index], 0, s->uniform_buffer_size, 0, &mapped_memory);
@@ -313,7 +312,7 @@ static int update_uniforms(struct ngl_node *node)
             struct uniformprograminfo *info = &s->uniform_ids[i];
 
             // TODO: we should retrieve ngl_node from name or other id
-            struct ngl_node *unode = ngli_hmap_next(s->uniforms, entry)->data;
+            const struct ngl_node *unode = ngli_hmap_get(s->uniforms, info->name);
             switch (unode->class->id) {
                 case NGL_NODE_UNIFORMFLOAT: {
                     const struct uniform *u = unode->priv_data;
@@ -769,33 +768,37 @@ static int render_init(struct ngl_node *node)
     s->uniform_device_memory = NULL;
     int nb_uniforms = s->uniforms ? ngli_hmap_count(s->uniforms) : 0;
     if (nb_uniforms > 0) {
+
+        struct shader_reflection reflection;
+        ret = ngli_spirv_create_reflection((uint32_t*)program->frag_data, program->frag_data_size, &reflection);
+        if (ret < 0)
+            return ret;
+
         s->uniform_ids = calloc(nb_uniforms, sizeof(*s->uniform_ids));
         s->uniform_buffers = calloc(vk->nb_framebuffers, sizeof(*s->uniform_buffers));
         s->uniform_device_memory = calloc(vk->nb_framebuffers, sizeof(*s->uniform_device_memory));
 
-        // TODO probe shader instead of node_render
         s->uniform_buffer_size = 0;
-        const struct hmap_entry *entry = NULL;
-        while ((entry = ngli_hmap_next(s->uniforms, entry))) {
-            struct ngl_node *unode = entry->data;
+        for (uint32_t i=0; i<reflection.nb_buffers; i++) {
+            struct shader_buffer_reflection *buffer = &reflection.buffers[i];
+            for (uint32_t j=0; j<buffer->nb_variables; j++) {
+                struct shader_variable_reflection *variable = &buffer->variables[j];
 
-            ret = ngli_node_init(unode);
-            if (ret < 0)
-                return ret;
+                struct ngl_node *unode = ngli_hmap_get(s->uniforms, variable->name);
+                if (!unode)
+                    continue;
 
-            struct uniformprograminfo *infop = &s->uniform_ids[s->nb_uniform_ids++];
-            infop->offset = s->uniform_buffer_size;
+                ret = ngli_node_init(unode);
+                if (ret < 0)
+                    return ret;
 
-            switch (unode->class->id) {
-                case NGL_NODE_UNIFORMFLOAT: s->uniform_buffer_size += 1 * sizeof(float); break;
-                case NGL_NODE_UNIFORMVEC2:  s->uniform_buffer_size += 2 * sizeof(float); break;
-                case NGL_NODE_UNIFORMVEC3:  s->uniform_buffer_size += 3 * sizeof(float); break;
-                case NGL_NODE_UNIFORMVEC4:  s->uniform_buffer_size += 4 * sizeof(float); break;
-                default:
-                    LOG(ERROR, "unsupported uniform of type %s", unode->class->name);
-                    break;
+                struct uniformprograminfo *infop = &s->uniform_ids[s->nb_uniform_ids++];
+                infop->offset = variable->offset;
+                strcpy(infop->name, variable->name);// TODO: this should be hash
             }
+            s->uniform_buffer_size += buffer->size;
         }
+        ngli_spirv_destroy_reflection(&reflection);
 
         VkBufferCreateInfo buffer_create_info = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,

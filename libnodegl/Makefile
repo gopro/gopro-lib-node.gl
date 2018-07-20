@@ -114,15 +114,13 @@ LIB_EXTRA_OBJS_iPhone    = glcontext_eagl.o
 LIB_EXTRA_OBJS_MinGW-w64 = glcontext_wgl.o
 
 LIB_CFLAGS                 = -fPIC
-ifeq ($(BACKEND),vk)
-LIB_EXTRA_CFLAGS_Linux     = -DHAVE_PLATFORM_VULKAN
-else
+ifneq ($(BACKEND),vk)
 LIB_EXTRA_CFLAGS_Linux     = -DHAVE_PLATFORM_GLX -DHAVE_PLATFORM_EGL
-endif
 LIB_EXTRA_CFLAGS_Darwin    = -DHAVE_PLATFORM_NSGL
 LIB_EXTRA_CFLAGS_Android   = -DHAVE_PLATFORM_EGL
 LIB_EXTRA_CFLAGS_iPhone    = -DHAVE_PLATFORM_EAGL
 LIB_EXTRA_CFLAGS_MinGW-w64 = -DHAVE_PLATFORM_WGL
+endif
 
 LIB_LDLIBS                 = -lm -lpthread
 LIB_EXTRA_LDLIBS_Linux     =

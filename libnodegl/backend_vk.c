@@ -557,7 +557,7 @@ static VkResult create_swapchain_image_views(struct glcontext *vk)
         VkImageViewCreateInfo image_view_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = vk->images[i],
-            .viewType = VK_IMAGE_TYPE_2D,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = vk->surface_format.format,
             .components = {
                 .r = VK_COMPONENT_SWIZZLE_IDENTITY,

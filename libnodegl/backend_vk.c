@@ -585,7 +585,7 @@ static VkResult create_render_pass(struct glcontext *vk)
     VkAttachmentDescription color_attachment = {
         .format = vk->surface_format.format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -1086,15 +1086,16 @@ static int vk_pre_draw(struct ngl_ctx *s)
     if (ret < 0)
         return ret;
 
+    ret = vk_clear(vk);
+    if (ret < 0)
+        return ret;
+
     return ret;
 }
 
 static int vk_post_draw(struct ngl_ctx *s, double t, int ret)
 {
     struct glcontext *vk = s->glcontext;
-
-    if (!vk->nb_command_buffers)
-        return vk_clear(vk);
 
     vulkan_swap_buffers(vk);
     return ret;

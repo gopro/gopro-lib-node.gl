@@ -237,6 +237,7 @@ gl.xml:
 TESTS = asm             \
         hmap            \
         spirv           \
+        reflection      \
         utils           \
 
 TESTPROGS = $(addprefix test_,$(TESTS))
@@ -248,6 +249,7 @@ testprogs: $(TESTPROGS)
 test_asm: LDLIBS = $(PROJECT_LDLIBS) -lm
 test_asm: test_asm.o math_utils.o $(LIB_OBJS_ARCH_$(ARCH))
 test_hmap: test_hmap.o utils.o
+test_reflection: test_reflection.o spirv.o utils.o
 test_utils: test_utils.o utils.o
 test_spirv: test_spirv.o spirv.o
 

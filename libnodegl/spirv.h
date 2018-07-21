@@ -24,7 +24,30 @@
 
 #include <stdint.h>
 
+struct shader_variable_reflection
+{
+    const char* name; //TODO: should be hash
+    uint32_t hash;
+    uint16_t offset;
+};
+
+struct shader_buffer_reflection
+{
+    struct shader_variable_reflection* variables;
+    uint8_t nb_variables;
+    uint16_t size;
+};
+
+struct shader_reflection
+{
+    struct shader_buffer_reflection *buffers;
+    uint8_t nb_buffers;
+};
+
 int ngli_spirv_get_name_location(const uint32_t *code, size_t size,
                                  const char *name);
+
+int ngli_spirv_create_reflection(const uint32_t *code, size_t size, struct shader_reflection *s);
+void ngli_spirv_destroy_reflection(struct shader_reflection *s);
 
 #endif

@@ -35,9 +35,10 @@ class LibNodeGLConfig:
         if subprocess.call([pkg_config_bin, '--exists', self.PKG_LIB_NAME]) != 0:
             raise Exception('%s is required to build pynodegl' % self.PKG_LIB_NAME)
 
-        self.version       = subprocess.check_output([pkg_config_bin, '--modversion', self.PKG_LIB_NAME]).strip()
-        self.data_root_dir = subprocess.check_output([pkg_config_bin, '--variable=datarootdir', self.PKG_LIB_NAME]).strip()
-        pkgcfg_libs_cflags = subprocess.check_output([pkg_config_bin, '--libs', '--cflags', self.PKG_LIB_NAME])
+        console_encoding   = 'utf8'
+        self.version       = subprocess.check_output([pkg_config_bin, '--modversion', self.PKG_LIB_NAME]).strip().decode(console_encoding)
+        self.data_root_dir = subprocess.check_output([pkg_config_bin, '--variable=datarootdir', self.PKG_LIB_NAME]).strip().decode(console_encoding)
+        pkgcfg_libs_cflags = subprocess.check_output([pkg_config_bin, '--libs', '--cflags', self.PKG_LIB_NAME]).decode(console_encoding)
 
         flags = pkgcfg_libs_cflags.split()
         self.include_dirs = [f[2:] for f in flags if f.startswith('-I')]
@@ -71,7 +72,7 @@ class BuildExtCommand(build_ext):
         content += 'cdef extern from "nodegl.h":\n'
         nodes_decls = []
         for item in specs:
-            node = item.keys()[0]
+            node = list(item.keys())[0]
             fields = item[node]
             if not node.startswith('_'):
                 nodes_decls.append('cdef int NGL_NODE_%s' % node.upper())
@@ -79,7 +80,7 @@ class BuildExtCommand(build_ext):
         content += '\n'.join(('    %s' % d) if d else '' for d in nodes_decls) + '\n'
 
         for item in specs:
-            node = item.keys()[0]
+            node = list(item.keys())[0]
             fields = item[node]
 
             type_id = 'NGL_NODE_%s' % node.upper()

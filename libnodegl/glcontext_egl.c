@@ -34,6 +34,7 @@
 
 #if defined(TARGET_ANDROID)
 #include <android/native_window.h>
+#include <android/hardware_buffer.h>
 #endif
 
 #include "egl.h"
@@ -60,6 +61,7 @@ struct egl_priv {
     EGLDisplay (*GetPlatformDisplay)(EGLenum platform, void *native_display, const EGLint *attrib_list);
     EGLAPIENTRY EGLImageKHR (*CreateImageKHR)(EGLDisplay, EGLContext, EGLenum, EGLClientBuffer, const EGLint *);
     EGLAPIENTRY EGLBoolean (*DestroyImageKHR)(EGLDisplay, EGLImageKHR);
+    EGLAPIENTRY EGLClientBuffer (*GetNativeClientBufferANDROID)(const struct AHardwareBuffer *);
     int has_platform_x11_ext;
     int has_platform_mesa_surfaceless_ext;
     int has_platform_wayland_ext;
@@ -81,6 +83,12 @@ EGLBoolean ngli_eglDestroyImageKHR(struct glcontext *gl, EGLImageKHR image)
     return egl->DestroyImageKHR(egl->display, image);
 }
 
+EGLClientBuffer ngli_eglGetNativeClientBufferANDROID(struct glcontext *gl, const struct AHardwareBuffer *buffer)
+{
+    struct egl_priv *egl = gl->priv_data;
+    return egl->GetNativeClientBufferANDROID(buffer);
+}
+
 static int egl_probe_extensions(struct glcontext *ctx)
 {
     struct egl_priv *egl = ctx->priv_data;
@@ -92,6 +100,15 @@ static int egl_probe_extensions(struct glcontext *ctx)
             LOG(ERROR, "could not retrieve eglPresentationTimeANDROID()");
             return -1;
         }
+    }
+
+    if (ngli_glcontext_check_extension("EGL_ANDROID_get_native_client_buffer", egl->extensions)) {
+        egl->GetNativeClientBufferANDROID = (void *)eglGetProcAddress("eglGetNativeClientBufferANDROID");
+        if (!egl->GetNativeClientBufferANDROID) {
+            LOG(ERROR, "could not retrieve eglGetNativeClientBufferANDROID()");
+            return -1;
+        }
+        ctx->features |= NGLI_FEATURE_EGL_ANDROID_GET_IMAGE_NATIVE_CLIENT_BUFFER;
     }
 #endif
 

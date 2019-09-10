@@ -36,4 +36,7 @@ EGLImageKHR ngli_eglCreateImageKHR(struct glcontext *gl,
 EGLBoolean ngli_eglDestroyImageKHR(struct glcontext *gl,
                                    EGLImageKHR image);
 
+EGLClientBuffer ngli_eglGetNativeClientBufferANDROID(struct glcontext *gl,
+                                                     const struct AHardwareBuffer *buffer);
+
 #endif

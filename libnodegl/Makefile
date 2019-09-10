@@ -141,7 +141,7 @@ LIB_LDLIBS = -lm -lpthread
 
 LIB_EXTRA_OBJS_Linux     =
 LIB_EXTRA_OBJS_Darwin    =
-LIB_EXTRA_OBJS_Android   = jni_utils.o android_ctx.o android_utils.o android_looper.o android_surface.o android_handler.o android_handlerthread.o
+LIB_EXTRA_OBJS_Android   = jni_utils.o android_ctx.o android_utils.o android_looper.o android_surface.o android_handler.o android_handlerthread.o android_imagereader.o
 LIB_EXTRA_OBJS_iPhone    =
 LIB_EXTRA_OBJS_MinGW-w64 =
 

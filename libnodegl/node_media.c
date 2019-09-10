@@ -26,6 +26,7 @@
 
 #if defined(TARGET_ANDROID)
 #include <libavcodec/mediacodec.h>
+#include "android_imagereader.h"
 #endif
 
 #include "log.h"
@@ -148,6 +149,7 @@ static int media_init(struct ngl_node *node)
 
 #if defined(TARGET_ANDROID)
     struct ngl_ctx *ctx = node->ctx;
+    struct android_ctx *android_ctx = &ctx->android_ctx;
     const struct ngl_config *config = &ctx->config;
     struct gctx *gctx = ctx->gctx;
 
@@ -172,22 +174,34 @@ static int media_init(struct ngl_node *node)
         if (ret < 0)
             return ret;
 
-        s->android_handlerthread = ngli_android_handlerthread_new();
-        if (!s->android_handlerthread)
-            return NGL_ERROR_MEMORY;
+        void *android_surface = NULL;
+        if (android_ctx->has_native_imagereader_api) {
+            s->android_imagereader = ngli_android_imagereader_create(android_ctx, 1, 1,
+                                                                     NGLI_ANDROID_IMAGE_FORMAT_YUV_420_888, 2);
+            if (!s->android_imagereader)
+                return NGL_ERROR_MEMORY;
 
-        void *handler = ngli_android_handlerthread_get_native_handler(s->android_handlerthread);
-        if (!handler)
-            return NGL_ERROR_EXTERNAL;
+            ret = ngli_android_imagereader_get_window(s->android_imagereader, &android_surface);
+            if (ret < 0)
+                return ret;
+        } else {
+            s->android_handlerthread = ngli_android_handlerthread_new();
+            if (!s->android_handlerthread)
+                return NGL_ERROR_MEMORY;
 
-        struct texture_gl *texture_gl = (struct texture_gl *)s->android_texture;
-        s->android_surface = ngli_android_surface_new(texture_gl->id, handler);
-        if (!s->android_surface)
-            return NGL_ERROR_MEMORY;
+            void *handler = ngli_android_handlerthread_get_native_handler(s->android_handlerthread);
+            if (!handler)
+                return NGL_ERROR_EXTERNAL;
 
-        void *android_surface = ngli_android_surface_get_surface(s->android_surface);
-        if (!android_surface)
-            return NGL_ERROR_EXTERNAL;
+            struct texture_gl *texture_gl = (struct texture_gl *)s->android_texture;
+            s->android_surface = ngli_android_surface_new(texture_gl->id, handler);
+            if (!s->android_surface)
+                return NGL_ERROR_MEMORY;
+
+            void *android_surface = ngli_android_surface_get_surface(s->android_surface);
+            if (!android_surface)
+                return NGL_ERROR_EXTERNAL;
+        }
 
         sxplayer_set_option(s->player, "opaque", &android_surface);
     }
@@ -280,8 +294,14 @@ static void media_uninit(struct ngl_node *node)
     sxplayer_free(&s->player);
 
 #if defined(TARGET_ANDROID)
-    ngli_android_surface_free(&s->android_surface);
-    ngli_android_handlerthread_free(&s->android_handlerthread);
+    struct ngl_ctx *ctx = node->ctx;
+    struct android_ctx *android_ctx = &ctx->android_ctx;
+    if (android_ctx->has_native_imagereader_api) {
+        ngli_android_imagereader_freep(&s->android_imagereader);
+    } else {
+        ngli_android_surface_free(&s->android_surface);
+        ngli_android_handlerthread_free(&s->android_handlerthread);
+    }
     ngli_texture_freep(&s->android_texture);
 #endif
 }

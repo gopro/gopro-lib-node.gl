@@ -42,6 +42,7 @@
 #include "android_ctx.h"
 #include "android_handlerthread.h"
 #include "android_surface.h"
+#include "android_imagereader.h"
 #endif
 
 #if defined(TARGET_IPHONE)
@@ -315,6 +316,7 @@ struct media_priv {
     struct texture *android_texture;
     struct android_surface *android_surface;
     struct android_handlerthread *android_handlerthread;
+    struct android_imagereader *android_imagereader;
 #endif
 };
 

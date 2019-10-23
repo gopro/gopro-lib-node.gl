@@ -115,6 +115,12 @@ clean: clean_py
 	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig $(MAKE) -C libnodegl clean
 	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig $(MAKE) -C ngl-tools clean
 
+# You need to build and run with COVERAGE set to generate data.
+# For example: `make clean && make -j8 tests COVERAGE=yes`
+coverage:
+	mkdir -p ngl-cov
+	gcovr -r libnodegl --html-details -o ngl-cov/index.html
+
 .PHONY: all
 .PHONY: ngl-tools-install
 .PHONY: pynodegl-utils-install pynodegl-utils-deps-install
@@ -123,3 +129,4 @@ clean: clean_py
 .PHONY: sxplayer-install
 .PHONY: tests
 .PHONY: clean clean_py
+.PHONY: coverage

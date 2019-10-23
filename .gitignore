@@ -3,3 +3,6 @@
 *.o
 nodegl-env/
 sxplayer*
+*.gcda
+*.gcno
+ngl-cov/

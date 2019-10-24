@@ -42,6 +42,7 @@ struct render_priv {
     int nb_instances;
 
     struct pass pass;
+    struct darray vert_out_vars; // pgcraft_iovar
 };
 
 #define PROGRAMS_TYPES_LIST (const int[]){NGL_NODE_PROGRAM,         \
@@ -149,15 +150,34 @@ static int render_init(struct ngl_node *node)
         return NGL_ERROR_INVALID_USAGE;
     }
 
+    ngli_darray_init(&s->vert_out_vars, sizeof(struct pgcraft_iovar), 0);
+    const struct program_priv *program = s->program->priv_data;
+    if (program->vert_out_vars) {
+        const struct hmap_entry *e = NULL;
+        while ((e = ngli_hmap_next(program->vert_out_vars, e))) {
+            const struct ngl_node *iovar_node = e->data;
+            const struct io_priv *iovar_priv = iovar_node->priv_data;
+            struct pgcraft_iovar iovar = {.type = iovar_priv->type};
+            snprintf(iovar.name, sizeof(iovar.name), "%s", e->key);
+            if (!ngli_darray_push(&s->vert_out_vars, &iovar))
+                return NGL_ERROR_MEMORY;
+        }
+    }
+
     struct pass_params params = {
         .label = node->label,
         .geometry = s->geometry,
-        .program = s->program,
+        .vert_base = program->vertex,
+        .frag_base = program->fragment,
         .vert_resources = s->vert_resources,
         .frag_resources = s->frag_resources,
+        .properties = program->properties,
         .attributes = s->attributes,
         .instance_attributes = s->instance_attributes,
         .nb_instances = s->nb_instances,
+        .vert_out_vars = ngli_darray_data(&s->vert_out_vars),
+        .nb_vert_out_vars = ngli_darray_count(&s->vert_out_vars),
+        .nb_frag_output = program->nb_frag_output,
     };
     return ngli_pass_init(&s->pass, ctx, &params);
 }
@@ -172,6 +192,7 @@ static void render_uninit(struct ngl_node *node)
 {
     struct render_priv *s = node->priv_data;
     ngli_pass_uninit(&s->pass);
+    ngli_darray_reset(&s->vert_out_vars);
 }
 
 static int render_update(struct ngl_node *node, double t)

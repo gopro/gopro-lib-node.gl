@@ -1,29 +1,20 @@
 layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
 
-layout(location = 0, rgba8) readonly mediump uniform image2D source_sampler;
-
-layout (std430, binding = 0) buffer histogram_buffer {
-    uint histr[256];
-    uint histg[256];
-    uint histb[256];
-    uint maximum;
-};
-
 void main()
 {
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;
 
-    ivec2 size = imageSize(source_sampler);
+    ivec2 size = imageSize(source);
     if (x < uint(size.x) && y < uint(size.y)) {
-        vec4 color = imageLoad(source_sampler, ivec2(x, y));
+        vec4 color = imageLoad(source, ivec2(x, y));
         uvec4 ucolor = uvec4(color * 255.0);
 
-        uint r = atomicAdd(histr[ucolor.r], 1U);
-        uint g = atomicAdd(histg[ucolor.g], 1U);
-        uint b = atomicAdd(histb[ucolor.b], 1U);
+        uint r = atomicAdd(hist.r[ucolor.r], 1U);
+        uint g = atomicAdd(hist.g[ucolor.g], 1U);
+        uint b = atomicAdd(hist.b[ucolor.b], 1U);
 
         uint m = max(max(r, g), b);
-        atomicMax(maximum, m);
+        atomicMax(hist.maximum, m);
     }
 }

@@ -37,7 +37,6 @@
 #include "nodegl.h"
 #include "nodes.h"
 #include "pass.h"
-#include "pgcache.h"
 #include "pgcraft.h"
 #include "pipeline.h"
 #include "program.h"
@@ -47,46 +46,44 @@
 #include "utils.h"
 
 struct pipeline_desc {
+    struct pgcraft *crafter;
     struct pipeline pipeline;
     int modelview_matrix_index;
     int projection_matrix_index;
     int normal_matrix_index;
-    struct darray texture_infos;
 };
 
 static int register_uniform(struct pass *s, const char *name, struct ngl_node *uniform, int stage)
 {
-    if (!uniform)
-        return 0;
+    if (!ngli_darray_push(&s->uniform_nodes, &uniform))
+        return NGL_ERROR_MEMORY;
 
-    struct hmap *infos = s->pipeline_program->uniforms;
-    if (!ngli_hmap_get(infos, name)) {
-        struct pass_params *params = &s->params;
-        LOG(WARNING, "uniform %s attached to pipeline %s not found in shader", name, params->label);
-        return 0;
-    }
-
-    struct pipeline_uniform pipeline_uniform = {{0}};
-    snprintf(pipeline_uniform.name, sizeof(pipeline_uniform.name), "%s", name);
+    struct pgcraft_uniform crafter_uniform = {.stage = stage};
+    snprintf(crafter_uniform.name, sizeof(crafter_uniform.name), "%s", name);
 
     if (uniform->class->category == NGLI_NODE_CATEGORY_BUFFER) {
         struct buffer_priv *buffer_priv = uniform->priv_data;
-        pipeline_uniform.type  = buffer_priv->data_type;
-        pipeline_uniform.count = buffer_priv->count;
-        pipeline_uniform.data  = buffer_priv->data;
+        crafter_uniform.type  = buffer_priv->data_type;
+        crafter_uniform.count = buffer_priv->count;
+        crafter_uniform.data  = buffer_priv->data;
     } else if (uniform->class->category == NGLI_NODE_CATEGORY_UNIFORM) {
         struct variable_priv *variable_priv = uniform->priv_data;
-        pipeline_uniform.type  = variable_priv->data_type;
-        pipeline_uniform.count = 1;
-        pipeline_uniform.data  = variable_priv->data;
+        crafter_uniform.type  = variable_priv->data_type;
+        crafter_uniform.data  = variable_priv->data;
     } else {
         ngli_assert(0);
     }
 
-    if (!ngli_darray_push(&s->pipeline_uniforms, &pipeline_uniform))
-        return NGL_ERROR_MEMORY;
+    const struct pass_params *params = &s->params;
+    if (params->properties) {
+        struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
+        if (resprops_node) {
+            const struct resourceprops_priv *resprops = resprops_node->priv_data;
+            crafter_uniform.precision = resprops->precision;
+        }
+    }
 
-    if (!ngli_darray_push(&s->uniform_nodes, &uniform))
+    if (!ngli_darray_push(&s->crafter_uniforms, &crafter_uniform))
         return NGL_ERROR_MEMORY;
 
     return 0;
@@ -94,172 +91,66 @@ static int register_uniform(struct pass *s, const char *name, struct ngl_node *u
 
 static int register_builtin_uniforms(struct pass *s)
 {
-    struct pipeline_uniform pipeline_uniforms[] = {
-        {.name = "ngl_modelview_matrix",  .type = NGLI_TYPE_MAT4, .count = 1, .data = NULL},
-        {.name = "ngl_projection_matrix", .type = NGLI_TYPE_MAT4, .count = 1, .data = NULL},
-        {.name = "ngl_normal_matrix",     .type = NGLI_TYPE_MAT3, .count = 1, .data = NULL},
+    struct pgcraft_uniform crafter_uniforms[] = {
+        {.name = "ngl_modelview_matrix",  .type = NGLI_TYPE_MAT4, .stage=NGLI_PROGRAM_SHADER_VERT, .data = NULL},
+        {.name = "ngl_projection_matrix", .type = NGLI_TYPE_MAT4, .stage=NGLI_PROGRAM_SHADER_VERT, .data = NULL},
+        {.name = "ngl_normal_matrix",     .type = NGLI_TYPE_MAT3, .stage=NGLI_PROGRAM_SHADER_VERT, .data = NULL},
     };
 
-    for (int i = 0; i < NGLI_ARRAY_NB(pipeline_uniforms); i++) {
-        struct pipeline_uniform *pipeline_uniform = &pipeline_uniforms[i];
-        struct hmap *infos = s->pipeline_program->uniforms;
-        if (!ngli_hmap_get(infos, pipeline_uniform->name))
-            continue;
-        if (!ngli_darray_push(&s->pipeline_uniforms, pipeline_uniform))
+    for (int i = 0; i < NGLI_ARRAY_NB(crafter_uniforms); i++) {
+        struct pgcraft_uniform *crafter_uniform = &crafter_uniforms[i];
+        if (!ngli_darray_push(&s->crafter_uniforms, crafter_uniform))
             return NGL_ERROR_MEMORY;
     }
 
     return 0;
 }
 
-struct texture_info_field {
-    int active;
-    int index;
-    int type;
-    int is_sampler_or_image;
-};
-
-struct texture_info {
-    const char *name;
-    struct image *image;
-    struct texture_info_field fields[NGLI_INFO_FIELD_NB];
-};
-
-static const struct texture_info_map {
-    const char *suffix;
-    const int *allowed_types;
-    int field_id;
-} texture_info_maps[] = {
-    {"_sampling_mode",    (const int[]){NGLI_TYPE_INT, 0},                         NGLI_INFO_FIELD_SAMPLING_MODE},
-    {"_sampler",          (const int[]){NGLI_TYPE_SAMPLER_2D,
-                                        NGLI_TYPE_SAMPLER_3D,
-                                        NGLI_TYPE_SAMPLER_CUBE,
-                                        NGLI_TYPE_IMAGE_2D, 0},                    NGLI_INFO_FIELD_DEFAULT_SAMPLER},
-    {"_coord_matrix",     (const int[]){NGLI_TYPE_MAT4, 0},                        NGLI_INFO_FIELD_COORDINATE_MATRIX},
-    {"_color_matrix",     (const int[]){NGLI_TYPE_MAT4, 0},                        NGLI_INFO_FIELD_COLOR_MATRIX},
-    {"_dimensions",       (const int[]){NGLI_TYPE_VEC2,
-                                        NGLI_TYPE_VEC3, 0},                        NGLI_INFO_FIELD_DIMENSIONS},
-    {"_ts",               (const int[]){NGLI_TYPE_FLOAT, 0},                       NGLI_INFO_FIELD_TIMESTAMP},
-    {"_external_sampler", (const int[]){NGLI_TYPE_SAMPLER_EXTERNAL_OES,
-                                        NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT, 0}, NGLI_INFO_FIELD_OES_SAMPLER},
-    {"_y_sampler",        (const int[]){NGLI_TYPE_SAMPLER_2D, 0},                  NGLI_INFO_FIELD_Y_SAMPLER},
-    {"_uv_sampler",       (const int[]){NGLI_TYPE_SAMPLER_2D, 0},                  NGLI_INFO_FIELD_UV_SAMPLER},
-    {"_y_rect_sampler",   (const int[]){NGLI_TYPE_SAMPLER_2D_RECT, 0},             NGLI_INFO_FIELD_Y_RECT_SAMPLER},
-    {"_uv_rect_sampler",  (const int[]){NGLI_TYPE_SAMPLER_2D_RECT, 0},             NGLI_INFO_FIELD_UV_RECT_SAMPLER},
-};
-
-static int is_allowed_type(const int *allowed_types, int type)
-{
-    for (int i = 0; allowed_types[i]; i++)
-        if (allowed_types[i] == type)
-            return 1;
-    return 0;
-}
-
-static int is_sampler_or_image(int type)
-{
-    switch (type) {
-    case NGLI_TYPE_SAMPLER_2D:
-    case NGLI_TYPE_SAMPLER_2D_RECT:
-    case NGLI_TYPE_SAMPLER_3D:
-    case NGLI_TYPE_SAMPLER_CUBE:
-    case NGLI_TYPE_SAMPLER_EXTERNAL_OES:
-    case NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT:
-    case NGLI_TYPE_IMAGE_2D:
-        return 1;
-    default:
-        return 0;
-    }
-}
-
 static int register_texture(struct pass *s, const char *name, struct ngl_node *texture, int stage)
 {
-    if (!texture)
-        return 0;
-
-    struct texture_priv *texture_priv = texture->priv_data;
-    struct image *image = &texture_priv->image;
-
-    struct texture_info info = {
-        .name  = name,
-        .image = image,
-    };
-
-    struct hmap *infos = s->pipeline_program->uniforms;
-    for (int i = 0; i < NGLI_ARRAY_NB(texture_info_maps); i++) {
-        const struct texture_info_map *map = &texture_info_maps[i];
-
-        struct texture_info_field *field = &info.fields[map->field_id];
-
-        char uniform_name[MAX_ID_LEN];
-        snprintf(uniform_name, sizeof(uniform_name), "%s%s", name, map->suffix);
-
-        const struct program_variable_info *uniform = ngli_hmap_get(infos, uniform_name);
-        if (!uniform)
-            continue;
-
-        if (!is_allowed_type(map->allowed_types, uniform->type)) {
-            LOG(ERROR, "invalid type 0x%x found for texture uniform %s",
-                uniform->type, uniform_name);
-            return NGL_ERROR_INVALID_ARG;
-        }
-        field->active = 1;
-        field->type = uniform->type;
-        field->is_sampler_or_image = is_sampler_or_image(uniform->type);
-
-        if (field->is_sampler_or_image) {
-            struct pipeline_texture pipeline_texture = {
-                .name     = {0},
-                .type     = uniform->type,
-                .location = uniform->location,
-                .binding  = uniform->binding,
-            };
-            snprintf(pipeline_texture.name, sizeof(pipeline_texture.name), "%s", uniform_name);
-            if (!ngli_darray_push(&s->pipeline_textures, &pipeline_texture))
-                return NGL_ERROR_MEMORY;
-        } else {
-            struct pipeline_uniform pipeline_uniform = {
-                .type  = uniform->type,
-                .count = 1
-            };
-            snprintf(pipeline_uniform.name, sizeof(pipeline_uniform.name), "%s", uniform_name);
-            if (!ngli_darray_push(&s->pipeline_uniforms, &pipeline_uniform))
-                return NGL_ERROR_MEMORY;
-        }
-    }
-
-    const struct texture_info_field *fields = info.fields;
-    if (fields[NGLI_INFO_FIELD_COLOR_MATRIX].active &&
-        fields[NGLI_INFO_FIELD_OES_SAMPLER].active &&
-        fields[NGLI_INFO_FIELD_OES_SAMPLER].type == NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT) {
-        LOG(WARNING, "color_matrix is not supported with 2DY2YEXT sampler");
-    }
-
-    uint32_t supported_image_layouts = 0;
-
-    if (fields[NGLI_INFO_FIELD_DEFAULT_SAMPLER].active)
-        supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_DEFAULT;
-
-    if (fields[NGLI_INFO_FIELD_OES_SAMPLER].active)
-        supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_MEDIACODEC;
-
-    if (fields[NGLI_INFO_FIELD_Y_SAMPLER].active ||
-        fields[NGLI_INFO_FIELD_UV_SAMPLER].active)
-        supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_NV12;
-
-    if (fields[NGLI_INFO_FIELD_Y_RECT_SAMPLER].active ||
-        fields[NGLI_INFO_FIELD_UV_RECT_SAMPLER].active)
-        supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_NV12_RECTANGLE;
-
-    if (!supported_image_layouts)
-        LOG(WARNING, "no sampler found for texture %s", name);
-
-    texture_priv->supported_image_layouts &= supported_image_layouts;
-
-    if (!ngli_darray_push(&s->texture_infos, &info))
+    if (!ngli_darray_push(&s->texture_nodes, &texture))
         return NGL_ERROR_MEMORY;
 
-    if (!ngli_darray_push(&s->texture_nodes, &texture))
+    struct texture_priv *texture_priv = texture->priv_data;
+
+    /*
+     * Note: we do not assign crafter_texture.texture here since it is not
+     * initialized yet: non-media texture are initialized during prefetch and
+     * media-texture are initialized during update.
+     */
+    struct pgcraft_texture crafter_texture = {
+        .stage  = stage,
+        .image  = &texture_priv->image,
+        .format = texture_priv->params.format,
+    };
+    snprintf(crafter_texture.name, sizeof(crafter_texture.name), "%s", name);
+
+    switch (texture->class->id) {
+    case NGL_NODE_TEXTURE2D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D; break;
+    case NGL_NODE_TEXTURE3D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D; break;
+    case NGL_NODE_TEXTURECUBE: crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE;      break;
+    default:
+        ngli_assert(0);
+    }
+
+    const struct pass_params *params = &s->params;
+    if (params->properties) {
+        const struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
+        if (resprops_node) {
+            const struct resourceprops_priv *resprops = resprops_node->priv_data;
+            if (resprops->as_image) {
+                if (texture->class->id != NGL_NODE_TEXTURE2D) {
+                    LOG(ERROR, "\"%s\" can not be accessed as an image; only Texture2D is supported as image", name);
+                    return NGL_ERROR_UNSUPPORTED;
+                }
+                crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE2D;
+            }
+            crafter_texture.writable  = resprops->writable;
+            crafter_texture.precision = resprops->precision;
+        }
+    }
+
+    if (!ngli_darray_push(&s->crafter_textures, &crafter_texture))
         return NGL_ERROR_MEMORY;
 
     return 0;
@@ -267,29 +158,6 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
 
 static int register_block(struct pass *s, const char *name, struct ngl_node *block_node, int stage)
 {
-    if (!block_node)
-        return 0;
-
-    const struct hmap *infos = s->pipeline_program->buffer_blocks;
-    const struct program_variable_info *info = ngli_hmap_get(infos, name);
-    if (!info) {
-        struct pass_params *params = &s->params;
-        LOG(WARNING, "block %s attached to pipeline %s not found in shader", name, params->label);
-        return 0;
-    }
-
-    struct block_priv *block_priv = block_node->priv_data;
-    struct buffer *buffer = &block_priv->buffer;
-    struct pipeline_buffer pipeline_buffer = {
-        .type = info->type,
-        .binding = info->binding,
-        .buffer = buffer,
-    };
-    snprintf(pipeline_buffer.name, sizeof(pipeline_buffer.name), "%s", name);
-
-    if (!ngli_darray_push(&s->pipeline_buffers, &pipeline_buffer))
-        return NGL_ERROR_MEMORY;
-
     int ret = ngli_node_block_ref(block_node);
     if (ret < 0)
         return ret;
@@ -298,6 +166,56 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
         ngli_node_block_unref(block_node);
         return NGL_ERROR_MEMORY;
     }
+
+    struct ngl_ctx *ctx = s->ctx;
+    struct glcontext *gl = ctx->glcontext;
+
+    struct pgcraft_block crafter_block = {.stage = stage};
+    snprintf(crafter_block.name, sizeof(crafter_block.name), "%s", name);
+
+    struct block_priv *block_priv = block_node->priv_data;
+    struct block *block = &block_priv->block;
+
+    /*
+     * Select buffer type. We prefer UBO over SSBO, but in the following
+     * situations, UBO is not possible.
+     */
+    int type = NGLI_TYPE_UNIFORM_BUFFER;
+    if (block->layout == NGLI_BLOCK_LAYOUT_STD430) {
+        LOG(DEBUG, "block %s has a std430 layout, declaring it as SSBO", name);
+        type = NGLI_TYPE_STORAGE_BUFFER;
+    } else if (block->size > gl->max_uniform_block_size) {
+        LOG(DEBUG, "block %s is larger than the max UBO size (%d > %d), declaring it as SSBO",
+            name, block->size, gl->max_uniform_block_size);
+        type = NGLI_TYPE_STORAGE_BUFFER;
+    } else {
+        const struct pass_params *params = &s->params;
+        if (params->properties) {
+            const struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
+            if (resprops_node) {
+                const struct resourceprops_priv *resprops = resprops_node->priv_data;
+                if (resprops->variadic || resprops->writable)
+                    type = NGLI_TYPE_STORAGE_BUFFER;
+            }
+        }
+    }
+
+    /*
+     * Warning: the block type may be adjusted by another pass if the block
+     * node is shared between them. This means shared crafter blocks must
+     * point to the same block: pgcraft_block struct can not contain a copy of
+     * the block.
+     *
+     * Also note that the program crafting happens in the pass prepare, which
+     * happens after all pass inits, so all blocks will be registered by this
+     * time.
+     */
+    block->type = type;
+    crafter_block.block = block;
+    crafter_block.buffer = &block_priv->buffer;
+
+    if (!ngli_darray_push(&s->crafter_blocks, &crafter_block))
+        return NGL_ERROR_MEMORY;
 
     return 0;
 }
@@ -343,20 +261,10 @@ static int check_attributes(struct pass *s, struct hmap *attributes, int per_ins
     return 0;
 }
 
-static int register_attribute(struct pass *s, const char *name, struct ngl_node *attribute, int rate, int warn)
+static int register_attribute(struct pass *s, const char *name, struct ngl_node *attribute, int rate)
 {
     if (!attribute)
         return 0;
-
-    const struct hmap *infos = s->pipeline_program->attributes;
-    const struct program_variable_info *info = ngli_hmap_get(infos, name);
-    if (!info) {
-        if (warn) {
-            const struct pass_params *params = &s->params;
-            LOG(WARNING, "attribute %s attached to pipeline %s not found in shader", name, params->label);
-        }
-        return 0;
-    }
 
     int ret = ngli_node_buffer_ref(attribute);
     if (ret < 0)
@@ -371,42 +279,45 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
     const int format = attribute_priv->data_format;
     int stride = attribute_priv->data_stride;
     int offset = 0;
-    int class_id = attribute->class->id;
     struct buffer *buffer = &attribute_priv->buffer;
 
     if (attribute_priv->block) {
         struct block_priv *block_priv = attribute_priv->block->priv_data;
-        const struct ngl_node *f = block_priv->fields[attribute_priv->block_field];
         const struct block *block = &block_priv->block;
         const struct block_field *fields = ngli_darray_data(&block->fields);
         const struct block_field *fi = &fields[attribute_priv->block_field];
         stride = fi->stride;
         offset = fi->offset;
         buffer = &block_priv->buffer;
-        class_id = f->class->id;
     }
 
-    if (info->type == NGLI_TYPE_MAT4 && class_id != NGL_NODE_BUFFERMAT4) {
-        LOG(ERROR, "attribute '%s' type does not match the type declared in the shader", name);
-        return NGL_ERROR_INVALID_ARG;
+    /*
+     * FIXME: we should probably expose ngl_position as vec3 instead of vec4 to
+     * avoid this exception.
+     */
+    const int attr_type = strcmp(name, "ngl_position") ? attribute_priv->data_type : NGLI_TYPE_VEC4;
+
+    struct pgcraft_attribute crafter_attribute = {
+        .type   = attr_type,
+        .format = format,
+        .stride = stride,
+        .offset = offset,
+        .rate   = rate,
+        .buffer = buffer,
+    };
+    snprintf(crafter_attribute.name, sizeof(crafter_attribute.name), "%s", name);
+
+    const struct pass_params *params = &s->params;
+    if (params->properties) {
+        const struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
+        if (resprops_node) {
+            const struct resourceprops_priv *resprops = resprops_node->priv_data;
+            crafter_attribute.precision = resprops->precision;
+        }
     }
 
-    const int attribute_count = info->type == NGLI_TYPE_MAT4 ? 4 : 1;
-    const int attribute_offset = ngli_format_get_bytes_per_pixel(format);
-    for (int i = 0; i < attribute_count; i++) {
-        struct pipeline_attribute pipeline_attribute = {
-            .location = info->location + i,
-            .format = format,
-            .stride = stride,
-            .offset = offset + i * attribute_offset,
-            .rate   = rate,
-            .buffer = buffer,
-        };
-        snprintf(pipeline_attribute.name, sizeof(pipeline_attribute.name), "%s", name);
-
-        if (!ngli_darray_push(&s->pipeline_attributes, &pipeline_attribute))
-            return NGL_ERROR_MEMORY;
-    }
+    if (!ngli_darray_push(&s->crafter_attributes, &crafter_attribute))
+        return NGL_ERROR_MEMORY;
 
     return 0;
 }
@@ -483,15 +394,15 @@ static int pass_graphics_init(struct pass *s)
         (ret = check_attributes(s, params->instance_attributes, 1)) < 0)
         return ret;
 
-    if ((ret = register_attribute(s, "ngl_position", geometry_priv->vertices_buffer, 0, 0)) < 0 ||
-        (ret = register_attribute(s, "ngl_uvcoord",  geometry_priv->uvcoords_buffer, 0, 0)) < 0 ||
-        (ret = register_attribute(s, "ngl_normal",   geometry_priv->normals_buffer,  0, 0)) < 0)
+    if ((ret = register_attribute(s, "ngl_position", geometry_priv->vertices_buffer, 0)) < 0 ||
+        (ret = register_attribute(s, "ngl_uvcoord",  geometry_priv->uvcoords_buffer, 0)) < 0 ||
+        (ret = register_attribute(s, "ngl_normal",   geometry_priv->normals_buffer, 0)) < 0)
         return ret;
 
     if (params->attributes) {
         const struct hmap_entry *entry = NULL;
         while ((entry = ngli_hmap_next(params->attributes, entry))) {
-            int ret = register_attribute(s, entry->key, entry->data, 0, 1);
+            int ret = register_attribute(s, entry->key, entry->data, 0);
             if (ret < 0)
                 return ret;
         }
@@ -500,7 +411,7 @@ static int pass_graphics_init(struct pass *s)
     if (params->instance_attributes) {
         const struct hmap_entry *entry = NULL;
         while ((entry = ngli_hmap_next(params->instance_attributes, entry))) {
-            int ret = register_attribute(s, entry->key, entry->data, 1, 1);
+            int ret = register_attribute(s, entry->key, entry->data, 1);
             if (ret < 0)
                 return ret;
         }
@@ -537,15 +448,23 @@ int ngli_pass_prepare(struct pass *s)
         .type          = s->pipeline_type,
         .graphics      = pipeline_graphics,
         .compute       = s->pipeline_compute,
-        .program       = s->pipeline_program,
-        .attributes    = ngli_darray_data(&s->pipeline_attributes),
-        .nb_attributes = ngli_darray_count(&s->pipeline_attributes),
-        .uniforms      = ngli_darray_data(&s->pipeline_uniforms),
-        .nb_uniforms   = ngli_darray_count(&s->pipeline_uniforms),
-        .textures      = ngli_darray_data(&s->pipeline_textures),
-        .nb_textures   = ngli_darray_count(&s->pipeline_textures),
-        .buffers       = ngli_darray_data(&s->pipeline_buffers),
-        .nb_buffers    = ngli_darray_count(&s->pipeline_buffers),
+    };
+
+    const struct pgcraft_params crafter_params = {
+        .vert_base         = s->params.vert_base,
+        .frag_base         = s->params.frag_base,
+        .comp_base         = s->params.comp_base,
+        .uniforms          = ngli_darray_data(&s->crafter_uniforms),
+        .nb_uniforms       = ngli_darray_count(&s->crafter_uniforms),
+        .textures          = ngli_darray_data(&s->crafter_textures),
+        .nb_textures       = ngli_darray_count(&s->crafter_textures),
+        .attributes        = ngli_darray_data(&s->crafter_attributes),
+        .nb_attributes     = ngli_darray_count(&s->crafter_attributes),
+        .blocks            = ngli_darray_data(&s->crafter_blocks),
+        .nb_blocks         = ngli_darray_count(&s->crafter_blocks),
+        .vert_out_vars     = s->params.vert_out_vars,
+        .nb_vert_out_vars  = s->params.nb_vert_out_vars,
+        .nb_frag_output    = s->params.nb_frag_output,
     };
 
     struct pipeline_desc *desc = ngli_darray_push(&s->pipeline_descs, NULL);
@@ -553,41 +472,24 @@ int ngli_pass_prepare(struct pass *s)
         return NGL_ERROR_MEMORY;
     ctx->rnode_pos->id = ngli_darray_count(&s->pipeline_descs) - 1;
 
-    struct pipeline *pipeline = &desc->pipeline;
-    int ret = ngli_pipeline_init(pipeline, ctx, &pipeline_params);
+    memset(desc, 0, sizeof(*desc));
+
+    desc->crafter = ngli_pgcraft_create(ctx);
+    if (!desc->crafter)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_pgcraft_craft(desc->crafter, &pipeline_params, &crafter_params);
     if (ret < 0)
         return ret;
 
-    desc->modelview_matrix_index = ngli_pipeline_get_uniform_index(pipeline, "ngl_modelview_matrix");
-    desc->projection_matrix_index = ngli_pipeline_get_uniform_index(pipeline, "ngl_projection_matrix");
-    desc->normal_matrix_index = ngli_pipeline_get_uniform_index(pipeline, "ngl_normal_matrix");
+    struct pipeline *pipeline = &desc->pipeline;
+    ret = ngli_pipeline_init(pipeline, ctx, &pipeline_params);
+    if (ret < 0)
+        return ret;
 
-    ngli_darray_init(&desc->texture_infos, sizeof(struct texture_info), 0);
-
-    struct texture_info *texture_infos = ngli_darray_data(&s->texture_infos);
-    for (int i = 0; i < ngli_darray_count(&s->texture_infos); i++) {
-        struct texture_info *info = ngli_darray_push(&desc->texture_infos, &texture_infos[i]);
-        if (!info)
-            return NGL_ERROR_MEMORY;
-        for (int j = 0; j < NGLI_ARRAY_NB(texture_info_maps); j++) {
-            const struct texture_info_map *map = &texture_info_maps[j];
-
-            struct texture_info_field *field = &info->fields[map->field_id];
-            if (!field->active) {
-                field->index = -1;
-                continue;
-            }
-
-            char name[MAX_ID_LEN];
-            snprintf(name, sizeof(name), "%s%s", info->name, map->suffix);
-
-            if (field->is_sampler_or_image)
-                field->index = ngli_pipeline_get_texture_index(pipeline, name);
-            else
-                field->index = ngli_pipeline_get_uniform_index(pipeline, name);
-        }
-    }
-
+    desc->modelview_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "ngl_modelview_matrix", NGLI_PROGRAM_SHADER_VERT);
+    desc->projection_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "ngl_projection_matrix", NGLI_PROGRAM_SHADER_VERT);
+    desc->normal_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "ngl_normal_matrix", NGLI_PROGRAM_SHADER_VERT);
     return 0;
 }
 
@@ -601,17 +503,12 @@ int ngli_pass_init(struct pass *s, struct ngl_ctx *ctx, const struct pass_params
     ngli_darray_init(&s->uniform_nodes, sizeof(struct ngl_node *), 0);
     ngli_darray_init(&s->block_nodes, sizeof(struct ngl_node *), 0);
 
-    ngli_darray_init(&s->texture_infos, sizeof(struct texture_info), 0);
-
-    ngli_darray_init(&s->pipeline_attributes, sizeof(struct pipeline_attribute), 0);
-    ngli_darray_init(&s->pipeline_textures, sizeof(struct pipeline_texture), 0);
-    ngli_darray_init(&s->pipeline_uniforms, sizeof(struct pipeline_uniform), 0);
-    ngli_darray_init(&s->pipeline_buffers, sizeof(struct pipeline_buffer), 0);
+    ngli_darray_init(&s->crafter_attributes, sizeof(struct pgcraft_attribute), 0);
+    ngli_darray_init(&s->crafter_textures, sizeof(struct pgcraft_texture), 0);
+    ngli_darray_init(&s->crafter_uniforms, sizeof(struct pgcraft_uniform), 0);
+    ngli_darray_init(&s->crafter_blocks, sizeof(struct pgcraft_block), 0);
 
     ngli_darray_init(&s->pipeline_descs, sizeof(struct pipeline_desc), 0);
-
-    struct program_priv *program_priv = params->program->priv_data;
-    s->pipeline_program = &program_priv->program;
 
     int ret = register_builtin_uniforms(s);
     if (ret < 0)
@@ -660,7 +557,7 @@ void ngli_pass_uninit(struct pass *s)
     for (int i = 0; i < nb_descs; i++) {
         struct pipeline_desc *desc = &descs[i];
         ngli_pipeline_reset(&desc->pipeline);
-        ngli_darray_reset(&desc->texture_infos);
+        ngli_pgcraft_freep(&desc->crafter);
     }
     ngli_darray_reset(&s->pipeline_descs);
 
@@ -672,14 +569,10 @@ void ngli_pass_uninit(struct pass *s)
     reset_block_nodes(&s->block_nodes);
     reset_buffer_nodes(&s->attribute_nodes);
 
-    ngli_darray_reset(&s->texture_infos);
-
-    ngli_darray_reset(&s->pipeline_attributes);
-    ngli_darray_reset(&s->pipeline_textures);
-    ngli_darray_reset(&s->pipeline_uniforms);
-    ngli_darray_reset(&s->pipeline_buffers);
-
-    ngli_pgcache_release_program(&s->default_program);
+    ngli_darray_reset(&s->crafter_attributes);
+    ngli_darray_reset(&s->crafter_textures);
+    ngli_darray_reset(&s->crafter_uniforms);
+    ngli_darray_reset(&s->crafter_blocks);
 
     memset(s, 0, sizeof(*s));
 }
@@ -748,10 +641,11 @@ int ngli_pass_exec(struct pass *s)
         ngli_pipeline_update_uniform(pipeline, desc->normal_matrix_index, normal_matrix);
     }
 
-    struct texture_info *texture_infos = ngli_darray_data(&desc->texture_infos);
-    for (int i = 0; i < ngli_darray_count(&s->texture_infos); i++) {
-        struct texture_info *info = &texture_infos[i];
-        const struct texture_info_field *fields = info->fields;
+    struct darray *texture_infos_array = &desc->crafter->texture_infos;
+    struct pgcraft_texture_info *texture_infos = ngli_darray_data(texture_infos_array);
+    for (int i = 0; i < ngli_darray_count(texture_infos_array); i++) {
+        struct pgcraft_texture_info *info = &texture_infos[i];
+        const struct pgcraft_texture_info_field *fields = info->fields;
         struct image *image = info->image;
         const float ts = image->ts;
 

@@ -31,10 +31,9 @@ def lut3d(cfg, xsplit=.3, trilinear=True):
     video = ngl.Media(m0.filename)
     video_tex = ngl.Texture2D(data_src=video)
 
-    shader_version = '300 es' if cfg.backend == 'gles' else '330'
-    shader_header = '#version %s\n' % shader_version
-    prog = ngl.Program(fragment=shader_header + cfg.get_frag('lut3d'),
-                       vertex=shader_header + cfg.get_vert('lut3d'))
+    prog = ngl.Program(fragment=cfg.get_frag('lut3d'),
+                       vertex=cfg.get_vert('lut3d'))
+    prog.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     render = ngl.Render(quad, prog)
@@ -66,6 +65,7 @@ def buffer_dove(cfg,
         img_tex.set_mag_filter('linear')
     quad = ngl.Quad((-.5, -.5, 0.1), (1, 0, 0), (0, 1, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program, label='dove')
     render.update_frag_resources(tex0=img_tex)
     render = ngl.GraphicConfig(render,
@@ -102,6 +102,7 @@ def triangle(cfg, size=0.5):
 
     triangle = ngl.Triangle((-b, -c, 0), (b, -c, 0), (0, size, 0))
     p = ngl.Program(fragment=cfg.get_frag('triangle'), vertex=cfg.get_vert('triangle'))
+    p.update_vert_out_vars(var_color=ngl.IOVec4())
     node = ngl.Render(triangle, p)
     node.update_attributes(edge_color=colors_buffer)
     animkf = [ngl.AnimKeyFrameFloat(0, 0),
@@ -167,6 +168,7 @@ def cropboard(cfg, dim=15):
     qw = qh = 2. / dim
 
     p = ngl.Program(vertex=cfg.get_vert('cropboard'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     m = ngl.Media(m0.filename)
     t = ngl.Texture2D(data_src=m)
 
@@ -224,6 +226,7 @@ def audiotex(cfg, freq_precision=7, overlay=0.6):
 
     p = ngl.Program(vertex=cfg.get_vert('dual-tex'),
                     fragment=cfg.get_frag('audiotex'))
+    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_tex1_coord=ngl.IOVec2())
     render = ngl.Render(q, p)
     render.update_frag_resources(tex0=audio_tex, tex1=video_tex)
     render.update_frag_resources(overlay=ngl.UniformFloat(overlay))
@@ -236,11 +239,9 @@ def particules(cfg, particules=32):
     '''Particules demo using compute shaders and instancing'''
     random.seed(0)
 
-    shader_version = '310 es' if cfg.backend == 'gles' else '430'
-    shader_header = '#version %s\n' % shader_version
-    compute_shader = shader_header + cfg.get_comp('particules')
-    vertex_shader = shader_header + cfg.get_vert('particules')
-    fragment_shader = shader_header + cfg.get_frag('particules')
+    compute_shader = cfg.get_comp('particules')
+    vertex_shader = cfg.get_vert('particules')
+    fragment_shader = cfg.get_frag('particules')
 
     cfg.duration = 6
 
@@ -277,9 +278,9 @@ def particules(cfg, particules=32):
     c.update_resources(
         time=utime,
         duration=uduration,
-        ipositions_buffer=ipositions,
-        ivelocities_buffer=ivelocities,
-        opositions_buffer=opositions,
+        ipositions=ipositions,
+        ivelocities=ivelocities,
+        opositions=opositions,
     )
 
     quad_width = 0.01
@@ -292,9 +293,10 @@ def particules(cfg, particules=32):
         vertex=vertex_shader,
         fragment=fragment_shader,
     )
+    p.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     r = ngl.Render(quad, p, nb_instances=particules)
     r.update_frag_resources(color=ngl.UniformVec4(value=(0, .6, .8, .9)))
-    r.update_vert_resources(positions_buffer=opositions)
+    r.update_vert_resources(positions=opositions)
 
     r = ngl.GraphicConfig(r,
                           blend=True,
@@ -424,6 +426,7 @@ def cube(cfg, display_depth_buffer=False):
     vert_data = cfg.get_vert('texture')
     frag_data = cfg.get_frag('tex-tint')
     program = ngl.Program(vertex=vert_data, fragment=frag_data)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
 
     texture = ngl.Texture2D(data_src=ngl.Media(cfg.medias[0].filename))
     children = [_get_cube_side(texture, program, qi[0], qi[1], qi[2], qi[3]) for qi in _get_cube_quads()]
@@ -463,12 +466,14 @@ def cube(cfg, display_depth_buffer=False):
 
         quad = ngl.Quad((-1.0, -1.0, 0), (1, 0, 0), (0, 1, 0))
         program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+        program.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
         render = ngl.Render(quad, program)
         render.update_frag_resources(tex0=texture)
         group.add_children(rtt, render)
 
         quad = ngl.Quad((0.0, 0.0, 0), (1, 0, 0), (0, 1, 0))
         program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+        program.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
         render = ngl.Render(quad, program)
         render.update_frag_resources(tex0=depth_texture)
         group.add_children(rtt, render)
@@ -497,6 +502,7 @@ def histogram(cfg):
 
     q = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     r = ngl.Render(q, p)
     r.update_frag_resources(tex0=t)
     proxy_size = 128
@@ -505,29 +511,26 @@ def histogram(cfg):
     rtt.add_color_textures(proxy)
     g.add_children(rtt)
 
-    shader_version = '310 es' if cfg.backend == 'gles' else '430'
-    shader_header = '#version %s\n' % shader_version
-    if cfg.backend == 'gles' and cfg.system == 'Android':
-        shader_header += '#extension GL_ANDROID_extension_pack_es31a: require\n'
-
-    compute_program = ngl.ComputeProgram(shader_header + cfg.get_comp('histogram-clear'))
+    compute_program = ngl.ComputeProgram(cfg.get_comp('histogram-clear'))
     compute = ngl.Compute(256, 1, 1, compute_program, label='histogram-clear')
-    compute.update_resources(histogram_buffer=h)
+    compute.update_resources(hist=h)
     g.add_children(compute)
 
     local_size = 8
     group_size = proxy_size / local_size
     compute_shader = cfg.get_comp('histogram-exec') % {'local_size': local_size}
-    compute_program = ngl.ComputeProgram(shader_header + compute_shader)
+    compute_program = ngl.ComputeProgram(compute_shader)
     compute = ngl.Compute(group_size, group_size, 1, compute_program, label='histogram-exec')
-    compute.update_resources(histogram_buffer=h, source=proxy)
+    compute.update_resources(hist=h, source=proxy)
+    compute_program.update_properties(source=ngl.ResourceProps(as_image=True))
     g.add_children(compute)
 
     q = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    p = ngl.Program(vertex=shader_header + cfg.get_vert('histogram-display'),
-                    fragment=shader_header + cfg.get_frag('histogram-display'))
+    p = ngl.Program(vertex=cfg.get_vert('histogram-display'),
+                    fragment=cfg.get_frag('histogram-display'))
+    p.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     render = ngl.Render(q, p)
-    render.update_frag_resources(tex0=t, histogram_buffer=h)
+    render.update_frag_resources(tex0=t, hist=h)
     g.add_children(render)
 
     return g
@@ -553,6 +556,7 @@ def quaternion(cfg):
     m = ngl.Media(cfg.medias[0].filename)
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('uniform-mat4'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_normal=ngl.IOVec3(), var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     render = ngl.Render(q, p)
     render.update_frag_resources(tex0=t)
     render.update_vert_resources(transformation_matrix=quat)
@@ -586,6 +590,7 @@ def mountain(cfg, ndim=3, nb_layers=7,
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
 
     prog = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('mountain'))
+    prog.update_vert_out_vars(var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     hscale = 1/2.
     mountains = []
     for i in range(nb_mountains):

@@ -275,6 +275,7 @@ Parameter | Ctor. | Live-chg. | Type | Description | Default
 Parameter | Ctor. | Live-chg. | Type | Description | Default
 --------- | :---: | :-------: | ---- | ----------- | :-----:
 `compute` | ✓ |  | [`string`](#parameter-types) | compute shader | 
+`properties` |  |  | [`NodeDict`](#parameter-types) ([ResourceProps](#resourceprops)) | resource properties | 
 
 
 **Source**: [node_computeprogram.c](/libnodegl/node_computeprogram.c)
@@ -456,6 +457,9 @@ Parameter | Ctor. | Live-chg. | Type | Description | Default
 --------- | :---: | :-------: | ---- | ----------- | :-----:
 `vertex` |  |  | [`string`](#parameter-types) | vertex shader | 
 `fragment` |  |  | [`string`](#parameter-types) | fragment shader | 
+`properties` |  |  | [`NodeDict`](#parameter-types) ([ResourceProps](#resourceprops)) | resource properties | 
+`vert_out_vars` |  |  | [`NodeDict`](#parameter-types) ([IOInt](#ioint), [IOIVec2](#ioivec2), [IOIVec3](#ioivec3), [IOIVec4](#ioivec4), [IOUInt](#iouint), [IOUIvec2](#iouivec2), [IOUIvec3](#iouivec3), [IOUIvec4](#iouivec4), [IOFloat](#iofloat), [IOVec2](#iovec2), [IOVec3](#iovec3), [IOVec4](#iovec4), [IOMat3](#iomat3), [IOMat4](#iomat4), [IOBool](#iobool)) | in/out communication variables shared between vertex and fragment stages | 
+`nb_frag_output` |  |  | [`int`](#parameter-types) | number of color outputs in the fragment shader | `0`
 
 
 **Source**: [node_program.c](/libnodegl/node_program.c)

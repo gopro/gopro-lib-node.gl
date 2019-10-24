@@ -24,24 +24,30 @@
 
 #include <stdint.h>
 #include "darray.h"
+#include "pgcraft.h"
 #include "pipeline.h"
-#include "program.h"
 
 struct ngl_ctx;
 
 struct pass_params {
     const char *label;
-    struct ngl_node *program;
 
     /* graphics */
+    const char *vert_base;
+    const char *frag_base;
     struct hmap *vert_resources;
     struct hmap *frag_resources;
+    const struct hmap *properties;
     struct ngl_node *geometry;
     int nb_instances;
     struct hmap *attributes;
     struct hmap *instance_attributes;
+    struct pgcraft_iovar *vert_out_vars;
+    int nb_vert_out_vars;
+    int nb_frag_output;
 
     /* compute */
+    const char *comp_base;
     struct hmap *compute_resources;
     int nb_group_x;
     int nb_group_y;
@@ -57,26 +63,21 @@ struct pass {
     struct ngl_ctx *ctx;
     struct pass_params params;
 
-    struct program default_program;
-
     struct darray attribute_nodes;
     struct darray texture_nodes;
     struct darray uniform_nodes;
     struct darray block_nodes;
 
-    struct darray texture_infos;
-
     struct ngl_node *indices;
     struct buffer *indices_buffer;
 
     int pipeline_type;
-    struct program *pipeline_program;
     struct pipeline_graphics pipeline_graphics;
     struct pipeline_compute pipeline_compute;
-    struct darray pipeline_attributes;
-    struct darray pipeline_uniforms;
-    struct darray pipeline_textures;
-    struct darray pipeline_buffers;
+    struct darray crafter_attributes;
+    struct darray crafter_uniforms;
+    struct darray crafter_textures;
+    struct darray crafter_blocks;
     struct darray pipeline_descs;
 };
 

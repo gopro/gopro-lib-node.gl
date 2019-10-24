@@ -1,20 +1,5 @@
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-layout (std430, binding = 0) buffer ipositions_buffer {
-    vec3 ipositions[];
-};
-
-layout (std430, binding = 1) buffer ivelocities_buffer {
-    vec2 ivelocities[];
-};
-
-layout (std430, binding = 2) buffer opositions_buffer {
-    vec3 opositions[];
-};
-
-uniform float time;
-uniform float duration;
-
 float bounceOut(float t)
 {
     float c = 1.0;
@@ -46,8 +31,8 @@ void main()
     uint i = gl_GlobalInvocationID.x +
              gl_GlobalInvocationID.y * 64U;
 
-    vec3 iposition = ipositions[i];
-    vec2 ivelocity = ivelocities[i];
+    vec3 iposition = ipositions.data[i];
+    vec2 ivelocity = ivelocities.data[i];
     float step = time * duration * 30.0;
     vec2 velocity = ivelocity;
     vec3 position = iposition;
@@ -57,5 +42,5 @@ void main()
     position.x = iposition.x + step * velocity.x;
     position.y = ((2.0 - yoffset) * bounce(time * speed * (1.0  + yoffset))) - 0.99;
 
-    opositions[i] = position;
+    opositions.data[i] = position;
 }

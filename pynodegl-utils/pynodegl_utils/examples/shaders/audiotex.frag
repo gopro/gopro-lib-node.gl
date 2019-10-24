@@ -1,13 +1,3 @@
-#version 100
-precision mediump float;
-
-uniform int freq_precision;
-uniform float overlay;
-uniform sampler2D tex0_sampler;
-uniform sampler2D tex1_sampler;
-varying vec2 var_tex0_coord;
-varying vec2 var_tex1_coord;
-
 float wave(float amp, float y, float yoff)
 {
     float s = (amp + 1.0) / 2.0; // [-1;1] -> [0;1]
@@ -33,15 +23,15 @@ void main()
     float fft2 = float(freq_line) + 1.5;
     float x = var_tex0_coord.x;
     float y = var_tex0_coord.y;
-    vec4 video_pix = texture2D(tex1_sampler, var_tex1_coord);
+    vec4 video_pix = ngl_texvideo(tex1, var_tex1_coord);
     vec2 sample_id_ch_1 = vec2(x,  0.5 / 22.);
     vec2 sample_id_ch_2 = vec2(x,  1.5 / 22.);
     vec2  power_id_ch_1 = vec2(x, fft1 / 22.);
     vec2  power_id_ch_2 = vec2(x, fft2 / 22.);
-    float sample_ch_1 = texture2D(tex0_sampler, sample_id_ch_1).x;
-    float sample_ch_2 = texture2D(tex0_sampler, sample_id_ch_2).x;
-    float  power_ch_1 = texture2D(tex0_sampler,  power_id_ch_1).x;
-    float  power_ch_2 = texture2D(tex0_sampler,  power_id_ch_2).x;
+    float sample_ch_1 = ngl_tex2d(tex0, sample_id_ch_1).x;
+    float sample_ch_2 = ngl_tex2d(tex0, sample_id_ch_2).x;
+    float  power_ch_1 = ngl_tex2d(tex0,  power_id_ch_1).x;
+    float  power_ch_2 = ngl_tex2d(tex0,  power_id_ch_2).x;
     float wave1 = wave(sample_ch_1, y, 0.0);
     float wave2 = wave(sample_ch_2, y, 0.25);
     float freq1 = freq(power_ch_1, y, 0.5);
@@ -50,5 +40,5 @@ void main()
                    + vec3(0.5, 1.0, 0.0) * wave1
                    + vec3(1.0, 0.5, 0.0) * freq1
                    + vec3(1.0, 0.0, 0.5) * freq2;
-    gl_FragColor = mix(video_pix, vec4(audio_pix, 1.0), overlay);
+    ngl_out_color = mix(video_pix, vec4(audio_pix, 1.0), overlay);
 }

@@ -16,6 +16,7 @@ def centered_media(cfg, uv_corner=(0, 0), uv_width=(1, 0), uv_height=(0, 1), pro
     m = ngl.Media(m0.filename)
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(q, p)
     render.update_frag_resources(tex0=t)
 
@@ -44,6 +45,7 @@ def playback_speed(cfg, speed=1.0):
     m = ngl.Media(m0.filename, time_anim=ngl.AnimatedTime(time_animkf))
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(q, p)
     render.update_frag_resources(tex0=t)
     return render
@@ -86,6 +88,7 @@ def time_remapping(cfg):
     m.set_sxplayer_min_level('verbose')
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     r = ngl.Render(q, p)
     r.update_frag_resources(tex0=t)
 

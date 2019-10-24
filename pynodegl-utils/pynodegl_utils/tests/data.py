@@ -27,33 +27,14 @@ from pynodegl_utils.tests.debug import get_debug_points
 
 
 _FIELDS_VERT = '''
-in vec4 ngl_position;
-in vec2 ngl_uvcoord;
-
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-uniform mat3 ngl_normal_matrix;
-
-out vec2 var_uvcoord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_uvcoord;
 }
 '''
 
 _FIELDS_FRAG = '''
-precision highp float;
-
-in vec2 var_uvcoord;
-out vec4 frag_color;
-
-uniform int nb_fields;
-
-%(block_definition)s
-%(color_definition)s
-
 float in_rect(vec4 rect, vec2 pos)
 {
     return (1.0 - step(pos.x, rect.x)) * step(pos.x, rect.x + rect.z) *
@@ -67,7 +48,7 @@ void main()
     float w = 1.0;
     float h = 1.0 / float(nb_fields);
     vec3 res = %(func_calls)s;
-    frag_color = vec4(res, 1.0);
+    ngl_out_color = vec4(res, 1.0);
 }
 '''
 
@@ -119,17 +100,6 @@ _TYPE_SPEC = dict(
     quat_mat4=(4, 4, False),
     quat_vec4=(1, 4, False),
 )
-
-
-def _get_glsl_fields_definition(binding, layout, name, definition):
-    data_tpl = dict(name=name, definition=definition, binding=binding)
-    if layout == 'std430':
-        tpl = 'layout(std430, binding=%(binding)d) buffer %(name)s_block {\n%(definition)s\n} %(name)s;'
-    elif layout == 'std140':
-        tpl = 'layout(std140) uniform %(name)s_block {\n%(definition)s\n} %(name)s;'
-    else:
-        tpl = '%(definition)s'
-    return tpl % data_tpl
 
 
 def _get_display_glsl_func(layout, field_name, field_type, is_array=False):
@@ -238,24 +208,15 @@ def get_render(cfg, quad, fields, block_definition, color_definition, block_fiel
         func_definitions.append(_get_display_glsl_func(layout, field['name'], field['type'], is_array=is_array))
 
     frag_data = dict(
-        block_definition=_get_glsl_fields_definition(1, layout, 'fields', block_definition),
-        color_definition=_get_glsl_fields_definition(2, layout, 'colors', color_definition),
-        layout=layout,
         func_definitions='\n'.join(func_definitions),
         func_calls=' + '.join(func_calls),
     )
 
-    if layout == 'std430':
-        shader_version = '310 es' if cfg.backend == 'gles' else '430'
-    else:
-        shader_version = '300 es' if cfg.backend == 'gles' else '330'
-
-    header = '#version %s\n' % shader_version
-
-    fragment = header + _FIELDS_FRAG % frag_data
-    vertex = header + _FIELDS_VERT
+    fragment = _FIELDS_FRAG % frag_data
+    vertex = _FIELDS_VERT
 
     program = ngl.Program(vertex=vertex, fragment=fragment)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
 
     if isinstance(color_fields, dict):
@@ -266,7 +227,7 @@ def get_render(cfg, quad, fields, block_definition, color_definition, block_fiel
         d.update(('field_' + n, u) for (n, u) in block_fields.items() if n in field_names)
         render.update_frag_resources(**d)
     else:
-        render.update_frag_resources(fields_block=block_fields, colors_block=color_fields)
+        render.update_frag_resources(fields=block_fields, colors=color_fields)
 
     render.update_frag_resources(nb_fields=ngl.UniformInt(len(fields)))
 

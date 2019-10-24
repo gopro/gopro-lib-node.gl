@@ -82,6 +82,7 @@ def obj(cfg, n=0.5, model=None):
     m = ngl.Media(cfg.medias[0].filename)
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('tex-tint-normals'), fragment=cfg.get_frag('tex-tint-normals'))
+    p.update_vert_out_vars(var_normal=ngl.IOVec3(), var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     render = ngl.Render(q, p)
     render.update_frag_resources(tex0=t)
     render = ngl.GraphicConfig(render, depth_test=True)
@@ -133,6 +134,7 @@ def stl(cfg, stl=None, scale=.8):
 
     g = ngl.Geometry(vertices=vertices, normals=normals)
     p = ngl.Program(vertex=cfg.get_vert('colored-normals'), fragment=cfg.get_frag('colored-normals'))
+    p.update_vert_out_vars(var_normal=ngl.IOVec3(), var_uvcoord=ngl.IOVec2(), var_tex0_coord=ngl.IOVec2())
     solid = ngl.Render(g, p, label=solid_label)
     solid = ngl.GraphicConfig(solid, depth_test=True)
 

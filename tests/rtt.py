@@ -77,30 +77,18 @@ def _get_cube():
 
 
 _RENDER_CUBE_VERT = '''
-#version 100
-precision highp float;
-attribute vec4 ngl_position;
-attribute vec3 ngl_normal;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-uniform mat3 ngl_normal_matrix;
-varying vec3 var_normal;
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_normal = ngl_normal_matrix * ngl_normal;
 }
 '''
 
 
 _RENDER_CUBE_FRAG = '''
-#version 100
-precision mediump float;
-varying vec3 var_normal;
-
 void main()
 {
-    gl_FragColor = vec4((var_normal + 1.0) / 2.0, 1.0);
+    ngl_out_color = vec4((var_normal + 1.0) / 2.0, 1.0);
 }
 '''
 
@@ -110,6 +98,7 @@ def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mip
     cfg.aspect_ratio = (1, 1)
     cube = _get_cube()
     program = ngl.Program(vertex=_RENDER_CUBE_VERT, fragment=_RENDER_CUBE_FRAG)
+    program.update_vert_out_vars(var_normal=ngl.IOVec3())
     render = ngl.Render(cube, program)
     render = ngl.Scale(render, (0.5, 0.5, 0.5))
 
@@ -153,6 +142,7 @@ def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mip
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=texture)
     return ngl.Group(children=(rtt, render))

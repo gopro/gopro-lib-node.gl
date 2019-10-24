@@ -100,10 +100,12 @@ static int compute_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct compute_priv *s = node->priv_data;
+    const struct program_priv *program = s->program->priv_data;
     struct pass_params params = {
         .label = node->label,
-        .program = s->program,
+        .comp_base = program->compute,
         .compute_resources = s->resources,
+        .properties = program->properties,
         .nb_group_x = s->nb_group_x,
         .nb_group_y = s->nb_group_y,
         .nb_group_z = s->nb_group_z,

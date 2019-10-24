@@ -31,64 +31,27 @@ from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 
 
 _PARTICULES_COMPUTE = '''
-#version %(version)s
-
 layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
-
-layout (std430, binding = 0) buffer ipositions_buffer {
-    vec3 ipositions[%(nb_particules)d];
-    vec2 ivelocities[%(nb_particules)d];
-};
-
-layout (std430, binding = 1) buffer opositions_buffer {
-    vec3 opositions[%(nb_particules)d];
-};
-
-uniform float time;
-uniform float duration;
 
 void main()
 {
     uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * gl_WorkGroupSize.y + gl_LocalInvocationIndex;
-    vec3 iposition = ipositions[i];
-    vec2 ivelocity = ivelocities[i];
+    vec3 iposition = idata.positions[i];
+    vec2 ivelocity = idata.velocities[i];
     vec3 position;
     position.x = iposition.x + time * ivelocity.x;
     position.y = iposition.y + 0.1 * sin(time * duration * ivelocity.y);
     position.z = 0.0;
-    opositions[i] = position;
+    odata.positions[i] = position;
 }
 '''
 
 
 _PARTICULES_VERT = '''
-#version %(version)s
-precision highp float;
-in vec4 ngl_position;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
-layout(std430, binding = 0) buffer positions_buffer {
-    vec3 positions[];
-};
-
 void main()
 {
-    vec4 position = ngl_position + vec4(positions[gl_InstanceID], 0.0);
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * position;
-}
-'''
-
-
-_PARTICULES_FRAG = '''
-#version %(version)s
-precision mediump float;
-uniform vec4 color;
-out vec4 frag_color;
-
-void main()
-{
-    frag_color = color;
+    vec4 position = ngl_position + vec4(data.positions[gl_InstanceID], 0.0);
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * position;
 }
 '''
 
@@ -100,16 +63,6 @@ def compute_particules(cfg):
     cfg.duration = 10
     local_size = 4
     nb_particules = 128
-
-    shader_version = '310 es' if cfg.backend == 'gles' else '430'
-    shader_data = dict(
-        version=shader_version,
-        local_size=local_size,
-        nb_particules=nb_particules,
-    )
-    compute_shader = _PARTICULES_COMPUTE % shader_data
-    vertex_shader = _PARTICULES_VERT % shader_data
-    fragment_shader = _PARTICULES_FRAG % shader_data
 
     positions = array.array('f')
     velocities = array.array('f')
@@ -141,16 +94,15 @@ def compute_particules(cfg):
     duration = ngl.UniformFloat(cfg.duration)
 
     group_size = nb_particules / local_size
-    program = ngl.ComputeProgram(compute_shader)
+    program = ngl.ComputeProgram(_PARTICULES_COMPUTE % dict(local_size=local_size))
     compute = ngl.Compute(nb_particules, 1, 1, program)
-    compute.update_resources(time=time, duration=duration)
-    compute.update_resources(ipositions_buffer=ipositions, opositions_buffer=opositions)
+    compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
 
     circle = ngl.Circle(radius=0.05)
-    program = ngl.Program(vertex=vertex_shader, fragment=fragment_shader)
+    program = ngl.Program(vertex=_PARTICULES_VERT, fragment=cfg.get_frag('color'))
     render = ngl.Render(circle, program, nb_instances=nb_particules)
     render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
-    render.update_vert_resources(positions_buffer=opositions)
+    render.update_vert_resources(data=opositions)
 
     group = ngl.Group()
     group.add_children(compute, render)
@@ -160,22 +112,15 @@ def compute_particules(cfg):
 _COMPUTE_HISTOGRAM_CLEAR = '''
 layout(local_size_x = %(local_size)d, local_size_y = 1, local_size_z = 1) in;
 
-layout(std430, binding = 0) buffer histogram {
-    uint histr[%(hsize)d];
-    uint histg[%(hsize)d];
-    uint histb[%(hsize)d];
-    uvec3 max;
-};
-
 void main()
 {
     uint i = gl_GlobalInvocationID.x;
-    atomicAnd(histr[i], 0U);
-    atomicAnd(histg[i], 0U);
-    atomicAnd(histb[i], 0U);
-    atomicAnd(max.r, 0U);
-    atomicAnd(max.g, 0U);
-    atomicAnd(max.b, 0U);
+    atomicAnd(hist.r[i], 0U);
+    atomicAnd(hist.g[i], 0U);
+    atomicAnd(hist.b[i], 0U);
+    atomicAnd(hist.max.r, 0U);
+    atomicAnd(hist.max.g, 0U);
+    atomicAnd(hist.max.b, 0U);
 }
 '''
 
@@ -183,71 +128,43 @@ void main()
 _COMPUTE_HISTOGRAM_EXEC = '''
 layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
 
-layout(location = 0, rgba32f) readonly mediump uniform image2D source_sampler;
-
-layout (std430, binding = 0) buffer histogram {
-    uint histr[%(hsize)d];
-    uint histg[%(hsize)d];
-    uint histb[%(hsize)d];
-    uvec3 max;
-};
-
 void main()
 {
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;
 
-    ivec2 size = imageSize(source_sampler);
+    ivec2 size = imageSize(source);
     if (x < uint(size.x) && y < uint(size.y)) {
-        vec4 color = imageLoad(source_sampler, ivec2(x, y));
+        vec4 color = imageLoad(source, ivec2(x, y));
         uvec4 ucolor = uvec4(color * (%(hsize)d.0 - 1.0));
-        uint r = atomicAdd(histr[ucolor.r], 1U);
-        uint g = atomicAdd(histg[ucolor.g], 1U);
-        uint b = atomicAdd(histb[ucolor.b], 1U);
-        atomicMax(max.r, r);
-        atomicMax(max.g, g);
-        atomicMax(max.b, b);
+        uint r = atomicAdd(hist.r[ucolor.r], 1U);
+        uint g = atomicAdd(hist.g[ucolor.g], 1U);
+        uint b = atomicAdd(hist.b[ucolor.b], 1U);
+        atomicMax(hist.max.r, r);
+        atomicMax(hist.max.g, g);
+        atomicMax(hist.max.b, b);
     }
 }
 '''
 
 
 _RENDER_HISTOGRAM_VERT = '''
-in vec4 ngl_position;
-in vec2 ngl_uvcoord;
-
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
-out vec2 var_uvcoord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_uvcoord;
 }
 '''
 
 
 _RENDER_HISTOGRAM_FRAG = '''
-precision mediump float;
-in vec2 var_uvcoord;
-out vec4 frag_color;
-
-layout(std430, binding = 0) buffer histogram {
-    uint histr[%(hsize)d];
-    uint histg[%(hsize)d];
-    uint histb[%(hsize)d];
-    uvec3 max;
-};
-
 void main()
 {
     uint x = uint(var_uvcoord.x * %(size)d.0);
     uint y = uint(var_uvcoord.y * %(size)d.0);
     uint i = clamp(x + y * %(size)dU, 0U, %(hsize)dU - 1U);
-    vec3 rgb = vec3(histr[i], histg[i], histb[i]) / vec3(max);
-    frag_color = vec4(rgb, 1.0);
+    vec3 rgb = vec3(hist.r[i], hist.g[i], hist.b[i]) / vec3(hist.max);
+    ngl_out_color = vec4(rgb, 1.0);
 }
 '''
 
@@ -279,6 +196,7 @@ def compute_histogram(cfg, show_dbg_points=False):
         ))
     texture_buffer = ngl.BufferVec4(data=data)
     texture = ngl.Texture2D(width=size, height=size, data_src=texture_buffer)
+    texture.set_format('r32g32b32a32_sfloat')
 
     histogram_block = ngl.Block(layout='std430', label='histogram')
     histogram_block.add_fields(
@@ -288,15 +206,11 @@ def compute_histogram(cfg, show_dbg_points=False):
         ngl.UniformUIVec3(label='max'),
     )
 
-    shader_version = '310 es' if cfg.backend == 'gles' else '430'
-    shader_header = '#version %s\n' % shader_version
-    if cfg.backend == 'gles' and cfg.system == 'Android':
-        shader_header += '#extension GL_ANDROID_extension_pack_es31a: require\n'
     shader_params = dict(hsize=hsize, size=size, local_size=local_size)
 
     group_size = hsize // local_size
     clear_histogram_shader = _COMPUTE_HISTOGRAM_CLEAR % shader_params
-    clear_histogram_program = ngl.ComputeProgram(shader_header + clear_histogram_shader)
+    clear_histogram_program = ngl.ComputeProgram(clear_histogram_shader)
     clear_histogram = ngl.Compute(
         group_size,
         1,
@@ -304,11 +218,11 @@ def compute_histogram(cfg, show_dbg_points=False):
         clear_histogram_program,
         label='clear_histogram',
     )
-    clear_histogram.update_resources(histogram=histogram_block)
+    clear_histogram.update_resources(hist=histogram_block)
 
     group_size = size // local_size
     exec_histogram_shader = _COMPUTE_HISTOGRAM_EXEC % shader_params
-    exec_histogram_program = ngl.ComputeProgram(shader_header + exec_histogram_shader)
+    exec_histogram_program = ngl.ComputeProgram(exec_histogram_shader)
     exec_histogram = ngl.Compute(
         group_size,
         group_size,
@@ -316,13 +230,15 @@ def compute_histogram(cfg, show_dbg_points=False):
         exec_histogram_program,
         label='compute_histogram'
     )
-    exec_histogram.update_resources(histogram=histogram_block, source=texture)
+    exec_histogram.update_resources(hist=histogram_block, source=texture)
+    exec_histogram_program.update_properties(source=ngl.ResourceProps(as_image=True))
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(
-        vertex=shader_header + _RENDER_HISTOGRAM_VERT,
-        fragment=shader_header + _RENDER_HISTOGRAM_FRAG % shader_params,
+        vertex=_RENDER_HISTOGRAM_VERT,
+        fragment=_RENDER_HISTOGRAM_FRAG % shader_params,
     )
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program, label='render_histogram')
     render.update_frag_resources(hist=histogram_block)
 
@@ -334,51 +250,12 @@ def compute_histogram(cfg, show_dbg_points=False):
 
 
 _ANIMATION_COMPUTE = '''
-#version %(version)s
-
 layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
-
-layout(std140, binding = 0) uniform input_block {
-    vec3 vertices[4];
-} src;
-
-layout (std430, binding = 0) buffer output_block {
-    vec3 vertices[4];
-} dst;
-
-uniform mat4 transform;
 
 void main()
 {
     uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * gl_WorkGroupSize.y + gl_LocalInvocationIndex;
     dst.vertices[i] = vec3(transform * vec4(src.vertices[i], 1.0));
-}
-'''
-
-
-_ANIMATION_VERT = '''
-#version %(version)s
-precision highp float;
-in vec4 ngl_position;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
-void main()
-{
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
-}
-'''
-
-
-_ANIMATION_FRAG = '''
-#version %(version)s
-precision mediump float;
-uniform vec4 color;
-out vec4 frag_color;
-
-void main()
-{
-    frag_color = color;
 }
 '''
 
@@ -390,14 +267,7 @@ def compute_animation(cfg):
     cfg.aspect_ratio = (1, 1)
     local_size = 2
 
-    shader_version = '310 es' if cfg.backend == 'gles' else '430'
-    shader_data = dict(
-        version=shader_version,
-        local_size=local_size,
-    )
-    compute_shader = _ANIMATION_COMPUTE % shader_data
-    vertex_shader = _ANIMATION_VERT % shader_data
-    fragment_shader = _ANIMATION_FRAG % shader_data
+    compute_shader = _ANIMATION_COMPUTE % dict(local_size=local_size)
 
     vertices_data = array.array('f', [
         -0.5, -0.5, 0.0,
@@ -419,12 +289,11 @@ def compute_animation(cfg):
 
     program = ngl.ComputeProgram(compute_shader)
     compute = ngl.Compute(nb_vertices / (local_size ** 2), 1, 1, program)
-    compute.update_resources(transform=transform)
-    compute.update_resources(input_block=input_block, output_block=output_block)
+    compute.update_resources(transform=transform, src=input_block, dst=output_block)
 
     quad_buffer = ngl.BufferVec3(block=output_block, block_field=0)
     geometry = ngl.Geometry(quad_buffer, topology='triangle_fan')
-    program = ngl.Program(vertex=vertex_shader, fragment=fragment_shader)
+    program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, program)
     render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
 

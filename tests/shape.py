@@ -108,6 +108,7 @@ def _shape_geometry(cfg, set_normals=False, set_indices=False):
     if set_normals:
         geometry.set_normals(normals_buffer)
         prog = ngl.Program(vertex=cfg.get_vert('colored-normals'), fragment=cfg.get_frag('colored-normals'))
+        prog.update_vert_out_vars(var_normal=ngl.IOVec3())
         render = ngl.Render(geometry, prog)
     else:
         render = _render_shape(cfg, geometry, COLORS['magenta'])
@@ -185,6 +186,7 @@ def _shape_geometry_rtt(cfg, depth=False, samples=0):
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=texture)
 
@@ -265,6 +267,7 @@ def _get_cropboard_function(set_indices=False):
         qw = qh = 2. / dim_cut
 
         p = ngl.Program(vertex=cfg.get_vert('cropboard'), fragment=cfg.get_frag('texture'))
+        p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2())
 
         uv_offset_buffer = array.array('f')
         translate_a_buffer = array.array('f')
@@ -332,16 +335,9 @@ shape_cropboard_indices = _get_cropboard_function(set_indices=True)
 
 
 TRIANGLES_MAT4_ATTRIBUTE_VERT = '''
-#version 100
-precision highp float;
-attribute vec4 ngl_position;
-attribute mat4 matrix;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * matrix * ngl_position;
 }
 '''
 

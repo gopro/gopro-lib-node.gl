@@ -54,6 +54,7 @@ def _get_time_scene(cfg):
     m = ngl.Media(m0.filename, time_anim=ngl.AnimatedTime(media_animkf))
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     r = ngl.Render(q, p)
     r.update_frag_resources(tex0=t)
 

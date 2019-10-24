@@ -1,13 +1,3 @@
-#version 100
-precision mediump float;
-
-uniform float ar;
-uniform sampler2D tex0_sampler;
-uniform float tex0_ts;
-uniform float media_duration;
-varying vec2 var_tex0_coord;
-varying vec2 var_uvcoord;
-
 void main()
 {
     float pad    = 2.0 / 100.;
@@ -20,7 +10,7 @@ void main()
 
     float x = var_uvcoord.x;
     float y = var_uvcoord.y;
-    vec4 video_pix = texture2D(tex0_sampler, var_tex0_coord);
+    vec4 video_pix = ngl_texvideo(tex0, var_tex0_coord);
 
     float bar_width = 1. - padw*2. - thickw*2.;
 
@@ -29,20 +19,20 @@ void main()
     if (x < t && x > padw+thickw &&
         y < 1.-padh-thickh && y > 1.-padh-height) {
         vec4 color = vec4(1., 0., 0., 1.);
-        gl_FragColor = mix(video_pix, color, 0.7);
+        ngl_out_color = mix(video_pix, color, 0.7);
     } else {
-        gl_FragColor = video_pix;
+        ngl_out_color = video_pix;
     }
 
     if (y < 1.-padh-thickh && y > 1.-padh-height &&
         ((x > padw && x < padw+thickw) ||
          (x > 1.-padw-thickw && x < 1.-padw))) {
-        gl_FragColor = vec4(1.);
+        ngl_out_color = vec4(1.);
     }
 
     if (x < 1.-padw-thickw && x > padw+thickw &&
         ((y < 1.-padh-height && y > 1.-padh-height-thickh) ||
          (y < 1.-padh && y > 1. - padh-thickh))) {
-        gl_FragColor = vec4(1.);
+        ngl_out_color = vec4(1.);
     }
 }

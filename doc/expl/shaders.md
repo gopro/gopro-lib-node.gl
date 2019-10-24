@@ -35,7 +35,7 @@ For example, the following scene script:
     render.update_frag_resources(tex0=texture0)
 ```
 
-Gives the following shader parameters:
+Gives the following fragment parameters:
 
 ```glsl
     uniform mat4               tex0_coord_matrix;
@@ -103,7 +103,7 @@ For example, the following scene script:
     render.update_frag_resources(color1=ucolor1, color2=ucolor2, matrix=umatrix)
 ```
 
-Gives the following shader parameters:
+Gives the following fragment parameters:
 
 ```glsl
     uniform vec4 color1;
@@ -125,21 +125,21 @@ For example, the following scene script:
 ```
 
 Gives the following shader parameters as SSBO with
-`histogram_block.set_layout('std430')`:
+`histogram.set_layout('std430')`:
 
 ```glsl
-    layout (std430, binding=0) buffer histogram {
+    layout (std430, binding=0) buffer histogram_block {
         float maximum;
         vec4 data[];
-    };
+    } histogram;
 ```
 
 Or gives the following shader parameters as UBO with
-`histogram_block.set_layout('std140')`:
+`histogram.set_layout('std140')`:
 
 ```glsl
-    layout (std140, binding=0) uniform histogram {
+    layout (std140, binding=0) uniform histogram_block {
         float maximum;
         vec4 data[256];
-    };
+    } histogram;
 ```

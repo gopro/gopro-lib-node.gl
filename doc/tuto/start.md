@@ -49,35 +49,18 @@ from pynodegl_utils.misc import scene
 
 
 _VERTEX = '''
-#version 100
-
-precision highp float;
-attribute vec4 ngl_position;
-attribute vec2 ngl_uvcoord;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
-uniform mat4 tex0_coord_matrix;
-varying vec2 var_tex0_coord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_tex0_coord = (tex0_coord_matrix * vec4(ngl_uvcoord, 0.0, 1.0)).xy;
 }
 '''
 
 
 _FRAGMENT = '''
-#version 100
-
-precision highp float;
-uniform sampler2D tex0_sampler;
-varying vec2 var_tex0_coord;
-
 void main()
 {
-    gl_FragColor = texture2D(tex0_sampler, var_tex0_coord);
+    ngl_out_color = ngl_texvideo(tex0, var_tex0_coord);
 }
 '''
 
@@ -88,6 +71,7 @@ def test_demo(cfg):
     media = ngl.Media(cfg.medias[0].filename)
     texture = ngl.Texture2D(data_src=media)
     program = ngl.Program(vertex=_VERTEX, fragment=_FRAGMENT)
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2())
     render = ngl.Render(geometry, program)
     render.update_frag_resources(tex0=texture)
     return render
@@ -115,21 +99,15 @@ parameters][expl-shaders] documentation to know which parameters are exposed by
 `node.gl`.
 
 We are now going to pimp a little our fragment shader. Instead of just picking
-into the texture, we will mix it with some red by replacing the `gl_FragColor`
+into the texture, we will mix it with some red by replacing the `ngl_out_color`
 assignment with the following:
 
 ```glsl
-#version 100
-
-precision highp float;
-uniform sampler2D tex0_sampler;
-varying vec2 var_uvcoord;
-varying vec2 var_tex0_coord;
 void main()
 {
     vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
-    vec4 video = texture2D(tex0_sampler, var_tex0_coord);
-    gl_FragColor = mix(video, color, 0.5);
+    vec4 video = ngl_texvideo(tex0, var_tex0_coord);
+    ngl_out_color = mix(video, color, 0.5);
 }
 
 ```
@@ -219,18 +197,10 @@ Just like `color`, we will transmit it to the shader through uniforms.
 The fragment shader ends up being:
 
 ```glsl
-#version 100
-
-precision highp float;
-uniform sampler2D tex0_sampler;
-uniform vec4 color;
-uniform float mixval;
-varying vec2 var_uvcoord;
-varying vec2 var_tex0_coord;
 void main()
 {
-    vec4 video = texture2D(tex0_sampler, var_tex0_coord);
-    gl_FragColor = mix(video, color, mixval);
+    vec4 video = ngl_texvideo(tex0, var_tex0_coord);
+    ngl_out_color = mix(video, color, mixval);
 }
 ```
 
@@ -279,38 +249,19 @@ from pynodegl_utils.misc import scene
 
 
 _VERTEX = '''
-#version 100
-
-precision highp float;
-attribute vec4 ngl_position;
-attribute vec2 ngl_uvcoord;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
-uniform mat4 tex0_coord_matrix;
-varying vec2 var_tex0_coord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_tex0_coord = (tex0_coord_matrix * vec4(ngl_uvcoord, 0.0, 1.0)).xy;
 }
 '''
 
 
 _FRAGMENT = '''
-#version 100
-
-precision highp float;
-uniform sampler2D tex0_sampler;
-uniform vec4 color;
-uniform float mixval;
-varying vec2 var_uvcoord;
-varying vec2 var_tex0_coord;
 void main()
 {
-    vec4 video = texture2D(tex0_sampler, var_tex0_coord);
-    gl_FragColor = mix(video, color, mixval);
+    vec4 video = ngl_texvideo(tex0, var_tex0_coord);
+    ngl_out_color = mix(video, color, mixval);
 }
 '''
 
@@ -324,6 +275,7 @@ def test_demo(cfg, color=(1,0,0,1)):
     media = ngl.Media(cfg.medias[0].filename)
     texture = ngl.Texture2D(data_src=media)
     prog = ngl.Program(vertex=_VERTEX, fragment=_FRAGMENT)
+    prog.update_vert_out_vars(var_tex0_coord=ngl.IOVec2())
     render = ngl.Render(geometry, prog)
     render.update_frag_resources(tex0=texture)
 

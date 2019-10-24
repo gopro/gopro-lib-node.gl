@@ -227,37 +227,21 @@ for layout in {'std140', 'std430', 'uniform'}:
 
 
 _RENDER_STREAMEDBUFFER_VERT = '''
-in vec4 ngl_position;
-in vec2 ngl_uvcoord;
-
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
-out vec2 var_uvcoord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_uvcoord;
 }
 '''
 
 
 _RENDER_STREAMEDBUFFER_FRAG = '''
-precision mediump float;
-in vec2 var_uvcoord;
-out vec4 frag_color;
-
-layout(std140) uniform streamed {
-    vec4 data[%(size)d];
-};
-
 void main()
 {
     uint x = uint(var_uvcoord.x * %(size)d.0);
     uint y = uint(var_uvcoord.y * %(size)d.0);
     uint i = clamp(x + y * %(size)dU, 0U, %(data_size)dU - 1U);
-    frag_color = data[i];
+    ngl_out_color = streamed.data[i];
 }
 '''
 
@@ -302,15 +286,14 @@ def _get_data_streamed_buffer_vec4_scene(cfg, scale, show_dbg_points):
     streamed_buffer = ngl.StreamedBufferVec4(data_size, pts_buffer, vec4_buffer, time_anim=time_anim, label='data')
     streamed_block = ngl.Block(layout='std140', label='streamed_block', fields=(streamed_buffer,))
 
-    shader_version = '300 es' if cfg.backend == 'gles' else '330'
-    shader_header = '#version %s\n' % shader_version
     shader_params = dict(data_size=data_size, size=size)
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(
-        vertex=shader_header + _RENDER_STREAMEDBUFFER_VERT,
-        fragment=shader_header + _RENDER_STREAMEDBUFFER_FRAG % shader_params,
+        vertex=_RENDER_STREAMEDBUFFER_VERT,
+        fragment=_RENDER_STREAMEDBUFFER_FRAG % shader_params,
     )
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
     render.update_frag_resources(streamed=streamed_block)
 

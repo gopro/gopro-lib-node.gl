@@ -36,6 +36,7 @@ def _render_buffer(cfg, w, h):
     buf = ngl.BufferUByte(data=data)
     texture = ngl.Texture2D(width=w, height=h, data_src=buf)
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(ngl.Quad(), program)
     render.update_frag_resources(tex0=texture)
     return render
@@ -65,6 +66,7 @@ def texture_data_animated(cfg, dim=8):
     random_tex = ngl.Texture2D(data_src=random_buffer, width=dim, height=dim)
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     prog = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    prog.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, prog)
     render.update_frag_resources(tex0=random_tex)
     return render
@@ -79,75 +81,53 @@ def texture_data_unaligned_row(cfg, h=32):
 
 
 _RENDER_TO_CUBEMAP_VERT = '''
-in vec4 ngl_position;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
 }
 '''
 
 
 _RENDER_TO_CUBEMAP_FRAG = '''
-precision mediump float;
-out vec4 frag_color[6];
-
 void main()
 {
-    frag_color[0] = vec4(1.0, 0.0, 0.0, 1.0); // right
-    frag_color[1] = vec4(0.0, 1.0, 0.0, 1.0); // left
-    frag_color[2] = vec4(0.0, 0.0, 1.0, 1.0); // top
-    frag_color[3] = vec4(1.0, 1.0, 0.0, 1.0); // bottom
-    frag_color[4] = vec4(0.0, 1.0, 1.0, 1.0); // back
-    frag_color[5] = vec4(1.0, 0.0, 1.0, 1.0); // front
+    ngl_out_color[0] = vec4(1.0, 0.0, 0.0, 1.0); // right
+    ngl_out_color[1] = vec4(0.0, 1.0, 0.0, 1.0); // left
+    ngl_out_color[2] = vec4(0.0, 0.0, 1.0, 1.0); // top
+    ngl_out_color[3] = vec4(1.0, 1.0, 0.0, 1.0); // bottom
+    ngl_out_color[4] = vec4(0.0, 1.0, 1.0, 1.0); // back
+    ngl_out_color[5] = vec4(1.0, 0.0, 1.0, 1.0); // front
 }
 '''
 
 
 _RENDER_CUBEMAP_VERT = '''
-in vec4 ngl_position;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-out vec3 var_uvcoord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_position.xyz;
 }
 '''
 
 
 _RENDER_CUBEMAP_FRAG = '''
-precision mediump float;
-out vec4 frag_color;
-in vec3 var_uvcoord;
-uniform samplerCube tex0_sampler;
-
 void main()
 {
-    frag_color = texture(tex0_sampler, vec3(var_uvcoord.xy, 0.5));
+    ngl_out_color = ngl_texcube(tex0, vec3(var_uvcoord.xy, 0.5));
 }
 '''
 
 
 def _get_texture_cubemap_from_mrt_scene(cfg, samples=0):
-    glsl_version = '300 es' if cfg.backend == 'gles' else '330'
-    glsl_header = '#version %s\n' % glsl_version
-
-    render_to_cubemap_vert = glsl_header + _RENDER_TO_CUBEMAP_VERT
-    render_to_cubemap_frag = glsl_header + _RENDER_TO_CUBEMAP_FRAG
-    program = ngl.Program(vertex=render_to_cubemap_vert, fragment=render_to_cubemap_frag)
+    program = ngl.Program(vertex=_RENDER_TO_CUBEMAP_VERT, fragment=_RENDER_TO_CUBEMAP_FRAG, nb_frag_output=6)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec3())
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     render = ngl.Render(quad, program)
     cube = ngl.TextureCube(size=64, min_filter="linear", mag_filter="linear")
     rtt = ngl.RenderToTexture(render, [cube], samples=samples)
 
-    render_cubemap_vert = glsl_header + _RENDER_CUBEMAP_VERT
-    render_cubemap_frag = glsl_header + _RENDER_CUBEMAP_FRAG
-    program = ngl.Program(vertex=render_cubemap_vert, fragment=render_cubemap_frag)
+    program = ngl.Program(vertex=_RENDER_CUBEMAP_VERT, fragment=_RENDER_CUBEMAP_FRAG)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec3())
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=cube)
 
@@ -171,11 +151,8 @@ def texture_cubemap(cfg):
     cb_buffer = ngl.BufferUBVec4(data=cb_data)
     cube = ngl.TextureCube(size=n, min_filter="linear", mag_filter="linear", data_src=cb_buffer)
 
-    glsl_version = '300 es' if cfg.backend == 'gles' else '330'
-    glsl_header = '#version %s\n' % glsl_version
-    render_cubemap_vert = glsl_header + _RENDER_CUBEMAP_VERT
-    render_cubemap_frag = glsl_header + _RENDER_CUBEMAP_FRAG
-    program = ngl.Program(vertex=render_cubemap_vert, fragment=render_cubemap_frag)
+    program = ngl.Program(vertex=_RENDER_CUBEMAP_VERT, fragment=_RENDER_CUBEMAP_FRAG)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec3())
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=cube)
@@ -208,6 +185,7 @@ def texture_clear_and_scissor(cfg):
     rtt = ngl.RenderToTexture(ngl.Identity(), [texture], clear_color=COLORS['orange'])
 
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=texture)
 
@@ -229,6 +207,7 @@ def texture_scissor(cfg):
     rtt = ngl.RenderToTexture(graphic_config, [texture])
 
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=texture)
 
@@ -236,32 +215,20 @@ def texture_scissor(cfg):
 
 
 _TEXTURE3D_VERT = '''
-in vec4 ngl_position;
-in vec2 ngl_uvcoord;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-out vec2 var_uvcoord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_uvcoord;
 }
 '''
 
 
 _TEXTURE3D_FRAG = '''
-precision mediump float;
-precision mediump sampler3D;
-out vec4 frag_color;
-in vec2 var_uvcoord;
-uniform sampler3D tex0_sampler;
-
 void main()
 {
-    frag_color = texture(tex0_sampler, vec3(var_uvcoord, 0.0));
-    frag_color += texture(tex0_sampler, vec3(var_uvcoord, 0.5));
-    frag_color += texture(tex0_sampler, vec3(var_uvcoord, 1.0));
+    ngl_out_color  = ngl_tex3d(tex0, vec3(var_uvcoord, 0.0));
+    ngl_out_color += ngl_tex3d(tex0, vec3(var_uvcoord, 0.5));
+    ngl_out_color += ngl_tex3d(tex0, vec3(var_uvcoord, 1.0));
 }
 '''
 
@@ -282,44 +249,27 @@ def texture_3d(cfg):
     texture_buffer = ngl.BufferUBVec4(data=data)
     texture = ngl.Texture3D(width=width, height=height, depth=depth, data_src=texture_buffer)
 
-    glsl_version = '300 es' if cfg.backend == 'gles' else '330'
-    glsl_header = '#version %s\n' % glsl_version
-    render_cubemap_vert = glsl_header + _TEXTURE3D_VERT
-    render_cubemap_frag = glsl_header + _TEXTURE3D_FRAG
-
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    program = ngl.Program(vertex=render_cubemap_vert, fragment=render_cubemap_frag)
+    program = ngl.Program(vertex=_TEXTURE3D_VERT, fragment=_TEXTURE3D_FRAG)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
     render.update_frag_resources(tex0=texture)
     return render
 
 
 _RENDER_TEXTURE_LOD_VERT = '''
-#version %(version)s
-in vec4 ngl_position;
-in vec2 ngl_uvcoord;
-uniform mat4 ngl_modelview_matrix;
-uniform mat4 ngl_projection_matrix;
-out vec2 var_uvcoord;
-
 void main()
 {
-    gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_uvcoord;
 }
 '''
 
 
 _RENDER_TEXTURE_LOD_FRAG = '''
-#version %(version)s
-precision mediump float;
-in vec2 var_uvcoord;
-out vec4 frag_color;
-uniform sampler2D tex0_sampler;
-
 void main()
 {
-    frag_color = textureLod(tex0_sampler, var_uvcoord, 0.5);
+    ngl_out_color = textureLod(tex0, var_uvcoord, 0.5);
 }
 '''
 
@@ -356,11 +306,8 @@ def texture_mipmap(cfg, show_dbg_points=False):
         data_src=cb_buffer,
     )
 
-    shader_version = '300 es' if cfg.backend == 'gles' else '330'
-    program = ngl.Program(
-        vertex=_RENDER_TEXTURE_LOD_VERT % dict(version=shader_version),
-        fragment=_RENDER_TEXTURE_LOD_FRAG % dict(version=shader_version),
-    )
+    program = ngl.Program(vertex=_RENDER_TEXTURE_LOD_VERT, fragment=_RENDER_TEXTURE_LOD_FRAG)
+    program.update_vert_out_vars(var_uvcoord=ngl.IOVec2())
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     render = ngl.Render(quad, program)

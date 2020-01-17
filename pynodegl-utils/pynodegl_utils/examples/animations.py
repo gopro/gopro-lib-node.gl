@@ -4,6 +4,7 @@ import math
 import random
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
+from pynodegl_utils.toolbox.grid import AutoGrid
 
 
 def _block(w, h, program, corner=None, **uniforms):
@@ -166,28 +167,18 @@ _easing_names = [e[0] for e in _easing_list]
 
 
 def _get_easing_nodes(cfg, color_program):
-    easings = _easing_list
-    nb_easings = len(easings)
-
-    nb_rows = int(math.sqrt(nb_easings))
-    nb_cols = int(math.ceil(nb_easings / float(nb_rows)))
-
-    cfg.aspect_ratio = (nb_cols, nb_rows)
-
-    easing_h = 1. / nb_rows
-    easing_w = 1. / nb_cols
-    for row in range(nb_rows):
-        for col in range(nb_cols):
-            easing_id = row * nb_cols + col
-            if easing_id >= nb_easings:
-                return
-            easing, zoom = easings[easing_id]
-            easing_node = _get_easing_node(cfg, easing, zoom, color_program)
-            easing_node = ngl.Scale(easing_node, factors=[easing_w, easing_h, 0])
-            x = easing_w * (-nb_cols + 1 + 2 * col)
-            y = easing_h * (nb_rows - 1 - 2 * row)
-            easing_node = ngl.Translate(easing_node, vector=(x, y, 0))
-            yield easing_node
+    ag = AutoGrid(_easing_list)
+    cfg.aspect_ratio = (ag.nb_cols, ag.nb_rows)
+    easing_h = 1. / ag.nb_rows
+    easing_w = 1. / ag.nb_cols
+    for easing, easing_id, col, row in ag:
+        easing_name, zoom = easing
+        easing_node = _get_easing_node(cfg, easing_name, zoom, color_program)
+        easing_node = ngl.Scale(easing_node, factors=[easing_w, easing_h, 0])
+        x = easing_w * (-ag.nb_cols + 1 + 2 * col)
+        y = easing_h * (ag.nb_rows - 1 - 2 * row)
+        easing_node = ngl.Translate(easing_node, vector=(x, y, 0))
+        yield easing_node
 
 
 @scene(easing_id=scene.List(choices=['*'] + _easing_names))

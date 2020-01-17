@@ -700,19 +700,20 @@ int ngli_pass_update(struct pass *s, double t)
 int ngli_pass_exec(struct pass *s)
 {
     struct ngl_ctx *ctx = s->ctx;
+    struct pipeline *pipeline = &s->pipeline;
 
     const float *modelview_matrix = ngli_darray_tail(&ctx->modelview_matrix_stack);
     const float *projection_matrix = ngli_darray_tail(&ctx->projection_matrix_stack);
 
-    ngli_pipeline_update_uniform(&s->pipeline, s->modelview_matrix_index, modelview_matrix);
-    ngli_pipeline_update_uniform(&s->pipeline, s->projection_matrix_index, projection_matrix);
+    ngli_pipeline_update_uniform(pipeline, s->modelview_matrix_index, modelview_matrix);
+    ngli_pipeline_update_uniform(pipeline, s->projection_matrix_index, projection_matrix);
 
     if (s->normal_matrix_index >= 0) {
         float normal_matrix[3*3];
         ngli_mat3_from_mat4(normal_matrix, modelview_matrix);
         ngli_mat3_inverse(normal_matrix, normal_matrix);
         ngli_mat3_transpose(normal_matrix, normal_matrix);
-        ngli_pipeline_update_uniform(&s->pipeline, s->normal_matrix_index, normal_matrix);
+        ngli_pipeline_update_uniform(pipeline, s->normal_matrix_index, normal_matrix);
     }
 
     struct texture_info *texture_infos = ngli_darray_data(&s->texture_infos);
@@ -721,38 +722,38 @@ int ngli_pass_exec(struct pass *s)
         struct image *image = info->image;
         const float ts = image->ts;
 
-        ngli_pipeline_update_uniform(&s->pipeline, info->coordinate_matrix.index, image->coordinates_matrix);
-        ngli_pipeline_update_uniform(&s->pipeline, info->color_matrix.index, image->color_matrix);
-        ngli_pipeline_update_uniform(&s->pipeline, info->timestamp.index, &ts);
+        ngli_pipeline_update_uniform(pipeline, info->coordinate_matrix.index, image->coordinates_matrix);
+        ngli_pipeline_update_uniform(pipeline, info->color_matrix.index, image->color_matrix);
+        ngli_pipeline_update_uniform(pipeline, info->timestamp.index, &ts);
 
         if (image->params.layout) {
             const float dimensions[] = {image->params.width, image->params.height, image->params.depth};
-            ngli_pipeline_update_uniform(&s->pipeline, info->dimensions.index, dimensions);
+            ngli_pipeline_update_uniform(pipeline, info->dimensions.index, dimensions);
         }
 
         int ret = -1;
         switch (image->params.layout) {
         case NGLI_IMAGE_LAYOUT_DEFAULT:
-            ret = ngli_pipeline_update_texture(&s->pipeline, info->default_sampler.index, image->planes[0]);
+            ret = ngli_pipeline_update_texture(pipeline, info->default_sampler.index, image->planes[0]);
             break;
         case NGLI_IMAGE_LAYOUT_NV12:
-            ret = ngli_pipeline_update_texture(&s->pipeline, info->y_sampler.index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(&s->pipeline, info->uv_sampler.index, image->planes[1]);
+            ret = ngli_pipeline_update_texture(pipeline, info->y_sampler.index, image->planes[0]);
+            ret &= ngli_pipeline_update_texture(pipeline, info->uv_sampler.index, image->planes[1]);
             break;
         case NGLI_IMAGE_LAYOUT_NV12_RECTANGLE:
-            ret = ngli_pipeline_update_texture(&s->pipeline, info->y_rect_sampler.index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(&s->pipeline, info->uv_rect_sampler.index, image->planes[1]);
+            ret = ngli_pipeline_update_texture(pipeline, info->y_rect_sampler.index, image->planes[0]);
+            ret &= ngli_pipeline_update_texture(pipeline, info->uv_rect_sampler.index, image->planes[1]);
             break;
         case NGLI_IMAGE_LAYOUT_MEDIACODEC:
-            ret = ngli_pipeline_update_texture(&s->pipeline, info->oes_sampler.index, image->planes[0]);
+            ret = ngli_pipeline_update_texture(pipeline, info->oes_sampler.index, image->planes[0]);
         default:
             break;
         };
         const int layout = ret < 0 ? NGLI_IMAGE_LAYOUT_NONE : image->params.layout;
-        ngli_pipeline_update_uniform(&s->pipeline, info->sampling_mode.index, &layout);
+        ngli_pipeline_update_uniform(pipeline, info->sampling_mode.index, &layout);
     }
 
-    ngli_pipeline_exec(&s->pipeline);
+    ngli_pipeline_exec(pipeline);
 
     return 0;
 }

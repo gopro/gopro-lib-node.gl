@@ -61,6 +61,7 @@ include api.mak
 include blending.mak
 include data.mak
 include live.mak
+include media.mak
 
 $(REF_TESTS):
 	@echo $@

@@ -1,0 +1,12 @@
+Missing tests:
+
+- animations: add some easing args to trigger specific easing branches
+- texture: add cube support
+- texture: add 3D support
+- timeranges: add "once" mode
+- test more sharing nodes (buffers, anims, ...)
+- test more buffer features (filename etc)
+- test userswitch node
+- test compute nodes
+- test streamed nodes
+- test medias / images / colorconvert / hwconv

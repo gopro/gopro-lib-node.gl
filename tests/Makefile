@@ -58,6 +58,7 @@ endef
 
 include anim.mak
 include api.mak
+include blending.mak
 
 $(REF_TESTS):
 	@echo $@

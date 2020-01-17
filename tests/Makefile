@@ -65,6 +65,7 @@ include media.mak
 include shape.mak
 include text.mak
 include texture.mak
+include transform.mak
 
 $(REF_TESTS):
 	@echo $@

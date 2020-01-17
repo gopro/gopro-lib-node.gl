@@ -56,6 +56,7 @@ define DECLARE_REF_TESTS
 $(call DECLARE_TESTS,REF_TESTS,$(1),$(2))
 endef
 
+include anim.mak
 include api.mak
 
 $(REF_TESTS):

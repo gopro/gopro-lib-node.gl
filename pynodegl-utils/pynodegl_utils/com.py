@@ -45,7 +45,7 @@ IPC_READ_BUFSIZE = 4096
 _lock = threading.Lock()
 
 
-def _load_script(path):
+def load_script(path):
     dname = op.dirname(path)
     fname = op.basename(path)
     name = fname[:-3]
@@ -132,7 +132,7 @@ def query_inplace(**idict):
             # Get module.func
             module_name, scene_name = idict['scene']
             if module_is_script:
-                module = _load_script(module_pkgname)
+                module = load_script(module_pkgname)
             else:
                 import_name = '%s.%s' % (module_pkgname, module_name)
                 module = importlib.import_module(import_name)
@@ -175,7 +175,7 @@ def query_inplace(**idict):
             # Import the script, or the package and its sub-modules
             if module_is_script:
                 module_pkgname = op.realpath(module_pkgname)
-                module = _load_script(module_pkgname)
+                module = load_script(module_pkgname)
                 scripts.append((module.__name__, module))
             else:
                 module = importlib.import_module(module_pkgname)

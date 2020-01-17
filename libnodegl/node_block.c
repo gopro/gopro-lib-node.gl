@@ -343,6 +343,10 @@ static int block_update(struct ngl_node *node, double t)
 {
     struct block_priv *s = node->priv_data;
 
+    // Check for live changes (the uniform updates below will reset their
+    // live_changed flag to 0)
+    update_block_data(s, 0);
+
     for (int i = 0; i < s->nb_fields; i++) {
         struct ngl_node *field_node = s->fields[i];
         int ret = ngli_node_update(field_node, t);
@@ -350,7 +354,9 @@ static int block_update(struct ngl_node *node, double t)
             return ret;
     }
 
+    // Check for update changes (animations)
     update_block_data(s, 0);
+
     return 0;
 }
 

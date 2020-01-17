@@ -60,6 +60,7 @@ include anim.mak
 include api.mak
 include blending.mak
 include data.mak
+include live.mak
 
 $(REF_TESTS):
 	@echo $@

@@ -1,38 +1,38 @@
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
+from pynodegl_utils.toolbox.grid import AutoGrid
 
 
 @scene(overlap_time=scene.Range(range=[0, 5], unit_base=10),
        dim=scene.Range(range=[1, 10]))
 def queued_medias(cfg, overlap_time=1., dim=3):
     '''Queue of medias, mainly used as a demonstration for the prefetch/release mechanism'''
-    qw = qh = 2. / dim
     nb_videos = dim * dim
     tqs = []
     p = ngl.Program()
-    for y in range(dim):
-        for x in range(dim):
-            video_id = y*dim + x
-            start = video_id * cfg.duration / nb_videos
-            animkf = [ngl.AnimKeyFrameFloat(start, 0)]
-            m = ngl.Media(cfg.medias[video_id % len(cfg.medias)].filename, time_anim=ngl.AnimatedTime(animkf))
-            m.set_label('media #%d' % video_id)
+    q = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
 
-            corner = (-1. + x*qw, 1. - (y+1)*qh, 0)
-            q = ngl.Quad(corner, (qw, 0, 0), (0, qh, 0))
-            t = ngl.Texture2D(data_src=m)
+    ag = AutoGrid(range(nb_videos))
+    for video_id, _, col, pos in ag:
+        start = video_id * cfg.duration / nb_videos
+        animkf = [ngl.AnimKeyFrameFloat(start, 0)]
+        m = ngl.Media(cfg.medias[video_id % len(cfg.medias)].filename, time_anim=ngl.AnimatedTime(animkf))
+        m.set_label('media #%d' % video_id)
 
-            render = ngl.Render(q, p)
-            render.set_label('render #%d' % video_id)
-            render.update_textures(tex0=t)
+        t = ngl.Texture2D(data_src=m)
 
-            rf = ngl.TimeRangeFilter(render)
-            if start:
-                rf.add_ranges(ngl.TimeRangeModeNoop(0))
-            rf.add_ranges(ngl.TimeRangeModeCont(start),
-                          ngl.TimeRangeModeNoop(start + cfg.duration/nb_videos + overlap_time))
+        render = ngl.Render(q, p)
+        render.set_label('render #%d' % video_id)
+        render.update_textures(tex0=t)
+        render = ag.place_node(render, (col, pos))
 
-            tqs.append(rf)
+        rf = ngl.TimeRangeFilter(render)
+        if start:
+            rf.add_ranges(ngl.TimeRangeModeNoop(0))
+        rf.add_ranges(ngl.TimeRangeModeCont(start),
+                      ngl.TimeRangeModeNoop(start + cfg.duration/nb_videos + overlap_time))
+
+        tqs.append(rf)
 
     return ngl.Group(children=tqs)
 

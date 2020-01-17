@@ -21,11 +21,56 @@
 
 include ../common.mak
 
+ifeq ($(V),)
+Q   := @
+OUT := > /dev/null
+else
+Q   :=
+OUT :=
+endif
 
 all: tests
 
+# 1:category, 2:name
+define DECLARE_TEST
+test-$(1)-$(2): FUNC_NAME = $(1)_$(2)
+TESTS_$(1) += test-$(1)-$(2)
+endef
+
+# 1:destvar 2:category, 3:namelist
+define DECLARE_TESTS
+$(foreach X,$(3),$(eval $(call DECLARE_TEST,$(2),$(X))))
+test-$(2): $$(TESTS_$(2))
+.PHONY: test-$(2)
+$(1) += $$(TESTS_$(2))
+$$(TESTS_$(2)): MODULE = $(2)
+endef
+
+# 1:category, 2:namelist
+define DECLARE_SIMPLE_TESTS
+$(call DECLARE_TESTS,SIMPLE_TESTS,$(1),$(2))
+endef
+
+# 1:category, 2:namelist
+define DECLARE_REF_TESTS
+$(call DECLARE_TESTS,REF_TESTS,$(1),$(2))
+endef
+
 include api.mak
+
+$(REF_TESTS):
+	@echo $@
+	$(Q)ngl-test $(MODULE).py $(FUNC_NAME) refs/$(FUNC_NAME).ref $(OUT)
+
+$(SIMPLE_TESTS):
+	@echo $@
+	$(Q)$(PYTHON) -c 'from $(MODULE) import $(FUNC_NAME); $(FUNC_NAME)()' $(OUT)
+
+TESTS = $(SIMPLE_TESTS) $(REF_TESTS)
 
 tests: $(TESTS)
 
-.PHONY: all tests
+tests-list:
+	@for test in $(TESTS); do echo $$test; done
+
+.PHONY: all tests tests-list $(TESTS)

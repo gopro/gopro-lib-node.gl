@@ -19,28 +19,12 @@
 # under the License.
 #
 
-test-api-backend: FUNC_NAME = test_backend
-API_TESTS += test-api-backend
+API_TEST_NAMES =             \
+    backend                  \
+    reconfigure              \
+    reconfigure_fail         \
+    ctx_ownership            \
+    ctx_ownership_subgraph   \
+    capture_buffer_lifetime  \
 
-test-api-reconfigure: FUNC_NAME = test_reconfigure
-API_TESTS += test-api-reconfigure
-
-test-api-reconfigure-fail: FUNC_NAME = test_reconfigure_fail
-API_TESTS += test-api-reconfigure-fail
-
-test-api-ctx-ownership: FUNC_NAME = test_ctx_ownership
-API_TESTS += test-api-ctx-ownership
-
-test-api-ctx-ownership-subgraph: FUNC_NAME = test_ctx_ownership_subgraph
-API_TESTS += test-api-ctx-ownership-subgraph
-
-test-api-capture-buffer-lifetime: FUNC_NAME = test_capture_buffer_lifetime
-API_TESTS += test-api-capture-buffer-lifetime
-
-$(API_TESTS):
-	@echo $@
-	@$(PYTHON) -c 'from api import $(FUNC_NAME); $(FUNC_NAME)()' > /dev/null
-
-test-api: $(API_TESTS)
-
-TESTS += $(API_TESTS)
+$(eval $(call DECLARE_SIMPLE_TESTS,api,$(API_TEST_NAMES)))

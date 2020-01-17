@@ -24,13 +24,13 @@
 import pynodegl as ngl
 
 
-def test_backend():
+def api_backend():
     viewer = ngl.Viewer()
     assert viewer.configure(backend=0x1234) < 0
     del viewer
 
 
-def test_reconfigure():
+def api_reconfigure():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16) == 0
     scene = ngl.Render(ngl.Quad())
@@ -42,7 +42,7 @@ def test_reconfigure():
     del viewer
 
 
-def test_reconfigure_fail():
+def api_reconfigure_fail():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16) == 0
     scene = ngl.Render(ngl.Quad())
@@ -53,7 +53,7 @@ def test_reconfigure_fail():
     del viewer
 
 
-def test_ctx_ownership():
+def api_ctx_ownership():
     viewer = ngl.Viewer()
     viewer2 = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16) == 0
@@ -67,7 +67,7 @@ def test_ctx_ownership():
     del viewer2
 
 
-def test_ctx_ownership_subgraph():
+def api_ctx_ownership_subgraph():
     for shared in (True, False):
         viewer = ngl.Viewer()
         viewer2 = ngl.Viewer()
@@ -87,7 +87,7 @@ def test_ctx_ownership_subgraph():
         del viewer2
 
 
-def test_capture_buffer_lifetime(width=1024, height=1024):
+def api_capture_buffer_lifetime(width=1024, height=1024):
     capture_buffer = bytearray(width * height * 4)
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=width, height=height, capture_buffer=capture_buffer) == 0

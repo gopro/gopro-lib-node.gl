@@ -44,6 +44,14 @@
 #include "type.h"
 #include "utils.h"
 
+struct pipeline_desc {
+    struct pipeline pipeline;
+    int modelview_matrix_index;
+    int projection_matrix_index;
+    int normal_matrix_index;
+    struct darray texture_infos;
+};
+
 static int register_uniform(struct pass *s, const char *name, struct ngl_node *uniform)
 {
     if (!uniform)
@@ -521,6 +529,71 @@ static int pass_compute_init(struct pass *s)
     return 0;
 }
 
+static int register_pipeline(struct pass *s)
+{
+    struct ngl_ctx *ctx = s->ctx;
+
+    struct pipeline_graphics pipeline_graphics = s->pipeline_graphics;
+    pipeline_graphics.config = ctx->graphicconfig;
+
+    struct pipeline_params pipeline_params = {
+        .type          = s->pipeline_type,
+        .compute       = s->pipeline_compute,
+        .graphics      = pipeline_graphics,
+        .program       = s->pipeline_program,
+        .attributes    = ngli_darray_data(&s->pipeline_attributes),
+        .nb_attributes = ngli_darray_count(&s->pipeline_attributes),
+        .uniforms      = ngli_darray_data(&s->pipeline_uniforms),
+        .nb_uniforms   = ngli_darray_count(&s->pipeline_uniforms),
+        .textures      = ngli_darray_data(&s->pipeline_textures),
+        .nb_textures   = ngli_darray_count(&s->pipeline_textures),
+        .buffers       = ngli_darray_data(&s->pipeline_buffers),
+        .nb_buffers    = ngli_darray_count(&s->pipeline_buffers),
+    };
+
+    struct pipeline_desc *desc = ngli_darray_push(&s->pipeline_descs, NULL);
+    if (!desc)
+        return NGL_ERROR_MEMORY;
+
+    struct pipeline *pipeline = &desc->pipeline;
+    int ret = ngli_pipeline_init(pipeline, ctx, &pipeline_params);
+    if (ret < 0)
+        return ret;
+
+    desc->modelview_matrix_index = ngli_pipeline_get_uniform_index(pipeline, "ngl_modelview_matrix");
+    desc->projection_matrix_index = ngli_pipeline_get_uniform_index(pipeline, "ngl_projection_matrix");
+    desc->normal_matrix_index = ngli_pipeline_get_uniform_index(pipeline, "ngl_normal_matrix");
+
+    ngli_darray_init(&desc->texture_infos, sizeof(struct texture_info), 0);
+
+    struct texture_info *texture_infos = ngli_darray_data(&s->texture_infos);
+    for (int i = 0; i < ngli_darray_count(&s->texture_infos); i++) {
+        struct texture_info *info = ngli_darray_push(&desc->texture_infos, &texture_infos[i]);
+        if (!info)
+            return NGL_ERROR_MEMORY;
+        for (int i = 0; i < NGLI_ARRAY_NB(texture_info_maps); i++) {
+            const struct texture_info_map *map = &texture_info_maps[i];
+
+            uint8_t *info_p = (uint8_t *)info + map->field_offset;
+            struct texture_info_field *field = (struct texture_info_field *)info_p;
+            if (!field->active) {
+                field->index = -1;
+                continue;
+            }
+
+            char name[MAX_ID_LEN];
+            snprintf(name, sizeof(name), "%s%s", info->name, map->suffix);
+
+            if (field->is_sampler_or_image)
+                field->index = ngli_pipeline_get_texture_index(pipeline, name);
+            else
+                field->index = ngli_pipeline_get_uniform_index(pipeline, name);
+        }
+    }
+
+    return 0;
+}
+
 int ngli_pass_init(struct pass *s, struct ngl_ctx *ctx, const struct pass_params *params)
 {
     s->ctx = ctx;
@@ -538,68 +611,39 @@ int ngli_pass_init(struct pass *s, struct ngl_ctx *ctx, const struct pass_params
     ngli_darray_init(&s->pipeline_uniforms, sizeof(struct pipeline_uniform), 0);
     ngli_darray_init(&s->pipeline_buffers, sizeof(struct pipeline_buffer), 0);
 
+    ngli_darray_init(&s->pipeline_descs, sizeof(struct pipeline_desc), 0);
+
     if (params->program) {
         struct program_priv *program_priv = params->program->priv_data;
         s->pipeline_program = &program_priv->program;
     }
 
-    int ret = params->geometry ? pass_graphics_init(s)
-                               : pass_compute_init(s);
-    if (ret < 0)
-        return ret;
-
+    int ret;
     if ((ret = register_uniforms(s)) < 0 ||
         (ret = register_textures(s)) < 0 ||
         (ret = register_blocks(s)) < 0)
         return ret;
 
-    struct pipeline_params pipeline_params = {
-        .type          = s->pipeline_type,
-        .graphics      = s->pipeline_graphics,
-        .compute       = s->pipeline_compute,
-        .program       = s->pipeline_program,
-        .attributes    = ngli_darray_data(&s->pipeline_attributes),
-        .nb_attributes = ngli_darray_count(&s->pipeline_attributes),
-        .uniforms      = ngli_darray_data(&s->pipeline_uniforms),
-        .nb_uniforms   = ngli_darray_count(&s->pipeline_uniforms),
-        .textures      = ngli_darray_data(&s->pipeline_textures),
-        .nb_textures   = ngli_darray_count(&s->pipeline_textures),
-        .buffers       = ngli_darray_data(&s->pipeline_buffers),
-        .nb_buffers    = ngli_darray_count(&s->pipeline_buffers),
-    };
+    if (params->geometry) {
+        ret = pass_graphics_init(s);
+        if (ret < 0)
+            return ret;
+    } else {
+        ret = pass_compute_init(s);
+        if (ret < 0)
+            return ret;
 
-    ret = ngli_pipeline_init(&s->pipeline, ctx, &pipeline_params);
-    if (ret < 0)
-        return ret;
-
-    s->modelview_matrix_index = ngli_pipeline_get_uniform_index(&s->pipeline, "ngl_modelview_matrix");
-    s->projection_matrix_index = ngli_pipeline_get_uniform_index(&s->pipeline, "ngl_projection_matrix");
-    s->normal_matrix_index = ngli_pipeline_get_uniform_index(&s->pipeline, "ngl_normal_matrix");
-
-    struct texture_info *texture_infos = ngli_darray_data(&s->texture_infos);
-    for (int i = 0; i < ngli_darray_count(&s->texture_infos); i++) {
-        struct texture_info *info = &texture_infos[i];
-        for (int i = 0; i < NGLI_ARRAY_NB(texture_info_maps); i++) {
-            const struct texture_info_map *map = &texture_info_maps[i];
-
-            uint8_t *info_p = (uint8_t *)info + map->field_offset;
-            struct texture_info_field *field = (struct texture_info_field *)info_p;
-            if (!field->active) {
-                field->index = -1;
-                continue;
-            }
-
-            char name[MAX_ID_LEN];
-            snprintf(name, sizeof(name), "%s%s", info->name, map->suffix);
-
-            if (field->is_sampler_or_image)
-                field->index = ngli_pipeline_get_texture_index(&s->pipeline, name);
-            else
-                field->index = ngli_pipeline_get_uniform_index(&s->pipeline, name);
-        }
+        ret = register_pipeline(s);
+        if (ret < 0)
+            return ret;
     }
 
     return 0;
+}
+
+int ngli_pass_prepare(struct pass *s)
+{
+    return register_pipeline(s);
 }
 
 #define NODE_TYPE_DEFAULT 0
@@ -632,7 +676,14 @@ void ngli_pass_uninit(struct pass *s)
     if (!s->ctx)
         return;
 
-    ngli_pipeline_reset(&s->pipeline);
+    struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
+    int nb_descs = ngli_darray_count(&s->pipeline_descs);
+    for (int i = 0; i < nb_descs; i++) {
+        struct pipeline_desc *desc = &descs[i];
+        ngli_pipeline_reset(&desc->pipeline);
+        ngli_darray_reset(&desc->texture_infos);
+    }
+    ngli_darray_reset(&s->pipeline_descs);
 
     if (s->indices)
         ngli_node_buffer_unref(s->indices);
@@ -697,26 +748,48 @@ int ngli_pass_update(struct pass *s, double t)
     return 0;
 }
 
+static struct pipeline_desc *get_pipeline_desc(struct pass *s)
+{
+    struct ngl_ctx *ctx = s->ctx;
+
+    struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
+    int nb_descs = ngli_darray_count(&s->pipeline_descs);
+    for (int i = 0; i < nb_descs; i++) {
+        struct pipeline_desc *desc = &descs[i];
+        struct pipeline *pipeline = &desc->pipeline;
+        struct pipeline_graphics *graphics = &pipeline->graphics;
+        if (!memcmp(&graphics->config, &ctx->graphicconfig, sizeof(ctx->graphicconfig) - 4*4)) {
+            return desc;
+        }
+    }
+    return NULL;
+}
+
 int ngli_pass_exec(struct pass *s)
 {
     struct ngl_ctx *ctx = s->ctx;
-    struct pipeline *pipeline = &s->pipeline;
+    struct pipeline_desc *desc = get_pipeline_desc(s);
+    if (!desc) {
+        LOG(ERROR, "could not find a compatible pipeline");
+        return NGL_ERROR_BUG;
+    }
+    struct pipeline *pipeline = &desc->pipeline;
 
     const float *modelview_matrix = ngli_darray_tail(&ctx->modelview_matrix_stack);
     const float *projection_matrix = ngli_darray_tail(&ctx->projection_matrix_stack);
 
-    ngli_pipeline_update_uniform(pipeline, s->modelview_matrix_index, modelview_matrix);
-    ngli_pipeline_update_uniform(pipeline, s->projection_matrix_index, projection_matrix);
+    ngli_pipeline_update_uniform(pipeline, desc->modelview_matrix_index, modelview_matrix);
+    ngli_pipeline_update_uniform(pipeline, desc->projection_matrix_index, projection_matrix);
 
-    if (s->normal_matrix_index >= 0) {
+    if (desc->normal_matrix_index >= 0) {
         float normal_matrix[3*3];
         ngli_mat3_from_mat4(normal_matrix, modelview_matrix);
         ngli_mat3_inverse(normal_matrix, normal_matrix);
         ngli_mat3_transpose(normal_matrix, normal_matrix);
-        ngli_pipeline_update_uniform(pipeline, s->normal_matrix_index, normal_matrix);
+        ngli_pipeline_update_uniform(pipeline, desc->normal_matrix_index, normal_matrix);
     }
 
-    struct texture_info *texture_infos = ngli_darray_data(&s->texture_infos);
+    struct texture_info *texture_infos = ngli_darray_data(&desc->texture_infos);
     for (int i = 0; i < ngli_darray_count(&s->texture_infos); i++) {
         struct texture_info *info = &texture_infos[i];
         struct image *image = info->image;

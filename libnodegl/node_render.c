@@ -136,6 +136,12 @@ static int render_init(struct ngl_node *node)
     return ngli_pass_init(&s->pass, ctx, &params);
 }
 
+static int render_prepare(struct ngl_node *node)
+{
+    struct render_priv *s = node->priv_data;
+    return ngli_pass_prepare(&s->pass);
+}
+
 static void render_uninit(struct ngl_node *node)
 {
     struct render_priv *s = node->priv_data;
@@ -158,6 +164,7 @@ const struct node_class ngli_render_class = {
     .id        = NGL_NODE_RENDER,
     .name      = "Render",
     .init      = render_init,
+    .prepare   = render_prepare,
     .uninit    = render_uninit,
     .update    = render_update,
     .draw      = render_draw,

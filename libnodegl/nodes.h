@@ -456,6 +456,7 @@ struct node_class {
     int category;
     const char *name;
     int (*init)(struct ngl_node *node);
+    int (*prepare)(struct ngl_node *node);
     int (*visit)(struct ngl_node *node, int is_active, double t);
     int (*prefetch)(struct ngl_node *node);
     int (*update)(struct ngl_node *node, double t);
@@ -471,6 +472,7 @@ struct node_class {
 
 void ngli_node_print_specs(void);
 
+int ngli_node_prepare(struct ngl_node *node);
 int ngli_node_visit(struct ngl_node *node, int is_active, double t);
 int ngli_node_honor_release_prefetch(struct darray *nodes_array);
 int ngli_node_update(struct ngl_node *node, double t);

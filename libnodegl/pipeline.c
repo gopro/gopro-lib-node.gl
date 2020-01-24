@@ -511,6 +511,8 @@ static int pipeline_compute_init(struct pipeline *s)
 
 int ngli_pipeline_init(struct pipeline *s, struct ngl_ctx *ctx, const struct pipeline_params *params)
 {
+    memset(s, 0, sizeof(*s));
+
     s->ctx      = ctx;
     s->type     = params->type;
     s->graphics = params->graphics;

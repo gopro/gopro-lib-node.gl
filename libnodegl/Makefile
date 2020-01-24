@@ -23,7 +23,6 @@ include ../common.mak
 
 DEBUG_GL ?= no
 LOGTRACE ?= no
-WGET     ?= wget
 
 ifeq ($(DEBUG_GL),yes)
 	PROJECT_CFLAGS += -DDEBUG_GL
@@ -262,7 +261,7 @@ updatedoc: gen_doc$(EXESUF)
 gen-gl-wrappers: gl.xml
 	$(PYTHON) gen-gl-wrappers.py $^
 gl.xml:
-	$(WGET) https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/gl.xml
+	$(CURL) https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/$@ -o $@
 
 
 #

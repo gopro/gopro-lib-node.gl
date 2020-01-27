@@ -455,14 +455,68 @@ struct node_class {
     int id;
     int category;
     const char *name;
+
+    /*
+     * - (U)INIT TIME
+     * - bottom-up
+     * - once (because of the state)
+     * - always auto-descent all children
+     */
     int (*init)(struct ngl_node *node);
+
+    /*
+     * - (U)INIT TIME
+     * - top-down
+     * - re-entrant
+     * - auto-descent all children if no callback
+     */
     int (*prepare)(struct ngl_node *node);
+
+    /*
+     * - RUN TIME
+     * - top-down
+     * - build a bottom-up fast list
+     * - once or reentrant
+     * - block descent if defined
+     * - auto-descent all children if no callback
+     */
     int (*visit)(struct ngl_node *node, int is_active, double t);
+
+    /*
+     * - RUN TIME
+     * - fast/flatten bottom-up, based on visit built list
+     */
     int (*prefetch)(struct ngl_node *node);
+
+    /*
+     * - RUN TIME
+     * - top-down
+     * - manual descent
+     * - once (for same time)
+     */
     int (*update)(struct ngl_node *node, double t);
+
+    /*
+     * - RUN TIME
+     * - top-down
+     * - manual descent
+     * - re-entrant
+     */
     void (*draw)(struct ngl_node *node);
+
+    /*
+     * - RUN TIME
+     * - fast/flatten bottom-up, based on visit built list
+     */
     void (*release)(struct ngl_node *node);
+
+    /*
+     * - (U)INIT TIME
+     * - top-down (opposite of init because of dependencies)
+     */
     void (*uninit)(struct ngl_node *node);
+
+
     char *(*info_str)(const struct ngl_node *node);
     size_t priv_size;
     const struct node_param *params;

@@ -16,8 +16,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew update
-        brew upgrade
         brew install curl pkg-config glfw3 ffmpeg
         curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
         python2 get-pip.py

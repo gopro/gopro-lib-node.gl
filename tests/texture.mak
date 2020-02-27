@@ -27,4 +27,10 @@ TEXTURE_TEST_NAMES =        \
     data_animated           \
     data_unaligned_row      \
 
+ifneq ($(DISABLE_TESTS_SAMPLES),yes)
+TEXTURE_TEST_NAMES +=       \
+    cubemap_from_mrt_msaa   \
+
+endif
+
 $(eval $(call DECLARE_REF_TESTS,texture,$(TEXTURE_TEST_NAMES)))

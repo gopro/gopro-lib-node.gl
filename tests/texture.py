@@ -158,6 +158,12 @@ def texture_cubemap_from_mrt(cfg):
     return _get_texture_cubemap_from_mrt_scene(cfg)
 
 
+@test_fingerprint()
+@scene()
+def texture_cubemap_from_mrt_msaa(cfg):
+    return _get_texture_cubemap_from_mrt_scene(cfg, 4)
+
+
 @test_cuepoints(width=32, height=32, points={'bottom-left': (-1, -1), 'top-right': (1, 1)}, tolerance=1)
 @scene()
 def texture_clear_and_scissor(cfg):

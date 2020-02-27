@@ -67,6 +67,7 @@ include compute.mak
 include data.mak
 include live.mak
 include media.mak
+include rtt.mak
 include shape.mak
 include text.mak
 include texture.mak

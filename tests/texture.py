@@ -131,9 +131,7 @@ void main()
 '''
 
 
-@test_fingerprint()
-@scene()
-def texture_cubemap_from_mrt(cfg):
+def _get_texture_cubemap_from_mrt_scene(cfg, samples=0):
     glsl_version = '300 es' if cfg.backend == 'gles' else '330'
     glsl_header = '#version %s\n' % glsl_version
 
@@ -143,7 +141,7 @@ def texture_cubemap_from_mrt(cfg):
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     render = ngl.Render(quad, program)
     cube = ngl.TextureCube(size=64, min_filter="linear", mag_filter="linear")
-    rtt = ngl.RenderToTexture(render, [cube])
+    rtt = ngl.RenderToTexture(render, [cube], samples=samples)
 
     render_cubemap_vert = glsl_header + _RENDER_CUBEMAP_VERT
     render_cubemap_frag = glsl_header + _RENDER_CUBEMAP_FRAG
@@ -152,6 +150,12 @@ def texture_cubemap_from_mrt(cfg):
     render.update_textures(tex0=cube)
 
     return ngl.Group(children=(rtt, render))
+
+
+@test_fingerprint()
+@scene()
+def texture_cubemap_from_mrt(cfg):
+    return _get_texture_cubemap_from_mrt_scene(cfg)
 
 
 @test_cuepoints(width=32, height=32, points={'bottom-left': (-1, -1), 'top-right': (1, 1)}, tolerance=1)

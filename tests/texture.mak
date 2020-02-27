@@ -27,6 +27,7 @@ TEXTURE_TEST_NAMES =        \
     data                    \
     data_animated           \
     data_unaligned_row      \
+    mipmap                  \
 
 ifneq ($(DISABLE_TESTS_SAMPLES),yes)
 TEXTURE_TEST_NAMES +=       \

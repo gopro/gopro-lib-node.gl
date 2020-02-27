@@ -24,6 +24,7 @@ import array
 import random
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
+from pynodegl_utils.tests.debug import get_debug_points
 from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 from pynodegl_utils.tests.cmp_cuepoints import test_cuepoints
 from pynodegl_utils.toolbox.colors import COLORS
@@ -272,3 +273,80 @@ def texture_3d(cfg):
     render = ngl.Render(quad, program)
     render.update_textures(tex0=texture)
     return render
+
+
+_RENDER_TEXTURE_LOD_VERT = '''
+#version %(version)s
+in vec4 ngl_position;
+in vec2 ngl_uvcoord;
+out vec2 var_uvcoord;
+
+void main(void)
+{
+    gl_Position = ngl_position;
+    var_uvcoord = ngl_uvcoord;
+}
+'''
+
+
+_RENDER_TEXTURE_LOD_FRAG = '''
+#version %(version)s
+precision mediump float;
+in vec2 var_uvcoord;
+out vec4 frag_color;
+uniform sampler2D tex0_sampler;
+
+void main(void)
+{
+    frag_color = textureLod(tex0_sampler, var_uvcoord, 0.5);
+}
+'''
+
+
+_N = 8
+
+
+def _get_texture_mipmap_cuepoints():
+    f = float(_N)
+    off = 1 / (2 * f)
+    c = lambda i: (i / f + off) * 2.0 - 1.0
+    return dict(('%d%d' % (x, y), (c(x), c(y))) for y in range(_N) for x in range(_N))
+
+
+@test_cuepoints(points=_get_texture_mipmap_cuepoints(), tolerance=1)
+@scene(show_dbg_points=scene.Bool())
+def texture_mipmap(cfg, show_dbg_points=False):
+    cfg.aspect_ratio = (1, 1)
+    cuepoints = _get_texture_mipmap_cuepoints()
+    black = (0, 0, 0, 255)
+    white = (255, 255, 255, 255)
+    p = _N // 2
+    cb_data = array.array(
+        'B',
+        ((black + white) * p + (white + black) * p) * p,
+    )
+    cb_buffer = ngl.BufferUBVec4(data=cb_data)
+
+    texture = ngl.Texture2D(
+        width=_N,
+        height=_N,
+        min_filter='nearest',
+        mipmap_filter='linear',
+        data_src=cb_buffer,
+    )
+
+    shader_version = '300 es' if cfg.backend == 'gles' else '330'
+    program = ngl.Program(
+        vertex=_RENDER_TEXTURE_LOD_VERT % dict(version=shader_version),
+        fragment=_RENDER_TEXTURE_LOD_FRAG % dict(version=shader_version),
+    )
+
+    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
+    render = ngl.Render(quad, program)
+    render.update_textures(tex0=texture)
+
+    group = ngl.Group(children=(render,))
+    if show_dbg_points:
+        group.add_children(get_debug_points(cfg, cuepoints))
+
+    return group

@@ -154,6 +154,34 @@ def _get_texture_cubemap_from_mrt_scene(cfg, samples=0):
 
 @test_fingerprint()
 @scene()
+def texture_cubemap(cfg):
+    n = 64
+    p = n * n
+    cb_data = array.array(
+        'B',
+        (255, 0, 0, 255) * p +
+        (0, 255, 0, 255) * p +
+        (0, 0, 255, 255) * p +
+        (255, 255, 0, 255) * p +
+        (0, 255, 255, 255) * p +
+        (255, 0, 255, 255) * p
+    )
+    cb_buffer = ngl.BufferUBVec4(data=cb_data)
+    cube = ngl.TextureCube(size=n, min_filter="linear", mag_filter="linear", data_src=cb_buffer)
+
+    glsl_version = '300 es' if cfg.backend == 'gles' else '330'
+    glsl_header = '#version %s\n' % glsl_version
+    render_cubemap_vert = glsl_header + _RENDER_CUBEMAP_VERT
+    render_cubemap_frag = glsl_header + _RENDER_CUBEMAP_FRAG
+    program = ngl.Program(vertex=render_cubemap_vert, fragment=render_cubemap_frag)
+    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
+    render = ngl.Render(quad, program)
+    render.update_textures(tex0=cube)
+    return render
+
+
+@test_fingerprint()
+@scene()
 def texture_cubemap_from_mrt(cfg):
     return _get_texture_cubemap_from_mrt_scene(cfg)
 

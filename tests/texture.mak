@@ -22,6 +22,7 @@
 TEXTURE_TEST_NAMES =        \
     3d                      \
     clear_and_scissor       \
+    cubemap                 \
     cubemap_from_mrt        \
     data                    \
     data_animated           \

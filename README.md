@@ -19,7 +19,9 @@ and API can change at any time.
 graph-based scenes. It is designed to run on both desktop (Linux, OSX, Windows)
 and mobile (Android, iOS).
 
-## 📜 License
+## 📜 License`node.gl` is a [GoPro][gopro] OpenGL engine for building and rendering
+graph-based scenes. It is designed to run on both desktop (Linux, OSX, Windows)
+and mobile (Android, iOS).
 
 `node.gl` is licensed under the Apache License, Version 2.0. Read the
 [LICENSE][license] and [NOTICE][notice] files for details.

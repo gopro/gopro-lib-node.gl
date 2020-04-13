@@ -224,7 +224,7 @@ static void wgl_uninit(struct glcontext *ctx)
         FreeLibrary(wgl->module);
 }
 
-static int wgl_resize(struct glcontext *ctx)
+static int wgl_resize(struct glcontext *ctx, int width, int height)
 {
     struct wgl_priv *wgl = ctx->priv_data;
 

@@ -349,7 +349,7 @@ static int gl_resize(struct ngl_ctx *s, int width, int height, const int *viewpo
     if (gl->offscreen)
         return NGL_ERROR_INVALID_USAGE;
 
-    int ret = ngli_glcontext_resize(gl);
+    int ret = ngli_glcontext_resize(gl, width, height);
     if (ret < 0)
         return ret;
 

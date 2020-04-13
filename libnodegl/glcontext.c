@@ -385,7 +385,7 @@ struct glcontext *ngli_glcontext_new(const struct ngl_config *config)
         ngli_glEnable(glcontext, GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     if (!glcontext->offscreen) {
-        int ret = ngli_glcontext_resize(glcontext);
+        int ret = ngli_glcontext_resize(glcontext, glcontext->width, glcontext->height);
         if (ret < 0)
             goto fail;
     }
@@ -427,7 +427,7 @@ void ngli_glcontext_set_surface_pts(struct glcontext *glcontext, double t)
         glcontext->class->set_surface_pts(glcontext, t);
 }
 
-int ngli_glcontext_resize(struct glcontext *glcontext)
+int ngli_glcontext_resize(struct glcontext *glcontext, int width, int height)
 {
     if (glcontext->offscreen) {
         LOG(ERROR, "offscreen rendering does not support resize operation");
@@ -435,7 +435,7 @@ int ngli_glcontext_resize(struct glcontext *glcontext)
     }
 
     if (glcontext->class->resize)
-        return glcontext->class->resize(glcontext);
+        return glcontext->class->resize(glcontext, width, height);
 
     return NGL_ERROR_UNSUPPORTED;
 }

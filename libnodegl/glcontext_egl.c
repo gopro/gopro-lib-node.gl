@@ -27,6 +27,11 @@
 #include <X11/Xlib.h>
 #endif
 
+#if defined(HAVE_WAYLAND)
+#include <wayland-client.h>
+#include <wayland-egl.h>
+#endif
+
 #if defined(TARGET_ANDROID)
 #include <android/native_window.h>
 #endif
@@ -40,6 +45,7 @@
 
 #define EGL_PLATFORM_X11 0x31D5
 #define EGL_PLATFORM_SURFACELESS_MESA 0x31DD
+#define EGL_PLATFORM_WAYLAND 0x31D8
 
 struct egl_priv {
     EGLNativeDisplayType native_display;
@@ -56,6 +62,11 @@ struct egl_priv {
     EGLAPIENTRY EGLBoolean (*DestroyImageKHR)(EGLDisplay, EGLImageKHR);
     int has_platform_x11_ext;
     int has_platform_mesa_surfaceless_ext;
+    int has_platform_wayland_ext;
+    int has_surfaceless_context_ext;
+#if defined(HAVE_WAYLAND)
+    struct wl_egl_window *wl_egl_window;
+#endif
 };
 
 EGLImageKHR ngli_eglCreateImageKHR(struct glcontext *gl, EGLConfig context, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list)
@@ -98,6 +109,10 @@ static int egl_probe_extensions(struct glcontext *ctx)
         ctx->features |= NGLI_FEATURE_EGL_EXT_IMAGE_DMA_BUF_IMPORT;
     }
 
+    if (ngli_glcontext_check_extension("EGL_KHR_surfaceless_context", egl->extensions)) {
+        egl->has_surfaceless_context_ext = 1;
+    }
+
     return 0;
 }
 
@@ -128,35 +143,59 @@ static int egl_probe_client_extensions(struct egl_priv *egl)
     if (ngli_glcontext_check_extension("EGL_MESA_platform_surfaceless", client_extensions))
         egl->has_platform_mesa_surfaceless_ext = 1;
 
+    if (ngli_glcontext_check_extension("EGL_KHR_platform_wayland", client_extensions) ||
+        ngli_glcontext_check_extension("EGL_EXT_platform_wayland", client_extensions))
+        egl->has_platform_wayland_ext = 1;
+
     return 0;
 }
 #endif
 
-static EGLDisplay egl_get_display(struct egl_priv *egl, EGLNativeDisplayType native_display, int offscreen)
+static EGLDisplay egl_get_display(struct glcontext *ctx, EGLNativeDisplayType native_display, int offscreen)
 {
 #if defined(TARGET_ANDROID)
+    struct egl_priv *egl = ctx->priv_data;
     egl->native_display = native_display ? native_display : EGL_DEFAULT_DISPLAY;
     return eglGetDisplay(egl->native_display);
 #elif defined(TARGET_LINUX)
+    struct egl_priv *egl = ctx->priv_data;
     int ret = egl_probe_client_extensions(egl);
     if (ret < 0)
         return EGL_NO_DISPLAY;
 
     egl->native_display = native_display ? native_display : EGL_NO_DISPLAY;
-    if (!egl->native_display) {
-        egl->native_display = XOpenDisplay(NULL);
-        if (!egl->native_display)
-            LOG(WARNING, "could not retrieve X11 display");
-        egl->own_native_display = egl->native_display ? 1 : 0;
-    }
 
-    if (egl->native_display) {
-        /* XXX: only X11 is supported for now */
-        if (!egl->has_platform_x11_ext) {
-            LOG(ERROR, "EGL_EXT_platform_x11 is not supported");
+    if (ctx->platform == NGL_PLATFORM_XLIB) {
+        if (!egl->native_display) {
+            egl->native_display = XOpenDisplay(NULL);
+            if (!egl->native_display)
+                LOG(WARNING, "could not retrieve X11 display");
+            egl->own_native_display = egl->native_display ? 1 : 0;
+        }
+
+        if (egl->native_display) {
+            if (!egl->has_platform_x11_ext) {
+                LOG(ERROR, "EGL_EXT_platform_x11 is not supported");
+                return EGL_NO_DISPLAY;
+            }
+            return egl->GetPlatformDisplay(EGL_PLATFORM_X11, egl->native_display, NULL);
+        }
+    } else if (ctx->platform == NGL_PLATFORM_WAYLAND) {
+#if defined(HAVE_WAYLAND)
+        if (!egl->native_display) {
+            LOG(ERROR, "no Wayland display specified\n");
             return EGL_NO_DISPLAY;
         }
-        return egl->GetPlatformDisplay(EGL_PLATFORM_X11, egl->native_display, NULL);
+
+        if (!egl->has_platform_wayland_ext) {
+            LOG(ERROR, "EGL_EXT_platform_wayland is not supported");
+            return EGL_NO_DISPLAY;
+        }
+        return egl->GetPlatformDisplay(EGL_PLATFORM_WAYLAND, egl->native_display, NULL);
+#else
+        LOG(ERROR, "Wayland platform is not supported");
+        return EGL_NO_DISPLAY;
+#endif
     }
 
     if (egl->has_platform_mesa_surfaceless_ext && offscreen) {
@@ -173,7 +212,7 @@ static int egl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
 {
     struct egl_priv *egl = ctx->priv_data;
 
-    egl->display = egl_get_display(egl, (EGLNativeDisplayType)display, ctx->offscreen);
+    egl->display = egl_get_display(ctx, (EGLNativeDisplayType)display, ctx->offscreen);
     if (!egl->display) {
         LOG(ERROR, "could not retrieve EGL display");
         return -1;
@@ -209,9 +248,20 @@ static int egl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
     }
 
     const EGLint type = ctx->backend == NGL_BACKEND_OPENGL ? EGL_OPENGL_BIT : EGL_OPENGL_ES2_BIT;
+    EGLint surface_type = EGL_NONE;
+    if (ctx->platform == NGL_PLATFORM_XLIB) {
+        surface_type = ctx->offscreen ? EGL_PBUFFER_BIT : EGL_WINDOW_BIT;
+    } else if (ctx->platform == NGL_PLATFORM_WAYLAND) {
+        if (!egl->has_surfaceless_context_ext) {
+            LOG(ERROR, "EGL_KHR_surfaceless_context is not supported");
+            return -1;
+        }
+        surface_type = EGL_WINDOW_BIT;
+    }
+
     const EGLint config_attribs[] = {
         EGL_RENDERABLE_TYPE, type,
-        EGL_SURFACE_TYPE, ctx->offscreen ? EGL_PBUFFER_BIT : EGL_WINDOW_BIT,
+        EGL_SURFACE_TYPE, surface_type,
         EGL_RED_SIZE,   8,
         EGL_GREEN_SIZE, 8,
         EGL_BLUE_SIZE,  8,
@@ -270,20 +320,39 @@ static int egl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
     }
 
     if (ctx->offscreen) {
-        const EGLint attribs[] = {
-            EGL_WIDTH, 1,
-            EGL_HEIGHT, 1,
-            EGL_NONE
-        };
+        if (ctx->platform == NGL_PLATFORM_XLIB) {
+            const EGLint attribs[] = {
+                EGL_WIDTH, 1,
+                EGL_HEIGHT, 1,
+                EGL_NONE
+            };
 
-        egl->surface = eglCreatePbufferSurface(egl->display, egl->config, attribs);
-        if (!egl->surface) {
-            LOG(ERROR, "could not create EGL window surface: 0x%x", eglGetError());
-            return -1;
+            egl->surface = eglCreatePbufferSurface(egl->display, egl->config, attribs);
+            if (!egl->surface) {
+                LOG(ERROR, "could not create EGL window surface: 0x%x", eglGetError());
+                return -1;
+            }
+        } else if (ctx->platform == NGL_PLATFORM_WAYLAND) {
+            egl->surface = EGL_NO_SURFACE;
         }
     } else {
-
-        egl->native_window = (EGLNativeWindowType)window;
+        if (ctx->platform == NGL_PLATFORM_XLIB) {
+            egl->native_window = (EGLNativeWindowType)window;
+        } else if (ctx->platform == NGL_PLATFORM_WAYLAND) {
+#if defined(HAVE_WAYLAND)
+            struct wl_surface *wl_surface = (struct wl_surface *)window;
+            if (!wl_surface) {
+                LOG(ERROR, "no Wayland display specified");
+                return -1;
+            }
+            egl->wl_egl_window = wl_egl_window_create(wl_surface, ctx->width, ctx->height);
+            if (!egl->wl_egl_window) {
+                LOG(ERROR, "could not create Wayland EGL window");
+                return -1;
+            }
+            egl->native_window = (uintptr_t)egl->wl_egl_window;
+#endif
+        }
         if (!egl->native_window) {
             LOG(ERROR, "could not retrieve EGL native window");
             return -1;
@@ -314,8 +383,14 @@ static void egl_uninit(struct glcontext *ctx)
         eglTerminate(egl->display);
 
 #if defined(TARGET_LINUX)
-    if (egl->own_native_display) {
-        XCloseDisplay(egl->native_display);
+    if (ctx->platform == NGL_PLATFORM_XLIB) {
+        if (egl->own_native_display)
+            XCloseDisplay(egl->native_display);
+    } else if (ctx->platform == NGL_PLATFORM_WAYLAND) {
+#if defined(HAVE_WAYLAND)
+        if (egl->wl_egl_window)
+            wl_egl_window_destroy(egl->wl_egl_window);
+#endif
     }
 #endif
 }
@@ -336,6 +411,11 @@ static int egl_resize(struct glcontext *ctx, int width, int height)
     int ret = ANativeWindow_setBuffersGeometry(egl->native_window, width, height, format);
     if (ret < 0)
         return -1;
+#endif
+
+#if defined(HAVE_WAYLAND)
+    if (ctx->platform == NGL_PLATFORM_WAYLAND)
+        wl_egl_window_resize(egl->wl_egl_window, width, height, 0, 0);
 #endif
 
     if (!eglQuerySurface(egl->display, egl->surface, EGL_WIDTH, &ctx->width) ||

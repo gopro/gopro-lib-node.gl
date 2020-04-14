@@ -162,6 +162,19 @@ LIB_EXTRA_PKG_CONFIG_LIBS_Darwin  =
 LIB_EXTRA_PKG_CONFIG_LIBS_Android = libavcodec
 LIB_EXTRA_PKG_CONFIG_LIBS_iPhone  =
 
+WAYLAND_PKG_CONFIG_LIBS = "wayland-client wayland-egl"
+
+ifeq ($(TARGET_OS),Linux)
+	ENABLE_WAYLAND ?= $(shell $(PKG_CONFIG) --exists $(WAYLAND_PKG_CONFIG_LIBS) && echo yes || echo no)
+else
+	ENABLE_WAYLAND = no
+endif
+
+ifeq ($(ENABLE_WAYLAND),yes)
+	PROJECT_CFLAGS += -DHAVE_WAYLAND
+	LIB_PKG_CONFIG_LIBS += $(WAYLAND_PKG_CONFIG_LIBS)
+endif
+
 VAAPI_PKG_CONFIG_LIBS = "libva-x11 >= 1.1.0" "libva-drm >= 1.1.0"
 
 ifeq ($(TARGET_OS),Linux)

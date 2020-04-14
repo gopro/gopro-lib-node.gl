@@ -87,6 +87,7 @@ static const int platform_to_glplatform[] = {
     [NGL_PLATFORM_MACOS]   = GLPLATFORM_NSGL,
     [NGL_PLATFORM_IOS]     = GLPLATFORM_EAGL,
     [NGL_PLATFORM_WINDOWS] = GLPLATFORM_WGL,
+    [NGL_PLATFORM_WAYLAND] = GLPLATFORM_EGL,
 };
 
 static int glcontext_load_functions(struct glcontext *glcontext)

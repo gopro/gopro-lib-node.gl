@@ -28,7 +28,7 @@
 
 #if defined(HAVE_VAAPI_X11)
 #include <X11/Xlib.h>
-#include <va/va_x11.h>
+#include <va/va.h>
 #endif
 
 #if defined(TARGET_ANDROID)

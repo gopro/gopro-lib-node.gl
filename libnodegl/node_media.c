@@ -178,7 +178,7 @@ static int media_init(struct ngl_node *node)
         return NGL_ERROR_EXTERNAL;
 
     sxplayer_set_option(s->player, "opaque", &android_surface);
-#elif defined(HAVE_VAAPI_X11)
+#elif defined(HAVE_VAAPI)
     struct ngl_ctx *ctx = node->ctx;
     sxplayer_set_option(s->player, "opaque", &ctx->va_display);
 #endif

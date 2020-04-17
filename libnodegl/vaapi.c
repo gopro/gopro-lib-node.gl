@@ -19,8 +19,10 @@
  * under the License.
  */
 
+#if defined(HAVE_VAAPI_X11)
 #include <X11/Xlib.h>
 #include <va/va_x11.h>
+#endif
 
 #include "glcontext.h"
 #include "log.h"
@@ -44,14 +46,19 @@ int ngli_vaapi_init(struct ngl_ctx *s)
         return -1;
     }
 
-    Display *x11_display = XOpenDisplay(NULL);
-    if (!x11_display) {
-        LOG(ERROR, "could not initialize X11 display");
-        return -1;
-    }
-    s->x11_display = x11_display;
+    VADisplay va_display = NULL;
+    if (gl->platform == NGL_PLATFORM_XLIB) {
+#if defined(HAVE_VAAPI_X11)
+        Display *x11_display = XOpenDisplay(NULL);
+        if (!x11_display) {
+            LOG(ERROR, "could not initialize X11 display");
+            return -1;
+        }
+        s->x11_display = x11_display;
 
-    VADisplay va_display = vaGetDisplay(x11_display);
+        va_display = vaGetDisplay(x11_display);
+#endif
+    }
     if (!va_display) {
         LOG(ERROR, "could not get va display");
         return -1;
@@ -77,7 +84,9 @@ void ngli_vaapi_reset(struct ngl_ctx *s)
         vaTerminate(s->va_display);
     s->va_display = NULL;
     s->va_version = 0;
+#if defined(HAVE_VAAPI_X11)
     if (s->x11_display)
         XCloseDisplay(s->x11_display);
     s->x11_display = NULL;
+#endif
 }

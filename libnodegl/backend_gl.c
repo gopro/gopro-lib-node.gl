@@ -32,7 +32,7 @@
 #include <CoreVideo/CoreVideo.h>
 #endif
 
-#if defined(HAVE_VAAPI_X11)
+#if defined(HAVE_VAAPI)
 #include "vaapi.h"
 #endif
 
@@ -334,7 +334,7 @@ static int gl_configure(struct ngl_ctx *s, const struct ngl_config *config)
     struct graphicstate *graphicstate = &s->graphicstate;
     ngli_graphicstate_init(graphicstate);
 
-#if defined(HAVE_VAAPI_X11)
+#if defined(HAVE_VAAPI)
     ret = ngli_vaapi_init(s);
     if (ret < 0)
         LOG(WARNING, "could not initialize vaapi");
@@ -401,7 +401,7 @@ static void gl_destroy(struct ngl_ctx *s)
     ngli_pgcache_reset(&s->pgcache);
     capture_reset(s);
     offscreen_rendertarget_reset(s);
-#if defined(HAVE_VAAPI_X11)
+#if defined(HAVE_VAAPI)
     ngli_vaapi_reset(s);
 #endif
     ngli_glcontext_freep(&s->glcontext);

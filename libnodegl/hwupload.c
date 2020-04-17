@@ -48,7 +48,7 @@ static const struct hwmap_class *hwupload_class_map[] = {
     [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_darwin_class,
 #elif defined(TARGET_IPHONE)
     [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_ios_class,
-#elif defined(HAVE_VAAPI_X11)
+#elif defined(HAVE_VAAPI)
     [SXPLAYER_PIXFMT_VAAPI]       = &ngli_hwmap_vaapi_class,
 #endif
 };

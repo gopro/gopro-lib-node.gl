@@ -24,6 +24,11 @@
 #include <va/va_x11.h>
 #endif
 
+#if defined(HAVE_VAAPI_WAYLAND)
+#include <wayland-client.h>
+#include <va/va_wayland.h>
+#endif
+
 #include "glcontext.h"
 #include "log.h"
 #include "nodes.h"
@@ -32,9 +37,6 @@
 int ngli_vaapi_init(struct ngl_ctx *s)
 {
     struct glcontext *gl = s->glcontext;
-
-    if (gl->platform != NGL_PLATFORM_XLIB)
-        return -1;
 
     if (gl->features & NGLI_FEATURE_SOFTWARE)
         return -1;
@@ -57,6 +59,20 @@ int ngli_vaapi_init(struct ngl_ctx *s)
         s->x11_display = x11_display;
 
         va_display = vaGetDisplay(x11_display);
+#endif
+    } else if (gl->platform == NGL_PLATFORM_WAYLAND) {
+#if defined(HAVE_VAAPI_WAYLAND)
+        struct wl_display *wl_display = (struct wl_display *)s->config.display;
+        if (!wl_display) {
+            wl_display = wl_display_connect(NULL);
+            if (!wl_display) {
+                LOG(ERROR, "could not connect to Wayland display");
+                return -1;
+            }
+            s->wl_display = wl_display;
+        }
+
+        va_display = vaGetDisplayWl(wl_display);
 #endif
     }
     if (!va_display) {
@@ -89,6 +105,12 @@ void ngli_vaapi_reset(struct ngl_ctx *s)
     if (s->x11_display) {
         XCloseDisplay(s->x11_display);
         s->x11_display = NULL;
+    }
+#endif
+#if defined(HAVE_VAAPI_WAYLAND)
+    if (s->wl_display) {
+        wl_display_disconnect(s->wl_display);
+        s->wl_display = NULL;
     }
 #endif
 }

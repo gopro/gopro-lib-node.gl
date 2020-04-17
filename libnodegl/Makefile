@@ -189,6 +189,20 @@ ifeq ($(ENABLE_VAAPI_X11),yes)
 	LIB_PKG_CONFIG_LIBS += $(VAAPI_X11_PKG_CONFIG_LIBS)
 endif
 
+VAAPI_WAYLAND_PKG_CONFIG_LIBS = "libva-wayland >= 1.1.0" "libva-drm >= 1.1.0"
+
+ifeq ($(TARGET_OS),Linux)
+	ENABLE_VAAPI_WAYLAND ?= $(shell $(PKG_CONFIG) --exists $(VAAPI_WAYLAND_PKG_CONFIG_LIBS) && echo yes || echo no)
+else
+	ENABLE_VAAPI_WAYLAND = no
+endif
+
+ifeq ($(ENABLE_VAAPI_WAYLAND),yes)
+	ENABLE_VAAPI = yes
+	PROJECT_CFLAGS += -DHAVE_VAAPI_WAYLAND
+	LIB_PKG_CONFIG_LIBS += $(VAAPI_WAYLAND_PKG_CONFIG_LIBS)
+endif
+
 ifeq ($(ENABLE_VAAPI),yes)
 	PROJECT_CFLAGS += -DHAVE_VAAPI
 	LIB_EXTRA_OBJS_Linux += hwupload_vaapi.o vaapi.o

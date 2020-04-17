@@ -30,6 +30,10 @@
 #include <X11/Xlib.h>
 #endif
 
+#if defined(HAVE_VAAPI_WAYLAND)
+#include <wayland-client.h>
+#endif
+
 #if defined(HAVE_VAAPI)
 #include <va/va.h>
 #endif
@@ -96,6 +100,9 @@ struct ngl_ctx {
     struct darray activitycheck_nodes;
 #if defined(HAVE_VAAPI_X11)
     Display *x11_display;
+#endif
+#if defined(HAVE_VAAPI_WAYLAND)
+    struct wl_display *wl_display;
 #endif
 #if defined(HAVE_VAAPI)
     VADisplay va_display;

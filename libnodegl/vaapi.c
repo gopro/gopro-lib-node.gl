@@ -49,6 +49,7 @@ int ngli_vaapi_init(struct ngl_ctx *s)
         LOG(ERROR, "could not initialize X11 display");
         return -1;
     }
+    s->x11_display = x11_display;
 
     VADisplay va_display = vaGetDisplay(x11_display);
     if (!va_display) {
@@ -64,7 +65,6 @@ int ngli_vaapi_init(struct ngl_ctx *s)
         return -1;
     }
 
-    s->x11_display = x11_display;
     s->va_display = va_display;
     s->va_version = major_version * 100 + minor_version;
 
@@ -75,9 +75,9 @@ void ngli_vaapi_reset(struct ngl_ctx *s)
 {
     if (s->va_display)
         vaTerminate(s->va_display);
-    if (s->x11_display)
-        XCloseDisplay(s->x11_display);
     s->va_display = NULL;
     s->va_version = 0;
+    if (s->x11_display)
+        XCloseDisplay(s->x11_display);
     s->x11_display = NULL;
 }

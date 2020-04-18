@@ -193,6 +193,10 @@ static int egl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
         return -1;
     }
 
+    ret = egl_probe_extensions(ctx);
+    if (ret < 0)
+        return ret;
+
     if (egl_major < 1 || egl_minor < 4) {
         LOG(ERROR, "unsupported EGL version %d.%d, only 1.4+ is supported", egl_major, egl_minor);
         return -1;
@@ -290,10 +294,6 @@ static int egl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
             return -1;
         }
     }
-
-    ret = egl_probe_extensions(ctx);
-    if (ret < 0)
-        return ret;
 
     return 0;
 }

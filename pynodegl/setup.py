@@ -34,10 +34,9 @@ class LibNodeGLConfig:
         if subprocess.call([pkg_config_bin, '--exists', self.PKG_LIB_NAME]) != 0:
             raise Exception(f'{self.PKG_LIB_NAME} is required to build pynodegl')
 
-        console_encoding   = 'utf8'
-        self.version       = subprocess.check_output([pkg_config_bin, '--modversion', self.PKG_LIB_NAME]).strip().decode(console_encoding)
-        self.data_root_dir = subprocess.check_output([pkg_config_bin, '--variable=datarootdir', self.PKG_LIB_NAME]).strip().decode(console_encoding)
-        pkgcfg_libs_cflags = subprocess.check_output([pkg_config_bin, '--libs', '--cflags', self.PKG_LIB_NAME]).decode(console_encoding)
+        self.version       = subprocess.check_output([pkg_config_bin, '--modversion', self.PKG_LIB_NAME]).strip().decode()
+        self.data_root_dir = subprocess.check_output([pkg_config_bin, '--variable=datarootdir', self.PKG_LIB_NAME]).strip().decode()
+        pkgcfg_libs_cflags = subprocess.check_output([pkg_config_bin, '--libs', '--cflags', self.PKG_LIB_NAME]).decode()
 
         flags = pkgcfg_libs_cflags.split()
         self.include_dirs = [f[2:] for f in flags if f.startswith('-I')]

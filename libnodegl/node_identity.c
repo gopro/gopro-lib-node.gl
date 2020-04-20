@@ -28,7 +28,7 @@
 static void identity_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct identity *s = node->priv_data;
+    struct identity_priv *s = node->priv_data;
     float *matrix = ngli_darray_tail(&ctx->modelview_matrix_stack);
     memcpy(s->modelview_matrix, matrix, sizeof(s->modelview_matrix));
 }
@@ -37,6 +37,6 @@ const struct node_class ngli_identity_class = {
     .id        = NGL_NODE_IDENTITY,
     .name      = "Identity",
     .draw      = identity_draw,
-    .priv_size = sizeof(struct identity),
+    .priv_size = sizeof(struct identity_priv),
     .file      = __FILE__,
 };

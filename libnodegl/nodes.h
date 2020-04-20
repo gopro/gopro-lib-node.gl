@@ -335,7 +335,7 @@ struct transform_priv {
     NGLI_ALIGNED_MAT(matrix);
 };
 
-struct identity {
+struct identity_priv {
     NGLI_ALIGNED_MAT(modelview_matrix);
 };
 

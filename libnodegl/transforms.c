@@ -40,7 +40,7 @@ const float *ngli_get_last_transformation_matrix(const struct ngl_node *node)
                 break;
             }
             case NGL_NODE_IDENTITY: {
-                const struct identity *identity = node->priv_data;
+                const struct identity_priv *identity = node->priv_data;
                 return identity->modelview_matrix;
             }
             default:

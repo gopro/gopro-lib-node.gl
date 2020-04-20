@@ -110,4 +110,5 @@ void ngli_bstr_freep(struct bstr **bp)
         return;
     ngli_free(b->str);
     ngli_free(b);
+    *bp = NULL;
 }

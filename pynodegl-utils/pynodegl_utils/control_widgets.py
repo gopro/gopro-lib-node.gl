@@ -30,7 +30,7 @@ class _ControlWidget(QtWidgets.QWidget):
     needSceneReload = QtCore.Signal(str, object)
 
     def __init__(self, name):
-        super(_ControlWidget, self).__init__()
+        super().__init__()
         self._name = name
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -45,7 +45,7 @@ class _ControlWidget(QtWidgets.QWidget):
 class Slider(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(Slider, self).__init__(name)
+        super().__init__(name)
         slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self._unit_base = kwargs.get('unit_base', 1)
         if 'range' in kwargs:
@@ -67,7 +67,7 @@ class Slider(_ControlWidget):
 class VectorWidget(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(VectorWidget, self).__init__(name)
+        super().__init__(name)
         n = kwargs.get("n", 3)
         hlayout = QtWidgets.QHBoxLayout()
         self._spinboxes = []
@@ -96,7 +96,7 @@ class VectorWidget(_ControlWidget):
 class ColorPicker(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(ColorPicker, self).__init__(name)
+        super().__init__(name)
         self._color_btn = QtWidgets.QPushButton()
         color = QtGui.QColor()
         color.setRgbF(*value)
@@ -122,7 +122,7 @@ class ColorPicker(_ControlWidget):
 class Checkbox(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(Checkbox, self).__init__(name)
+        super().__init__(name)
         self._chkbox = QtWidgets.QCheckBox(name)
         self._chkbox.setChecked(value)
         self._chkbox.stateChanged.connect(self._checkbox_toggle)
@@ -136,7 +136,7 @@ class Checkbox(_ControlWidget):
 class FilePicker(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(FilePicker, self).__init__(name)
+        super().__init__(name)
         self._filter = kwargs.get('filter', '')
         dialog_btn = QtWidgets.QPushButton('Open file')
         self._label = QtWidgets.QLabel(self.get_label_text(value))
@@ -156,7 +156,7 @@ class FilePicker(_ControlWidget):
 class ComboBox(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(ComboBox, self).__init__(name)
+        super().__init__(name)
         combobox = QtWidgets.QComboBox()
         label = QtWidgets.QLabel(self.get_label_text())
         choices = kwargs['choices']
@@ -174,7 +174,7 @@ class ComboBox(_ControlWidget):
 class TextInput(_ControlWidget):
 
     def __init__(self, name, value, **kwargs):
-        super(TextInput, self).__init__(name)
+        super().__init__(name)
         self._text = QtWidgets.QPlainTextEdit()
         self._text.setPlainText(value)
         label = QtWidgets.QLabel(self.get_label_text())

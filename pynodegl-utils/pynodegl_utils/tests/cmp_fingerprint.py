@@ -33,7 +33,7 @@ _MODE = "RGBA"
 class _CompareFingerprints(CompareSceneBase):
 
     def __init__(self, scene_func, tolerance=0, **kwargs):
-        super(_CompareFingerprints, self).__init__(scene_func, **kwargs)
+        super().__init__(scene_func, **kwargs)
         self._tolerance = tolerance
 
     @staticmethod

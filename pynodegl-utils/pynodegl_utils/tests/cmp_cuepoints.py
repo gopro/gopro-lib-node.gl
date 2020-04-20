@@ -25,7 +25,7 @@ from .cmp import CompareSceneBase, get_test_decorator
 class _CompareCuePoints(CompareSceneBase):
 
     def __init__(self, scene_func, points, width=128, height=128, tolerance=0, **kwargs):
-        super(_CompareCuePoints, self).__init__(scene_func, width=width, height=height, **kwargs)
+        super().__init__(scene_func, width=width, height=height, **kwargs)
         self._points = points
         self._tolerance = tolerance
 

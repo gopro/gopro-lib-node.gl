@@ -61,7 +61,7 @@ class Config(QtCore.QObject):
     }
 
     def __init__(self, module_pkgname):
-        super(Config, self).__init__()
+        super().__init__()
 
         self._cfg = {
             'aspect_ratio': (16, 9),

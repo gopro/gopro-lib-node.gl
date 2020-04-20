@@ -37,7 +37,7 @@ import pynodegl as ngl
 class _SVGGraphView(QtWidgets.QGraphicsView):
 
     def __init__(self):
-        super(_SVGGraphView, self).__init__()
+        super().__init__()
         self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self._zoom_level = 0
 
@@ -53,7 +53,7 @@ class _SVGGraphView(QtWidgets.QGraphicsView):
 class GraphView(QtWidgets.QWidget):
 
     def __init__(self, get_scene_func, config):
-        super(GraphView, self).__init__()
+        super().__init__()
 
         self._get_scene_func = get_scene_func
         self._framerate = config.get('framerate')

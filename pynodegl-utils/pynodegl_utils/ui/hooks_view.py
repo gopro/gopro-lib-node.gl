@@ -30,7 +30,7 @@ class HooksView(QtWidgets.QWidget):
     _COLUMNS = ('Session', 'Description', 'Backend', 'System', 'Status')
 
     def __init__(self, hooks_caller):
-        super(HooksView, self).__init__()
+        super().__init__()
 
         self._hooks_caller = hooks_caller
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
         '''Wrap the HooksView with an additional button to trigger a read of the data + status change'''
 
         def __init__(self):
-            super(DummyWindow, self).__init__()
+            super().__init__()
             self._hooks_view = HooksView(DummyHooksCaller())
             action_btn = QtWidgets.QPushButton('Action!')
             action_btn.clicked.connect(self._do_action)

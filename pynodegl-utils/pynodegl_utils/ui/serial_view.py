@@ -27,7 +27,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class SerialView(QtWidgets.QWidget):
 
     def __init__(self, get_scene_func):
-        super(SerialView, self).__init__()
+        super().__init__()
 
         self._get_scene_func = get_scene_func
 

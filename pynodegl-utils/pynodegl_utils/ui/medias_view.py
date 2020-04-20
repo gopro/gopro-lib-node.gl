@@ -31,7 +31,7 @@ from pynodegl_utils.misc import Media
 class MediasView(QtWidgets.QWidget):
 
     def __init__(self, config):
-        super(MediasView, self).__init__()
+        super().__init__()
         self._config = config
 
         self._model = QtGui.QStandardItemModel()

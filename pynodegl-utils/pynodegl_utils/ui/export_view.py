@@ -30,7 +30,7 @@ from pynodegl_utils.export import Exporter
 class ExportView(QtWidgets.QWidget):
 
     def __init__(self, get_scene_func, config):
-        super(ExportView, self).__init__()
+        super().__init__()
 
         self._get_scene_func = get_scene_func
         self._framerate = config.get('framerate')

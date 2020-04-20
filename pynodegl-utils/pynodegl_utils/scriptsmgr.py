@@ -40,7 +40,7 @@ class ScriptsManager(QtCore.QObject):
     error = QtCore.Signal(str)
 
     def __init__(self, module_pkgname):
-        super(ScriptsManager, self).__init__()
+        super().__init__()
         self._module_pkgname = module_pkgname
         self._dirs_to_watch = set()
         self._files_to_watch = set()

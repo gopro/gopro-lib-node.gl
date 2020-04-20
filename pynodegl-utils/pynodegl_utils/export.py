@@ -38,7 +38,7 @@ class Exporter(QtCore.QThread):
     export_finished = QtCore.Signal()
 
     def __init__(self, get_scene_func, filename, w, h, extra_enc_args=None, time=None):
-        super(Exporter, self).__init__()
+        super().__init__()
         self._get_scene_func = get_scene_func
         self._filename = filename
         self._width = w

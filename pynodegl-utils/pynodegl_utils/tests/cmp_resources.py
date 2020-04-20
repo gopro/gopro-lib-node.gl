@@ -47,7 +47,7 @@ _COLS = (
 class _CompareResources(CompareSceneBase):
 
     def __init__(self, scene_func, columns=_COLS, **kwargs):
-        super(_CompareResources, self).__init__(scene_func, width=320, height=240,
+        super().__init__(scene_func, width=320, height=240,
                                                 scene_wrap=self._scene_wrap,
                                                 **kwargs)
         self._columns = columns

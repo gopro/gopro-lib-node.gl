@@ -42,7 +42,7 @@ class Toolbar(QtWidgets.QWidget):
     hudChanged = QtCore.Signal(bool)
 
     def __init__(self, config):
-        super(Toolbar, self).__init__()
+        super().__init__()
 
         self._scene_opts_widget = None
         self._scene_extra_args = {}

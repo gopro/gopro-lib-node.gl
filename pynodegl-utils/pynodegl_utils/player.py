@@ -98,7 +98,7 @@ class Player(QtCore.QThread):
     onFrame = QtCore.Signal(int, float)
 
     def __init__(self, window, width, height, config):
-        super(Player, self).__init__()
+        super().__init__()
 
         self._mutex = QtCore.QMutex()
         self._cond = QtCore.QWaitCondition()

@@ -38,7 +38,7 @@ class Seekbar(QtWidgets.QWidget):
     SLIDER_TIMESCALE = 1. / SLIDER_TIMEBASE
 
     def __init__(self, config, stop_button=True):
-        super(Seekbar, self).__init__()
+        super().__init__()
 
         self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self._time_lbl = QtWidgets.QLabel()

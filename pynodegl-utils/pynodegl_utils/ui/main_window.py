@@ -44,7 +44,7 @@ class MainWindow(QtWidgets.QSplitter):
     error = QtCore.Signal(str)
 
     def __init__(self, module_pkgname, hooksdir):
-        super(MainWindow, self).__init__(QtCore.Qt.Horizontal)
+        super().__init__(QtCore.Qt.Horizontal)
         self._win_title_base = 'Node.gl viewer'
         self.setWindowTitle(self._win_title_base)
 
@@ -181,19 +181,19 @@ class MainWindow(QtWidgets.QSplitter):
 
     @QtCore.Slot(QtGui.QResizeEvent)
     def resizeEvent(self, resize_event):
-        super(MainWindow, self).resizeEvent(resize_event)
+        super().resizeEvent(resize_event)
         self._emit_geometry()
 
     @QtCore.Slot(QtGui.QMoveEvent)
     def moveEvent(self, move_event):
-        super(MainWindow, self).moveEvent(move_event)
+        super().moveEvent(move_event)
         self._emit_geometry()
 
     @QtCore.Slot(QtGui.QCloseEvent)
     def closeEvent(self, close_event):
         for name, widget in self._tabs:
             widget.close()
-        super(MainWindow, self).closeEvent(close_event)
+        super().closeEvent(close_event)
 
     @QtCore.Slot(int)
     def _currentTabChanged(self, index):

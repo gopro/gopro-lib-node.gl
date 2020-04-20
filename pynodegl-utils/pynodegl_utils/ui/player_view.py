@@ -38,7 +38,7 @@ class _PlayerWidget(QtWidgets.QWidget):
     onPlayerAvailable = QtCore.Signal()
 
     def __init__(self, parent, config):
-        super(_PlayerWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.setAttribute(Qt.WA_DontCreateNativeAncestors)
         self.setAttribute(Qt.WA_NativeWindow)
@@ -78,7 +78,7 @@ class _PlayerWidget(QtWidgets.QWidget):
         self._req_height = size.height()
         self._timer.start()
 
-        super(_PlayerWidget, self).resizeEvent(event)
+        super().resizeEvent(event)
 
     def event(self, event):
         if event.type() == QEvent.Paint:
@@ -98,7 +98,7 @@ class _PlayerWidget(QtWidgets.QWidget):
             if self._player:
                 self._player.stop()
                 self._player.wait()
-        return super(_PlayerWidget, self).event(event)
+        return super().event(event)
 
     @QtCore.Slot(int, float)
     def _set_last_frame_time(self, frame_index, frame_time):
@@ -114,7 +114,7 @@ class _PlayerWidget(QtWidgets.QWidget):
 class PlayerView(QtWidgets.QWidget):
 
     def __init__(self, get_scene_func, config):
-        super(PlayerView, self).__init__()
+        super().__init__()
 
         self._get_scene_func = get_scene_func
         self._cfg = None
@@ -190,4 +190,4 @@ class PlayerView(QtWidgets.QWidget):
     def closeEvent(self, close_event):
         self._player_widget.close()
         self._seekbar.close()
-        super(PlayerView, self).closeEvent(close_event)
+        super().closeEvent(close_event)

@@ -123,7 +123,7 @@ class _HooksThread(QtCore.QThread):
     error = QtCore.Signal(str, str)
 
     def __init__(self, get_scene_func, hooks_caller, session_id, backend, system, module_name, scene_name):
-        super(_HooksThread, self).__init__()
+        super().__init__()
         self._get_scene_func = get_scene_func
         self._hooks_caller = hooks_caller
         self._session_id = session_id
@@ -193,7 +193,7 @@ class _HooksThread(QtCore.QThread):
 class HooksController(QtCore.QObject):
 
     def __init__(self, get_scene_func, hooks_view, hooks_caller):
-        super(HooksController, self).__init__()
+        super().__init__()
         self._get_scene_func = get_scene_func
         self._hooks_view = hooks_view
         self._hooks_caller = hooks_caller

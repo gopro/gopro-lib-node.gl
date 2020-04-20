@@ -80,13 +80,15 @@ int ngli_vaapi_init(struct ngl_ctx *s)
 
 void ngli_vaapi_reset(struct ngl_ctx *s)
 {
-    if (s->va_display)
+    if (s->va_display) {
         vaTerminate(s->va_display);
-    s->va_display = NULL;
+        s->va_display = NULL;
+    }
     s->va_version = 0;
 #if defined(HAVE_VAAPI_X11)
-    if (s->x11_display)
+    if (s->x11_display) {
         XCloseDisplay(s->x11_display);
-    s->x11_display = NULL;
+        s->x11_display = NULL;
+    }
 #endif
 }

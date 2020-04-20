@@ -85,7 +85,7 @@ static int register_uniform(struct pass *s, const char *name, struct ngl_node *u
     if (!ngli_darray_push(&s->pipeline_uniforms, &pipeline_uniform))
         return NGL_ERROR_MEMORY;
 
-    if (!ngli_darray_push(&s->uniforms, &uniform))
+    if (!ngli_darray_push(&s->uniform_nodes, &uniform))
         return NGL_ERROR_MEMORY;
 
     return 0;
@@ -279,7 +279,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     if (!ngli_darray_push(&s->texture_infos, &info))
         return NGL_ERROR_MEMORY;
 
-    if (!ngli_darray_push(&s->textures, &texture))
+    if (!ngli_darray_push(&s->texture_nodes, &texture))
         return NGL_ERROR_MEMORY;
 
     return 0;
@@ -328,7 +328,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     if (!ngli_darray_push(&s->pipeline_buffers, &pipeline_buffer))
         return NGL_ERROR_MEMORY;
 
-    if (!ngli_darray_push(&s->blocks, &block))
+    if (!ngli_darray_push(&s->block_nodes, &block))
         return NGL_ERROR_MEMORY;
 
     int ret = ngli_node_block_ref(block);
@@ -455,7 +455,7 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
             return NGL_ERROR_MEMORY;
     }
 
-    if (!ngli_darray_push(&s->attributes, &attribute))
+    if (!ngli_darray_push(&s->attribute_nodes, &attribute))
         return NGL_ERROR_MEMORY;
 
     return 0;
@@ -611,10 +611,10 @@ int ngli_pass_init(struct pass *s, struct ngl_ctx *ctx, const struct pass_params
     s->ctx = ctx;
     s->params = *params;
 
-    ngli_darray_init(&s->attributes, sizeof(struct ngl_node *), 0);
-    ngli_darray_init(&s->textures, sizeof(struct ngl_node *), 0);
-    ngli_darray_init(&s->uniforms, sizeof(struct ngl_node *), 0);
-    ngli_darray_init(&s->blocks, sizeof(struct ngl_node *), 0);
+    ngli_darray_init(&s->attribute_nodes, sizeof(struct ngl_node *), 0);
+    ngli_darray_init(&s->texture_nodes, sizeof(struct ngl_node *), 0);
+    ngli_darray_init(&s->uniform_nodes, sizeof(struct ngl_node *), 0);
+    ngli_darray_init(&s->block_nodes, sizeof(struct ngl_node *), 0);
 
     ngli_darray_init(&s->texture_infos, sizeof(struct texture_info), 0);
 
@@ -697,10 +697,10 @@ void ngli_pass_uninit(struct pass *s)
     if (s->indices)
         ngli_node_buffer_unref(s->indices);
 
-    ngli_darray_reset(&s->uniforms);
-    ngli_darray_reset(&s->textures);
-    reset_block_nodes(&s->blocks);
-    reset_buffer_nodes(&s->attributes);
+    ngli_darray_reset(&s->uniform_nodes);
+    ngli_darray_reset(&s->texture_nodes);
+    reset_block_nodes(&s->block_nodes);
+    reset_buffer_nodes(&s->attribute_nodes);
 
     ngli_darray_reset(&s->texture_infos);
 
@@ -748,10 +748,10 @@ DECLARE_UPDATE_NODES_FUNC(buffer, NODE_TYPE_BUFFER)
 int ngli_pass_update(struct pass *s, double t)
 {
     int ret;
-    if ((ret = update_common_nodes(&s->uniforms, t)) < 0 ||
-        (ret = update_common_nodes(&s->textures, t)) < 0 ||
-        (ret = update_block_nodes(&s->blocks, t)) < 0 ||
-        (ret = update_buffer_nodes(&s->attributes, t)))
+    if ((ret = update_common_nodes(&s->uniform_nodes, t)) < 0 ||
+        (ret = update_common_nodes(&s->texture_nodes, t)) < 0 ||
+        (ret = update_block_nodes(&s->block_nodes, t)) < 0 ||
+        (ret = update_buffer_nodes(&s->attribute_nodes, t)))
         return ret;
 
     return 0;

@@ -59,10 +59,10 @@ struct pass {
 
     struct program default_program;
 
-    struct darray attributes;
-    struct darray textures;
-    struct darray uniforms;
-    struct darray blocks;
+    struct darray attribute_nodes;
+    struct darray texture_nodes;
+    struct darray uniform_nodes;
+    struct darray block_nodes;
 
     struct darray texture_infos;
 

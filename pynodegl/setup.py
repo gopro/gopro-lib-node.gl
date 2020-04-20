@@ -32,7 +32,7 @@ class LibNodeGLConfig:
         import subprocess
 
         if subprocess.call([pkg_config_bin, '--exists', self.PKG_LIB_NAME]) != 0:
-            raise Exception('%s is required to build pynodegl' % self.PKG_LIB_NAME)
+            raise Exception(f'{self.PKG_LIB_NAME} is required to build pynodegl')
 
         console_encoding   = 'utf8'
         self.version       = subprocess.check_output([pkg_config_bin, '--modversion', self.PKG_LIB_NAME]).strip().decode(console_encoding)
@@ -57,15 +57,15 @@ class CommandUtils:
         specs = yaml.load(open(specs))
 
         def _get_vec_init_code(n, vecname, cvecname):
-            return '''
-        cdef float[%(n)d] %(cvecname)s
-        cdef int %(vecname)s_i
-        if len(%(vecname)s) != %(n)d:
-            raise TypeError("%%s parameter is expected to be vec%%d but got %%d values" %% (
-                            "%(vecname)s", %(n)d, len(%(vecname)s)))
-        for %(vecname)s_i in range(%(n)d):
-            %(cvecname)s[%(vecname)s_i] = %(vecname)s[%(vecname)s_i]
-''' % {'n': n, 'vecname': vecname, 'cvecname': cvecname}
+            return f'''
+        cdef float[{n}] {cvecname}
+        cdef int {vecname}_i
+        if len({vecname}) != {n}:
+            raise TypeError("%s parameter is expected to be vec%d but got %d values" % (
+                            "{vecname}", {n}, len({vecname})))
+        for {vecname}_i in range({n}):
+            {cvecname}[{vecname}_i] = {vecname}[{vecname}_i]
+'''
 
         content = 'from libc.stdlib cimport free\n'
         content += 'from libc.stdint cimport uintptr_t\n'
@@ -78,15 +78,15 @@ class CommandUtils:
             node = list(item.keys())[0]
             fields = item[node]
             if not node.startswith('_'):
-                nodes_decls.append('cdef int NGL_NODE_%s' % node.upper())
+                nodes_decls.append(f'cdef int NGL_NODE_{node.upper()}')
         nodes_decls.append(None)
-        content += '\n'.join(('    %s' % d) if d else '' for d in nodes_decls) + '\n'
+        content += '\n'.join((f'    {d}') if d else '' for d in nodes_decls) + '\n'
 
         for item in specs:
             node = list(item.keys())[0]
             fields = item[node]
 
-            type_id = 'NGL_NODE_%s' % node.upper()
+            type_id = f'NGL_NODE_{node.upper()}'
             construct_args = ['self']
             construct_cargs = [type_id]
             special_inits = ''
@@ -112,13 +112,13 @@ class CommandUtils:
                 assert not field_type.endswith('Dict')
                 if field_type in ('int', 'float', 'double'):
                     construct_cargs.append(field_name)
-                    construct_args.append('%s %s' % (field_type, field_name))
+                    construct_args.append(f'{field_type} {field_name}')
                 elif field_type == 'bool':
                     construct_cargs.append('bint')
-                    construct_args.append('bint %s' % field_name)
+                    construct_args.append(f'bint {field_name}')
                 elif field_type in ('select', 'flags', 'string'):
                     construct_cargs.append(field_name)
-                    construct_args.append('const char *%s' % field_name)
+                    construct_args.append(f'const char *{field_name}')
                 elif field_type.startswith('vec') or field_type == 'mat4':
                     n = int(field_type[3:]) if field_type.startswith('vec') else 16
                     cparam = field_name + '_c'
@@ -126,11 +126,11 @@ class CommandUtils:
                     construct_cargs.append(cparam)
                     construct_args.append(field_name)
                 else:
-                    special_inits += '''
-        assert %s is not None
-'''  % field_name
-                    construct_cargs.append('%s.ctx' % field_name)
-                    construct_args.append('_Node %s' % field_name)
+                    special_inits += f'''
+        assert {field_name} is not None
+'''
+                    construct_cargs.append(f'{field_name}.ctx')
+                    construct_args.append(f'_Node {field_name}')
 
             # For every optional arguments user-specified (not None), we will
             # call the corresponding set/add/update method.
@@ -138,27 +138,24 @@ class CommandUtils:
             optional_varnames = []
             for field in opt_fields:
                 field_name, field_type = field
-                construct_args.append('%s=None' % field_name)
-                optional_args.append('%s=None' % field_name)
+                construct_args.append(f'{field_name}=None')
+                optional_args.append(f'{field_name}=None')
                 optional_varnames.append(field_name)
                 is_list = field_type.endswith('List')
                 is_dict = field_type.endswith('Dict')
-                optset_data = {
-                    'var': field_name,
-                }
-                extra_args += '''
-        if %(var)s is not None:''' % optset_data
+                extra_args += f'''
+        if {field_name} is not None:'''
                 if is_list:
-                    extra_args += '''
-            self.add_%(var)s(*%(var)s)''' % optset_data
+                    extra_args += f'''
+            self.add_{field_name}(*{field_name})'''
                 elif is_dict:
-                    extra_args += '''
-            self.update_%(var)s(%(var)s)''' % optset_data
+                    extra_args += f'''
+            self.update_{field_name}({field_name})'''
                 else:
                     dereference = field_type.startswith('vec') or field_type == 'mat4'
-                    optset_data['arg'] = '*' + field_name if dereference else field_name
-                    extra_args += '''
-            self.set_%(var)s(%(arg)s)''' % optset_data
+                    arg = '*' + field_name if dereference else field_name
+                    extra_args += f'''
+            self.set_{field_name}({arg})'''
 
             # Until the end of the inheritance node tree (the _Node), there is
             # no need to forward remaining unrecognized parameters.
@@ -168,19 +165,13 @@ class CommandUtils:
                 optional_args += va_args
                 optional_varnames += va_args
 
-            class_data = {
-                'class_name': node,
-                'parent_node': parent_node,
-                'construct_args': ', '.join(construct_args),
-                'construct_cargs': ', '.join(construct_cargs),
-                'optional_args': ', '.join(optional_args),
-                'optional_varnames': ', '.join(optional_varnames),
-                'special_inits': special_inits,
-                'extra_args': extra_args,
-            }
+            construct_args_str = ', '.join(construct_args)
+            construct_cargs_str = ', '.join(construct_cargs)
+            optional_args_str = ', '.join(optional_args)
+            optional_varnames_str = ', '.join(optional_varnames)
 
             if node == '_Node':
-                class_str = '''
+                class_str = f'''
 cdef class _Node:
     cdef ngl_node *ctx
 
@@ -199,24 +190,24 @@ cdef class _Node:
 
     def _update_dict(self, field_name, arg=None, **kwargs):
         cdef ngl_node *node
-        data_dict = {}
+        data_dict = {{}}
         if arg is not None:
             if not isinstance(arg, dict):
-                raise TypeError("%%s must be of type dict" %% field_name)
+                raise TypeError("%s must be of type dict" % field_name)
             data_dict.update(arg)
         data_dict.update(**kwargs)
         for key, val in data_dict.items():
             if not isinstance(key, str) or (val is not None and not isinstance(val, _Node)):
-                raise TypeError("update_%%s() takes a dictionary of <string, Node>" %% field_name)
+                raise TypeError("update_%s() takes a dictionary of <string, Node>" % field_name)
             node = (<_Node>val).ctx if val is not None else NULL
             ret = ngl_node_param_set(self.ctx, field_name, <const char *>key, node)
             if ret < 0:
                 return ret
         return 0
 
-    def _init_params(%(optional_args)s):
-%(extra_args)s
-''' % class_data
+    def _init_params({optional_args_str}):
+{extra_args}
+'''
 
                 # Declare growing list helpers functions to _Node, to be used
                 # by other nodes for their specific list-based parameters.
@@ -228,33 +219,28 @@ cdef class _Node:
                     if base_field_type == 'Node':
                         cfield = '(<_Node>item).ctx'
                     else:
-                        cfield = '<%s>item' % base_field_type
-                    field_data = {
-                        'field_type': field_type.lower(),
-                        'cfield': cfield,
-                        'citem_type': citem_type,
-                    }
-                    class_str += '''
-    def _add_%(field_type)s(self, field_name, *elems):
+                        cfield = f'<{base_field_type}>item'
+                    class_str += f'''
+    def _add_{field_type.lower()}(self, field_name, *elems):
         if hasattr(elems[0], '__iter__'):
-            raise Exception("add_%%s() takes elements as "
-                            "positional arguments, not list" %%
+            raise Exception("add_%s() takes elements as "
+                            "positional arguments, not list" %
                             field_name)
         cdef int nb_elems = len(elems)
-        elems_c = <%(citem_type)s*>calloc(len(elems), sizeof(%(citem_type)s))
+        elems_c = <{citem_type}*>calloc(len(elems), sizeof({citem_type}))
         if elems_c is NULL:
             raise MemoryError()
         cdef int i
         for i, item in enumerate(elems):
-            elems_c[i] = %(cfield)s
+            elems_c[i] = {cfield}
         ret = ngl_node_param_add(self.ctx, field_name, nb_elems, elems_c)
         free(elems_c)
         return ret
-''' % field_data
+'''
             else:
-                class_str = '''
-cdef class %(class_name)s(%(parent_node)s):
-''' % class_data
+                class_str = f'''
+cdef class {node}({parent_node}):
+'''
 
                 # This case is for nodes such as Buffer* or AnimatedBuffer* that
                 # share a common set of parameters (respectively defined in _Buffer
@@ -263,14 +249,14 @@ cdef class %(class_name)s(%(parent_node)s):
                 # still need to be identified individually by instantiating a
                 # specific C node (with ngl_node_create()).
                 if parent_node != '_Node':
-                    class_str += '''
-    def __init__(%(construct_args)s):%(special_inits)s
+                    class_str += f'''
+    def __init__({construct_args_str}):{special_inits}
         assert self.ctx is NULL
-        self.ctx = ngl_node_create(%(construct_cargs)s)
+        self.ctx = ngl_node_create({construct_cargs_str})
         if self.ctx is NULL:
             raise MemoryError()
-        self._init_params(%(optional_varnames)s)
-''' % class_data
+        self._init_params({optional_varnames_str})
+'''
 
                 # Nodes starting with a _ (such as _Buffer or _AnimatedBuffer) are
                 # intermediate fake nodes sharing the common set of parameters of
@@ -280,25 +266,25 @@ cdef class %(class_name)s(%(parent_node)s):
                 # parameter init function need to be forwarded to their parent
                 # (_Node).
                 elif node.startswith('_'):
-                    class_str += '''
-    def _init_params(%(optional_args)s):%(extra_args)s
-        %(parent_node)s._init_params(self, *args, **kwargs)
-''' % class_data
+                    class_str += f'''
+    def _init_params({optional_args_str}):{extra_args}
+        {parent_node}._init_params(self, *args, **kwargs)
+'''
 
                 # Case for all the remaining nodes The __init__ function includes
                 # argument pre-processing for standard C node instantiation, the C
                 # node instantiation itself, and the forward of unhandled
                 # parameters to the parent (_Node).
                 else:
-                    class_str += '''
-    def __init__(%(construct_args)s):%(special_inits)s
+                    class_str += f'''
+    def __init__({construct_args_str}):{special_inits}
         assert self.ctx is NULL
-        self.ctx = ngl_node_create(%(construct_cargs)s)
+        self.ctx = ngl_node_create({construct_cargs_str})
         if self.ctx is NULL:
             raise MemoryError()
-        %(parent_node)s._init_params(self, *args, **kwargs)
-%(extra_args)s
-''' % class_data
+        {parent_node}._init_params(self, *args, **kwargs)
+{extra_args}
+'''
 
             # Animated classes need a specific evaluate method that could not
             # be created through the parameters system.
@@ -314,13 +300,13 @@ cdef class %(class_name)s(%(parent_node)s):
                 if n == 1:
                     retstr = 'vec[0]'
                 else:
-                    retstr = '(%s)' % ', '.join('vec[%d]' % x for x in range(n))
-                class_str += '''
+                    retstr = '({})'.format(', '.join(f'vec[{x}]' for x in range(n)))
+                class_str += f'''
     def evaluate(self, t):
-        cdef float[%d] vec
+        cdef float[{n}] vec
         ngl_anim_evaluate(self.ctx, vec, t)
-        return %s
-''' % (n, retstr)
+        return {retstr}
+'''
 
             # Declare a set, add or update method for every optional field of
             # the node. The constructor parameters can not be changed so we
@@ -331,68 +317,50 @@ cdef class %(class_name)s(%(parent_node)s):
                 # Add method
                 if field_type.endswith('List'):
                     field_name, field_type = field
-                    field_data = {
-                        'field_name': field_name,
-                        'field_type': field_type.lower(),
-                    }
-                    class_str += '''
-    def add_%(field_name)s(self, *%(field_name)s):
-        return self._add_%(field_type)s("%(field_name)s", *%(field_name)s)
-''' % field_data
+                    class_str += f'''
+    def add_{field_name}(self, *{field_name}):
+        return self._add_{field_type.lower()}("{field_name}", *{field_name})
+'''
 
                 # Update method
                 elif field_type.endswith('Dict'):
                     field_type = field_type[:-len('Dict')]
                     assert field_type == 'Node'
-                    field_data = {
-                        'field_name': field_name,
-                    }
-                    class_str += '''
-    def update_%(field_name)s(self, arg=None, **kwargs):
-        return self._update_dict("%(field_name)s", arg, **kwargs)
-''' % field_data
+                    class_str += f'''
+    def update_{field_name}(self, arg=None, **kwargs):
+        return self._update_dict("{field_name}", arg, **kwargs)
+'''
 
                 # Set method for vectors and matrices
                 elif field_type.startswith('vec') or field_type == 'mat4':
                     n = int(field_type[3:]) if field_type.startswith('vec') else 16
-                    cparam = field_name + '_c'
-                    field_data = {
-                        'field_name': field_name,
-                        'cparam': cparam,
-                        'vec_init_code': _get_vec_init_code(n, field_name, cparam),
-                    }
-                    class_str += '''
-    def set_%(field_name)s(self, *%(field_name)s):%(vec_init_code)s
-        return ngl_node_param_set(self.ctx, "%(field_name)s", %(cparam)s)
-''' % field_data
+                    cparam = f'{field_name}_c'
+                    vec_init_code = _get_vec_init_code(n, field_name, cparam)
+                    class_str += f'''
+    def set_{field_name}(self, *{field_name}):{vec_init_code}
+        return ngl_node_param_set(self.ctx, "{field_name}", {cparam})
+'''
 
                 # Set method for data
                 elif field_type == 'data':
-                    field_data = {
-                        'field_name': field_name,
-                        'field_type': 'const char *',
-                    }
-                    class_str += '''
-    def set_%(field_name)s(self, array.array %(field_name)s):
+                    class_str += f'''
+    def set_{field_name}(self, array.array {field_name}):
         return ngl_node_param_set(self.ctx,
-                                  "%(field_name)s",
-                                  <int>(%(field_name)s.buffer_info()[1] * %(field_name)s.itemsize),
-                                  <void *>(%(field_name)s.data.as_voidptr))
+                                  "{field_name}",
+                                  <int>({field_name}.buffer_info()[1] * {field_name}.itemsize),
+                                  <void *>({field_name}.data.as_voidptr))
 
-''' % field_data
+'''
 
                 # Set method for rationals
                 elif field_type == 'rational':
-                    field_data = {
-                        'field_name': field_name,
-                    }
-                    class_str += '''
-    def set_%(field_name)s(self, tuple %(field_name)s):
+                    class_str += f'''
+    def set_{field_name}(self, tuple {field_name}):
         return ngl_node_param_set(self.ctx,
-                                  "%(field_name)s",
-                                  <int>%(field_name)s[0],
-                                  <int>%(field_name)s[1]);
-''' % field_data
+                                  "{field_name}",
+                                  <int>{field_name}[0],
+                                  <int>{field_name}[1]);
+'''
 
                 # Set method
                 else:
@@ -405,15 +373,10 @@ cdef class %(class_name)s(%(parent_node)s):
                         cparam += '.ctx'
                     elif field_type == 'bool':
                         ctype = 'bint'
-                    field_data = {
-                        'field_name': field_name,
-                        'field_type': ctype,
-                        'cparam': cparam,
-                    }
-                    class_str += '''
-    def set_%(field_name)s(self, %(field_type)s %(field_name)s):
-        return ngl_node_param_set(self.ctx, "%(field_name)s", %(cparam)s)
-''' % field_data
+                    class_str += f'''
+    def set_{field_name}(self, {ctype} {field_name}):
+        return ngl_node_param_set(self.ctx, "{field_name}", {cparam})
+'''
 
             content += class_str + '\n'
 

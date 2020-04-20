@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # Copyright 2018 GoPro Inc.
 #
@@ -28,7 +27,7 @@ import pynodegl as ngl
 from pynodegl_utils import misc
 
 
-class Clock(object):
+class Clock:
 
     TIMEBASE = 1000000000  # nanoseconds
 

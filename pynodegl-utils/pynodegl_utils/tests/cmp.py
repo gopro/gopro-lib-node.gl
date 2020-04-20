@@ -26,7 +26,7 @@ import pynodegl as ngl
 from pynodegl_utils.misc import get_backend
 
 
-class CompareBase(object):
+class CompareBase:
 
     @staticmethod
     def serialize(data):

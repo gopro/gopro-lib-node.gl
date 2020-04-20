@@ -498,24 +498,24 @@ int ngli_pipeline_init(struct pipeline *s, struct ngl_ctx *ctx, const struct pip
     return 0;
 }
 
-int ngli_pipeline_get_uniform_index(struct pipeline *s, const char *name)
+int ngli_pipeline_get_uniform_index(const struct pipeline *s, const char *name)
 {
-    struct uniform_desc *descs = ngli_darray_data(&s->uniform_descs);
+    const struct uniform_desc *descs = ngli_darray_data(&s->uniform_descs);
     for (int i = 0; i < ngli_darray_count(&s->uniform_descs); i++) {
-        struct uniform_desc *desc = &descs[i];
-        struct pipeline_uniform *uniform = &desc->uniform;
+        const struct uniform_desc *desc = &descs[i];
+        const struct pipeline_uniform *uniform = &desc->uniform;
         if (!strcmp(uniform->name, name))
             return i;
     }
     return -1;
 }
 
-int ngli_pipeline_get_texture_index(struct pipeline *s, const char *name)
+int ngli_pipeline_get_texture_index(const struct pipeline *s, const char *name)
 {
-    struct texture_desc *descs = ngli_darray_data(&s->texture_descs);
+    const struct texture_desc *descs = ngli_darray_data(&s->texture_descs);
     for (int i = 0; i < ngli_darray_count(&s->texture_descs); i++) {
-        struct texture_desc *desc = &descs[i];
-        struct pipeline_texture *pipeline_texture = &desc->texture;
+        const struct texture_desc *desc = &descs[i];
+        const struct pipeline_texture *pipeline_texture = &desc->texture;
         if (!strcmp(pipeline_texture->name, name))
             return i;
     }

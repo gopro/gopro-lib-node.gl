@@ -53,7 +53,8 @@ class CommandUtils:
     def _gen_definitions_pyx(specs):
         import yaml  # must NOT be on top of this file
 
-        specs = yaml.safe_load(open(specs))
+        with open(specs) as f:
+            specs = yaml.safe_load(f)
 
         def _get_vec_init_code(n, vecname, cvecname):
             return f'''
@@ -386,7 +387,8 @@ cdef class {node}({parent_node}):
         import os.path as op
         specs_file = op.join(_LIB_CFG.data_root_dir, 'nodegl', 'nodes.specs')
         content = CommandUtils._gen_definitions_pyx(specs_file)
-        open('nodes_def.pyx', 'w').write(content)
+        with open('nodes_def.pyx', 'w') as output:
+            output.write(content)
 
 
 class BuildExtCommand(build_ext):

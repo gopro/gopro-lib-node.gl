@@ -50,7 +50,7 @@ static const char *pgbar_shader = \
 "    vec4 color = video_pix;"                                           "\n" \
 "    float time = tex0_ts / media_duration;"                            "\n" \
 "    if (y > 1. - height)"                                              "\n" \
-"        color = x < time ? vec4(1) : mix(video_pix, vec4(1), 0.3);"    "\n" \
+"        color = x < time ? vec4(1.) : mix(video_pix, vec4(1.), 0.3);"  "\n" \
 "    gl_FragColor = mix(video_pix, color, opacity);"                    "\n" \
 "}"                                                                     "\n";
 

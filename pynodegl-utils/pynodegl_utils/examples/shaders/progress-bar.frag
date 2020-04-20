@@ -28,7 +28,7 @@ void main()
 
     if (x < t && x > padw+thickw &&
         y < 1.-padh-thickh && y > 1.-padh-height) {
-        vec4 color = vec4(1,0,0,1);
+        vec4 color = vec4(1., 0., 0., 1.);
         gl_FragColor = mix(video_pix, color, 0.7);
     } else {
         gl_FragColor = video_pix;
@@ -37,12 +37,12 @@ void main()
     if (y < 1.-padh-thickh && y > 1.-padh-height &&
         ((x > padw && x < padw+thickw) ||
          (x > 1.-padw-thickw && x < 1.-padw))) {
-        gl_FragColor = vec4(1);
+        gl_FragColor = vec4(1.);
     }
 
     if (x < 1.-padw-thickw && x > padw+thickw &&
         ((y < 1.-padh-height && y > 1.-padh-height-thickh) ||
          (y < 1.-padh && y > 1. - padh-thickh))) {
-        gl_FragColor = vec4(1);
+        gl_FragColor = vec4(1.);
     }
 }

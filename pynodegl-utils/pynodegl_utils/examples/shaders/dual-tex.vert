@@ -21,6 +21,6 @@ void main()
     gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
     var_uvcoord = ngl_uvcoord;
     var_normal = ngl_normal_matrix * ngl_normal;
-    var_tex0_coord = (tex0_coord_matrix * vec4(ngl_uvcoord, 0, 1)).xy;
-    var_tex1_coord = (tex1_coord_matrix * vec4(ngl_uvcoord, 0, 1)).xy;
+    var_tex0_coord = (tex0_coord_matrix * vec4(ngl_uvcoord, 0.0, 1.0)).xy;
+    var_tex1_coord = (tex1_coord_matrix * vec4(ngl_uvcoord, 0.0, 1.0)).xy;
 }

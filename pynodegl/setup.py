@@ -53,7 +53,7 @@ class CommandUtils:
     def _gen_definitions_pyx(specs):
         import yaml  # must NOT be on top of this file
 
-        specs = yaml.load(open(specs))
+        specs = yaml.safe_load(open(specs))
 
         def _get_vec_init_code(n, vecname, cvecname):
             return f'''

@@ -39,8 +39,8 @@ jobs:
         # - On Debian/Ubuntu side, they decided to have the following injected:
         #   CFLAGS="-specs=/usr/share/dpkg/no-pie-compile.specs"
         #   LDFLAGS="-specs=/usr/share/dpkg/no-pie-link.specs"
-        #   And unfortunately, the former can not go without the later (otherwise
-        #   there is a link error).
+        #   And unfortunately, the former can not go without the latter
+        #   (otherwise there is a link error).
         #
         # As a result, `python3-config --cflags` will return the `-specs=...`
         # flags, but `python3-config --ldflags` will not return the

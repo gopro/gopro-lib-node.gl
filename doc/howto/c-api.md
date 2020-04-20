@@ -158,7 +158,7 @@ int ngl_node_param_set(struct ngl_node *node, const char *key, ...);
 ```
 
 The former is to be used for all list-based parameters (`NodeList` or
-`doubleList`), and the later for all the others, even the `NodeDict`. In that
+`doubleList`), and the latter for all the others, even the `NodeDict`. In that
 particular case of `NodeDict`, the argument following `key` (identifying the
 parameter) is not the value but the key associated with the node (look for
 `tex0` in the `get_scene()` example above).

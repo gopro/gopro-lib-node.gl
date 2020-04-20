@@ -297,7 +297,7 @@ in vec4 ngl_position;
 in vec2 ngl_uvcoord;
 out vec2 var_uvcoord;
 
-void main(void)
+void main()
 {
     gl_Position = ngl_position;
     var_uvcoord = ngl_uvcoord;
@@ -312,7 +312,7 @@ in vec2 var_uvcoord;
 out vec4 frag_color;
 uniform sampler2D tex0_sampler;
 
-void main(void)
+void main()
 {
     frag_color = textureLod(tex0_sampler, var_uvcoord, 0.5);
 }

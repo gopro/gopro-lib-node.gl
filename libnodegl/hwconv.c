@@ -59,7 +59,7 @@
     "precision mediump float;"                                              "\n" \
     "uniform samplerExternalOES tex0;"                                      "\n" \
     "varying vec2 tex_coord;"                                               "\n" \
-    "void main(void)"                                                       "\n" \
+    "void main()"                                                           "\n" \
     "{"                                                                     "\n" \
     "    vec4 color = texture2D(tex0, tex_coord);"                          "\n" \
     "    gl_FragColor = vec4(color.rgb, 1.0);"                              "\n" \
@@ -72,7 +72,7 @@
     "uniform sampler2D tex1;"                                               "\n" \
     "varying vec2 tex_coord;"                                               "\n" \
     "uniform mat4 color_matrix;"                                            "\n" \
-    "void main(void)"                                                       "\n" \
+    "void main()"                                                           "\n" \
     "{"                                                                     "\n" \
     "    vec3 yuv;"                                                         "\n" \
     "    yuv.x = texture2D(tex0, tex_coord).r;"                             "\n" \
@@ -104,7 +104,7 @@
     "in vec2 tex0_coord;"                                                   "\n" \
     "in vec2 tex1_coord;"                                                   "\n" \
     "out vec4 color;"                                                       "\n" \
-    "void main(void)"                                                       "\n" \
+    "void main()"                                                           "\n" \
     "{"                                                                     "\n" \
     "    vec3 yuv;"                                                         "\n" \
     "    yuv.x = texture(tex0, tex0_coord).r;"                              "\n" \

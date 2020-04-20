@@ -9,7 +9,7 @@ layout (std430, binding = 0) buffer histogram_buffer {
     uint maximum;
 };
 
-void main(void)
+void main()
 {
     uint x = gl_GlobalInvocationID.x;
     uint y = gl_GlobalInvocationID.y;

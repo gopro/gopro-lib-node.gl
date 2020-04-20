@@ -81,7 +81,7 @@ _RENDER_CUBE = '''
 precision mediump float;
 varying vec3 var_normal;
 
-void main(void)
+void main()
 {
     gl_FragColor = vec4((var_normal + 1.0) / 2.0, 1.0);
 }

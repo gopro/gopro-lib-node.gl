@@ -5,7 +5,7 @@ varying vec2 var_tex1_coord;
 uniform sampler2D tex0_sampler;
 uniform sampler2D tex1_sampler;
 uniform float delta;
-void main(void)
+void main()
 {
     vec4 c1 = texture2D(tex0_sampler, var_tex0_coord);
     vec4 c2 = texture2D(tex1_sampler, var_tex1_coord);

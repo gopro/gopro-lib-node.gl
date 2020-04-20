@@ -48,7 +48,7 @@ layout (std430, binding = 1) buffer opositions_buffer {
 uniform float time;
 uniform float duration;
 
-void main(void)
+void main()
 {
     uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * gl_WorkGroupSize.y + gl_LocalInvocationIndex;
     vec3 iposition = ipositions[i];
@@ -73,7 +73,7 @@ layout(std430, binding = 0) buffer positions_buffer {
     vec3 positions[];
 };
 
-void main(void)
+void main()
 {
     vec4 position = ngl_position + vec4(positions[gl_InstanceID], 0.0);
     gl_Position = ngl_projection_matrix * ngl_modelview_matrix * position;
@@ -87,7 +87,7 @@ precision mediump float;
 uniform vec4 color;
 out vec4 frag_color;
 
-void main(void)
+void main()
 {
     frag_color = color;
 }
@@ -350,7 +350,7 @@ layout (std430, binding = 0) buffer output_block {
 
 uniform mat4 transform;
 
-void main(void)
+void main()
 {
     uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * gl_WorkGroupSize.y + gl_LocalInvocationIndex;
     dst.vertices[i] = vec3(transform * vec4(src.vertices[i], 1.0));
@@ -365,7 +365,7 @@ in vec4 ngl_position;
 uniform mat4 ngl_modelview_matrix;
 uniform mat4 ngl_projection_matrix;
 
-void main(void)
+void main()
 {
     gl_Position = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
 }
@@ -378,7 +378,7 @@ precision mediump float;
 uniform vec4 color;
 out vec4 frag_color;
 
-void main(void)
+void main()
 {
     frag_color = color;
 }

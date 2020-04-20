@@ -3,7 +3,7 @@ precision mediump float;
 uniform vec4 color;
 out vec4 frag_color;
 
-void main(void)
+void main()
 {
     frag_color = color;
 }

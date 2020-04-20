@@ -57,7 +57,7 @@ static const char default_fragment_shader[] =
     "uniform samplerExternalOES tex0_external_sampler;"                                 "\n"
     "varying vec2 var_uvcoord;"                                                         "\n"
     "varying vec2 var_tex0_coord;"                                                      "\n"
-    "void main(void)"                                                                   "\n"
+    "void main()"                                                                       "\n"
     "{"                                                                                 "\n"
     "    if (tex0_sampling_mode == 1)"                                                  "\n"
     "        gl_FragColor = texture2D(tex0_sampler, var_tex0_coord);"                   "\n"
@@ -74,7 +74,7 @@ static const char default_fragment_shader[] =
     "uniform sampler2D tex0_sampler;"                                                   "\n"
     "varying vec2 var_uvcoord;"                                                         "\n"
     "varying vec2 var_tex0_coord;"                                                      "\n"
-    "void main(void)"                                                                   "\n"
+    "void main()"                                                                       "\n"
     "{"                                                                                 "\n"
     "    gl_FragColor = texture2D(tex0_sampler, var_tex0_coord);"                       "\n"
     "}";

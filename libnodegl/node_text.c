@@ -210,7 +210,7 @@ static const char * const fragment_data =
     "precision highp float;"                                                "\n"
     "uniform sampler2D tex;"                                                "\n"
     "varying vec2 var_tex_coord;"                                           "\n"
-    "void main(void)"                                                       "\n"
+    "void main()"                                                           "\n"
     "{"                                                                     "\n"
     "    gl_FragColor = texture2D(tex, var_tex_coord);"                     "\n"
     "}";

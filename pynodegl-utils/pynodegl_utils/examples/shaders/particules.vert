@@ -8,7 +8,7 @@ layout(std430, binding = 0) buffer positions_buffer {
     vec3 positions[];
 };
 
-void main(void)
+void main()
 {
     vec4 position = ngl_position + vec4(positions[gl_InstanceID], 0.0);
     gl_Position = ngl_projection_matrix * ngl_modelview_matrix * position;

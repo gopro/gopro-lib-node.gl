@@ -7,7 +7,7 @@ uniform float xsplit;
 in vec2 var_tex0_coord;
 out vec4 oclr;
 
-void main(void)
+void main()
 {
     vec4 iclr = texture(tex0_sampler, var_tex0_coord);
     float splitdist = var_tex0_coord.x - xsplit;

@@ -193,7 +193,7 @@ uniform sampler2D tex0_sampler;
 varying vec2 var_uvcoord;
 varying vec2 var_tex0_coord;
 
-void main(void)
+void main()
 {
     /* Return corresponding color from the tex0 texture */
     gl_FragColor = texture2D(tex0_sampler, var_tex0_coord);

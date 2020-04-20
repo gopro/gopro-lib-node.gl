@@ -38,7 +38,7 @@ float noise1d(float pos)
     return nx;
 }
 
-void main(void)
+void main()
 {
     float sum = 0.0;
     float max_amp = 0.0;

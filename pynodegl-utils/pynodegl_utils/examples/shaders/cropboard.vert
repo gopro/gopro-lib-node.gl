@@ -16,7 +16,7 @@ attribute vec2 uv_offset;
 attribute vec2 translate_a;
 attribute vec2 translate_b;
 
-void main(void)
+void main()
 {
     vec4 position = ngl_position + vec4(mix(translate_a, translate_b, time), 0.0, 0.0);
     gl_Position = ngl_projection_matrix * ngl_modelview_matrix * position;

@@ -93,7 +93,7 @@ precision highp float;
 uniform sampler2D tex0_sampler;
 varying vec2 var_uvcoord;
 varying vec2 var_tex0_coord;
-void main(void)
+void main()
 {
     gl_FragColor = texture2D(tex0_sampler, var_tex0_coord);
 }
@@ -141,7 +141,7 @@ precision highp float;
 uniform sampler2D tex0_sampler;
 varying vec2 var_uvcoord;
 varying vec2 var_tex0_coord;
-void main(void)
+void main()
 {
     vec4 color = vec4(1.0, 0.0, 0.0, 1.0);
     vec4 video = texture2D(tex0_sampler, var_tex0_coord);
@@ -243,7 +243,7 @@ uniform vec4 color;
 uniform float mixval;
 varying vec2 var_uvcoord;
 varying vec2 var_tex0_coord;
-void main(void)
+void main()
 {
     vec4 video = texture2D(tex0_sampler, var_tex0_coord);
     gl_FragColor = mix(video, color, mixval);

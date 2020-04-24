@@ -426,7 +426,7 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
     if (attribute_priv->block) {
         struct block_priv *block = attribute_priv->block->priv_data;
         const struct ngl_node *f = block->fields[attribute_priv->block_field];
-        const struct block_field_info *fi = &block->field_info[attribute_priv->block_field];
+        const struct block_field *fi = &block->field_info[attribute_priv->block_field];
         stride = fi->stride;
         offset = fi->offset;
         buffer = &block->buffer;

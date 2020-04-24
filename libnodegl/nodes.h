@@ -48,6 +48,7 @@
 #endif
 
 #include "animation.h"
+#include "block.h"
 #include "drawutils.h"
 #include "glincludes.h"
 #include "glcontext.h"
@@ -265,20 +266,12 @@ struct variable_priv {
     int last_index;
 };
 
-struct block_field_info {
-    int type;
-    int count;
-    int offset;
-    int size;
-    int stride;
-};
-
 struct block_priv {
     struct ngl_node **fields;
     int nb_fields;
     int layout;
 
-    struct block_field_info *field_info;
+    struct block_field *field_info;
     int nb_field_info;
     uint8_t *data;
     int data_size;

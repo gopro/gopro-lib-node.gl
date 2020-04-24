@@ -269,7 +269,7 @@ static int has_changed_buffer(const struct ngl_node *bnode)
 
 static void update_uniform_field(uint8_t *dst,
                                  const struct ngl_node *node,
-                                 const struct block_field_info *fi)
+                                 const struct block_field *fi)
 {
     const struct variable_priv *uniform = node->priv_data;
     memcpy(dst, uniform->data, uniform->data_size);
@@ -277,7 +277,7 @@ static void update_uniform_field(uint8_t *dst,
 
 static void update_buffer_field(uint8_t *dst,
                                 const struct ngl_node *node,
-                                const struct block_field_info *fi)
+                                const struct block_field *fi)
 {
     const struct buffer_priv *buffer = node->priv_data;
     if (buffer->data_stride == fi->stride)
@@ -291,7 +291,7 @@ enum field_type { IS_SINGLE, IS_ARRAY };
 
 static const struct {
     int (*has_changed)(const struct ngl_node *node);
-    void (*update_data)(uint8_t *dst, const struct ngl_node *node, const struct block_field_info *fi);
+    void (*update_data)(uint8_t *dst, const struct ngl_node *node, const struct block_field *fi);
 } field_funcs[] = {
     [IS_SINGLE] = {has_changed_uniform, update_uniform_field},
     [IS_ARRAY]  = {has_changed_buffer,  update_buffer_field},
@@ -301,7 +301,7 @@ static void update_block_data(struct block_priv *s, int forced)
 {
     for (int i = 0; i < s->nb_fields; i++) {
         const struct ngl_node *field_node = s->fields[i];
-        const struct block_field_info *fi = &s->field_info[i];
+        const struct block_field *fi = &s->field_info[i];
         if (!forced && !field_funcs[fi->count ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
             continue;
         field_funcs[fi->count ? IS_ARRAY : IS_SINGLE].update_data(s->data + fi->offset, field_node, fi);
@@ -350,7 +350,7 @@ static int block_init(struct ngl_node *node)
         if (field_funcs[count ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
             s->usage = NGLI_BUFFER_USAGE_DYNAMIC;
 
-        struct block_field_info *fi = &s->field_info[i];
+        struct block_field *fi = &s->field_info[i];
         fi->type    = type;
         fi->count   = count;
         fi->size    = size;

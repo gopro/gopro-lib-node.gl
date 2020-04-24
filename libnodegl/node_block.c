@@ -235,6 +235,18 @@ static int get_node_align(const struct ngl_node *node, int layout)
     return 0;
 }
 
+static int get_node_data_count(const struct ngl_node *node)
+{
+    if (node->class->category == NGLI_NODE_CATEGORY_UNIFORM) {
+        return 0;
+    } else if (node->class->category == NGLI_NODE_CATEGORY_BUFFER) {
+        const struct buffer_priv *buffer = node->priv_data;
+        return buffer->count;
+    } else {
+        ngli_assert(0);
+    }
+}
+
 static int has_changed_uniform(const struct ngl_node *unode)
 {
     const struct variable_priv *uniform = unode->priv_data;
@@ -282,9 +294,9 @@ static void update_block_data(struct block_priv *s, int forced)
     for (int i = 0; i < s->nb_fields; i++) {
         const struct ngl_node *field_node = s->fields[i];
         const struct block_field_info *fi = &s->field_info[i];
-        if (!forced && !field_funcs[fi->is_array ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
+        if (!forced && !field_funcs[fi->count ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
             continue;
-        field_funcs[fi->is_array ? IS_ARRAY : IS_SINGLE].update_data(s->data + fi->offset, field_node, fi);
+        field_funcs[fi->count ? IS_ARRAY : IS_SINGLE].update_data(s->data + fi->offset, field_node, fi);
         s->has_changed = 1; // TODO: only re-upload the changing data segments
     }
 }
@@ -317,7 +329,7 @@ static int block_init(struct ngl_node *node)
     s->data_size = 0;
     for (int i = 0; i < s->nb_fields; i++) {
         const struct ngl_node *field_node = s->fields[i];
-        const int is_array = field_node->class->category == NGLI_NODE_CATEGORY_BUFFER;
+        const int count = get_node_data_count(field_node);
         const int size   = get_node_size(field_node, s->layout);
         const int align  = get_node_align(field_node, s->layout);
 
@@ -326,11 +338,11 @@ static int block_init(struct ngl_node *node)
         const int remain = s->data_size % align;
         const int offset = s->data_size + (remain ? align - remain : 0);
 
-        if (field_funcs[is_array ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
+        if (field_funcs[count ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
             s->usage = NGLI_BUFFER_USAGE_DYNAMIC;
 
         struct block_field_info *fi = &s->field_info[i];
-        fi->is_array = is_array;
+        fi->count   = count;
         fi->size    = size;
         fi->stride  = get_buffer_stride(field_node, s->layout);
         fi->offset  = offset;

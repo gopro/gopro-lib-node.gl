@@ -266,7 +266,7 @@ struct variable_priv {
 };
 
 struct block_field_info {
-    int is_array;
+    int count;
     int offset;
     int size;
     int stride;

@@ -62,6 +62,7 @@ LIB_PCNAME   = $(LIB_BASENAME).pc
 LIB_OBJS = animation.o              \
            api.o                    \
            backend_gl.o             \
+           block.o                  \
            bstr.o                   \
            buffer.o                 \
            colorconv.o              \

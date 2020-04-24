@@ -137,99 +137,6 @@ int ngli_node_block_upload(struct ngl_node *node)
     return 0;
 }
 
-static int get_buffer_stride(const struct ngl_node *node, int layout)
-{
-    switch (node->class->id) {
-        case NGL_NODE_STREAMEDBUFFERFLOAT:
-        case NGL_NODE_ANIMATEDBUFFERFLOAT:
-        case NGL_NODE_BUFFERFLOAT:          return sizeof(float) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 1);
-        case NGL_NODE_STREAMEDBUFFERVEC2:
-        case NGL_NODE_ANIMATEDBUFFERVEC2:
-        case NGL_NODE_BUFFERVEC2:           return sizeof(float) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 2);
-        case NGL_NODE_STREAMEDBUFFERVEC3:
-        case NGL_NODE_ANIMATEDBUFFERVEC3:
-        case NGL_NODE_BUFFERVEC3:
-        case NGL_NODE_STREAMEDBUFFERVEC4:
-        case NGL_NODE_ANIMATEDBUFFERVEC4:
-        case NGL_NODE_BUFFERVEC4:           return sizeof(float) * 4;
-        case NGL_NODE_STREAMEDBUFFERINT:
-        case NGL_NODE_BUFFERINT:
-        case NGL_NODE_BUFFERUINT:           return sizeof(int) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 1);
-        case NGL_NODE_BUFFERIVEC2:
-        case NGL_NODE_BUFFERUIVEC2:         return sizeof(int) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 2);
-        case NGL_NODE_BUFFERIVEC3:
-        case NGL_NODE_BUFFERUIVEC3:
-        case NGL_NODE_BUFFERIVEC4:
-        case NGL_NODE_BUFFERUIVEC4:         return sizeof(int) * 4;
-        case NGL_NODE_BUFFERMAT4:           return sizeof(float) * 4 * 4;
-    }
-    return 0;
-}
-
-static int get_buffer_size(const struct ngl_node *bnode, int layout)
-{
-    const struct buffer_priv *b = bnode->priv_data;
-    return b->count * get_buffer_stride(bnode, layout);
-}
-
-static int get_quat_size(const struct ngl_node *quat, int layout)
-{
-    struct variable_priv *quat_priv = quat->priv_data;
-    return sizeof(float) * 4 * (quat_priv->as_mat4 ? 4 : 1);
-}
-
-static int get_node_size(const struct ngl_node *node, int layout)
-{
-    switch (node->class->id) {
-        case NGL_NODE_ANIMATEDFLOAT:
-        case NGL_NODE_STREAMEDFLOAT:
-        case NGL_NODE_UNIFORMFLOAT:         return sizeof(float) * 1;
-        case NGL_NODE_ANIMATEDVEC2:
-        case NGL_NODE_STREAMEDVEC2:
-        case NGL_NODE_UNIFORMVEC2:          return sizeof(float) * 2;
-        case NGL_NODE_ANIMATEDVEC3:
-        case NGL_NODE_STREAMEDVEC3:
-        case NGL_NODE_UNIFORMVEC3:          return sizeof(float) * 3;
-        case NGL_NODE_ANIMATEDVEC4:
-        case NGL_NODE_STREAMEDVEC4:
-        case NGL_NODE_UNIFORMVEC4:          return sizeof(float) * 4;
-        case NGL_NODE_STREAMEDMAT4:
-        case NGL_NODE_UNIFORMMAT4:          return sizeof(float) * 4 * 4;
-        case NGL_NODE_STREAMEDINT:
-        case NGL_NODE_UNIFORMINT:           return sizeof(int);
-        case NGL_NODE_ANIMATEDQUAT:
-        case NGL_NODE_UNIFORMQUAT:          return get_quat_size(node, layout);
-        default:                            return get_buffer_size(node, layout);
-    }
-}
-
-static int get_node_align(const struct ngl_node *node, int layout)
-{
-    switch (node->class->id) {
-        case NGL_NODE_ANIMATEDFLOAT:
-        case NGL_NODE_STREAMEDFLOAT:
-        case NGL_NODE_UNIFORMFLOAT:         return sizeof(float) * 1;
-        case NGL_NODE_ANIMATEDVEC2:
-        case NGL_NODE_STREAMEDVEC2:
-        case NGL_NODE_UNIFORMVEC2:          return sizeof(float) * 2;
-        case NGL_NODE_ANIMATEDVEC3:
-        case NGL_NODE_STREAMEDVEC3:
-        case NGL_NODE_UNIFORMVEC3:
-        case NGL_NODE_ANIMATEDVEC4:
-        case NGL_NODE_STREAMEDVEC4:
-        case NGL_NODE_UNIFORMVEC4:
-        case NGL_NODE_STREAMEDMAT4:
-        case NGL_NODE_UNIFORMMAT4:
-        case NGL_NODE_ANIMATEDQUAT:
-        case NGL_NODE_UNIFORMQUAT:
-        case NGL_NODE_BUFFERMAT4:           return sizeof(float) * 4;
-        case NGL_NODE_STREAMEDINT:
-        case NGL_NODE_UNIFORMINT:           return sizeof(int);
-        default:                            return get_buffer_stride(node, layout);
-    }
-    return 0;
-}
-
 static int get_node_data_type(const struct ngl_node *node)
 {
     if (node->class->category == NGLI_NODE_CATEGORY_UNIFORM) {
@@ -299,9 +206,10 @@ static const struct {
 
 static void update_block_data(struct block_priv *s, int forced)
 {
+    struct block_field *field_info = ngli_darray_data(&s->block.fields);
     for (int i = 0; i < s->nb_fields; i++) {
         const struct ngl_node *field_node = s->fields[i];
-        const struct block_field *fi = &s->field_info[i];
+        const struct block_field *fi = &field_info[i];
         if (!forced && !field_funcs[fi->count ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
             continue;
         field_funcs[fi->count ? IS_ARRAY : IS_SINGLE].update_data(s->data + fi->offset, field_node, fi);
@@ -328,40 +236,29 @@ static int block_init(struct ngl_node *node)
         return NGL_ERROR_UNSUPPORTED;
     }
 
-    s->field_info = ngli_calloc(s->nb_fields, sizeof(*s->field_info));
-    if (!s->field_info)
-        return NGL_ERROR_MEMORY;
+    ngli_block_init(&s->block, s->layout);
 
     s->usage = NGLI_BUFFER_USAGE_STATIC;
 
-    s->data_size = 0;
     for (int i = 0; i < s->nb_fields; i++) {
         const struct ngl_node *field_node = s->fields[i];
         const int type  = get_node_data_type(field_node);
         const int count = get_node_data_count(field_node);
-        const int size   = get_node_size(field_node, s->layout);
-        const int align  = get_node_align(field_node, s->layout);
 
-        ngli_assert(align);
-
-        const int remain = s->data_size % align;
-        const int offset = s->data_size + (remain ? align - remain : 0);
+        int ret = ngli_block_add_field(&s->block, field_node->label, type, count);
+        if (ret < 0)
+            return ret;
 
         if (field_funcs[count ? IS_ARRAY : IS_SINGLE].has_changed(field_node))
             s->usage = NGLI_BUFFER_USAGE_DYNAMIC;
 
-        struct block_field *fi = &s->field_info[i];
-        fi->type    = type;
-        fi->count   = count;
-        fi->size    = size;
-        fi->stride  = get_buffer_stride(field_node, s->layout);
-        fi->offset  = offset;
-
-        s->data_size = offset + fi->size;
+        const struct block_field *fields = ngli_darray_data(&s->block.fields);
+        const struct block_field *fi = &fields[i];
         LOG(DEBUG, "%s.field[%d]: %s offset=%d size=%d stride=%d",
             node->label, i, field_node->label, fi->offset, fi->size, fi->stride);
     }
 
+    s->data_size = s->block.size;
     LOG(DEBUG, "total %s size: %d", node->label, s->data_size);
     s->data = ngli_calloc(1, s->data_size);
     if (!s->data)
@@ -396,7 +293,7 @@ static void block_uninit(struct ngl_node *node)
 {
     struct block_priv *s = node->priv_data;
 
-    ngli_free(s->field_info);
+    ngli_block_reset(&s->block);
     ngli_free(s->data);
 }
 

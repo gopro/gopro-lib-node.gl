@@ -271,8 +271,8 @@ struct block_priv {
     int nb_fields;
     int layout;
 
-    struct block_field *field_info;
-    int nb_field_info;
+    struct block block;
+
     uint8_t *data;
     int data_size;
     int usage;

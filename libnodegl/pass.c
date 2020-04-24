@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#include "block.h"
 #include "buffer.h"
 #include "default_shaders.h"
 #include "glincludes.h"
@@ -426,7 +427,9 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
     if (attribute_priv->block) {
         struct block_priv *block_priv = attribute_priv->block->priv_data;
         const struct ngl_node *f = block_priv->fields[attribute_priv->block_field];
-        const struct block_field *fi = &block_priv->field_info[attribute_priv->block_field];
+        const struct block *block = &block_priv->block;
+        const struct block_field *fields = ngli_darray_data(&block->fields);
+        const struct block_field *fi = &fields[attribute_priv->block_field];
         stride = fi->stride;
         offset = fi->offset;
         buffer = &block_priv->buffer;

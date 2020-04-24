@@ -235,6 +235,19 @@ static int get_node_align(const struct ngl_node *node, int layout)
     return 0;
 }
 
+static int get_node_data_type(const struct ngl_node *node)
+{
+    if (node->class->category == NGLI_NODE_CATEGORY_UNIFORM) {
+        const struct variable_priv *variable = node->priv_data;
+        return variable->data_type;
+    } else if (node->class->category == NGLI_NODE_CATEGORY_BUFFER) {
+        const struct buffer_priv *buffer = node->priv_data;
+        return buffer->data_type;
+    } else {
+        ngli_assert(0);
+    }
+}
+
 static int get_node_data_count(const struct ngl_node *node)
 {
     if (node->class->category == NGLI_NODE_CATEGORY_UNIFORM) {
@@ -329,6 +342,7 @@ static int block_init(struct ngl_node *node)
     s->data_size = 0;
     for (int i = 0; i < s->nb_fields; i++) {
         const struct ngl_node *field_node = s->fields[i];
+        const int type  = get_node_data_type(field_node);
         const int count = get_node_data_count(field_node);
         const int size   = get_node_size(field_node, s->layout);
         const int align  = get_node_align(field_node, s->layout);
@@ -342,6 +356,7 @@ static int block_init(struct ngl_node *node)
             s->usage = NGLI_BUFFER_USAGE_DYNAMIC;
 
         struct block_field_info *fi = &s->field_info[i];
+        fi->type    = type;
         fi->count   = count;
         fi->size    = size;
         fi->stride  = get_buffer_stride(field_node, s->layout);

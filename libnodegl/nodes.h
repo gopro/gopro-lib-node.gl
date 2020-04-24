@@ -266,6 +266,7 @@ struct variable_priv {
 };
 
 struct block_field_info {
+    int type;
     int count;
     int offset;
     int size;

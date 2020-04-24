@@ -22,23 +22,18 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "block.h"
 #include "buffer.h"
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"
 #include "nodes.h"
 
-enum {
-    LAYOUT_STD140,
-    LAYOUT_STD430,
-    NB_LAYOUTS
-};
-
 static const struct param_choices layout_choices = {
     .name = "memory_layout",
     .consts = {
-        {"std140", LAYOUT_STD140, .desc=NGLI_DOCSTRING("standard uniform block memory layout 140")},
-        {"std430", LAYOUT_STD430, .desc=NGLI_DOCSTRING("standard uniform block memory layout 430")},
+        {"std140", NGLI_BLOCK_LAYOUT_STD140, .desc=NGLI_DOCSTRING("standard uniform block memory layout 140")},
+        {"std430", NGLI_BLOCK_LAYOUT_STD430, .desc=NGLI_DOCSTRING("standard uniform block memory layout 430")},
         {NULL}
     }
 };
@@ -92,7 +87,7 @@ static const struct node_param block_params[] = {
     {"fields", PARAM_TYPE_NODELIST, OFFSET(fields),
                .node_types=FIELD_TYPES_LIST,
                .desc=NGLI_DOCSTRING("block fields defined in the graphic program")},
-    {"layout", PARAM_TYPE_SELECT, OFFSET(layout), {.i64=LAYOUT_STD140},
+    {"layout", PARAM_TYPE_SELECT, OFFSET(layout), {.i64=NGLI_BLOCK_LAYOUT_STD140},
                .choices=&layout_choices,
                .desc=NGLI_DOCSTRING("memory layout set in the graphic program")},
     {NULL}
@@ -147,10 +142,10 @@ static int get_buffer_stride(const struct ngl_node *node, int layout)
     switch (node->class->id) {
         case NGL_NODE_STREAMEDBUFFERFLOAT:
         case NGL_NODE_ANIMATEDBUFFERFLOAT:
-        case NGL_NODE_BUFFERFLOAT:          return sizeof(float) * (layout == LAYOUT_STD140 ? 4 : 1);
+        case NGL_NODE_BUFFERFLOAT:          return sizeof(float) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 1);
         case NGL_NODE_STREAMEDBUFFERVEC2:
         case NGL_NODE_ANIMATEDBUFFERVEC2:
-        case NGL_NODE_BUFFERVEC2:           return sizeof(float) * (layout == LAYOUT_STD140 ? 4 : 2);
+        case NGL_NODE_BUFFERVEC2:           return sizeof(float) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 2);
         case NGL_NODE_STREAMEDBUFFERVEC3:
         case NGL_NODE_ANIMATEDBUFFERVEC3:
         case NGL_NODE_BUFFERVEC3:
@@ -159,9 +154,9 @@ static int get_buffer_stride(const struct ngl_node *node, int layout)
         case NGL_NODE_BUFFERVEC4:           return sizeof(float) * 4;
         case NGL_NODE_STREAMEDBUFFERINT:
         case NGL_NODE_BUFFERINT:
-        case NGL_NODE_BUFFERUINT:           return sizeof(int) * (layout == LAYOUT_STD140 ? 4 : 1);
+        case NGL_NODE_BUFFERUINT:           return sizeof(int) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 1);
         case NGL_NODE_BUFFERIVEC2:
-        case NGL_NODE_BUFFERUIVEC2:         return sizeof(int) * (layout == LAYOUT_STD140 ? 4 : 2);
+        case NGL_NODE_BUFFERUIVEC2:         return sizeof(int) * (layout == NGLI_BLOCK_LAYOUT_STD140 ? 4 : 2);
         case NGL_NODE_BUFFERIVEC3:
         case NGL_NODE_BUFFERUIVEC3:
         case NGL_NODE_BUFFERIVEC4:
@@ -323,12 +318,12 @@ static int block_init(struct ngl_node *node)
     struct glcontext *gl = ctx->glcontext;
     struct block_priv *s = node->priv_data;
 
-    if (s->layout == LAYOUT_STD140 && !(gl->features & FEATURES_STD140)) {
+    if (s->layout == NGLI_BLOCK_LAYOUT_STD140 && !(gl->features & FEATURES_STD140)) {
         LOG(ERROR, "std140 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }
 
-    if (s->layout == LAYOUT_STD430 && !(gl->features & FEATURES_STD430)) {
+    if (s->layout == NGLI_BLOCK_LAYOUT_STD430 && !(gl->features & FEATURES_STD430)) {
         LOG(ERROR, "std430 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }

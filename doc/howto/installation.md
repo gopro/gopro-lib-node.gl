@@ -13,7 +13,6 @@ for building and running the complete **node.gl** stack:
 - **pip** (Python 3 version)
 - **Graphviz**
 - **SDL2**
-- **Python virtualenv**
 
 ## Quick user installation
 
@@ -23,7 +22,7 @@ dependencies which you should install and remove in sane ways).
 
 For a fast ready-to-go user experience, you can use the default rule of the
 root `Makefile`.  Calling `make` in the root directory of node.gl will create a
-complete environment (based on Python virtualenv):
+complete environment (based on Python `venv` module):
 
 ```shell
 % make

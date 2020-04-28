@@ -29,8 +29,6 @@ SXPLAYER_VERSION ?= 9.5.1
 # recompilations between `make` calls.
 INSTALL = install -C
 
-VIRTUALENV ?= virtualenv
-
 ACTIVATE = $(PREFIX)/bin/activate
 
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX)/lib
@@ -93,7 +91,7 @@ sxplayer-$(SXPLAYER_VERSION).tar.gz:
 	$(CURL) -L https://github.com/Stupeflix/sxplayer/archive/v$(SXPLAYER_VERSION).tar.gz -o $@
 
 $(PREFIX):
-	$(VIRTUALENV) -p $(PYTHON) $(PREFIX)
+	$(PYTHON) -m venv $(PREFIX)
 
 tests: ngl-tools-install pynodegl-utils-install nodegl-tests
 	(. $(ACTIVATE) && $(MAKE) -C tests)

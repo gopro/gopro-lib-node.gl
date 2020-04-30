@@ -38,49 +38,47 @@ static const struct param_choices layout_choices = {
     }
 };
 
-#define FIELD_TYPES_BUFFER_LIST           NGL_NODE_ANIMATEDBUFFERFLOAT, \
-                                          NGL_NODE_ANIMATEDBUFFERVEC2,  \
-                                          NGL_NODE_ANIMATEDBUFFERVEC3,  \
-                                          NGL_NODE_ANIMATEDBUFFERVEC4,  \
-                                          NGL_NODE_STREAMEDBUFFERINT,   \
-                                          NGL_NODE_STREAMEDBUFFERFLOAT, \
-                                          NGL_NODE_STREAMEDBUFFERVEC2,  \
-                                          NGL_NODE_STREAMEDBUFFERVEC3,  \
-                                          NGL_NODE_STREAMEDBUFFERVEC4,  \
-                                          NGL_NODE_BUFFERFLOAT,         \
-                                          NGL_NODE_BUFFERVEC2,          \
-                                          NGL_NODE_BUFFERVEC3,          \
-                                          NGL_NODE_BUFFERVEC4,          \
-                                          NGL_NODE_BUFFERINT,           \
-                                          NGL_NODE_BUFFERIVEC2,         \
-                                          NGL_NODE_BUFFERIVEC3,         \
-                                          NGL_NODE_BUFFERIVEC4,         \
-                                          NGL_NODE_BUFFERUINT,          \
-                                          NGL_NODE_BUFFERUIVEC2,        \
-                                          NGL_NODE_BUFFERUIVEC3,        \
-                                          NGL_NODE_BUFFERUIVEC4,        \
-                                          NGL_NODE_BUFFERMAT4
-
-#define FIELD_TYPES_UNIFORMS_LIST         NGL_NODE_UNIFORMFLOAT,        \
-                                          NGL_NODE_UNIFORMVEC2,         \
-                                          NGL_NODE_UNIFORMVEC3,         \
-                                          NGL_NODE_UNIFORMVEC4,         \
-                                          NGL_NODE_UNIFORMINT,          \
-                                          NGL_NODE_UNIFORMMAT4,         \
-                                          NGL_NODE_UNIFORMQUAT,         \
-                                          NGL_NODE_ANIMATEDFLOAT,       \
-                                          NGL_NODE_ANIMATEDVEC2,        \
-                                          NGL_NODE_ANIMATEDVEC3,        \
-                                          NGL_NODE_ANIMATEDVEC4,        \
-                                          NGL_NODE_ANIMATEDQUAT,        \
-                                          NGL_NODE_STREAMEDINT,         \
-                                          NGL_NODE_STREAMEDFLOAT,       \
-                                          NGL_NODE_STREAMEDVEC2,        \
-                                          NGL_NODE_STREAMEDVEC3,        \
-                                          NGL_NODE_STREAMEDVEC4,        \
-                                          NGL_NODE_STREAMEDMAT4
-
-#define FIELD_TYPES_LIST (const int[]){FIELD_TYPES_BUFFER_LIST, FIELD_TYPES_UNIFORMS_LIST, -1}
+#define FIELD_TYPES_LIST (const int[]){NGL_NODE_ANIMATEDBUFFERFLOAT,    \
+                                       NGL_NODE_ANIMATEDBUFFERVEC2,     \
+                                       NGL_NODE_ANIMATEDBUFFERVEC3,     \
+                                       NGL_NODE_ANIMATEDBUFFERVEC4,     \
+                                       NGL_NODE_STREAMEDBUFFERINT,      \
+                                       NGL_NODE_STREAMEDBUFFERFLOAT,    \
+                                       NGL_NODE_STREAMEDBUFFERVEC2,     \
+                                       NGL_NODE_STREAMEDBUFFERVEC3,     \
+                                       NGL_NODE_STREAMEDBUFFERVEC4,     \
+                                       NGL_NODE_BUFFERFLOAT,            \
+                                       NGL_NODE_BUFFERVEC2,             \
+                                       NGL_NODE_BUFFERVEC3,             \
+                                       NGL_NODE_BUFFERVEC4,             \
+                                       NGL_NODE_BUFFERINT,              \
+                                       NGL_NODE_BUFFERIVEC2,            \
+                                       NGL_NODE_BUFFERIVEC3,            \
+                                       NGL_NODE_BUFFERIVEC4,            \
+                                       NGL_NODE_BUFFERUINT,             \
+                                       NGL_NODE_BUFFERUIVEC2,           \
+                                       NGL_NODE_BUFFERUIVEC3,           \
+                                       NGL_NODE_BUFFERUIVEC4,           \
+                                       NGL_NODE_BUFFERMAT4,             \
+                                       NGL_NODE_UNIFORMFLOAT,           \
+                                       NGL_NODE_UNIFORMVEC2,            \
+                                       NGL_NODE_UNIFORMVEC3,            \
+                                       NGL_NODE_UNIFORMVEC4,            \
+                                       NGL_NODE_UNIFORMINT,             \
+                                       NGL_NODE_UNIFORMMAT4,            \
+                                       NGL_NODE_UNIFORMQUAT,            \
+                                       NGL_NODE_ANIMATEDFLOAT,          \
+                                       NGL_NODE_ANIMATEDVEC2,           \
+                                       NGL_NODE_ANIMATEDVEC3,           \
+                                       NGL_NODE_ANIMATEDVEC4,           \
+                                       NGL_NODE_ANIMATEDQUAT,           \
+                                       NGL_NODE_STREAMEDINT,            \
+                                       NGL_NODE_STREAMEDFLOAT,          \
+                                       NGL_NODE_STREAMEDVEC2,           \
+                                       NGL_NODE_STREAMEDVEC3,           \
+                                       NGL_NODE_STREAMEDVEC4,           \
+                                       NGL_NODE_STREAMEDMAT4,           \
+                                       -1}
 
 #define OFFSET(x) offsetof(struct block_priv, x)
 static const struct node_param block_params[] = {

@@ -180,7 +180,7 @@ static int buffer_init_from_count(struct ngl_node *node)
 static int buffer_init_from_block(struct ngl_node *node)
 {
     struct buffer_priv *s = node->priv_data;
-    struct block_priv *block = s->block->priv_data;
+    const struct block_priv *block = s->block->priv_data;
     if (s->block_field < 0 || s->block_field >= block->nb_fields) {
         LOG(ERROR, "invalid field id %d; %s has %d fields",
             s->block_field, s->block->label, block->nb_fields);

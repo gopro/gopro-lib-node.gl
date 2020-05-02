@@ -154,7 +154,7 @@ def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mip
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     render = ngl.Render(quad, program)
-    render.update_textures(tex0=texture)
+    render.update_frag_resources(tex0=texture)
     return ngl.Group(children=(rtt, render))
 
 

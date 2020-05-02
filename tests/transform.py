@@ -35,7 +35,7 @@ def _transform_shape(cfg):
     geometry = ngl.Quad(corner=(-w/2., -h/2., 0), width=(w, 0, 0), height=(0, h, 0))
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, prog)
-    render.update_uniforms(color=ngl.UniformVec4(value=COLORS['rose']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['rose']))
     return render
 
 
@@ -71,7 +71,7 @@ def transform_animated_camera(cfg):
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     for color, vector in elems:
         node = ngl.Render(quad, prog)
-        node.update_uniforms(color=ngl.UniformVec4(value=COLORS[color]))
+        node.update_frag_resources(color=ngl.UniformVec4(value=COLORS[color]))
         if vector:
             node = ngl.Translate(node, vector=vector)
         g.add_children(node)

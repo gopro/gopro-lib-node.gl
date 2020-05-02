@@ -143,14 +143,14 @@ def compute_particules(cfg):
     group_size = nb_particules / local_size
     program = ngl.ComputeProgram(compute_shader)
     compute = ngl.Compute(nb_particules, 1, 1, program)
-    compute.update_uniforms(time=time, duration=duration)
-    compute.update_blocks(ipositions_buffer=ipositions, opositions_buffer=opositions)
+    compute.update_resources(time=time, duration=duration)
+    compute.update_resources(ipositions_buffer=ipositions, opositions_buffer=opositions)
 
     circle = ngl.Circle(radius=0.05)
     program = ngl.Program(vertex=vertex_shader, fragment=fragment_shader)
     render = ngl.Render(circle, program, nb_instances=nb_particules)
-    render.update_uniforms(color=ngl.UniformVec4(value=COLORS['sgreen']))
-    render.update_blocks(positions_buffer=opositions)
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
+    render.update_vert_resources(positions_buffer=opositions)
 
     group = ngl.Group()
     group.add_children(compute, render)
@@ -304,7 +304,7 @@ def compute_histogram(cfg, show_dbg_points=False):
         clear_histogram_program,
         label='clear_histogram',
     )
-    clear_histogram.update_blocks(histogram=histogram_block)
+    clear_histogram.update_resources(histogram=histogram_block)
 
     group_size = size // local_size
     exec_histogram_shader = _COMPUTE_HISTOGRAM_EXEC % shader_params
@@ -316,8 +316,7 @@ def compute_histogram(cfg, show_dbg_points=False):
         exec_histogram_program,
         label='compute_histogram'
     )
-    exec_histogram.update_blocks(histogram=histogram_block)
-    exec_histogram.update_textures(source=texture)
+    exec_histogram.update_resources(histogram=histogram_block, source=texture)
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(
@@ -325,7 +324,7 @@ def compute_histogram(cfg, show_dbg_points=False):
         fragment=shader_header + _RENDER_HISTOGRAM_FRAG % shader_params,
     )
     render = ngl.Render(quad, program, label='render_histogram')
-    render.update_blocks(histogram=histogram_block)
+    render.update_frag_resources(hist=histogram_block)
 
     group = ngl.Group(children=(clear_histogram, exec_histogram, render,))
     if show_dbg_points:
@@ -420,13 +419,13 @@ def compute_animation(cfg):
 
     program = ngl.ComputeProgram(compute_shader)
     compute = ngl.Compute(nb_vertices / (local_size ** 2), 1, 1, program)
-    compute.update_uniforms(transform=transform)
-    compute.update_blocks(input_block=input_block, output_block=output_block)
+    compute.update_resources(transform=transform)
+    compute.update_resources(input_block=input_block, output_block=output_block)
 
     quad_buffer = ngl.BufferVec3(block=output_block, block_field=0)
     geometry = ngl.Geometry(quad_buffer, topology='triangle_fan')
     program = ngl.Program(vertex=vertex_shader, fragment=fragment_shader)
     render = ngl.Render(geometry, program)
-    render.update_uniforms(color=ngl.UniformVec4(value=COLORS['sgreen']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
 
     return ngl.Group(children=(compute, render))

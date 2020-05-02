@@ -312,7 +312,7 @@ def _get_data_streamed_buffer_vec4_scene(cfg, scale, show_dbg_points):
         fragment=shader_header + _RENDER_STREAMEDBUFFER_FRAG % shader_params,
     )
     render = ngl.Render(quad, program)
-    render.update_blocks(streamed=streamed_block)
+    render.update_frag_resources(streamed=streamed_block)
 
     group = ngl.Group(children=(render,))
     if show_dbg_points:

@@ -83,7 +83,7 @@ def _get_blending_base_objects(cfg):
     colored_circles = ngl.Group(label='colored circles')
     for position, color in zip(positions, _CIRCLES_COLORS):
         render = ngl.Render(circle, prog)
-        render.update_uniforms(color=ngl.UniformVec4(value=color))
+        render.update_frag_resources(color=ngl.UniformVec4(value=color))
         render = ngl.Translate(render, position)
         colored_circles.add_children(render)
     return colored_circles, circle, prog, positions
@@ -92,7 +92,7 @@ def _get_blending_base_objects(cfg):
 def _get_background_circles(circle, prog, positions, bcolor):
     blend_bg = ngl.Group()
     render = ngl.Render(circle, prog)
-    render.update_uniforms(color=ngl.UniformVec4(value=bcolor))
+    render.update_frag_resources(color=ngl.UniformVec4(value=bcolor))
     for position in positions:
         trender = ngl.Translate(render, position)
         blend_bg.add_children(trender)

@@ -32,17 +32,17 @@ struct ngl_ctx;
 struct pass_params {
     const char *label;
     struct ngl_node *program;
-    struct hmap *textures;
-    struct hmap *uniforms;
-    struct hmap *blocks;
 
     /* graphics */
+    struct hmap *vert_resources;
+    struct hmap *frag_resources;
     struct ngl_node *geometry;
     int nb_instances;
     struct hmap *attributes;
     struct hmap *instance_attributes;
 
     /* compute */
+    struct hmap *compute_resources;
     int nb_group_x;
     int nb_group_y;
     int nb_group_z;

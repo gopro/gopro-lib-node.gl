@@ -203,9 +203,7 @@
         - [nb_group_z, int]
         - [program, Node]
     optional:
-        - [textures, NodeDict]
-        - [uniforms, NodeDict]
-        - [blocks, NodeDict]
+        - [resources, NodeDict]
 
 - ComputeProgram:
     constructors:
@@ -296,9 +294,8 @@
         - [geometry, Node]
     optional:
         - [program, Node]
-        - [textures, NodeDict]
-        - [uniforms, NodeDict]
-        - [blocks, NodeDict]
+        - [vert_resources, NodeDict]
+        - [frag_resources, NodeDict]
         - [attributes, NodeDict]
         - [instance_attributes, NodeDict]
         - [nb_instances, int]

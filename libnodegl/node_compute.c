@@ -36,20 +36,17 @@ struct compute_priv {
     int nb_group_y;
     int nb_group_z;
     struct ngl_node *program;
-    struct hmap *textures;
-    struct hmap *uniforms;
-    struct hmap *blocks;
+    struct hmap *resources;
 
     struct pass pass;
 };
 
-#define TEXTURES_TYPES_LIST (const int[]){NGL_NODE_TEXTURE2D,       \
-                                          -1}
-
 #define PROGRAMS_TYPES_LIST (const int[]){NGL_NODE_COMPUTEPROGRAM,  \
                                           -1}
 
-#define UNIFORMS_TYPES_LIST (const int[]){NGL_NODE_UNIFORMFLOAT,    \
+#define DATA_TYPES_LIST     (const int[]){NGL_NODE_TEXTURE2D,       \
+                                          NGL_NODE_BLOCK,           \
+                                          NGL_NODE_UNIFORMFLOAT,    \
                                           NGL_NODE_UNIFORMVEC2,     \
                                           NGL_NODE_UNIFORMVEC3,     \
                                           NGL_NODE_UNIFORMVEC4,     \
@@ -93,12 +90,9 @@ static const struct node_param compute_params[] = {
                    .desc=NGLI_DOCSTRING("number of work groups to be executed in the z dimension")},
     {"program",    PARAM_TYPE_NODE,     OFFSET(program),    .flags=PARAM_FLAG_CONSTRUCTOR, .node_types=PROGRAMS_TYPES_LIST,
                    .desc=NGLI_DOCSTRING("compute program to be executed")},
-    {"textures",   PARAM_TYPE_NODEDICT, OFFSET(textures),   .node_types=TEXTURES_TYPES_LIST,
-                   .desc=NGLI_DOCSTRING("input and output textures made accessible to the compute `program`")},
-    {"uniforms",   PARAM_TYPE_NODEDICT, OFFSET(uniforms),   .node_types=UNIFORMS_TYPES_LIST,
-                   .desc=NGLI_DOCSTRING("uniforms made accessible to the compute `program`")},
-    {"blocks",     PARAM_TYPE_NODEDICT, OFFSET(blocks),     .node_types=(const int[]){NGL_NODE_BLOCK, -1},
-                   .desc=NGLI_DOCSTRING("input and output blocks made accessible to the compute `program`")},
+    {"resources",  PARAM_TYPE_NODEDICT, OFFSET(resources),
+                   .node_types=DATA_TYPES_LIST,
+                   .desc=NGLI_DOCSTRING("resources made accessible to the compute `program`")},
     {NULL}
 };
 
@@ -109,9 +103,7 @@ static int compute_init(struct ngl_node *node)
     struct pass_params params = {
         .label = node->label,
         .program = s->program,
-        .textures = s->textures,
-        .uniforms = s->uniforms,
-        .blocks = s->blocks,
+        .compute_resources = s->resources,
         .nb_group_x = s->nb_group_x,
         .nb_group_y = s->nb_group_y,
         .nb_group_z = s->nb_group_z,

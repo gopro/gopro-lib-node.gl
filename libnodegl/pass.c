@@ -91,10 +91,8 @@ static int register_uniform(struct pass *s, const char *name, struct ngl_node *u
     return 0;
 }
 
-static int register_uniforms(struct pass *s)
+static int register_builtin_uniforms(struct pass *s)
 {
-    struct pass_params *params = &s->params;
-
     struct pipeline_uniform pipeline_uniforms[] = {
         {.name = "ngl_modelview_matrix",  .type = NGLI_TYPE_MAT4, .count = 1, .data = NULL},
         {.name = "ngl_projection_matrix", .type = NGLI_TYPE_MAT4, .count = 1, .data = NULL},
@@ -108,17 +106,6 @@ static int register_uniforms(struct pass *s)
             continue;
         if (!ngli_darray_push(&s->pipeline_uniforms, pipeline_uniform))
             return NGL_ERROR_MEMORY;
-    }
-
-    if (!params->uniforms)
-        return 0;
-
-    const struct hmap_entry *entry = NULL;
-    while ((entry = ngli_hmap_next(params->uniforms, entry))) {
-        struct ngl_node *uniform = entry->data;
-        int ret = register_uniform(s, entry->key, uniform);
-        if (ret < 0)
-            return ret;
     }
 
     return 0;
@@ -285,24 +272,6 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     return 0;
 }
 
-static int register_textures(struct pass *s)
-{
-    struct pass_params *params = &s->params;
-
-    if (!params->textures)
-        return 0;
-
-    const struct hmap_entry *entry = NULL;
-    while ((entry = ngli_hmap_next(params->textures, entry))) {
-        struct ngl_node *texture = entry->data;
-        int ret = register_texture(s, entry->key, texture);
-        if (ret < 0)
-            return ret;
-    }
-
-    return 0;
-}
-
 static int register_block(struct pass *s, const char *name, struct ngl_node *block)
 {
     if (!block)
@@ -335,24 +304,6 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     if (!ngli_darray_push(&s->block_nodes, &block)) {
         ngli_node_block_unref(block);
         return NGL_ERROR_MEMORY;
-    }
-
-    return 0;
-}
-
-static int register_blocks(struct pass *s)
-{
-    struct pass_params *params = &s->params;
-
-    if (!params->blocks)
-        return 0;
-
-    const struct hmap_entry *entry = NULL;
-    while ((entry = ngli_hmap_next(params->blocks, entry))) {
-        struct ngl_node *block = entry->data;
-        int ret = register_block(s, entry->key, block);
-        if (ret < 0)
-            return ret;
     }
 
     return 0;
@@ -467,6 +418,32 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
     return 0;
 }
 
+static int register_resource(struct pass *s, const char *name, struct ngl_node *node)
+{
+    switch (node->class->category) {
+    case NGLI_NODE_CATEGORY_UNIFORM:
+    case NGLI_NODE_CATEGORY_BUFFER:  return register_uniform(s, name, node);
+    case NGLI_NODE_CATEGORY_TEXTURE: return register_texture(s, name, node);
+    case NGLI_NODE_CATEGORY_BLOCK:   return register_block(s, name, node);
+    default:
+        ngli_assert(0);
+    }
+}
+
+static int register_resources(struct pass *s, const struct hmap *resources)
+{
+    if (!resources)
+        return 0;
+
+    const struct hmap_entry *entry = NULL;
+    while ((entry = ngli_hmap_next(resources, entry))) {
+        int ret = register_resource(s, entry->key, entry->data);
+        if (ret < 0)
+            return ret;
+    }
+    return 0;
+}
+
 static int pass_graphics_init(struct pass *s)
 {
     const struct pass_params *params = &s->params;
@@ -504,6 +481,11 @@ static int pass_graphics_init(struct pass *s)
     }
 
     int ret;
+
+    if ((ret = register_resources(s, params->vert_resources)) < 0 ||
+        (ret = register_resources(s, params->frag_resources)) < 0)
+        return ret;
+
     if ((ret = check_attributes(s, params->attributes, 0)) < 0 ||
         (ret = check_attributes(s, params->instance_attributes, 1)) < 0)
         return ret;
@@ -537,6 +519,10 @@ static int pass_graphics_init(struct pass *s)
 static int pass_compute_init(struct pass *s)
 {
     const struct pass_params *params = &s->params;
+
+    int ret = register_resources(s, params->compute_resources);
+    if (ret < 0)
+        return ret;
 
     s->pipeline_type = NGLI_PIPELINE_TYPE_COMPUTE;
     s->pipeline_compute.nb_group_x = params->nb_group_x;
@@ -635,14 +621,13 @@ int ngli_pass_init(struct pass *s, struct ngl_ctx *ctx, const struct pass_params
     struct program_priv *program_priv = params->program->priv_data;
     s->pipeline_program = &program_priv->program;
 
-    int ret = params->geometry ? pass_graphics_init(s)
-                               : pass_compute_init(s);
+    int ret = register_builtin_uniforms(s);
     if (ret < 0)
         return ret;
 
-    if ((ret = register_uniforms(s)) < 0 ||
-        (ret = register_textures(s)) < 0 ||
-        (ret = register_blocks(s)) < 0)
+    ret = params->geometry ? pass_graphics_init(s)
+                           : pass_compute_init(s);
+    if (ret < 0)
         return ret;
 
     return 0;

@@ -264,11 +264,11 @@ def get_render(cfg, quad, fields, block_definition, color_definition, block_fiel
         d = {}
         d.update(('color_' + n, u) for (n, u) in color_fields.items() if n in field_names)
         d.update(('field_' + n, u) for (n, u) in block_fields.items() if n in field_names)
-        render.update_uniforms(**d)
+        render.update_frag_resources(**d)
     else:
-        render.update_blocks(fields_block=block_fields, colors_block=color_fields)
+        render.update_frag_resources(fields_block=block_fields, colors_block=color_fields)
 
-    render.update_uniforms(nb_fields=ngl.UniformInt(len(fields)))
+    render.update_frag_resources(nb_fields=ngl.UniformInt(len(fields)))
 
     if debug_positions:
         debug_points = _get_debug_positions_from_fields(fields)

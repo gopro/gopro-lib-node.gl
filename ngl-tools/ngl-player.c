@@ -101,10 +101,10 @@ static struct ngl_node *get_scene(const char *filename)
     ngl_node_param_set(u_opacity,        "value", 0.0);
 
     ngl_node_param_set(render, "program", program);
-    ngl_node_param_set(render, "textures", "tex0",    texture);
-    ngl_node_param_set(render, "uniforms", "media_duration", u_media_duration);
-    ngl_node_param_set(render, "uniforms", "ar",             u_ar);
-    ngl_node_param_set(render, "uniforms", "opacity",        u_opacity);
+    ngl_node_param_set(render, "frag_resources", "tex0",           texture);
+    ngl_node_param_set(render, "frag_resources", "media_duration", u_media_duration);
+    ngl_node_param_set(render, "frag_resources", "ar",             u_ar);
+    ngl_node_param_set(render, "frag_resources", "opacity",        u_opacity);
 
     g_opacity_uniform = u_opacity;
 

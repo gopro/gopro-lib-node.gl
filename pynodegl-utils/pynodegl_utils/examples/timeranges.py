@@ -23,7 +23,7 @@ def queued_medias(cfg, overlap_time=1., dim=3):
         program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
         render = ngl.Render(q, program)
         render.set_label('render #%d' % video_id)
-        render.update_textures(tex0=t)
+        render.update_frag_resources(tex0=t)
         render = ag.place_node(render, (col, pos))
 
         rf = ngl.TimeRangeFilter(render)
@@ -59,9 +59,9 @@ def parallel_playback(cfg, fast=True, segment_time=2., constrained_timeranges=Fa
 
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     render1 = ngl.Render(q, program, label='render #1')
-    render1.update_textures(tex0=t1)
+    render1.update_frag_resources(tex0=t1)
     render2 = ngl.Render(q, program, label='render #2')
-    render2.update_textures(tex0=t2)
+    render2.update_frag_resources(tex0=t2)
 
     text_settings={
         'box_corner': (-1, 1 - 0.2, 0),
@@ -126,17 +126,17 @@ def simple_transition(cfg, transition_start=2, transition_duration=4):
 
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     render1 = ngl.Render(q, program, label='render #1')
-    render1.update_textures(tex0=t1)
+    render1.update_frag_resources(tex0=t1)
     render2 = ngl.Render(q, program, label='render #2')
-    render2.update_textures(tex0=t2)
+    render2.update_frag_resources(tex0=t2)
 
     delta_animkf = [ngl.AnimKeyFrameFloat(transition_start, 1.0),
                     ngl.AnimKeyFrameFloat(transition_start + transition_duration, 0.0)]
     delta = anim=ngl.AnimatedFloat(delta_animkf)
 
     render1_2 = ngl.Render(q, p1_2, label='transition')
-    render1_2.update_textures(tex0=t1, tex1=t2)
-    render1_2.update_uniforms(delta=delta)
+    render1_2.update_frag_resources(tex0=t1, tex1=t2)
+    render1_2.update_frag_resources(delta=delta)
 
     rr1 = []
     rr2 = []

@@ -29,7 +29,7 @@ def get_debug_points(cfg, points, radius=0.025, color=COLORS['green'], text_size
     g = ngl.Group()
     circle = ngl.Circle(radius=radius)
     circle_render = ngl.Render(circle, prog)
-    circle_render.update_uniforms(color=ngl.UniformVec4(value=color))
+    circle_render.update_frag_resources(color=ngl.UniformVec4(value=color))
     box_w = (text_size[0], 0, 0)
     box_h = (0, text_size[1], 0)
     for pos_name, position in points.items():

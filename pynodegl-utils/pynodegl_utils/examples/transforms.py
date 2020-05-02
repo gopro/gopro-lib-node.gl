@@ -18,7 +18,7 @@ def animated_square(cfg, color=(1, 0.66, 0, 1), rotate=True, scale=True, transla
     p = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     node = ngl.Render(q, p)
     ucolor = ngl.UniformVec4(value=color)
-    node.update_uniforms(color=ucolor)
+    node.update_frag_resources(color=ucolor)
 
     coords = [(-1, 1), (1, 1), (1, -1), (-1, -1), (-1, 1)]
 
@@ -56,7 +56,7 @@ def animated_uniform(cfg):
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('matrix-transform'))
     ts = ngl.Render(q, p)
-    ts.update_textures(tex0=t)
+    ts.update_frag_resources(tex0=t)
 
     scale_animkf = [ngl.AnimKeyFrameVec3(0, (1, 1, 1)),
                     ngl.AnimKeyFrameVec3(cfg.duration, (0.1, 0.1, 0.1), 'quartic_out')]
@@ -67,7 +67,7 @@ def animated_uniform(cfg):
     r = ngl.Rotate(s, axis=(0, 0, 1), anim=ngl.AnimatedFloat(rotate_animkf))
 
     u = ngl.UniformMat4(transform=r)
-    ts.update_uniforms(matrix=u)
+    ts.update_frag_resources(matrix=u)
 
     return ts
 
@@ -82,7 +82,7 @@ def animated_camera(cfg, rotate=True):
     t = ngl.Texture2D(data_src=m)
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     node = ngl.Render(q, program)
-    node.update_textures(tex0=t)
+    node.update_frag_resources(tex0=t)
     g.add_children(node)
 
     translate = ngl.Translate(node, vector=(-0.6, 0.8, -1))
@@ -142,7 +142,7 @@ def animated_buffer(cfg, dim=50):
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     render = ngl.Render(quad, program)
-    render.update_textures(tex0=random_tex)
+    render.update_frag_resources(tex0=random_tex)
     return render
 
 
@@ -160,7 +160,7 @@ def animated_circles(cfg):
     shape = ngl.Circle(radius=radius, npoints=128)
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(shape, prog)
-    render.update_uniforms(color=ngl.UniformVec4([1.0] * 4))
+    render.update_frag_resources(color=ngl.UniformVec4([1.0] * 4))
 
     for i in range(n):
         mid_time = cfg.duration / 2.0

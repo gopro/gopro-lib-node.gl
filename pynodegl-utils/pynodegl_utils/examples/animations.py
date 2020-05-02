@@ -13,7 +13,7 @@ def _block(w, h, program, corner=None, **uniforms):
     block_corner = (-w / 2., -h / 2., 0) if corner is None else corner
     block_quad = ngl.Quad(corner=block_corner, width=block_width, height=block_height)
     block_render = ngl.Render(block_quad, program)
-    block_render.update_uniforms(**uniforms)
+    block_render.update_frag_resources(**uniforms)
     return block_render
 
 
@@ -81,21 +81,21 @@ def _get_easing_node(cfg, easing, curve_zoom, color_program, nb_points=128):
     vertices = ngl.BufferVec3(data=vertices_data)
     geometry = ngl.Geometry(vertices, topology='line_strip')
     curve = ngl.Render(geometry, color_program, label='%s curve' % easing)
-    curve.update_uniforms(color=ucolor)
+    curve.update_frag_resources(color=ucolor)
 
     # Value cursor
     y = 2 / 3. * pad_height
     x = y * math.sqrt(3)
     cursor_geometry = ngl.Triangle((-x, y, 0), (0, 0, 0), (-x, -y, 0))
     cursor = ngl.Render(cursor_geometry, color_program, label='%s cursor' % easing)
-    cursor.update_uniforms(color=ucolor)
+    cursor.update_frag_resources(color=ucolor)
 
     # Horizontal value line
     hline_data = array.array('f', (0, 0, 0, graph_size, 0, 0))
     hline_vertices = ngl.BufferVec3(data=hline_data)
     hline_geometry = ngl.Geometry(hline_vertices, topology='line_strip')
     hline = ngl.Render(hline_geometry, color_program, label='%s value line' % easing)
-    hline.update_uniforms(color=line_ucolor)
+    hline.update_frag_resources(color=line_ucolor)
 
     # Value animation (cursor + h-line)
     value_x = -graph_size / 2.
@@ -112,7 +112,7 @@ def _get_easing_node(cfg, easing, curve_zoom, color_program, nb_points=128):
     vline_vertices = ngl.BufferVec3(data=vline_data)
     vline_geometry = ngl.Geometry(vline_vertices, topology='line_strip')
     vline = ngl.Render(vline_geometry, color_program, label='%s time line' % easing)
-    vline.update_uniforms(color=line_ucolor)
+    vline.update_frag_resources(color=line_ucolor)
 
     # Time animation (v-line only)
     time_x = -normed_graph_size / 2.

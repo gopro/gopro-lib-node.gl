@@ -83,7 +83,7 @@ def obj(cfg, n=0.5, model=None):
     t = ngl.Texture2D(data_src=m)
     p = ngl.Program(vertex=cfg.get_vert('tex-tint-normals'), fragment=cfg.get_frag('tex-tint-normals'))
     render = ngl.Render(q, p)
-    render.update_textures(tex0=t)
+    render.update_frag_resources(tex0=t)
     render = ngl.GraphicConfig(render, depth_test=True)
 
     animkf = [ngl.AnimKeyFrameFloat(0, 0),

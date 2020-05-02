@@ -18,7 +18,7 @@ In the constructors, the expected Python parameter types follow this table:
 
 Parameter type          | Python type                         | Example
 ----------------------- | ----------------------------------- | ------------
-`*Dict`                 | `dict`                              | `render = Render(geometry, textures={'tex0': t0, 'tex1': t1})`
+`*Dict`                 | `dict`                              | `render = Render(geometry, frag_resources={'tex0': t0, 'tex1': t1})`
 `vec*`, `mat*`, `*List` | Iterable such as `tuple` or `list`  | `scale = Scale(child, factors=(0.3, 1.2, 1.0))`
 All the others          | `-`                                 | `circle = Circle(radius=0.5, npoints=128)`
 
@@ -32,7 +32,7 @@ to the parameter name and its type.
 
 Parameter type | Node method                      | Python <param> type        | Example
 -------------- | -------------------------------- | -------------------------- | --------
-`*Dict`        | `update_<param>(self, <param>)`  | `dict` or named arguments  | `render.update_textures(tex0=t0, tex1=t1)`
+`*Dict`        | `update_<param>(self, <param>)`  | `dict` or named arguments  | `render.update_frag_resources(tex0=t0, tex1=t1)`
 `*List`        | `add_<param>(self, *<param>)`    | positional arguments       | `group.add_children(r1, r2, r3)`
 All the others | `set_<param>(self, <param>)`     | positional arguments       | `camera.set_center(1.0, -1.0, 0.5)`
 

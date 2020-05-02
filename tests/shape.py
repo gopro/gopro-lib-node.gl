@@ -34,7 +34,7 @@ from pynodegl_utils.toolbox.grid import autogrid_simple
 def _render_shape(cfg, geometry, color):
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, prog)
-    render.update_uniforms(color=ngl.UniformVec4(value=color))
+    render.update_frag_resources(color=ngl.UniformVec4(value=color))
     return render
 
 
@@ -151,7 +151,7 @@ def shape_diamond_colormask(cfg):
     geometry = ngl.Circle(npoints=5)
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, prog)
-    render.update_uniforms(color=ngl.UniformVec4(value=COLORS['white']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
     scenes = [ngl.GraphicConfig(render, color_write_mask=cwm) for cwm in color_write_masks]
     return autogrid_simple(scenes)
 
@@ -186,7 +186,7 @@ def _shape_geometry_rtt(cfg, depth=False, samples=0):
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     render = ngl.Render(quad, program)
-    render.update_textures(tex0=texture)
+    render.update_frag_resources(tex0=texture)
 
     return ngl.Group(children=(rtt, render))
 
@@ -237,7 +237,7 @@ def shape_morphing(cfg, n=6):
     geom.set_topology('triangle_fan')
     p = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geom, p)
-    render.update_uniforms(color=ngl.UniformVec4(COLORS['cyan']))
+    render.update_frag_resources(color=ngl.UniformVec4(COLORS['cyan']))
     return render
 
 
@@ -314,8 +314,8 @@ def _get_cropboard_function(set_indices=False):
         utime = ngl.AnimatedFloat(utime_animkf)
 
         render = ngl.Render(q, p, nb_instances=dim_cut**2)
-        render.update_textures(tex0=random_tex)
-        render.update_uniforms(time=utime)
+        render.update_frag_resources(tex0=random_tex)
+        render.update_vert_resources(time=utime)
         render.update_instance_attributes(
             uv_offset=ngl.BufferVec2(data=uv_offset_buffer),
             translate_a=ngl.BufferVec2(data=translate_a_buffer),
@@ -370,5 +370,5 @@ def shape_triangles_mat4_attribute(cfg):
     )
     render = ngl.Render(geometry, program, nb_instances=2)
     render.update_instance_attributes(matrix=matrices)
-    render.update_uniforms(color=ngl.UniformVec4(value=COLORS['orange']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['orange']))
     return render

@@ -35,9 +35,8 @@
 struct render_priv {
     struct ngl_node *geometry;
     struct ngl_node *program;
-    struct hmap *textures;
-    struct hmap *uniforms;
-    struct hmap *blocks;
+    struct hmap *vert_resources;
+    struct hmap *frag_resources;
     struct hmap *attributes;
     struct hmap *instance_attributes;
     int nb_instances;
@@ -45,15 +44,14 @@ struct render_priv {
     struct pass pass;
 };
 
-#define TEXTURES_TYPES_LIST (const int[]){NGL_NODE_TEXTURE2D,       \
-                                          NGL_NODE_TEXTURE3D,       \
-                                          NGL_NODE_TEXTURECUBE,     \
-                                          -1}
-
 #define PROGRAMS_TYPES_LIST (const int[]){NGL_NODE_PROGRAM,         \
                                           -1}
 
-#define UNIFORMS_TYPES_LIST (const int[]){NGL_NODE_BUFFERFLOAT,     \
+#define INPUT_TYPES_LIST    (const int[]){NGL_NODE_TEXTURE2D,       \
+                                          NGL_NODE_TEXTURE3D,       \
+                                          NGL_NODE_TEXTURECUBE,     \
+                                          NGL_NODE_BLOCK,           \
+                                          NGL_NODE_BUFFERFLOAT,     \
                                           NGL_NODE_BUFFERVEC2,      \
                                           NGL_NODE_BUFFERVEC3,      \
                                           NGL_NODE_BUFFERVEC4,      \
@@ -124,15 +122,12 @@ static const struct node_param render_params[] = {
     {"program",  PARAM_TYPE_NODE, OFFSET(program),
                  .node_types=PROGRAMS_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("program to be executed")},
-    {"textures", PARAM_TYPE_NODEDICT, OFFSET(textures),
-                 .node_types=TEXTURES_TYPES_LIST,
-                 .desc=NGLI_DOCSTRING("textures made accessible to the `program`")},
-    {"uniforms", PARAM_TYPE_NODEDICT, OFFSET(uniforms),
-                 .node_types=UNIFORMS_TYPES_LIST,
-                 .desc=NGLI_DOCSTRING("uniforms made accessible to the `program`")},
-    {"blocks",  PARAM_TYPE_NODEDICT, OFFSET(blocks),
-                 .node_types=(const int[]){NGL_NODE_BLOCK, -1},
-                 .desc=NGLI_DOCSTRING("blocks made accessible to the `program`")},
+    {"vert_resources", PARAM_TYPE_NODEDICT, OFFSET(vert_resources),
+                         .node_types=INPUT_TYPES_LIST,
+                         .desc=NGLI_DOCSTRING("resources made accessible to the vertex stage of the `program`")},
+    {"frag_resources", PARAM_TYPE_NODEDICT, OFFSET(frag_resources),
+                           .node_types=INPUT_TYPES_LIST,
+                           .desc=NGLI_DOCSTRING("resources made accessible to the fragment stage of the `program`")},
     {"attributes", PARAM_TYPE_NODEDICT, OFFSET(attributes),
                  .node_types=ATTRIBUTES_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("extra vertex attributes made accessible to the `program`")},
@@ -158,9 +153,8 @@ static int render_init(struct ngl_node *node)
         .label = node->label,
         .geometry = s->geometry,
         .program = s->program,
-        .textures = s->textures,
-        .uniforms = s->uniforms,
-        .blocks = s->blocks,
+        .vert_resources = s->vert_resources,
+        .frag_resources = s->frag_resources,
         .attributes = s->attributes,
         .instance_attributes = s->instance_attributes,
         .nb_instances = s->nb_instances,

@@ -5,9 +5,11 @@ Fragment and vertex shader parameters
 
 
  - parameters with the `ngl_` prefix, always available
- - parameters from the `Render` node (`attributes`, `buffers`, `textures`, and
-   `uniforms`), with names derived from the arbitrary dict keys specified
-   by the user
+ - parameters from the `Render` node (`attributes`, `vert_resources` and
+   `frag_resources`), with names derived from the arbitrary dict keys
+   specified by the user
+ - parameters from the `Compute` node (`resources`) with names derived from the
+   arbitrary dict keys specified by the user
 
 ## Main parameters (always available)
 
@@ -30,7 +32,7 @@ For example, the following scene script:
     geometry = Geometry()
     texture0 = Texture2D()
     render = Render(geometry)
-    render.update_textures(tex0=texture0)
+    render.update_frag_resources(tex0=texture0)
 ```
 
 Gives the following shader parameters:
@@ -98,7 +100,7 @@ For example, the following scene script:
     ucolor2 = UniformVec4()
     umatrix = UniformMat4()
     render = Render(geometry)
-    render.update_uniforms(color1=ucolor1, color2=ucolor2, matrix=umatrix)
+    render.update_frag_resources(color1=ucolor1, color2=ucolor2, matrix=umatrix)
 ```
 
 Gives the following shader parameters:
@@ -119,7 +121,7 @@ For example, the following scene script:
 ```python
     histogram_block = Block(fields=[UniformFloat(), BufferVec4(256)])
     render = Render(geometry)
-    render.update_buffers(histogram=histogram_block)
+    render.update_frag_resources(histogram=histogram_block)
 ```
 
 Gives the following shader parameters as SSBO with

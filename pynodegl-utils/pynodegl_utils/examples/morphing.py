@@ -60,7 +60,7 @@ def square2circle(cfg, square_color=(0.9, 0.1, 0.3, 1.0), circle_color=(1.0, 1.0
     geom.set_topology('triangle_fan')
     p = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geom, p)
-    render.update_uniforms(color=ucolor)
+    render.update_frag_resources(color=ucolor)
     return render
 
 
@@ -108,5 +108,5 @@ def urchin(cfg, npoints=25):
     geom.set_topology('line_strip')
     p = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geom, p)
-    render.update_uniforms(color=ngl.UniformVec4(value=(.9, .1, .3, 1)))
+    render.update_frag_resources(color=ngl.UniformVec4(value=(.9, .1, .3, 1)))
     return render

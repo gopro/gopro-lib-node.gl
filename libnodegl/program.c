@@ -77,48 +77,11 @@ static void free_pinfo(void *user_arg, void *data)
     ngli_free(data);
 }
 
-static const struct {
-    GLenum gl_type;
-    int type;
-} types_map[] = {
-    {GL_INT,                         NGLI_TYPE_INT},
-    {GL_INT_VEC2,                    NGLI_TYPE_IVEC2},
-    {GL_INT_VEC3,                    NGLI_TYPE_IVEC3},
-    {GL_INT_VEC4,                    NGLI_TYPE_IVEC4},
-    {GL_UNSIGNED_INT,                NGLI_TYPE_UINT},
-    {GL_UNSIGNED_INT_VEC2,           NGLI_TYPE_UIVEC2},
-    {GL_UNSIGNED_INT_VEC3,           NGLI_TYPE_UIVEC3},
-    {GL_UNSIGNED_INT_VEC4,           NGLI_TYPE_UIVEC4},
-    {GL_FLOAT,                       NGLI_TYPE_FLOAT},
-    {GL_FLOAT_VEC2,                  NGLI_TYPE_VEC2},
-    {GL_FLOAT_VEC3,                  NGLI_TYPE_VEC3},
-    {GL_FLOAT_VEC4,                  NGLI_TYPE_VEC4},
-    {GL_FLOAT_MAT3,                  NGLI_TYPE_MAT3},
-    {GL_FLOAT_MAT4,                  NGLI_TYPE_MAT4},
-    {GL_BOOL,                        NGLI_TYPE_BOOL},
-    {GL_SAMPLER_2D,                  NGLI_TYPE_SAMPLER_2D},
-    {GL_SAMPLER_2D_RECT,             NGLI_TYPE_SAMPLER_2D_RECT},
-    {GL_SAMPLER_3D,                  NGLI_TYPE_SAMPLER_3D},
-    {GL_SAMPLER_CUBE,                NGLI_TYPE_SAMPLER_CUBE},
-    {GL_SAMPLER_EXTERNAL_OES,        NGLI_TYPE_SAMPLER_EXTERNAL_OES},
-    {GL_SAMPLER_EXTERNAL_2D_Y2Y_EXT, NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT},
-    {GL_IMAGE_2D,                    NGLI_TYPE_IMAGE_2D},
-};
-
-static int get_type(GLenum gl_type)
-{
-    for (int i = 0; i < NGLI_ARRAY_NB(types_map); i++)
-        if (types_map[i].gl_type == gl_type)
-            return types_map[i].type;
-    return NGLI_TYPE_NONE;
-}
-
 static struct program_variable_info *program_variable_info_create()
 {
     struct program_variable_info *info = ngli_calloc(1, sizeof(*info));
     if (!info)
         return NULL;
-    info->size     = -1;
     info->binding  = -1;
     info->location = -1;
     return info;
@@ -142,28 +105,21 @@ static struct hmap *program_probe_uniforms(struct glcontext *gl, GLuint pid)
         }
 
         GLenum type;
-        ngli_glGetActiveUniform(gl, pid, i, sizeof(name), NULL,
-                                &info->size, &type, name);
-
-        info->type = get_type(type);
-        if (info->type == NGLI_TYPE_NONE) {
-            LOG(WARNING, "unrecognized uniform type 0x%x, ignore", type);
-            ngli_free(info);
-            continue;
-        }
+        GLint size;
+        ngli_glGetActiveUniform(gl, pid, i, sizeof(name), NULL, &size, &type, name);
 
         /* Remove [0] suffix from names of uniform arrays */
         name[strcspn(name, "[")] = 0;
         info->location = ngli_glGetUniformLocation(gl, pid, name);
 
-        if (info->type == NGLI_TYPE_IMAGE_2D) {
+        if (type == GL_IMAGE_2D) {
             ngli_glGetUniformiv(gl, pid, info->location, &info->binding);
         } else {
             info->binding = -1;
         }
 
-        LOG(DEBUG, "uniform[%d/%d]: %s location:%d size=%d type=0x%x binding=%d",
-            i + 1, nb_active_uniforms, name, info->location, info->size, info->type, info->binding);
+        LOG(DEBUG, "uniform[%d/%d]: %s location:%d binding=%d",
+            i + 1, nb_active_uniforms, name, info->location, info->binding);
 
         int ret = ngli_hmap_set(umap, name, info);
         if (ret < 0) {
@@ -194,18 +150,11 @@ static struct hmap *program_probe_attributes(struct glcontext *gl, GLuint pid)
         }
 
         GLenum type;
-        ngli_glGetActiveAttrib(gl, pid, i, sizeof(name), NULL,
-                               &info->size, &type, name);
-        info->type = get_type(type);
-        if (info->type == NGLI_TYPE_NONE) {
-            LOG(WARNING, "unrecognized attribute type 0x%x, ignore", type);
-            ngli_free(info);
-            continue;
-        }
-
+        GLint size;
+        ngli_glGetActiveAttrib(gl, pid, i, sizeof(name), NULL, &size, &type, name);
         info->location = ngli_glGetAttribLocation(gl, pid, name);
-        LOG(DEBUG, "attribute[%d/%d]: %s location:%d size=%d type=0x%x",
-            i + 1, nb_active_attributes, name, info->location, info->size, info->type);
+        LOG(DEBUG, "attribute[%d/%d]: %s location:%d",
+            i + 1, nb_active_attributes, name, info->location);
 
         int ret = ngli_hmap_set(amap, name, info);
         if (ret < 0) {
@@ -240,7 +189,6 @@ static struct hmap *program_probe_buffer_blocks(struct glcontext *gl, GLuint pid
             ngli_hmap_freep(&bmap);
             return NULL;
         }
-        info->type = NGLI_TYPE_UNIFORM_BUFFER;
 
         ngli_glGetActiveUniformBlockName(gl, pid, i, sizeof(name), NULL, name);
         GLuint block_index = ngli_glGetUniformBlockIndex(gl, pid, name);
@@ -273,7 +221,6 @@ static struct hmap *program_probe_buffer_blocks(struct glcontext *gl, GLuint pid
             ngli_hmap_freep(&bmap);
             return NULL;
         }
-        info->type = NGLI_TYPE_STORAGE_BUFFER;
 
         ngli_glGetProgramResourceName(gl, pid, GL_SHADER_STORAGE_BLOCK, i, sizeof(name), NULL, name);
         GLuint block_index = ngli_glGetProgramResourceIndex(gl, pid, GL_SHADER_STORAGE_BLOCK, name);

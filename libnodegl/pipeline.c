@@ -154,12 +154,6 @@ static int build_uniform_descs(struct pipeline *s, const struct pipeline_params 
         if (!info)
             continue;
 
-        if (uniform->type != info->type && (uniform->type != NGLI_TYPE_INT ||
-            (info->type != NGLI_TYPE_BOOL && info->type != NGLI_TYPE_INT))) {
-            LOG(ERROR, "uniform '%s' type does not match the type declared in the shader", uniform->name);
-            return NGL_ERROR_INVALID_ARG;
-        }
-
         if (!(gl->features & NGLI_FEATURE_UINT_UNIFORMS) &&
             (uniform->type == NGLI_TYPE_UINT ||
              uniform->type == NGLI_TYPE_UIVEC2 ||

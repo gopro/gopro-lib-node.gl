@@ -28,8 +28,6 @@
 #define MAX_ID_LEN 128
 
 struct program_variable_info {
-    int type;
-    int size;
     int binding;
     int location;
 };

@@ -236,6 +236,37 @@ static void update_block_data(struct block_priv *s, int forced)
     }
 }
 
+static int cmp_str(const void *a, const void *b)
+{
+    const char *s0 = *(const char * const *)a;
+    const char *s1 = *(const char * const *)b;
+    return strcmp(s0, s1);
+}
+
+static int check_dup_labels(const char *block_name, struct ngl_node * const *nodes, int nb_nodes)
+{
+    const char **labels = ngli_calloc(nb_nodes, sizeof(*labels));
+    if (!labels)
+        return NGL_ERROR_MEMORY;
+    for (int i = 0; i < nb_nodes; i++) {
+        if (!nodes[i]->label) {
+            LOG(ERROR, "block field labels cannot be NULL");
+            return NGL_ERROR_INVALID_ARG;
+        }
+        labels[i] = nodes[i]->label;
+    }
+    qsort(labels, nb_nodes, sizeof(*labels), cmp_str);
+    for (int i = 1; i < nb_nodes; i++) {
+        if (!strcmp(labels[i - 1], labels[i])) {
+            LOG(ERROR, "duplicated label %s in block %s", labels[i], block_name);
+            ngli_free(labels);
+            return NGL_ERROR_INVALID_ARG;
+        }
+    }
+    ngli_free(labels);
+    return 0;
+}
+
 #define FEATURES_STD140 (NGLI_FEATURE_UNIFORM_BUFFER_OBJECT | NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)
 #define FEATURES_STD430 (NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)
 
@@ -254,6 +285,10 @@ static int block_init(struct ngl_node *node)
         LOG(ERROR, "std430 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }
+
+    int ret = check_dup_labels(node->label, s->fields, s->nb_fields);
+    if (ret < 0)
+        return ret;
 
     ngli_block_init(&s->block, s->layout);
 

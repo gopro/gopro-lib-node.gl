@@ -36,8 +36,8 @@
 #include "log.h"
 #include "drawutils.h"
 #include "pgcache.h"
+#include "pgcraft.h"
 #include "pipeline.h"
-#include "program.h"
 #include "type.h"
 #include "topology.h"
 #include "gtimer.h"
@@ -60,8 +60,8 @@ struct hud_priv {
     double last_refresh_time;
     int need_refresh;
 
+    struct pgcraft *crafter;
     struct texture texture;
-    struct program program;
     struct buffer coords;
     struct pipeline pipeline;
     struct graphicstate graphicstate;
@@ -1217,29 +1217,23 @@ static void widgets_uninit(struct ngl_node *node)
 }
 
 static const char * const vertex_data =
-    "#version 100"                                                          "\n"
-    "precision highp float;"                                                "\n"
-    "attribute vec4 coords;"                                                "\n"
-    "uniform mat4 modelview_matrix;"                                        "\n"
-    "uniform mat4 projection_matrix;"                                       "\n"
-    "varying vec2 var_tex_coord;"                                           "\n"
     "void main()"                                                           "\n"
     "{"                                                                     "\n"
-    "    gl_Position = projection_matrix"                                   "\n"
+    "    ngl_out_pos = projection_matrix"                                   "\n"
     "                * modelview_matrix"                                    "\n"
     "                * vec4(coords.xy, 0.0, 1.0);"                          "\n"
     "    var_tex_coord = coords.zw;"                                        "\n"
     "}";
 
 static const char * const fragment_data =
-    "#version 100"                                                          "\n"
-    "precision highp float;"                                                "\n"
-    "uniform sampler2D tex;"                                                "\n"
-    "varying vec2 var_tex_coord;"                                           "\n"
     "void main()"                                                           "\n"
     "{"                                                                     "\n"
-    "    gl_FragColor = texture2D(tex, var_tex_coord);"                     "\n"
+    "    ngl_out_color = ngl_tex2d(tex, var_tex_coord);"                    "\n"
     "}";
+
+static const struct pgcraft_iovar vert_out_vars[] = {
+    {.name = "var_tex_coord", .type = NGLI_TYPE_VEC2},
+};
 
 static int hud_init(struct ngl_node *node)
 {
@@ -1263,10 +1257,6 @@ static int hud_init(struct ngl_node *node)
 
     s->bg_color_u32 = NGLI_COLOR_VEC4_TO_U32(s->bg_color);
     widgets_clear(s);
-
-    ret = ngli_pgcache_get_graphics_program(&ctx->pgcache, &s->program, vertex_data, fragment_data);
-    if (ret < 0)
-        return ret;
 
     static const float coords[] = {
         -1.0f, -1.0f, 0.0f, 1.0f,
@@ -1293,31 +1283,24 @@ static int hud_init(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    const struct pipeline_uniform uniforms[] = {
-        {.name = "modelview_matrix",  .type = NGLI_TYPE_MAT4, .count = 1, .data = NULL},
-        {.name = "projection_matrix", .type = NGLI_TYPE_MAT4, .count = 1, .data = NULL},
+    const struct pgcraft_uniform uniforms[] = {
+        {.name = "modelview_matrix",  .type = NGLI_TYPE_MAT4, .stage = NGLI_PROGRAM_SHADER_VERT, .data = NULL},
+        {.name = "projection_matrix", .type = NGLI_TYPE_MAT4, .stage = NGLI_PROGRAM_SHADER_VERT, .data = NULL},
     };
 
-    const struct program_variable_info *tex = ngli_hmap_get(s->program.uniforms, "tex");
-    ngli_assert(tex);
-
-    const struct pipeline_texture textures[] = {
+    struct pgcraft_texture textures[] = {
         {
             .name     = "tex",
-            .type     = tex->type,
-            .location = tex->location,
-            .binding  = tex->binding,
+            .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D,
+            .stage    = NGLI_PROGRAM_SHADER_FRAG,
             .texture  = &s->texture,
         },
     };
 
-    const struct program_variable_info *coords_info = ngli_hmap_get(s->program.attributes, "coords");
-    ngli_assert(coords_info);
-
-    const struct pipeline_attribute attributes[] = {
+    const struct pgcraft_attribute attributes[] = {
         {
             .name     = "coords",
-            .location = coords_info->location,
+            .type     = NGLI_TYPE_VEC4,
             .format   = NGLI_FORMAT_R32G32B32A32_SFLOAT,
             .stride   = 4 * 4,
             .buffer   = &s->coords,
@@ -1333,13 +1316,6 @@ static int hud_init(struct ngl_node *node)
 
     struct pipeline_params pipeline_params = {
         .type          = NGLI_PIPELINE_TYPE_GRAPHICS,
-        .program       = &s->program,
-        .textures      = textures,
-        .nb_textures   = NGLI_ARRAY_NB(textures),
-        .uniforms      = uniforms,
-        .nb_uniforms   = NGLI_ARRAY_NB(uniforms),
-        .attributes    = attributes,
-        .nb_attributes = NGLI_ARRAY_NB(attributes),
         .graphics      = {
             .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
             .nb_vertices = 4,
@@ -1348,12 +1324,33 @@ static int hud_init(struct ngl_node *node)
         }
     };
 
+    const struct pgcraft_params crafter_params = {
+        .vert_base        = vertex_data,
+        .frag_base        = fragment_data,
+        .uniforms         = uniforms,
+        .nb_uniforms      = NGLI_ARRAY_NB(uniforms),
+        .textures         = textures,
+        .nb_textures      = NGLI_ARRAY_NB(textures),
+        .attributes       = attributes,
+        .nb_attributes    = NGLI_ARRAY_NB(attributes),
+        .vert_out_vars    = vert_out_vars,
+        .nb_vert_out_vars = NGLI_ARRAY_NB(vert_out_vars),
+    };
+
+    s->crafter = ngli_pgcraft_create(ctx);
+    if (!s->crafter)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_pgcraft_craft(s->crafter, &pipeline_params, &crafter_params);
+    if (ret < 0)
+        return ret;
+
     ret = ngli_pipeline_init(&s->pipeline, ctx, &pipeline_params);
     if (ret < 0)
         return ret;
 
-    s->modelview_matrix_index = ngli_pipeline_get_uniform_index(&s->pipeline, "modelview_matrix");
-    s->projection_matrix_index = ngli_pipeline_get_uniform_index(&s->pipeline, "projection_matrix");
+    s->modelview_matrix_index = ngli_pgcraft_get_uniform_index(s->crafter, "modelview_matrix", NGLI_PROGRAM_SHADER_VERT);
+    s->projection_matrix_index = ngli_pgcraft_get_uniform_index(s->crafter, "projection_matrix", NGLI_PROGRAM_SHADER_VERT);
 
     return 0;
 }
@@ -1405,9 +1402,9 @@ static void hud_uninit(struct ngl_node *node)
     struct hud_priv *s = node->priv_data;
 
     ngli_pipeline_reset(&s->pipeline);
+    ngli_pgcraft_freep(&s->crafter);
     ngli_texture_reset(&s->texture);
     ngli_buffer_reset(&s->coords);
-    ngli_pgcache_release_program(&s->program);
 
     widgets_uninit(node);
     ngli_free(s->canvas.buf);

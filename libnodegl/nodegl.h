@@ -150,6 +150,7 @@ struct ngl_node;
 #define NGL_NODE_QUAD                   NGLI_FOURCC('Q','u','a','d')
 #define NGL_NODE_RENDER                 NGLI_FOURCC('R','n','d','r')
 #define NGL_NODE_RENDERTOTEXTURE        NGLI_FOURCC('R','T','T',' ')
+#define NGL_NODE_RESOURCEPROPS          NGLI_FOURCC('R','e','s','P')
 #define NGL_NODE_ROTATE                 NGLI_FOURCC('T','R','o','t')
 #define NGL_NODE_ROTATEQUAT             NGLI_FOURCC('T','R','o','Q')
 #define NGL_NODE_SCALE                  NGLI_FOURCC('T','s','c','l')

@@ -84,6 +84,7 @@
     action(NGL_NODE_QUAD,                   ngli_quad_class)                    \
     action(NGL_NODE_RENDER,                 ngli_render_class)                  \
     action(NGL_NODE_RENDERTOTEXTURE,        ngli_rtt_class)                     \
+    action(NGL_NODE_RESOURCEPROPS,          ngli_resourceprops_class)           \
     action(NGL_NODE_ROTATE,                 ngli_rotate_class)                  \
     action(NGL_NODE_ROTATEQUAT,             ngli_rotatequat_class)              \
     action(NGL_NODE_SCALE,                  ngli_scale_class)                   \

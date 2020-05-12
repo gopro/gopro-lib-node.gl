@@ -433,6 +433,19 @@ Parameter | Ctor. | Live-chg. | Type | Description | Default
 **Source**: [node_rtt.c](/libnodegl/node_rtt.c)
 
 
+## ResourceProps
+
+Parameter | Ctor. | Live-chg. | Type | Description | Default
+--------- | :---: | :-------: | ---- | ----------- | :-----:
+`precision` |  |  | [`precision`](#precision-choices) | precision qualifier for the shader | `auto`
+`as_image` |  |  | [`bool`](#parameter-types) | flag this resource for image accessing (only applies to texture nodes) | `0`
+`writable` |  |  | [`bool`](#parameter-types) | flag this resource as writable in the shader | `0`
+`variadic` |  |  | [`bool`](#parameter-types) | flag this resource as variadic (only applies to block nodes) | `0`
+
+
+**Source**: [node_resourceprops.c](/libnodegl/node_resourceprops.c)
+
+
 ## Rotate
 
 Parameter | Ctor. | Live-chg. | Type | Description | Default
@@ -1326,6 +1339,15 @@ Constant | Description
 `depth` | add depth buffer
 `stencil` | add stencil buffer
 `no_clear` | not cleared between draws (non-deterministic)
+
+## precision choices
+
+Constant | Description
+-------- | -----------
+`auto` | automatic
+`high` | high
+`medium` | medium
+`low` | low
 
 ## valign choices
 

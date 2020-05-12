@@ -102,6 +102,7 @@ LIB_OBJS = animation.o              \
            node_program.o           \
            node_quad.o              \
            node_render.o            \
+           node_resourceprops.o     \
            node_rotate.o            \
            node_rotatequat.o        \
            node_rtt.o               \

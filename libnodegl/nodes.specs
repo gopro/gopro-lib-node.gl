@@ -311,6 +311,13 @@
         - [features, flags]
         - [vflip, bool]
 
+- ResourceProps:
+    optional:
+        - [precision, select]
+        - [as_image, bool]
+        - [writable, bool]
+        - [variadic, bool]
+
 - Rotate:
     constructors:
         - [child, Node]

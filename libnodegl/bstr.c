@@ -113,6 +113,15 @@ void ngli_bstr_clear(struct bstr *b)
     b->state = 0;
 }
 
+int ngli_bstr_truncate(struct bstr *b, int len)
+{
+    if (len > b->len || len < 0)
+        return NGL_ERROR_INVALID_ARG;
+    b->len = len;
+    b->str[b->len] = 0;
+    return 0;
+}
+
 char *ngli_bstr_strdup(const struct bstr *b)
 {
     return ngli_strdup(b->str);

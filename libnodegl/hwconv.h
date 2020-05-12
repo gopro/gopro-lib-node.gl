@@ -25,7 +25,7 @@
 #include "buffer.h"
 #include "rendertarget.h"
 #include "image.h"
-#include "program.h"
+#include "pgcraft.h"
 #include "texture.h"
 #include "pipeline.h"
 
@@ -34,16 +34,11 @@ struct ngl_ctx;
 struct hwconv {
     struct ngl_ctx *ctx;
     struct image_params src_params;
-    NGLI_ALIGNED_MAT(src_color_matrix);
 
     struct rendertarget rt;
-    struct program program;
     struct buffer vertices;
+    struct pgcraft *crafter;
     struct pipeline pipeline;
-
-    int tex_indices[2];
-    int tex_coord_matrix_index;
-    int tex_dimensions_index;
 };
 
 int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,

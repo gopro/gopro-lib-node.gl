@@ -759,7 +759,10 @@ static int craft_vert(struct pgcraft *s, const struct pgcraft_params *params)
 
     set_glsl_header(s, b);
 
-    ngli_bstr_print(b, "#define ngl_out_pos gl_Position\n");
+    ngli_bstr_printf(b, "#define ngl_out_pos gl_Position\n"
+                        "#define ngl_vertex_index %s\n"
+                        "#define ngl_instance_index %s\n",
+                        s->sym_vertex_index, s->sym_instance_index);
 
     int ret;
     if ((ret = inject_iovars(s, b, NGLI_PROGRAM_SHADER_VERT)) < 0 ||
@@ -990,6 +993,9 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     struct ngl_ctx *ctx = s->ctx;
     const struct ngl_config *config = &ctx->config;
     struct gctx *gctx = ctx->gctx;
+
+    s->sym_vertex_index   = "gl_VertexID";
+    s->sym_instance_index = "gl_InstanceID";
 
     if (config->backend == NGL_BACKEND_OPENGL) {
         switch (gctx->version) {

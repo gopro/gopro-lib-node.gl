@@ -180,6 +180,8 @@ struct pgcraft {
     /* GLSL info */
     int glsl_version;
     const char *glsl_version_suffix;
+    const char *sym_vertex_index;
+    const char *sym_instance_index;
     const char *rg; // 2-component texture picking (could be either rg or ra depending on the OpenGL version)
     int has_in_out_qualifiers;
     int has_in_out_layout_qualifiers;

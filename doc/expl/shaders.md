@@ -22,6 +22,8 @@ Type   | Name           | Description
 `vec4` | `ngl_position` | geometry vertices, always available
 `vec2` | `ngl_uvcoord`  | geometry uv coordinates, if provided by the geometry
 `vec3` | `ngl_normal`   | geometry normals, if provided by the geometry
+`int`  | `ngl_vertex_index`   | index of the current vertex
+`int`  | `ngl_instance_index` | instance number of the current primitive in an instanced draw call
 
 **Note**: these are commonly referred as `attributes` or `in` in GL lexicon.
 

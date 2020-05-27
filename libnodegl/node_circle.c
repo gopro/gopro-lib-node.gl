@@ -68,7 +68,7 @@ static int circle_init(struct ngl_node *node)
     uvcoords[0] = 0.5;
     uvcoords[1] = 0.5;
     for (int i = 1; i < nb_vertices; i++) {
-        const double angle = (i - 1) * step;
+        const double angle = (i - 1) * -step;
         const double x = sin(angle) * s->radius;
         const double y = cos(angle) * s->radius;
         vertices[i*3 + 0] = x;

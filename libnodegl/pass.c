@@ -38,6 +38,7 @@
 #include "nodes.h"
 #include "pass.h"
 #include "pgcache.h"
+#include "pgcraft.h"
 #include "pipeline.h"
 #include "program.h"
 #include "texture.h"
@@ -121,41 +122,30 @@ struct texture_info_field {
 struct texture_info {
     const char *name;
     struct image *image;
-    struct texture_info_field sampling_mode;
-    struct texture_info_field default_sampler;
-    struct texture_info_field coordinate_matrix;
-    struct texture_info_field color_matrix;
-    struct texture_info_field dimensions;
-    struct texture_info_field timestamp;
-    struct texture_info_field oes_sampler;
-    struct texture_info_field y_sampler;
-    struct texture_info_field uv_sampler;
-    struct texture_info_field y_rect_sampler;
-    struct texture_info_field uv_rect_sampler;
+    struct texture_info_field fields[NGLI_INFO_FIELD_NB];
 };
 
-#define OFFSET(x) offsetof(struct texture_info, x)
 static const struct texture_info_map {
     const char *suffix;
     const int *allowed_types;
-    size_t field_offset;
+    int field_id;
 } texture_info_maps[] = {
-    {"_sampling_mode",    (const int[]){NGLI_TYPE_INT, 0},                         OFFSET(sampling_mode)},
+    {"_sampling_mode",    (const int[]){NGLI_TYPE_INT, 0},                         NGLI_INFO_FIELD_SAMPLING_MODE},
     {"_sampler",          (const int[]){NGLI_TYPE_SAMPLER_2D,
                                         NGLI_TYPE_SAMPLER_3D,
                                         NGLI_TYPE_SAMPLER_CUBE,
-                                        NGLI_TYPE_IMAGE_2D, 0},                    OFFSET(default_sampler)},
-    {"_coord_matrix",     (const int[]){NGLI_TYPE_MAT4, 0},                        OFFSET(coordinate_matrix)},
-    {"_color_matrix",     (const int[]){NGLI_TYPE_MAT4, 0},                        OFFSET(color_matrix)},
+                                        NGLI_TYPE_IMAGE_2D, 0},                    NGLI_INFO_FIELD_DEFAULT_SAMPLER},
+    {"_coord_matrix",     (const int[]){NGLI_TYPE_MAT4, 0},                        NGLI_INFO_FIELD_COORDINATE_MATRIX},
+    {"_color_matrix",     (const int[]){NGLI_TYPE_MAT4, 0},                        NGLI_INFO_FIELD_COLOR_MATRIX},
     {"_dimensions",       (const int[]){NGLI_TYPE_VEC2,
-                                        NGLI_TYPE_VEC3, 0},                        OFFSET(dimensions)},
-    {"_ts",               (const int[]){NGLI_TYPE_FLOAT, 0},                       OFFSET(timestamp)},
+                                        NGLI_TYPE_VEC3, 0},                        NGLI_INFO_FIELD_DIMENSIONS},
+    {"_ts",               (const int[]){NGLI_TYPE_FLOAT, 0},                       NGLI_INFO_FIELD_TIMESTAMP},
     {"_external_sampler", (const int[]){NGLI_TYPE_SAMPLER_EXTERNAL_OES,
-                                        NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT, 0}, OFFSET(oes_sampler)},
-    {"_y_sampler",        (const int[]){NGLI_TYPE_SAMPLER_2D, 0},                  OFFSET(y_sampler)},
-    {"_uv_sampler",       (const int[]){NGLI_TYPE_SAMPLER_2D, 0},                  OFFSET(uv_sampler)},
-    {"_y_rect_sampler",   (const int[]){NGLI_TYPE_SAMPLER_2D_RECT, 0},             OFFSET(y_rect_sampler)},
-    {"_uv_rect_sampler",  (const int[]){NGLI_TYPE_SAMPLER_2D_RECT, 0},             OFFSET(uv_rect_sampler)},
+                                        NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT, 0}, NGLI_INFO_FIELD_OES_SAMPLER},
+    {"_y_sampler",        (const int[]){NGLI_TYPE_SAMPLER_2D, 0},                  NGLI_INFO_FIELD_Y_SAMPLER},
+    {"_uv_sampler",       (const int[]){NGLI_TYPE_SAMPLER_2D, 0},                  NGLI_INFO_FIELD_UV_SAMPLER},
+    {"_y_rect_sampler",   (const int[]){NGLI_TYPE_SAMPLER_2D_RECT, 0},             NGLI_INFO_FIELD_Y_RECT_SAMPLER},
+    {"_uv_rect_sampler",  (const int[]){NGLI_TYPE_SAMPLER_2D_RECT, 0},             NGLI_INFO_FIELD_UV_RECT_SAMPLER},
 };
 
 static int is_allowed_type(const int *allowed_types, int type)
@@ -199,8 +189,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     for (int i = 0; i < NGLI_ARRAY_NB(texture_info_maps); i++) {
         const struct texture_info_map *map = &texture_info_maps[i];
 
-        uint8_t *info_p = (uint8_t *)&info + map->field_offset;
-        struct texture_info_field *field = (struct texture_info_field *)info_p;
+        struct texture_info_field *field = &info.fields[map->field_id];
 
         char uniform_name[MAX_ID_LEN];
         snprintf(uniform_name, sizeof(uniform_name), "%s%s", name, map->suffix);
@@ -239,23 +228,27 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
         }
     }
 
-    if (info.color_matrix.active && info.oes_sampler.active &&
-        info.oes_sampler.type == NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT) {
+    const struct texture_info_field *fields = info.fields;
+    if (fields[NGLI_INFO_FIELD_COLOR_MATRIX].active &&
+        fields[NGLI_INFO_FIELD_OES_SAMPLER].active &&
+        fields[NGLI_INFO_FIELD_OES_SAMPLER].type == NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT) {
         LOG(WARNING, "color_matrix is not supported with 2DY2YEXT sampler");
     }
 
     uint32_t supported_image_layouts = 0;
 
-    if (info.default_sampler.active)
+    if (fields[NGLI_INFO_FIELD_DEFAULT_SAMPLER].active)
         supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_DEFAULT;
 
-    if (info.oes_sampler.active)
+    if (fields[NGLI_INFO_FIELD_OES_SAMPLER].active)
         supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_MEDIACODEC;
 
-    if (info.y_sampler.active || info.uv_sampler.active)
+    if (fields[NGLI_INFO_FIELD_Y_SAMPLER].active ||
+        fields[NGLI_INFO_FIELD_UV_SAMPLER].active)
         supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_NV12;
 
-    if (info.y_rect_sampler.active || info.uv_rect_sampler.active)
+    if (fields[NGLI_INFO_FIELD_Y_RECT_SAMPLER].active ||
+        fields[NGLI_INFO_FIELD_UV_RECT_SAMPLER].active)
         supported_image_layouts |= 1 << NGLI_IMAGE_LAYOUT_NV12_RECTANGLE;
 
     if (!supported_image_layouts)
@@ -579,8 +572,7 @@ int ngli_pass_prepare(struct pass *s)
         for (int j = 0; j < NGLI_ARRAY_NB(texture_info_maps); j++) {
             const struct texture_info_map *map = &texture_info_maps[j];
 
-            uint8_t *info_p = (uint8_t *)info + map->field_offset;
-            struct texture_info_field *field = (struct texture_info_field *)info_p;
+            struct texture_info_field *field = &info->fields[map->field_id];
             if (!field->active) {
                 field->index = -1;
                 continue;
@@ -759,39 +751,40 @@ int ngli_pass_exec(struct pass *s)
     struct texture_info *texture_infos = ngli_darray_data(&desc->texture_infos);
     for (int i = 0; i < ngli_darray_count(&s->texture_infos); i++) {
         struct texture_info *info = &texture_infos[i];
+        const struct texture_info_field *fields = info->fields;
         struct image *image = info->image;
         const float ts = image->ts;
 
-        ngli_pipeline_update_uniform(pipeline, info->coordinate_matrix.index, image->coordinates_matrix);
-        ngli_pipeline_update_uniform(pipeline, info->color_matrix.index, image->color_matrix);
-        ngli_pipeline_update_uniform(pipeline, info->timestamp.index, &ts);
+        ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COORDINATE_MATRIX].index, image->coordinates_matrix);
+        ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COLOR_MATRIX].index, image->color_matrix);
+        ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_TIMESTAMP].index, &ts);
 
         if (image->params.layout) {
             const float dimensions[] = {image->params.width, image->params.height, image->params.depth};
-            ngli_pipeline_update_uniform(pipeline, info->dimensions.index, dimensions);
+            ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_DIMENSIONS].index, dimensions);
         }
 
         int ret = -1;
         switch (image->params.layout) {
         case NGLI_IMAGE_LAYOUT_DEFAULT:
-            ret = ngli_pipeline_update_texture(pipeline, info->default_sampler.index, image->planes[0]);
+            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_DEFAULT_SAMPLER].index, image->planes[0]);
             break;
         case NGLI_IMAGE_LAYOUT_NV12:
-            ret = ngli_pipeline_update_texture(pipeline, info->y_sampler.index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(pipeline, info->uv_sampler.index, image->planes[1]);
+            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
+            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_UV_SAMPLER].index, image->planes[1]);
             break;
         case NGLI_IMAGE_LAYOUT_NV12_RECTANGLE:
-            ret = ngli_pipeline_update_texture(pipeline, info->y_rect_sampler.index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(pipeline, info->uv_rect_sampler.index, image->planes[1]);
+            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_RECT_SAMPLER].index, image->planes[0]);
+            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_UV_RECT_SAMPLER].index, image->planes[1]);
             break;
         case NGLI_IMAGE_LAYOUT_MEDIACODEC:
-            ret = ngli_pipeline_update_texture(pipeline, info->oes_sampler.index, image->planes[0]);
+            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_OES_SAMPLER].index, image->planes[0]);
             break;
         default:
             break;
         }
         const int layout = ret < 0 ? NGLI_IMAGE_LAYOUT_NONE : image->params.layout;
-        ngli_pipeline_update_uniform(pipeline, info->sampling_mode.index, &layout);
+        ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_SAMPLING_MODE].index, &layout);
     }
 
     ngli_pipeline_exec(pipeline);

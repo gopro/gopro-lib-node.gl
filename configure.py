@@ -522,6 +522,9 @@ class _Config:
             for f in glob.glob(op.join(vcpkg_bin, '*.dll')):
                 logging.info('copy %s to venv/Scripts', f)
                 shutil.copy2(f, op.join('venv', 'Scripts'))
+            shaderc_dll = op.join(args.vcpkg_dir, 'installed', 'x64-windows', 'tools', 'shaderc_shared.dll')
+            if op.exists(shaderc_dll):
+                shutil.copy2(shaderc_dll, op.join('venv', 'Scripts'))
 
     def get_env(self):
         sep = ':' if _SYSTEM == 'MinGW' else os.pathsep
@@ -547,7 +550,7 @@ def _run():
     parser.add_argument('--coverage', action='store_true',
                         help='Code coverage')
     parser.add_argument('-d', '--debug-opts', nargs='+', default=[],
-                        choices=('gl', 'mem', 'scene', 'gpu_capture'),
+                        choices=('gl', 'vk', 'mem', 'scene', 'gpu_capture'),
                         help='Debug options')
     parser.add_argument('--build-backend', choices=('ninja', 'vs'), default=default_build_backend,
                         help='Build backend to use')

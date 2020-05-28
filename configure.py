@@ -547,7 +547,7 @@ def _run():
     parser.add_argument('--coverage', action='store_true',
                         help='Code coverage')
     parser.add_argument('-d', '--debug-opts', nargs='+', default=[],
-                        choices=('gl', 'mem', 'scene', 'gpu_capture'),
+                        choices=('gl', 'vk', 'mem', 'scene', 'gpu_capture'),
                         help='Debug options')
     parser.add_argument('--build-backend', choices=('ninja', 'vs'), default=default_build_backend,
                         help='Build backend to use')

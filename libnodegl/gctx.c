@@ -29,6 +29,7 @@
 
 extern const struct gctx_class ngli_gctx_gl;
 extern const struct gctx_class ngli_gctx_gles;
+extern const struct gctx_class ngli_gctx_vk;
 
 static const struct {
     const char *string_id;
@@ -44,6 +45,12 @@ static const struct {
         .string_id = "opengles",
 #ifdef BACKEND_GL
         .cls = &ngli_gctx_gles,
+#endif
+    },
+    [NGL_BACKEND_VULKAN] = {
+        .string_id = "vulkan",
+#ifdef BACKEND_VK
+        .cls = &ngli_gctx_vk,
 #endif
     },
 };

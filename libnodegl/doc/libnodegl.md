@@ -357,6 +357,81 @@ Parameter | Ctor. | Live-chg. | Type | Description | Default
 **Source**: [node_identity.c](/libnodegl/node_identity.c)
 
 
+## IOInt
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOIVec2
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOIVec3
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOIVec4
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOUInt
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOUIvec2
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOUIvec3
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOUIvec4
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOFloat
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOVec2
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOVec3
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOVec4
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOMat3
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOMat4
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
+## IOBool
+
+**Source**: [node_io.c](/libnodegl/node_io.c)
+
+
 ## Media
 
 Parameter | Ctor. | Live-chg. | Type | Description | Default

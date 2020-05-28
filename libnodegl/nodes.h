@@ -357,6 +357,10 @@ struct identity_priv {
     NGLI_ALIGNED_MAT(modelview_matrix);
 };
 
+struct io_priv {
+    int type;
+};
+
 struct resourceprops_priv {
     int precision;
     int as_image;
@@ -433,6 +437,7 @@ enum {
     NGLI_NODE_CATEGORY_TEXTURE,
     NGLI_NODE_CATEGORY_BUFFER,
     NGLI_NODE_CATEGORY_BLOCK,
+    NGLI_NODE_CATEGORY_IO,
 };
 
 /**

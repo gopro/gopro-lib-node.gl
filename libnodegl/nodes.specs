@@ -262,6 +262,36 @@
 
 - Identity:
 
+- IOInt:
+
+- IOIVec2:
+
+- IOIVec3:
+
+- IOIVec4:
+
+- IOUInt:
+
+- IOUIvec2:
+
+- IOUIvec3:
+
+- IOUIvec4:
+
+- IOFloat:
+
+- IOVec2:
+
+- IOVec3:
+
+- IOVec4:
+
+- IOMat3:
+
+- IOMat4:
+
+- IOBool:
+
 - Media:
     constructors:
         - [filename, string]

@@ -79,6 +79,21 @@
     action(NGL_NODE_GROUP,                  ngli_group_class)                   \
     action(NGL_NODE_HUD,                    ngli_hud_class)                     \
     action(NGL_NODE_IDENTITY,               ngli_identity_class)                \
+    action(NGL_NODE_IOINT,                  ngli_ioint_class)                   \
+    action(NGL_NODE_IOIVEC2,                ngli_ioivec2_class)                 \
+    action(NGL_NODE_IOIVEC3,                ngli_ioivec3_class)                 \
+    action(NGL_NODE_IOIVEC4,                ngli_ioivec4_class)                 \
+    action(NGL_NODE_IOUINT,                 ngli_iouint_class)                  \
+    action(NGL_NODE_IOUIVEC2,               ngli_iouivec2_class)                \
+    action(NGL_NODE_IOUIVEC3,               ngli_iouivec3_class)                \
+    action(NGL_NODE_IOUIVEC4,               ngli_iouivec4_class)                \
+    action(NGL_NODE_IOFLOAT,                ngli_iofloat_class)                 \
+    action(NGL_NODE_IOVEC2,                 ngli_iovec2_class)                  \
+    action(NGL_NODE_IOVEC3,                 ngli_iovec3_class)                  \
+    action(NGL_NODE_IOVEC4,                 ngli_iovec4_class)                  \
+    action(NGL_NODE_IOMAT3,                 ngli_iomat3_class)                  \
+    action(NGL_NODE_IOMAT4,                 ngli_iomat4_class)                  \
+    action(NGL_NODE_IOBOOL,                 ngli_iobool_class)                  \
     action(NGL_NODE_MEDIA,                  ngli_media_class)                   \
     action(NGL_NODE_PROGRAM,                ngli_program_class)                 \
     action(NGL_NODE_QUAD,                   ngli_quad_class)                    \

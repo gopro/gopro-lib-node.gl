@@ -59,6 +59,7 @@ conf_data.set10('TARGET_' + host_system.to_upper(), true)
 conf_data.set10('ARCH_' + cpu_family.to_upper(), true)
 conf_data.set10('CONFIG_SMALL', get_option('small'))
 conf_data.set10('DEBUG_GL', 'gl' in debug_opts)
+conf_data.set10('DEBUG_VK', 'vk' in debug_opts)
 conf_data.set10('DEBUG_MEM', 'mem' in debug_opts)
 conf_data.set10('DEBUG_SCENE', 'scene' in debug_opts)
 conf_data.set10('DEBUG_GPU_CAPTURE', 'gpu_capture' in debug_opts)
@@ -339,6 +340,35 @@ gbackends_cfg = {
       },
     },
   },
+  'vk': {
+    'src': files(
+      'backends/vk/buffer_vk.c',
+      'backends/vk/format_vk.c',
+      'backends/vk/gctx_vk.c',
+      'backends/vk/pipeline_vk.c',
+      'backends/vk/program_vk.c',
+      'backends/vk/texture_vk.c',
+      'backends/vk/rendertarget_vk.c',
+      'backends/vk/vkcontext.c',
+      'backends/vk/vkutils.c',
+    ),
+    'cfg': 'BACKEND_VK',
+    'hosts_cfg': {
+      'linux': {
+        'deps': ['shaderc', 'vulkan'],
+      },
+      'darwin': {
+      },
+      'android': {
+        'deps': ['shaderc'],
+      },
+      'iphone': {
+      },
+      'windows': {
+        'deps': ['shaderc'],
+      },
+    },
+  },
 }
 
 if host_system in ['darwin', 'iphone']
@@ -371,11 +401,19 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
       lib_src += files('backends/gl/hwupload_vaapi_gl.c')
     endif
 
-    lib_src += gbackend_cfg.get('src')
-    lib_src += host_backend_cfg.get('src')
+    if 'src' in gbackend_cfg
+      lib_src += gbackend_cfg.get('src')
+    endif
+    if 'src' in host_backend_cfg
+      lib_src += host_backend_cfg.get('src')
+    endif
     lib_deps += gbackend_deps
-    conf_data.set10(gbackend_cfg.get('cfg'), true)
-    conf_data.set10(host_backend_cfg.get('cfg'), true)
+    if 'cfg' in gbackend_cfg
+      conf_data.set10(gbackend_cfg.get('cfg'), true)
+    endif
+    if 'cfg' in host_backend_cfg
+      conf_data.set10(host_backend_cfg.get('cfg'), true)
+    endif
   endif
 endforeach
 
@@ -418,7 +456,7 @@ endif
 pkg.generate(
   libnodegl,
   name: 'libnodegl',  # not specifying the name would fallback on "nodegl.pc" instead of "libnodegl.pc"
-  description: 'Node/Graph based OpenGL engine',
+  description: 'Node/Graph based graphic engine',
   extra_cflags: pkg_extra_cflags,
   variables: ['datarootdir=${prefix}/share'],
 )

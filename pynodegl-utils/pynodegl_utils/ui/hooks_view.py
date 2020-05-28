@@ -46,6 +46,7 @@ class _SpawnView(QtWidgets.QGroupBox):
         backend_names = {
             'opengl': 'OpenGL',
             'opengles': 'OpenGL ES',
+            'vulkan': 'Vulkan',
         }
         all_backends = config.CHOICES['backend']
         default_backend = config.get('backend')

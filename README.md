@@ -1,7 +1,7 @@
 node.gl
 =======
 
-`node.gl` is a [GoPro][gopro] OpenGL engine for building and rendering
+`node.gl` is a [GoPro][gopro] OpenGL/Vulkan engine for building and rendering
 graph-based scenes. It is designed to run on both desktop (Linux, OSX, Windows)
 and mobile (Android, iOS).
 

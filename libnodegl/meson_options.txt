@@ -20,6 +20,7 @@
 #
 
 option('gbackend-gl', type: 'feature', value: 'auto')
+option('gbackend-vk', type: 'feature', value: 'auto')
 
 option('wayland', type: 'feature', value: 'auto',
        description: 'Wayland support')
@@ -36,5 +37,5 @@ option('tests', type: 'boolean', value: true)
 
 option('logtrace', type: 'boolean', value: false,
        description: 'log tracing (slow and verbose)')
-option('debug_opts', type: 'array', choices: ['gl', 'mem', 'scene'], value: [],
+option('debug_opts', type: 'array', choices: ['gl', 'vk', 'mem', 'scene'], value: [],
        description: 'debugging options for developers')

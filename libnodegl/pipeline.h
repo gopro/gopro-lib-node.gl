@@ -124,6 +124,10 @@ struct pipeline {
     int type;
     struct pipeline_graphics graphics;
     const struct program *program;
+
+    const struct block *ublock[NGLI_PROGRAM_SHADER_NB];
+    struct buffer *ubuffer[NGLI_PROGRAM_SHADER_NB];
+    uint8_t *udata[NGLI_PROGRAM_SHADER_NB];
 };
 
 struct pipeline *ngli_pipeline_create(struct gctx *gctx);

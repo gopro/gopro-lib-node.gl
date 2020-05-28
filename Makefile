@@ -107,6 +107,7 @@ ifneq ($(V),)
 MESON_COMPILE += -v
 endif
 NODEGL_DEBUG_OPTS-$(DEBUG_GL)    += gl
+NODEGL_DEBUG_OPTS-$(DEBUG_VK)    += vk
 NODEGL_DEBUG_OPTS-$(DEBUG_MEM)   += mem
 NODEGL_DEBUG_OPTS-$(DEBUG_SCENE) += scene
 ifneq ($(NODEGL_DEBUG_OPTS-yes),)

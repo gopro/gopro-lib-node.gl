@@ -227,7 +227,7 @@ static const char * const texture_info_suffixes[NGLI_INFO_FIELD_NB] = {
     [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = "_uv_rect_sampler",
 };
 
-static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
+static const int texture_types_map_gl[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D] = {
         [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
@@ -263,11 +263,36 @@ static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FI
     },
 };
 
+static const int texture_types_map_default[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE2D] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_IMAGE_2D,
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_3D,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC3,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_CUBE,
+    },
+};
+
 static int prepare_texture_info_fields(struct pgcraft *s, const struct pgcraft_params *params, int graphics,
                                         const struct pgcraft_texture *texture,
                                         struct pgcraft_texture_info *info)
 {
-    const int *types_map = texture_types_map[texture->type];
+    const struct ngl_config *config = &s->ctx->config;
+    const int *types_map = config->backend == NGL_BACKEND_OPENGL ||
+                           config->backend == NGL_BACKEND_OPENGLES ? texture_types_map_gl[texture->type]
+                                                                   : texture_types_map_default[texture->type];
 
     for (int i = 0; i < NGLI_INFO_FIELD_NB; i++) {
         struct pgcraft_texture_info_field *field = &info->fields[i];
@@ -733,6 +758,9 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
         p++;
 
         ngli_bstr_print(dst, "(");
+
+        const struct ngl_config *config = &s->ctx->config;
+        if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES) {
 #if defined(TARGET_ANDROID)
         if (!fast_picking)
             ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
@@ -762,6 +790,10 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
 #else
         ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #endif
+        } else {
+            // TODO
+            ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+        }
         ngli_bstr_print(dst, ")");
         ngli_bstr_print(dst, p);
     } else {
@@ -1139,6 +1171,7 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_in_out_layout_qualifiers = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(410);
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
+    s->use_ublock                   = 0;
 
     s->has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420) ||
                                (gctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
@@ -1163,6 +1196,24 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     }
 }
 
+static void setup_glsl_info_vk(struct pgcraft *s)
+{
+    s->glsl_version = 450;
+
+    s->sym_vertex_index   = "gl_VertexIndex";
+    s->sym_instance_index = "gl_InstanceIndex";
+
+    s->has_in_out_qualifiers        = 1;
+    s->has_in_out_layout_qualifiers = 1;
+    s->has_precision_qualifiers     = 0;
+    s->has_modern_texture_picking   = 1;
+    s->use_ublock                   = 1;
+
+    /* Bindings are shared across stages and types */
+    for (int i = 0; i < NB_BINDINGS; i++)
+        s->next_bindings[i] = &s->bindings[0];
+}
+
 static void setup_glsl_info(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
@@ -1173,6 +1224,8 @@ static void setup_glsl_info(struct pgcraft *s)
 
     if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES)
         setup_glsl_info_gl(s);
+    else if (config->backend == NGL_BACKEND_VULKAN)
+        setup_glsl_info_vk(s);
     else
         ngli_assert(0);
 }

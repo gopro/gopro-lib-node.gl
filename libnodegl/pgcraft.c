@@ -207,7 +207,7 @@ static const char * const texture_info_suffixes[NGLI_INFO_FIELD_NB] = {
     [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = "_uv_rect_sampler",
 };
 
-static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
+static const int texture_types_map_gl[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D] = {
         [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
@@ -243,11 +243,42 @@ static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FI
     },
 };
 
+static const int texture_types_map_default[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+#if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
+        [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
+        [NGLI_INFO_FIELD_Y_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_UV_SAMPLER]        = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_COLOR_MATRIX]      = NGLI_TYPE_MAT4,
+#endif
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE2D] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_IMAGE_2D,
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_3D,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC3,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE] = {
+        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_CUBE,
+    },
+};
+
 static int prepare_texture_info_fields(struct pgcraft *s, const struct pgcraft_params *params, int graphics,
                                         const struct pgcraft_texture *texture,
                                         struct pgcraft_texture_info *info)
 {
-    const int *types_map = texture_types_map[texture->type];
+    const struct ngl_config *config = &s->ctx->config;
+    const int *types_map = config->backend == NGL_BACKEND_OPENGL ||
+                           config->backend == NGL_BACKEND_OPENGLES ? texture_types_map_gl[texture->type]
+                                                                   : texture_types_map_default[texture->type];
 
     for (int i = 0; i < NGLI_INFO_FIELD_NB; i++) {
         struct pgcraft_texture_info_field *field = &info->fields[i];
@@ -439,6 +470,12 @@ static int inject_attribute(struct pgcraft *s, struct bstr *b,
 
     int base_location = -1;
     const int attribute_count = attribute->type == NGLI_TYPE_MAT4 ? 4 : 1;
+    if (s->next_in_location) {
+        base_location = s->next_in_location[stage];
+        s->next_in_location[stage] += attribute_count;
+        ngli_bstr_printf(b, "layout(location=%d) ", base_location);
+    }
+
     const char *qualifier = s->has_in_out_qualifiers ? "in" : "attribute";
     const char *precision = get_precision_qualifier(s, attribute->precision, "highp");
     ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, attribute->name);
@@ -625,6 +662,9 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
         p++;
 
         ngli_bstr_print(dst, "(");
+
+        const struct ngl_config *config = &s->ctx->config;
+        if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES) {
 #if defined(TARGET_ANDROID)
         if (!fast_picking)
             ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
@@ -654,6 +694,22 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
 #else
         ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #endif
+        } else {
+#if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
+        if (!fast_picking)
+            ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler,  %.*s).r, "
+                                                       "ngl_tex2d(%.*s_uv_sampler, %.*s).%s, 1.0)",
+                         ARG_FMT(arg0),
+                         ARG_FMT(arg0), ARG_FMT(coords),
+                         ARG_FMT(arg0), ARG_FMT(coords), s->rg);
+        if (!fast_picking)
+            ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+#else
+            // TODO
+            ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+#endif
+        }
         ngli_bstr_print(dst, ")");
         ngli_bstr_print(dst, p);
     } else {
@@ -803,6 +859,10 @@ static int craft_frag(struct pgcraft *s, const struct pgcraft_params *params)
                            "#define highp\n");
 
     if (s->has_in_out_qualifiers) {
+        if (s->next_out_location) {
+            const int out_location = s->next_out_location[NGLI_PROGRAM_SHADER_FRAG]++;
+            ngli_bstr_printf(b, "layout(location=%d) ", out_location);
+        }
         if (params->nb_frag_output)
             ngli_bstr_printf(b, "out vec4 ngl_out_color[%d];\n", params->nb_frag_output);
         else
@@ -1025,6 +1085,11 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_in_out_layout_qualifiers = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(410);
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
+    s->use_ublock                   = 0;
+
+    // XXX: should we add in/out location for gl when available?
+    s->next_in_location  = NULL;
+    s->next_out_location = NULL;
 
     const int has_buffer_bindings = IS_GL_ES_MIN(310) || IS_GL_MIN(420);
     if (has_buffer_bindings) {
@@ -1048,6 +1113,27 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     }
 }
 
+static void setup_glsl_info_vk(struct pgcraft *s)
+{
+    s->glsl_version = 450;
+
+    s->sym_vertex_index   = "gl_VertexIndex";
+    s->sym_instance_index = "gl_InstanceIndex";
+
+    s->has_in_out_qualifiers        = 1;
+    s->has_in_out_layout_qualifiers = 1;
+    s->has_precision_qualifiers     = 0;
+    s->has_modern_texture_picking   = 1;
+    s->use_ublock                   = 1;
+
+    s->next_in_location  = s->in_locations;
+    s->next_out_location = s->out_locations;
+
+    /* Bindings are shared across stages and types */
+    for (int i = 0; i < NB_BINDINGS; i++)
+        s->next_bindings[i] = &s->bindings[0];
+}
+
 static void setup_glsl_info(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
@@ -1058,6 +1144,8 @@ static void setup_glsl_info(struct pgcraft *s)
 
     if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES)
         setup_glsl_info_gl(s);
+    else if (config->backend == NGL_BACKEND_VULKAN)
+        setup_glsl_info_vk(s);
     else
         ngli_assert(0);
 }

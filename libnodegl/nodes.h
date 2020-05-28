@@ -313,6 +313,7 @@ struct media_priv {
     struct sxplayer_frame *frame;
 
 #if defined(TARGET_ANDROID)
+    /* FIXME: disable GL */
     struct texture *android_texture;
     struct android_surface *android_surface;
     struct android_handlerthread *android_handlerthread;

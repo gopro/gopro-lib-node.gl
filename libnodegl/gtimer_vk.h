@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 GoPro Inc.
+ * Copyright 2020 GoPro Inc.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,38 +19,26 @@
  * under the License.
  */
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#ifndef GTIMER_VK_H
+#define GTIMER_VK_H
 
-#include "hmap.h"
+#include <vulkan/vulkan.h>
+#include "gtimer.h"
 
 struct gctx;
 
-#define MAX_ID_LEN 128
-
-struct program_variable_info {
-    int binding;
-    int location;
-    int stages;
-    int access;
+struct gtimer_vk {
+    struct gtimer parent;
+    //VkCommandPool command_pool;
+    VkQueryPool query_pool;
+    uint64_t results[2];
 };
 
-enum {
-    NGLI_PROGRAM_SHADER_VERT,
-    NGLI_PROGRAM_SHADER_FRAG,
-    NGLI_PROGRAM_SHADER_COMP,
-    NGLI_PROGRAM_SHADER_NB
-};
-
-struct program {
-    struct gctx *gctx;
-    struct hmap *uniforms;
-    struct hmap *attributes;
-    struct hmap *buffer_blocks;
-};
-
-struct program *ngli_program_create(struct gctx *gctx);
-int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
-void ngli_program_freep(struct program **sp);
+struct gtimer *ngli_gtimer_vk_create(struct gctx *gctx);
+int ngli_gtimer_vk_init(struct gtimer *s);
+int ngli_gtimer_vk_start(struct gtimer *s);
+int ngli_gtimer_vk_stop(struct gtimer *s);
+int64_t ngli_gtimer_vk_read(struct gtimer *s);
+void ngli_gtimer_vk_freep(struct gtimer **sp);
 
 #endif

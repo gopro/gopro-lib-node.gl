@@ -19,38 +19,28 @@
  * under the License.
  */
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#ifndef PROGRAM_VK_H
+#define PROGRAM_VK_H
 
-#include "hmap.h"
+#include <shaderc/shaderc.h>
+#include <vulkan/vulkan.h>
+
+#include "program.h"
 
 struct gctx;
 
-#define MAX_ID_LEN 128
-
-struct program_variable_info {
-    int binding;
-    int location;
-    int stages;
-    int access;
+struct program_shader {
+    VkShaderModule vkmodule;
+    shaderc_compilation_result_t result;
 };
 
-enum {
-    NGLI_PROGRAM_SHADER_VERT,
-    NGLI_PROGRAM_SHADER_FRAG,
-    NGLI_PROGRAM_SHADER_COMP,
-    NGLI_PROGRAM_SHADER_NB
+struct program_vk {
+    struct program parent;
+    struct program_shader shaders[NGLI_PROGRAM_SHADER_NB];
 };
 
-struct program {
-    struct gctx *gctx;
-    struct hmap *uniforms;
-    struct hmap *attributes;
-    struct hmap *buffer_blocks;
-};
-
-struct program *ngli_program_create(struct gctx *gctx);
-int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
-void ngli_program_freep(struct program **sp);
+struct program *ngli_program_vk_create(struct gctx *gctx);
+int ngli_program_vk_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
+void ngli_program_vk_freep(struct program **sp);
 
 #endif

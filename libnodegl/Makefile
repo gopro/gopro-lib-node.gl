@@ -25,6 +25,7 @@ DEBUG_GL ?= no
 LOGTRACE ?= no
 
 BACKEND_GL ?= yes
+BACKEND_VK ?= yes
 
 ifeq ($(DEBUG_GL),yes)
 	PROJECT_CFLAGS += -DDEBUG_GL
@@ -196,6 +197,28 @@ LIB_EXTRA_LDLIBS_Darwin         += -framework OpenGL
 LIB_EXTRA_LDLIBS_Android        += -legl
 LIB_EXTRA_LDLIBS_MinGW-w64      += -lopengl32 -lgdi32
 LIB_EXTRA_PKG_CONFIG_LIBS_Linux += gl egl
+endif
+
+ifeq ($(BACKEND_VK),yes)
+LIB_OBJS_VK += buffer_vk.o          \
+               format_vk.o          \
+               gctx_vk.o            \
+               gtimer_vk.o          \
+               pipeline_vk.o        \
+               program_vk.o         \
+               texture_vk.o         \
+               topology_vk.o        \
+               rendertarget_vk.o    \
+               vkcontext.o          \
+               vkutils.o            \
+
+LIB_OBJS                        += $(LIB_OBJS_VK)
+LIB_CFLAGS                      += -DBACKEND_VK
+LIB_EXTRA_OBJS_Darwin           += hwupload_videotoolbox_darwin_vk.o
+LIB_EXTRA_LDLIBS_Darwin         += -lMoltenVK -framework Metal
+LIB_EXTRA_LDLIBS_iPhone         += -lMoltenVK -framework Metal
+LIB_PKG_CONFIG_LIBS             += shaderc
+LIB_EXTRA_PKG_CONFIG_LIBS_Linux += vulkan
 endif
 
 WAYLAND_PKG_CONFIG_LIBS = "wayland-client wayland-egl"

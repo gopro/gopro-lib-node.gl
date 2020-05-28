@@ -19,38 +19,26 @@
  * under the License.
  */
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#ifndef BUFFER_VK_H
+#define BUFFER_VK_H
 
-#include "hmap.h"
+#include <vulkan/vulkan.h>
+#include "buffer.h"
+
+struct buffer_vk {
+    struct buffer parent;
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+};
 
 struct gctx;
 
-#define MAX_ID_LEN 128
-
-struct program_variable_info {
-    int binding;
-    int location;
-    int stages;
-    int access;
-};
-
-enum {
-    NGLI_PROGRAM_SHADER_VERT,
-    NGLI_PROGRAM_SHADER_FRAG,
-    NGLI_PROGRAM_SHADER_COMP,
-    NGLI_PROGRAM_SHADER_NB
-};
-
-struct program {
-    struct gctx *gctx;
-    struct hmap *uniforms;
-    struct hmap *attributes;
-    struct hmap *buffer_blocks;
-};
-
-struct program *ngli_program_create(struct gctx *gctx);
-int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
-void ngli_program_freep(struct program **sp);
+struct buffer *ngli_buffer_vk_create(struct gctx *gctx);
+int ngli_buffer_vk_init(struct buffer *s, int size, int usage);
+int ngli_buffer_vk_upload(struct buffer *s, const void *data, int size);
+int ngli_buffer_vk_download(struct buffer *s, void *data, uint32_t size, uint32_t offset);
+int ngli_buffer_vk_map(struct buffer *s, int size, uint32_t offset, void **data);
+void ngli_buffer_vk_unmap(struct buffer *s);
+void ngli_buffer_vk_freep(struct buffer **sp);
 
 #endif

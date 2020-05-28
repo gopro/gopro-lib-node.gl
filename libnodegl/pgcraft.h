@@ -187,6 +187,8 @@ struct pgcraft {
     int has_in_out_layout_qualifiers;
     int has_precision_qualifiers;
     int has_modern_texture_picking;
+    int *next_in_location;  // 1st stage only
+    int *next_out_location; // last stage only
     const char * const *required_tex_exts;
 };
 

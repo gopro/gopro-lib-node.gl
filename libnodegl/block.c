@@ -47,6 +47,7 @@ static const int strides_map[NGLI_BLOCK_NB_LAYOUTS][NGLI_TYPE_NB] = {
         [NGLI_TYPE_VEC2]   = sizeof(float) * 4,
         [NGLI_TYPE_VEC3]   = sizeof(float) * 4,
         [NGLI_TYPE_VEC4]   = sizeof(float) * 4,
+        [NGLI_TYPE_MAT3]   = sizeof(float) * 4 * 3, // XXX check
         [NGLI_TYPE_MAT4]   = sizeof(float) * 4 * 4,
     },
     [NGLI_BLOCK_LAYOUT_STD430] = {
@@ -62,6 +63,7 @@ static const int strides_map[NGLI_BLOCK_NB_LAYOUTS][NGLI_TYPE_NB] = {
         [NGLI_TYPE_VEC2]   = sizeof(float) * 2,
         [NGLI_TYPE_VEC3]   = sizeof(float) * 4,
         [NGLI_TYPE_VEC4]   = sizeof(float) * 4,
+        [NGLI_TYPE_MAT3]   = sizeof(float) * 4 * 3, // XXX check
         [NGLI_TYPE_MAT4]   = sizeof(float) * 4 * 4,
     },
 };
@@ -79,6 +81,7 @@ static const int sizes_map[NGLI_TYPE_NB] = {
     [NGLI_TYPE_VEC2]   = sizeof(float) * 2,
     [NGLI_TYPE_VEC3]   = sizeof(float) * 3,
     [NGLI_TYPE_VEC4]   = sizeof(float) * 4,
+    [NGLI_TYPE_MAT3]   = sizeof(float) * 4 * 3, // XXX check
     [NGLI_TYPE_MAT4]   = sizeof(float) * 4 * 4,
 };
 
@@ -95,6 +98,7 @@ static const int aligns_map[NGLI_TYPE_NB] = {
     [NGLI_TYPE_VEC2]   = sizeof(float) * 2,
     [NGLI_TYPE_VEC3]   = sizeof(float) * 4,
     [NGLI_TYPE_VEC4]   = sizeof(float) * 4,
+    [NGLI_TYPE_MAT3]   = sizeof(float) * 4, // XXX check
     [NGLI_TYPE_MAT4]   = sizeof(float) * 4,
 };
 
@@ -117,7 +121,7 @@ static int get_field_size(const struct block_field *field, int layout)
 
 static int get_field_align(const struct block_field *field, int layout)
 {
-    if (field->count && field->type != NGLI_TYPE_MAT4)
+    if (field->count && field->type != NGLI_TYPE_MAT3 && field->type != NGLI_TYPE_MAT4)
         return get_buffer_stride(field, layout);
     return aligns_map[field->type];
 }
@@ -155,7 +159,13 @@ int ngli_block_add_field(struct block *s, const char *name, int type, int count)
 void ngli_block_datacopy(const struct block_field *fi, uint8_t *dst, const uint8_t *src)
 {
     const int src_stride = sizes_map[fi->type];
-    if (fi->count == 0 || src_stride == fi->stride) {
+    if (fi->type == NGLI_TYPE_MAT3) {
+        ngli_assert(fi->count == 0);
+        const int dst_vec_stride = fi->stride / 3;
+        const int src_vec_stride = sizes_map[NGLI_TYPE_VEC3];
+        for (int i = 0; i < 3; i++)
+            memcpy(dst + i * dst_vec_stride, src + i * src_vec_stride, src_vec_stride);
+    } else if (fi->count == 0 || src_stride == fi->stride) {
         memcpy(dst, src, fi->size);
     } else {
         for (int i = 0; i < fi->count; i++)

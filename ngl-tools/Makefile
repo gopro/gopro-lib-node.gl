@@ -41,6 +41,12 @@ ifeq ($(TARGET_OS),MinGW-w64)
 NETWORK_LDLIBS += -lws2_32
 endif
 
+# Vulkan
+ifeq ($(BACKEND),vk)
+TOOLS_CFLAGS += $(shell $(PKG_CONFIG) --cflags vulkan)
+TOOLS_LDLIBS += $(shell $(PKG_CONFIG) --libs   vulkan)
+endif
+
 # Warning: while all 3 "python{,2,3}-config" should work as expected,
 # "pkg-config --exists python" never will, so an explicit version is needed.
 HAS_PYTHON := $(if $(shell pkg-config --exists python$(PYTHON_MAJOR) && echo 1),yes,no)

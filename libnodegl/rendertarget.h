@@ -49,9 +49,11 @@ struct attachment {
 struct rendertarget_params {
     int width;
     int height;
+    int samples;
     int nb_colors;
     struct attachment colors[NGLI_MAX_COLOR_ATTACHMENTS];
     struct attachment depth_stencil;
+    int readable;
 };
 
 struct rendertarget {

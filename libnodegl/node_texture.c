@@ -395,7 +395,11 @@ static int texture_update(struct ngl_node *node, double t)
 
 static void texture_release(struct ngl_node *node)
 {
+    struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct texture_priv *s = node->priv_data;
+
+    ngli_gctx_wait_idle(gctx);
 
     ngli_hwupload_uninit(node);
     ngli_texture_freep(&s->texture);

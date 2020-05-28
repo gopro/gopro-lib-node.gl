@@ -69,11 +69,13 @@ NGLI_STATIC_ASSERT(texture_access, (NGLI_ACCESS_READ_BIT | NGLI_ACCESS_WRITE_BIT
 }
 
 #define NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY (1 << 0)
+#define NGLI_TEXTURE_USAGE_STAGING_ONLY    (1 << 1)
 
 enum texture_type {
     NGLI_TEXTURE_TYPE_2D,
     NGLI_TEXTURE_TYPE_3D,
     NGLI_TEXTURE_TYPE_CUBE,
+    NGLI_TEXTURE_TYPE_NB,
 };
 
 struct texture_params {
@@ -95,6 +97,7 @@ struct texture_params {
     int external_storage;
     int external_oes;
     int rectangle;
+    int staging;
 };
 
 struct texture {

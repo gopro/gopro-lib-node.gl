@@ -93,6 +93,7 @@ static int opt_backend(const char *arg, void *dst)
         {"auto",     NGL_BACKEND_AUTO},
         {"opengl",   NGL_BACKEND_OPENGL},
         {"opengles", NGL_BACKEND_OPENGLES},
+        {"vulkan",   NGL_BACKEND_VULKAN},
     };
     const int backend = s2i(backend_map, ARRAY_NB(backend_map), arg);
     if (backend < 0) {

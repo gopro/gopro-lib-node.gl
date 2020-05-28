@@ -29,11 +29,15 @@
 
 extern const struct gctx_class ngli_gctx_gl;
 extern const struct gctx_class ngli_gctx_gles;
+extern const struct gctx_class ngli_gctx_vk;
 
 static const struct gctx_class *backend_map[] = {
 #ifdef BACKEND_GL
     [NGL_BACKEND_OPENGL]   = &ngli_gctx_gl,
     [NGL_BACKEND_OPENGLES] = &ngli_gctx_gles,
+#endif
+#ifdef BACKEND_VK
+    [NGL_BACKEND_VULKAN] = &ngli_gctx_vk,
 #endif
 };
 
@@ -84,6 +88,11 @@ end:;
         return end_ret;
 
     return ret;
+}
+
+void ngli_gctx_wait_idle(struct gctx *s)
+{
+    s->class->wait_idle(s);
 }
 
 void ngli_gctx_freep(struct gctx **sp)

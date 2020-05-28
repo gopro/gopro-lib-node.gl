@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 GoPro Inc.
+ * Copyright 2019 GoPro Inc.
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,38 +19,18 @@
  * under the License.
  */
 
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#include <vulkan/vulkan.h>
+#include "topology_vk.h"
 
-#include "hmap.h"
-
-struct gctx;
-
-#define MAX_ID_LEN 128
-
-struct program_variable_info {
-    int binding;
-    int location;
-    int stages;
-    int access;
+static const VkPrimitiveTopology vk_primitive_topology_map[NGLI_PRIMITIVE_TOPOLOGY_NB] = {
+    [NGLI_PRIMITIVE_TOPOLOGY_POINT_LIST]     = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+    [NGLI_PRIMITIVE_TOPOLOGY_LINE_LIST]      = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+    [NGLI_PRIMITIVE_TOPOLOGY_LINE_STRIP]     = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
+    [NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST]  = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+    [NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP] = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
 };
 
-enum {
-    NGLI_PROGRAM_SHADER_VERT,
-    NGLI_PROGRAM_SHADER_FRAG,
-    NGLI_PROGRAM_SHADER_COMP,
-    NGLI_PROGRAM_SHADER_NB
-};
-
-struct program {
-    struct gctx *gctx;
-    struct hmap *uniforms;
-    struct hmap *attributes;
-    struct hmap *buffer_blocks;
-};
-
-struct program *ngli_program_create(struct gctx *gctx);
-int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
-void ngli_program_freep(struct program **sp);
-
-#endif
+VkPrimitiveTopology ngli_topology_get_vk_topology(int topology)
+{
+    return vk_primitive_topology_map[topology];
+}

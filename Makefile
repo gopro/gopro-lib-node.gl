@@ -24,6 +24,8 @@ PREFIX ?= $(PWD)/nodegl-env
 include common.mak
 
 SXPLAYER_VERSION ?= 9.5.1
+MOLTENVK_VERSION ?= 1.0.44
+SHADERC_VERSION  ?= 2020.1
 
 # Prevent headers from being rewritten, which would cause unecessary
 # recompilations between `make` calls.
@@ -102,6 +104,39 @@ sxplayer-$(SXPLAYER_VERSION): sxplayer-$(SXPLAYER_VERSION).tar.gz
 sxplayer-$(SXPLAYER_VERSION).tar.gz:
 	$(CURL) -L https://github.com/Stupeflix/sxplayer/archive/v$(SXPLAYER_VERSION).tar.gz -o $@
 
+shaderc-install: SHADERC_LIB_FILENAME = libshaderc_shared.1.dylib
+shaderc-install: shaderc-$(SHADERC_VERSION) $(PREFIX)
+	(cd $< && ./utils/git-sync-deps)
+	cmake -B $</build -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) $<
+	ninja -C $</build install
+	# XXX: mac only, test on linux without this; also maybe a cmake option
+	install_name_tool -id @rpath/$(SHADERC_LIB_FILENAME) $(PREFIX)/lib/$(SHADERC_LIB_FILENAME)
+
+shaderc-$(SHADERC_VERSION): shaderc-$(SHADERC_VERSION).tar.gz
+	$(TAR) xf $<
+
+shaderc-$(SHADERC_VERSION).tar.gz:
+	$(CURL) -L https://github.com/google/shaderc/archive/v$(SHADERC_VERSION).tar.gz -o $@
+
+# Note: somehow xcodebuild sets name @rpath/libMoltenVK.dylib automatically
+# (according to otool -l) so we don't have to do anything special
+MoltenVK-install: MoltenVK $(PREFIX)
+	(cd $< && ./fetchDependencies -v --macos --no-parallel-build)
+	$(MAKE) -C $< macos
+	$(INSTALL) -d $(PREFIX)/include
+	$(INSTALL) -d $(PREFIX)/lib
+	cp -v $</Package/Latest/MoltenVK/macOS/dynamic/libMoltenVK.dylib $(PREFIX)/lib
+	cp -vr $</Package/Latest/MoltenVK/include $(PREFIX)
+
+MoltenVK: MoltenVK-$(MOLTENVK_VERSION)
+	ln -snf $< $@
+
+MoltenVK-$(MOLTENVK_VERSION): MoltenVK-$(MOLTENVK_VERSION).tar.gz
+	$(TAR) xf $<
+
+MoltenVK-$(MOLTENVK_VERSION).tar.gz:
+	$(CURL) -L https://github.com/KhronosGroup/MoltenVK/archive/v$(MOLTENVK_VERSION).tar.gz -o $@
+
 $(PREFIX):
 	$(PYTHON) -m venv $(PREFIX)
 
@@ -141,6 +176,8 @@ coverage:
 .PHONY: pynodegl-install pynodegl-deps-install
 .PHONY: nodegl-install
 .PHONY: sxplayer-install
+.PHONY: shaderc-install
+.PHONY: MoltenVK-install
 .PHONY: tests
 .PHONY: clean clean_gcx clean_py
 .PHONY: coverage

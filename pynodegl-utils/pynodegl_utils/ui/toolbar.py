@@ -118,6 +118,7 @@ class Toolbar(QtWidgets.QWidget):
         backend_names = {
             'gl': 'OpenGL',
             'gles': 'OpenGL ES',
+            'vk': 'Vulkan',
         }
         all_backends = config.CHOICES['backend']
         default_backend = config.get('backend')

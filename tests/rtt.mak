@@ -25,7 +25,9 @@ RTT_TEST_NAMES =                         \
     mipmap                               \
     texture_depth_d16_unorm              \
     texture_depth_d24_unorm              \
+    texture_depth_d32_sfloat             \
     texture_depth_d24_unorm_s8_uint      \
+    texture_depth_d32_sfloat_s8_uint     \
 
 ifneq ($(DISABLE_TESTS_SAMPLES),yes)
 RTT_TEST_NAMES +=                        \
@@ -33,7 +35,9 @@ RTT_TEST_NAMES +=                        \
     feature_depth_stencil_msaa           \
     texture_depth_d16_unorm_msaa         \
     texture_depth_d24_unorm_msaa         \
+    texture_depth_d32_sfloat_msaa        \
     texture_depth_d24_unorm_s8_uint_msaa \
+    texture_depth_d32_sfloat_s8_uint_msaa\
 
 endif
 

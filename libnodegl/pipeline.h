@@ -53,6 +53,7 @@ struct pipeline_texture_desc {
     int location;
     int binding;
     int access;
+    int stage;
 };
 
 struct pipeline_buffer_desc {
@@ -60,6 +61,7 @@ struct pipeline_buffer_desc {
     int type;
     int binding;
     int access;
+    int stage;
 };
 
 struct pipeline_attribute_desc {

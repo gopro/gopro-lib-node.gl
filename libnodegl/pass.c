@@ -54,7 +54,7 @@ struct pipeline_desc {
     struct darray texture_infos;
 };
 
-static int register_uniform(struct pass *s, const char *name, struct ngl_node *uniform)
+static int register_uniform(struct pass *s, const char *name, struct ngl_node *uniform, int stage)
 {
     if (!uniform)
         return 0;
@@ -172,7 +172,7 @@ static int is_sampler_or_image(int type)
     }
 }
 
-static int register_texture(struct pass *s, const char *name, struct ngl_node *texture)
+static int register_texture(struct pass *s, const char *name, struct ngl_node *texture, int stage)
 {
     if (!texture)
         return 0;
@@ -265,7 +265,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     return 0;
 }
 
-static int register_block(struct pass *s, const char *name, struct ngl_node *block)
+static int register_block(struct pass *s, const char *name, struct ngl_node *block, int stage)
 {
     if (!block)
         return 0;
@@ -411,26 +411,26 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
     return 0;
 }
 
-static int register_resource(struct pass *s, const char *name, struct ngl_node *node)
+static int register_resource(struct pass *s, const char *name, struct ngl_node *node, int stage)
 {
     switch (node->class->category) {
     case NGLI_NODE_CATEGORY_UNIFORM:
-    case NGLI_NODE_CATEGORY_BUFFER:  return register_uniform(s, name, node);
-    case NGLI_NODE_CATEGORY_TEXTURE: return register_texture(s, name, node);
-    case NGLI_NODE_CATEGORY_BLOCK:   return register_block(s, name, node);
+    case NGLI_NODE_CATEGORY_BUFFER:  return register_uniform(s, name, node, stage);
+    case NGLI_NODE_CATEGORY_TEXTURE: return register_texture(s, name, node, stage);
+    case NGLI_NODE_CATEGORY_BLOCK:   return register_block(s, name, node, stage);
     default:
         ngli_assert(0);
     }
 }
 
-static int register_resources(struct pass *s, const struct hmap *resources)
+static int register_resources(struct pass *s, const struct hmap *resources, int stage)
 {
     if (!resources)
         return 0;
 
     const struct hmap_entry *entry = NULL;
     while ((entry = ngli_hmap_next(resources, entry))) {
-        int ret = register_resource(s, entry->key, entry->data);
+        int ret = register_resource(s, entry->key, entry->data, stage);
         if (ret < 0)
             return ret;
     }
@@ -475,8 +475,8 @@ static int pass_graphics_init(struct pass *s)
 
     int ret;
 
-    if ((ret = register_resources(s, params->vert_resources)) < 0 ||
-        (ret = register_resources(s, params->frag_resources)) < 0)
+    if ((ret = register_resources(s, params->vert_resources, NGLI_PROGRAM_SHADER_VERT)) < 0 ||
+        (ret = register_resources(s, params->frag_resources, NGLI_PROGRAM_SHADER_FRAG)) < 0)
         return ret;
 
     if ((ret = check_attributes(s, params->attributes, 0)) < 0 ||
@@ -513,7 +513,7 @@ static int pass_compute_init(struct pass *s)
 {
     const struct pass_params *params = &s->params;
 
-    int ret = register_resources(s, params->compute_resources);
+    int ret = register_resources(s, params->compute_resources, NGLI_PROGRAM_SHADER_COMP);
     if (ret < 0)
         return ret;
 

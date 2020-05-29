@@ -119,7 +119,7 @@ using names derived from their respective dict parameters keys.
 For example, the following scene script:
 
 ```python
-    histogram_block = Block(fields=[UniformFloat(), BufferVec4(256)])
+    histogram_block = Block(fields=[UniformFloat(label='maximum'), BufferVec4(256, label='data')])
     render = Render(geometry)
     render.update_frag_resources(histogram=histogram_block)
 ```

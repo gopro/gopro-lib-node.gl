@@ -299,7 +299,7 @@ def _get_data_streamed_buffer_vec4_scene(cfg, scale, show_dbg_points):
 
     pts_buffer = ngl.BufferInt64(data=pts_data)
     vec4_buffer = ngl.BufferVec4(data=vec4_data)
-    streamed_buffer = ngl.StreamedBufferVec4(data_size, pts_buffer, vec4_buffer, time_anim=time_anim)
+    streamed_buffer = ngl.StreamedBufferVec4(data_size, pts_buffer, vec4_buffer, time_anim=time_anim, label='data')
     streamed_block = ngl.Block(layout='std140', label='streamed_block', fields=(streamed_buffer,))
 
     shader_version = '300 es' if cfg.backend == 'gles' else '330'

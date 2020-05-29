@@ -384,7 +384,7 @@ def get_random_block_info(spec, seed=0, layout=LAYOUTS[0], color_tint=True):
         fields_info.append(field_info)
 
     shuf_fields = [fields_info[pos] for pos in fields_pos]
-    color_fields = [(f['name'], ngl.UniformVec3(f['color'])) for f in fields_info]
+    color_fields = [(f['name'], ngl.UniformVec3(f['color'], label=f['name'])) for f in fields_info]
     block_fields = [(f['name'], f['node']) for f in shuf_fields]
     if layout == 'uniform':
         color_fields = dict(color_fields)

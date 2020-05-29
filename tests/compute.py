@@ -126,12 +126,12 @@ def compute_particules(cfg):
 
     ipositions = ngl.Block(
         fields=[
-            ngl.BufferVec3(data=positions),
-            ngl.BufferVec2(data=velocities),
+            ngl.BufferVec3(data=positions, label='positions'),
+            ngl.BufferVec2(data=velocities, label='velocities'),
         ],
         layout='std430',
     )
-    opositions = ngl.Block(fields=[ngl.BufferVec3(count=nb_particules)], layout='std430')
+    opositions = ngl.Block(fields=[ngl.BufferVec3(count=nb_particules, label='positions')], layout='std430')
 
     animkf = [
         ngl.AnimKeyFrameFloat(0, 0),
@@ -282,10 +282,10 @@ def compute_histogram(cfg, show_dbg_points=False):
 
     histogram_block = ngl.Block(layout='std430', label='histogram')
     histogram_block.add_fields(
-        ngl.BufferUInt(hsize),
-        ngl.BufferUInt(hsize),
-        ngl.BufferUInt(hsize),
-        ngl.UniformUIVec3(),
+        ngl.BufferUInt(hsize, label='r'),
+        ngl.BufferUInt(hsize, label='g'),
+        ngl.BufferUInt(hsize, label='b'),
+        ngl.UniformUIVec3(label='max'),
     )
 
     shader_version = '310 es' if cfg.backend == 'gles' else '430'
@@ -407,8 +407,8 @@ def compute_animation(cfg):
     ])
     nb_vertices = 4
 
-    input_vertices = ngl.BufferVec3(data=vertices_data)
-    output_vertices = ngl.BufferVec3(data=vertices_data)
+    input_vertices = ngl.BufferVec3(data=vertices_data, label='vertices')
+    output_vertices = ngl.BufferVec3(data=vertices_data, label='vertices')
     input_block = ngl.Block(fields=[input_vertices], layout='std140')
     output_block = ngl.Block(fields=[output_vertices], layout='std430')
 

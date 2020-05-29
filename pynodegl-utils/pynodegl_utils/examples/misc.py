@@ -262,9 +262,9 @@ def particules(cfg, particules=32):
             random.uniform(-0.05, 0.05),
         ])
 
-    ipositions = ngl.Block(fields=[ngl.BufferVec3(data=positions)], layout='std430')
-    ivelocities = ngl.Block(fields=[ngl.BufferVec2(data=velocities)], layout='std430')
-    opositions = ngl.Block(fields=[ngl.BufferVec3(count=p)], layout='std430')
+    ipositions = ngl.Block(fields=[ngl.BufferVec3(data=positions, label='data')], layout='std430')
+    ivelocities = ngl.Block(fields=[ngl.BufferVec2(data=velocities, label='data')], layout='std430')
+    opositions = ngl.Block(fields=[ngl.BufferVec3(count=p, label='data')], layout='std430')
 
     animkf = [ngl.AnimKeyFrameFloat(0, 0),
               ngl.AnimKeyFrameFloat(cfg.duration, 1)]

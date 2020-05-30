@@ -51,7 +51,7 @@ Following are how-to guides on various specific usages:
 - [How the Python binding is created][expl-pynodegl]
 - [What happens in a draw call?][expl-draw-call]
 - [Technical choices][expl-techchoices]
-- [Fragment and vertex shader parameters][expl-shaders]
+- [Shaders][expl-shaders]
 - [Media (video) time remapping][expl-time-remap]
 - [The maths behind the YCbCr to RGBA color matrix][expl-colormatrix]
 

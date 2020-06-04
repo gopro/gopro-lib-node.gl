@@ -31,6 +31,8 @@ void *ngli_malloc_aligned(size_t size);
 void *ngli_realloc(void *ptr, size_t size);
 
 void ngli_free(void *ptr);
+void ngli_freep(void *ptr);
 void ngli_free_aligned(void *ptr);
+void ngli_freep_aligned(void *ptr);
 
 #endif

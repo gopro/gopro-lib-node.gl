@@ -65,7 +65,6 @@ static int init_hwconv(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct texture_priv *s = node->priv_data;
-    struct texture *texture = &s->texture;
     struct image *image = &s->image;
     struct hwupload *hwupload = &s->hwupload;
     struct image *mapped_image = &hwupload->mapped_image;
@@ -73,7 +72,7 @@ static int init_hwconv(struct ngl_node *node)
 
     ngli_hwconv_reset(hwconv);
     ngli_image_reset(image);
-    ngli_texture_reset(texture);
+    ngli_texture_freep(&s->texture);
 
     LOG(DEBUG, "converting texture '%s' from %s to rgba", node->label, hwupload->hwmap_class->name);
 
@@ -82,7 +81,10 @@ static int init_hwconv(struct ngl_node *node)
     params.width  = mapped_image->params.width;
     params.height = mapped_image->params.height;
 
-    int ret = ngli_texture_init(&s->texture, ctx, &params);
+    s->texture = ngli_texture_create(ctx);
+    if (!s->texture)
+        return NGL_ERROR_MEMORY;
+    int ret = ngli_texture_init(s->texture, &params);
     if (ret < 0)
         goto end;
 
@@ -92,8 +94,7 @@ static int init_hwconv(struct ngl_node *node)
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
         .color_info = NGLI_COLOR_INFO_DEFAULTS,
     };
-    struct texture *planes[] = {&s->texture};
-    ngli_image_init(&s->image, &image_params, planes);
+    ngli_image_init(&s->image, &image_params, &s->texture);
 
     ret = ngli_hwconv_init(hwconv, ctx, &s->image, &mapped_image->params);
     if (ret < 0)
@@ -104,14 +105,14 @@ static int init_hwconv(struct ngl_node *node)
 end:
     ngli_hwconv_reset(hwconv);
     ngli_image_reset(image);
-    ngli_texture_reset(texture);
+    ngli_texture_freep(&s->texture);
     return ret;
 }
 
 static int exec_hwconv(struct ngl_node *node)
 {
     struct texture_priv *s = node->priv_data;
-    struct texture *texture = &s->texture;
+    struct texture *texture = s->texture;
     struct hwupload *hwupload = &s->hwupload;
     struct image *mapped_image = &hwupload->mapped_image;
     struct hwconv *hwconv = &hwupload->hwconv;

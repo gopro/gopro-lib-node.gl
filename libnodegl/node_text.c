@@ -57,7 +57,7 @@ struct text_priv {
     int mag_filter;
     int mipmap_filter;
 
-    struct texture texture;
+    struct texture *texture;
     struct canvas canvas;
     struct buffer vertices;
     struct buffer uvcoords;
@@ -253,11 +253,14 @@ static int text_init(struct ngl_node *node)
     tex_params.min_filter = s->min_filter;
     tex_params.mag_filter = s->mag_filter;
     tex_params.mipmap_filter = s->mipmap_filter;
-    ret = ngli_texture_init(&s->texture, ctx, &tex_params);
+    s->texture = ngli_texture_create(ctx);
+    if (!s->texture)
+        return NGL_ERROR_MEMORY;
+    ret = ngli_texture_init(s->texture, &tex_params);
     if (ret < 0)
         return ret;
 
-    ret = ngli_texture_upload(&s->texture, s->canvas.buf, 0);
+    ret = ngli_texture_upload(s->texture, s->canvas.buf, 0);
     if (ret < 0)
         return ret;
 
@@ -281,7 +284,7 @@ static int text_prepare(struct ngl_node *node)
             .name     = "tex",
             .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D,
             .stage    = NGLI_PROGRAM_SHADER_FRAG,
-            .texture  = &s->texture,
+            .texture  = s->texture,
         },
     };
 
@@ -378,7 +381,7 @@ static void text_uninit(struct ngl_node *node)
         ngli_pgcraft_freep(&desc->crafter);
     }
     ngli_darray_reset(&s->pipeline_descs);
-    ngli_texture_reset(&s->texture);
+    ngli_texture_freep(&s->texture);
     ngli_buffer_reset(&s->vertices);
     ngli_buffer_reset(&s->uvcoords);
     ngli_free(s->canvas.buf);

@@ -113,14 +113,14 @@ struct ngl_ctx {
 #endif
     /* Offscreen render target */
     struct rendertarget rt;
-    struct texture rt_color;
-    struct texture rt_depth;
+    struct texture *rt_color;
+    struct texture *rt_depth;
     /* Capture offscreen render target */
     capture_func_type capture_func;
     struct rendertarget oes_resolve_rt;
-    struct texture oes_resolve_rt_color;
+    struct texture *oes_resolve_rt_color;
     struct rendertarget capture_rt;
-    struct texture capture_rt_color;
+    struct texture *capture_rt_color;
     uint8_t *capture_buffer;
 #if defined(TARGET_IPHONE)
     CVPixelBufferRef capture_cvbuffer;
@@ -319,7 +319,7 @@ struct texture_priv {
     int direct_rendering;
 
     uint32_t supported_image_layouts;
-    struct texture texture;
+    struct texture *texture;
     struct image image;
     struct hwupload hwupload;
 };
@@ -339,7 +339,7 @@ struct media_priv {
     struct sxplayer_frame *frame;
 
 #if defined(TARGET_ANDROID)
-    struct texture android_texture;
+    struct texture *android_texture;
     struct android_surface *android_surface;
     struct android_handlerthread *android_handlerthread;
 #endif

@@ -59,7 +59,11 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
     if (params.format < 0)
         return -1;
 
-    int ret = ngli_texture_init(&s->texture, ctx, &params);
+    s->texture = ngli_texture_create(ctx);
+    if (!s->texture)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_texture_init(s->texture, &params);
     if (ret < 0)
         return ret;
 
@@ -69,8 +73,7 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
-    struct texture *planes[] = {&s->texture};
-    ngli_image_init(&hwupload->mapped_image, &image_params, planes);
+    ngli_image_init(&hwupload->mapped_image, &image_params, &s->texture);
 
     hwupload->require_hwconv = 0;
 
@@ -80,10 +83,9 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
 static int common_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct texture_priv *s = node->priv_data;
-    struct texture *texture = &s->texture;
 
-    if (!ngli_texture_match_dimensions(&s->texture, frame->width, frame->height, 0)) {
-        ngli_texture_reset(texture);
+    if (!ngli_texture_match_dimensions(s->texture, frame->width, frame->height, 0)) {
+        ngli_texture_freep(&s->texture);
 
         int ret = common_init(node, frame);
         if (ret < 0)
@@ -91,7 +93,7 @@ static int common_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     }
 
     const int linesize = frame->linesize >> 2;
-    return ngli_texture_upload(texture, frame->data, linesize);
+    return ngli_texture_upload(s->texture, frame->data, linesize);
 }
 
 const struct hwmap_class ngli_hwmap_common_class = {

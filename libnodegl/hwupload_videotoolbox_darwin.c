@@ -39,7 +39,7 @@
 
 struct hwupload_vt_darwin {
     struct sxplayer_frame *frame;
-    struct texture planes[2];
+    struct texture *planes[2];
 };
 
 static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
@@ -67,7 +67,7 @@ static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *fra
     }
 
     for (int i = 0; i < 2; i++) {
-        struct texture *plane = &vt->planes[i];
+        struct texture *plane = vt->planes[i];
 
         ngli_glBindTexture(gl, plane->target, plane->id);
 
@@ -79,7 +79,7 @@ static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *fra
                                               plane->internal_format, width, height,
                                               plane->format, plane->format_type, surface, i);
         if (err != kCGLNoError) {
-            LOG(ERROR, "could not bind IOSurface plane %d to texture %d: %d", i, s->texture.id, err);
+            LOG(ERROR, "could not bind IOSurface plane %d to texture %d: %d", i, plane->id, err);
             return -1;
         }
 
@@ -111,13 +111,16 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < 2; i++) {
-        struct texture *plane = &vt->planes[i];
         struct texture_params plane_params = NGLI_TEXTURE_PARAM_DEFAULTS;
         plane_params.format = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM;
         plane_params.rectangle = 1;
         plane_params.external_storage = 1;
 
-        int ret = ngli_texture_init(plane, ctx, &plane_params);
+        vt->planes[i] = ngli_texture_create(ctx);
+        if (!vt->planes[i])
+            return NGL_ERROR_MEMORY;
+
+        int ret = ngli_texture_init(vt->planes[i], &plane_params);
         if (ret < 0)
             return ret;
     }
@@ -128,11 +131,7 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
         .layout = NGLI_IMAGE_LAYOUT_NV12_RECTANGLE,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
-    struct texture *planes[] = {
-        &vt->planes[0],
-        &vt->planes[1],
-    };
-    ngli_image_init(&hwupload->mapped_image, &image_params, planes);
+    ngli_image_init(&hwupload->mapped_image, &image_params, vt->planes);
 
     hwupload->require_hwconv = !support_direct_rendering(node);
 
@@ -146,7 +145,7 @@ static void vt_darwin_uninit(struct ngl_node *node)
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < 2; i++)
-        ngli_texture_reset(&vt->planes[i]);
+        ngli_texture_freep(&vt->planes[i]);
 
     sxplayer_release_frame(vt->frame);
     vt->frame = NULL;

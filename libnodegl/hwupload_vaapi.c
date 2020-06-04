@@ -39,7 +39,7 @@
 
 struct hwupload_vaapi {
     struct sxplayer_frame *frame;
-    struct texture planes[2];
+    struct texture *planes[2];
 
     EGLImageKHR egl_images[2];
 
@@ -82,7 +82,6 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
 
         int format = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM;
 
-        struct texture *plane = &vaapi->planes[i];
         const struct texture_params plane_params = {
             .type = NGLI_TEXTURE_TYPE_2D,
             .format = format,
@@ -96,7 +95,11 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
             .external_storage = 1,
         };
 
-        int ret = ngli_texture_init(plane, ctx, &plane_params);
+        vaapi->planes[i] = ngli_texture_create(ctx);
+        if (!vaapi->planes[i])
+            return NGL_ERROR_MEMORY;
+
+        int ret = ngli_texture_init(vaapi->planes[i], &plane_params);
         if (ret < 0)
             return ret;
     }
@@ -107,11 +110,7 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
         .layout = NGLI_IMAGE_LAYOUT_NV12,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
-    struct texture *planes[] = {
-        &vaapi->planes[0],
-        &vaapi->planes[1]
-    };
-    ngli_image_init(&hwupload->mapped_image, &image_params, planes);
+    ngli_image_init(&hwupload->mapped_image, &image_params, vaapi->planes);
 
     hwupload->require_hwconv = !support_direct_rendering(node);
 
@@ -127,7 +126,7 @@ static void vaapi_uninit(struct ngl_node *node)
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < 2; i++)
-        ngli_texture_reset(&vaapi->planes[i]);
+        ngli_texture_freep(&vaapi->planes[i]);
 
     if (vaapi->surface_acquired) {
         for (int i = 0; i < 2; i++) {
@@ -242,7 +241,7 @@ static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
             return -1;
         }
 
-        struct texture *plane = &vaapi->planes[i];
+        struct texture *plane = vaapi->planes[i];
         ngli_texture_set_dimensions(plane, width, height, 0);
 
         ngli_glBindTexture(gl, plane->target, plane->id);

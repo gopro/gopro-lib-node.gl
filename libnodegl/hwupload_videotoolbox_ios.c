@@ -44,7 +44,7 @@
 } while (0)
 
 struct hwupload_vt_ios {
-    struct texture planes[2];
+    struct texture *planes[2];
     int width;
     int height;
     OSType format;
@@ -92,7 +92,7 @@ static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, in
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
-    struct texture *plane = &vt->planes[index];
+    struct texture *plane = vt->planes[index];
     const struct texture_params *plane_params = &plane->params;
 
     NGLI_CFRELEASE(vt->ios_textures[index]);
@@ -181,8 +181,8 @@ static void vt_ios_uninit(struct ngl_node *node)
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
 
-    ngli_texture_reset(&vt->planes[0]);
-    ngli_texture_reset(&vt->planes[1]);
+    ngli_texture_freep(&vt->planes[0]);
+    ngli_texture_freep(&vt->planes[1]);
 
     NGLI_CFRELEASE(vt->ios_textures[0]);
     NGLI_CFRELEASE(vt->ios_textures[1]);
@@ -237,10 +237,13 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
         return ret;
 
     for (int i = 0; i < format_desc.nb_planes; i++) {
-        struct texture *plane = &vt->planes[i];
-
         plane_params.format = format_desc.planes[i].format;
-        ret = ngli_texture_wrap(plane, ctx, &plane_params, 0);
+
+        vt->planes[i] = ngli_texture_create(ctx);
+        if (!vt->planes[i])
+            return NGL_ERROR_MEMORY;
+
+        ret = ngli_texture_wrap(vt->planes[i], &plane_params, 0);
         if (ret < 0)
             return ret;
     }
@@ -251,11 +254,7 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
         .layout = NGLI_IMAGE_LAYOUT_NV12,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
-    struct texture *planes[] = {
-        &vt->planes[0],
-        &vt->planes[1],
-    };
-    ngli_image_init(&hwupload->mapped_image, &image_params, planes);
+    ngli_image_init(&hwupload->mapped_image, &image_params, vt->planes);
 
     hwupload->require_hwconv = !support_direct_rendering(node, frame);
 

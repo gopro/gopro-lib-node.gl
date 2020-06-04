@@ -332,11 +332,15 @@ static int texture_prefetch(struct ngl_node *node, enum texture_type type)
         }
     }
 
-    int ret = ngli_texture_init(&s->texture, ctx, params);
+    s->texture = ngli_texture_create(ctx);
+    if (!s->texture)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_texture_init(s->texture, params);
     if (ret < 0)
         return ret;
 
-    ret = ngli_texture_upload(&s->texture, data, 0);
+    ret = ngli_texture_upload(s->texture, data, 0);
     if (ret < 0)
         return ret;
 
@@ -346,8 +350,7 @@ static int texture_prefetch(struct ngl_node *node, enum texture_type type)
         .depth = params->depth,
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
     };
-    struct texture *planes[] = {&s->texture};
-    ngli_image_init(&s->image, &image_params, planes);
+    ngli_image_init(&s->image, &image_params, &s->texture);
 
     return 0;
 }
@@ -374,9 +377,8 @@ static void handle_buffer_frame(struct ngl_node *node)
     struct texture_priv *s = node->priv_data;
     struct buffer_priv *buffer = s->data_src->priv_data;
     const uint8_t *data = buffer->data;
-    struct texture *t = &s->texture;
 
-    ngli_texture_upload(t, data, 0);
+    ngli_texture_upload(s->texture, data, 0);
 }
 
 static int texture_update(struct ngl_node *node, double t)
@@ -413,7 +415,7 @@ static void texture_release(struct ngl_node *node)
     struct texture_priv *s = node->priv_data;
 
     ngli_hwupload_uninit(node);
-    ngli_texture_reset(&s->texture);
+    ngli_texture_freep(&s->texture);
     ngli_image_reset(&s->image);
 }
 

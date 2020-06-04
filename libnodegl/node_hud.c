@@ -61,7 +61,7 @@ struct hud_priv {
     int need_refresh;
 
     struct pgcraft *crafter;
-    struct texture texture;
+    struct texture *texture;
     struct buffer coords;
     struct pipeline pipeline;
     struct graphicstate graphicstate;
@@ -1279,7 +1279,10 @@ static int hud_init(struct ngl_node *node)
     tex_params.min_filter = NGLI_FILTER_LINEAR;
     tex_params.mag_filter = NGLI_FILTER_NEAREST;
     tex_params.mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR;
-    ret = ngli_texture_init(&s->texture, ctx, &tex_params);
+    s->texture = ngli_texture_create(ctx);
+    if (!s->texture)
+        return NGL_ERROR_MEMORY;
+    ret = ngli_texture_init(s->texture, &tex_params);
     if (ret < 0)
         return ret;
 
@@ -1293,7 +1296,7 @@ static int hud_init(struct ngl_node *node)
             .name     = "tex",
             .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D,
             .stage    = NGLI_PROGRAM_SHADER_FRAG,
-            .texture  = &s->texture,
+            .texture  = s->texture,
         },
     };
 
@@ -1386,7 +1389,7 @@ static void hud_draw(struct ngl_node *node)
     if (s->export_filename)
         return;
 
-    int ret = ngli_texture_upload(&s->texture, s->canvas.buf, 0);
+    int ret = ngli_texture_upload(s->texture, s->canvas.buf, 0);
     if (ret < 0)
         return;
 
@@ -1403,7 +1406,7 @@ static void hud_uninit(struct ngl_node *node)
 
     ngli_pipeline_reset(&s->pipeline);
     ngli_pgcraft_freep(&s->crafter);
-    ngli_texture_reset(&s->texture);
+    ngli_texture_freep(&s->texture);
     ngli_buffer_reset(&s->coords);
 
     widgets_uninit(node);

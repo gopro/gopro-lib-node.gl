@@ -26,6 +26,7 @@
 #include "format.h"
 #include "glincludes.h"
 #include "glcontext.h"
+#include "memory.h"
 #include "nodes.h"
 #include "texture.h"
 
@@ -306,17 +307,24 @@ static int is_pow2(int x)
     return x && !(x & (x - 1));
 }
 
-int ngli_texture_init(struct texture *s,
-                      struct ngl_ctx *ctx,
-                      const struct texture_params *params)
+struct texture *ngli_texture_create(struct ngl_ctx *ctx)
 {
+    struct texture *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
     s->ctx = ctx;
+    return s;
+}
+
+int ngli_texture_init(struct texture *s, const struct texture_params *params)
+{
     s->params = *params;
 
     int ret = texture_init_fields(s);
     if (ret < 0)
         return ret;
 
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = ctx->glcontext;
 
     if (s->target == GL_RENDERBUFFER) {
@@ -350,7 +358,6 @@ int ngli_texture_init(struct texture *s,
                 (params->type == NGLI_TEXTURE_TYPE_3D && !params->depth)) {
                 LOG(ERROR, "invalid texture type %dx%dx%d",
                     params->width, params->height, params->depth);
-                ngli_texture_reset(s);
                 return NGL_ERROR_INVALID_ARG;
             }
             if (params->immutable) {
@@ -365,11 +372,9 @@ int ngli_texture_init(struct texture *s,
 }
 
 int ngli_texture_wrap(struct texture *s,
-                      struct ngl_ctx *ctx,
                       const struct texture_params *params,
                       GLuint texture)
 {
-    s->ctx = ctx;
     s->params = *params;
 
     int ret = texture_init_fields(s);
@@ -448,12 +453,13 @@ int ngli_texture_generate_mipmap(struct texture *s)
     return 0;
 }
 
-void ngli_texture_reset(struct texture *s)
+void ngli_texture_freep(struct texture **sp)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    if (!ctx)
+    if (!*sp)
         return;
 
+    struct texture *s = *sp;
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = ctx->glcontext;
 
     if (!s->wrapped) {
@@ -463,5 +469,5 @@ void ngli_texture_reset(struct texture *s)
             ngli_glDeleteTextures(gl, 1, &s->id);
     }
 
-    memset(s, 0, sizeof(*s));
+    ngli_freep(sp);
 }

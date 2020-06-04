@@ -156,7 +156,11 @@ static int media_init(struct ngl_node *node)
         .external_oes = 1,
     };
 
-    int ret = ngli_texture_init(&s->android_texture, ctx, &params);
+    s->android_texture = ngli_texture_create(ctx);
+    if (!s->android_texture)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_texture_init(s->android_texture, &params);
     if (ret < 0)
         return ret;
 
@@ -168,7 +172,7 @@ static int media_init(struct ngl_node *node)
     if (!handler)
         return NGL_ERROR_EXTERNAL;
 
-    s->android_surface = ngli_android_surface_new(s->android_texture.id, handler);
+    s->android_surface = ngli_android_surface_new(s->android_texture->id, handler);
     if (!s->android_surface)
         return NGL_ERROR_MEMORY;
 
@@ -268,7 +272,7 @@ static void media_uninit(struct ngl_node *node)
 #if defined(TARGET_ANDROID)
     ngli_android_surface_free(&s->android_surface);
     ngli_android_handlerthread_free(&s->android_handlerthread);
-    ngli_texture_reset(&s->android_texture);
+    ngli_texture_freep(&s->android_texture);
 #endif
 }
 

@@ -119,12 +119,12 @@ struct texture {
     GLenum format_type;
 };
 
+struct texture *ngli_texture_create(struct ngl_ctx *ctx);
+
 int ngli_texture_init(struct texture *s,
-                      struct ngl_ctx *ctx,
                       const struct texture_params *params);
 
 int ngli_texture_wrap(struct texture *s,
-                      struct ngl_ctx *ctx,
                       const struct texture_params *params,
                       GLuint id);
 
@@ -137,6 +137,6 @@ int ngli_texture_match_dimensions(const struct texture *s, int width, int height
 int ngli_texture_upload(struct texture *s, const uint8_t *data, int linesize);
 int ngli_texture_generate_mipmap(struct texture *s);
 
-void ngli_texture_reset(struct texture *s);
+void ngli_texture_freep(struct texture **sp);
 
 #endif

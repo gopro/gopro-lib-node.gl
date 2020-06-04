@@ -67,8 +67,8 @@ static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
     struct media_priv *media = s->data_src->priv_data;
     struct hwupload *hwupload = &s->hwupload;
 
-    GLint id = media->android_texture.id;
-    GLenum target = media->android_texture.target;
+    GLint id = media->android_texture->id;
+    GLenum target = media->android_texture->target;
     const GLint min_filter = ngli_texture_get_gl_min_filter(params->min_filter, params->mipmap_filter);
     const GLint mag_filter = ngli_texture_get_gl_mag_filter(params->mag_filter);
 
@@ -83,8 +83,7 @@ static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
         .layout = NGLI_IMAGE_LAYOUT_MEDIACODEC,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
-    struct texture *planes[] = {&media->android_texture};
-    ngli_image_init(&hwupload->mapped_image, &image_params, planes);
+    ngli_image_init(&hwupload->mapped_image, &image_params, &media->android_texture);
 
     hwupload->require_hwconv = !support_direct_rendering(node);
 
@@ -109,7 +108,7 @@ static int mc_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     ngli_android_surface_render_buffer(media->android_surface, buffer, matrix);
     ngli_mat4_mul(matrix, matrix, flip_matrix);
 
-    ngli_texture_set_dimensions(&media->android_texture, frame->width, frame->height, 0);
+    ngli_texture_set_dimensions(media->android_texture, frame->width, frame->height, 0);
 
     return 0;
 }

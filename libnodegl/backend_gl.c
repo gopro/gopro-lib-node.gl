@@ -53,12 +53,18 @@ static int offscreen_rendertarget_init(struct ngl_ctx *s)
     attachment_params.height = config->height;
     attachment_params.samples = config->samples;
     attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-    int ret = ngli_texture_init(&s->rt_color, s, &attachment_params);
+    s->rt_color = ngli_texture_create(s);
+    if (!s->rt_color)
+        return NGL_ERROR_MEMORY;
+    int ret = ngli_texture_init(s->rt_color, &attachment_params);
     if (ret < 0)
         return ret;
 
     attachment_params.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
-    ret = ngli_texture_init(&s->rt_depth, s, &attachment_params);
+    s->rt_depth = ngli_texture_create(s);
+    if (!s->rt_depth)
+        return NGL_ERROR_MEMORY;
+    ret = ngli_texture_init(s->rt_depth, &attachment_params);
     if (ret < 0)
         return ret;
 
@@ -67,10 +73,10 @@ static int offscreen_rendertarget_init(struct ngl_ctx *s)
         .height = config->height,
         .nb_colors = 1,
         .colors[0] = {
-            .attachment = &s->rt_color,
+            .attachment = s->rt_color,
         },
         .depth_stencil = {
-            .attachment = &s->rt_depth
+            .attachment = s->rt_depth
         },
     };
     ret = ngli_rendertarget_init(&s->rt, s, &rt_params);
@@ -87,8 +93,8 @@ static int offscreen_rendertarget_init(struct ngl_ctx *s)
 static void offscreen_rendertarget_reset(struct ngl_ctx *s)
 {
     ngli_rendertarget_reset(&s->rt);
-    ngli_texture_reset(&s->rt_color);
-    ngli_texture_reset(&s->rt_depth);
+    ngli_texture_freep(&s->rt_color);
+    ngli_texture_freep(&s->rt_depth);
 }
 
 static void capture_default(struct ngl_ctx *s)
@@ -198,7 +204,10 @@ static int capture_init(struct ngl_ctx *s)
             attachment_params.format = NGLI_FORMAT_B8G8R8A8_UNORM;
             attachment_params.width = width;
             attachment_params.height = height;
-            int ret = ngli_texture_wrap(&s->capture_rt_color, s, &attachment_params, id);
+            s->capture_rt_color = ngli_texture_create(s);
+            if (!s->capture_rt_color)
+                return NGL_ERROR_MEMORY;
+            int ret = ngli_texture_wrap(s->capture_rt_color, &attachment_params, id);
             if (ret < 0)
                 return ret;
 #endif
@@ -208,7 +217,10 @@ static int capture_init(struct ngl_ctx *s)
             attachment_params.width = config->width;
             attachment_params.height = config->height;
             attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-            int ret = ngli_texture_init(&s->capture_rt_color, s, &attachment_params);
+            s->capture_rt_color = ngli_texture_create(s);
+            if (!s->capture_rt_color)
+                return NGL_ERROR_MEMORY;
+            int ret = ngli_texture_init(s->capture_rt_color, &attachment_params);
             if (ret < 0)
                 return ret;
         }
@@ -218,7 +230,7 @@ static int capture_init(struct ngl_ctx *s)
             .height = config->height,
             .nb_colors = 1,
             .colors[0] = {
-                .attachment = &s->capture_rt_color,
+                .attachment = s->capture_rt_color,
             },
         };
         int ret = ngli_rendertarget_init(&s->capture_rt, s, &rt_params);
@@ -232,7 +244,10 @@ static int capture_init(struct ngl_ctx *s)
             attachment_params.height = config->height;
             attachment_params.samples = 0;
             attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-            int ret = ngli_texture_init(&s->oes_resolve_rt_color, s, &attachment_params);
+            s->oes_resolve_rt_color = ngli_texture_create(s);
+            if (!s->oes_resolve_rt_color)
+                return NGL_ERROR_MEMORY;
+            int ret = ngli_texture_init(s->oes_resolve_rt_color, &attachment_params);
             if (ret < 0)
                 return ret;
 
@@ -241,7 +256,7 @@ static int capture_init(struct ngl_ctx *s)
                 .height = config->height,
                 .nb_colors = 1,
                 .colors[0] = {
-                    .attachment = &s->oes_resolve_rt_color,
+                    .attachment = s->oes_resolve_rt_color,
                 }
             };
             ret = ngli_rendertarget_init(&s->oes_resolve_rt, s, &rt_params);
@@ -274,9 +289,9 @@ static int capture_init(struct ngl_ctx *s)
 static void capture_reset(struct ngl_ctx *s)
 {
     ngli_rendertarget_reset(&s->capture_rt);
-    ngli_texture_reset(&s->capture_rt_color);
+    ngli_texture_freep(&s->capture_rt_color);
     ngli_rendertarget_reset(&s->oes_resolve_rt);
-    ngli_texture_reset(&s->oes_resolve_rt_color);
+    ngli_texture_freep(&s->oes_resolve_rt_color);
     ngli_free(s->capture_buffer);
     s->capture_buffer = NULL;
 #if defined(TARGET_IPHONE)

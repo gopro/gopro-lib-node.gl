@@ -216,11 +216,20 @@ static int require_resolve_fbo(struct rendertarget *s)
     return 0;
 }
 
-int ngli_rendertarget_init(struct rendertarget *s, struct ngl_ctx *ctx, const struct rendertarget_params *params)
+struct rendertarget *ngli_rendertarget_create(struct ngl_ctx *ctx)
 {
+    struct rendertarget *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
+    s->ctx = ctx;
+    return s;
+}
+
+int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params)
+{
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = ctx->glcontext;
 
-    s->ctx = ctx;
     s->params = *params;
     s->width = params->width;
     s->height = params->height;
@@ -323,15 +332,16 @@ void ngli_rendertarget_read_pixels(struct rendertarget *s, uint8_t *data)
         ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 }
 
-void ngli_rendertarget_reset(struct rendertarget *s)
+void ngli_rendertarget_freep(struct rendertarget **sp)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    if (!ctx)
+    if (!*sp)
         return;
 
+    struct rendertarget *s = *sp;
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = ctx->glcontext;
     ngli_glDeleteFramebuffers(gl, 1, &s->id);
     ngli_glDeleteFramebuffers(gl, 1, &s->resolve_id);
 
-    memset(s, 0, sizeof(*s));
+    ngli_freep(sp);
 }

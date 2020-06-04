@@ -112,14 +112,14 @@ struct ngl_ctx {
     int va_version;
 #endif
     /* Offscreen render target */
-    struct rendertarget rt;
+    struct rendertarget *rt;
     struct texture *rt_color;
     struct texture *rt_depth;
     /* Capture offscreen render target */
     capture_func_type capture_func;
-    struct rendertarget oes_resolve_rt;
+    struct rendertarget *oes_resolve_rt;
     struct texture *oes_resolve_rt_color;
-    struct rendertarget capture_rt;
+    struct rendertarget *capture_rt;
     struct texture *capture_rt_color;
     uint8_t *capture_buffer;
 #if defined(TARGET_IPHONE)

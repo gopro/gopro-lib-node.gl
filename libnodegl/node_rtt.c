@@ -46,7 +46,7 @@ struct rtt_priv {
     int width;
     int height;
 
-    struct rendertarget rt;
+    struct rendertarget *rt;
     struct texture *depth;
 
     struct texture *ms_colors[NGLI_MAX_COLOR_ATTACHMENTS];
@@ -299,7 +299,10 @@ static int rtt_prefetch(struct ngl_node *node)
         }
     }
 
-    ret = ngli_rendertarget_init(&s->rt, ctx, &rt_params);
+    s->rt = ngli_rendertarget_create(ctx);
+    if (!s->rt)
+        return NGL_ERROR_MEMORY;
+    ret = ngli_rendertarget_init(s->rt, &rt_params);
     if (ret < 0)
         return ret;
 
@@ -351,7 +354,7 @@ static void rtt_draw(struct ngl_node *node)
     struct ngl_ctx *ctx = node->ctx;
     struct rtt_priv *s = node->priv_data;
 
-    struct rendertarget *rt = &s->rt;
+    struct rendertarget *rt = s->rt;
     struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(ctx);
     ngli_gctx_set_rendertarget(ctx, rt);
 
@@ -398,7 +401,7 @@ static void rtt_release(struct ngl_node *node)
 {
     struct rtt_priv *s = node->priv_data;
 
-    ngli_rendertarget_reset(&s->rt);
+    ngli_rendertarget_freep(&s->rt);
     ngli_texture_freep(&s->depth);
 
     for (int i = 0; i < s->nb_ms_colors; i++)

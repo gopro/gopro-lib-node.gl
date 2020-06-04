@@ -78,7 +78,10 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
             .attachment = texture,
         }
     };
-    int ret = ngli_rendertarget_init(&hwconv->rt, ctx, &rt_params);
+    hwconv->rt = ngli_rendertarget_create(ctx);
+    if (!hwconv->rt)
+        return NGL_ERROR_MEMORY;
+    int ret = ngli_rendertarget_init(hwconv->rt, &rt_params);
     if (ret < 0)
         return ret;
 
@@ -159,7 +162,7 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
     struct ngl_ctx *ctx = hwconv->ctx;
     ngli_assert(hwconv->src_params.layout == image->params.layout);
 
-    struct rendertarget *rt = &hwconv->rt;
+    struct rendertarget *rt = hwconv->rt;
     struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(ctx);
     ngli_gctx_set_rendertarget(ctx, rt);
 
@@ -221,7 +224,7 @@ void ngli_hwconv_reset(struct hwconv *hwconv)
     ngli_pipeline_reset(&hwconv->pipeline);
     ngli_pgcraft_freep(&hwconv->crafter);
     ngli_buffer_reset(&hwconv->vertices);
-    ngli_rendertarget_reset(&hwconv->rt);
+    ngli_rendertarget_freep(&hwconv->rt);
 
     memset(hwconv, 0, sizeof(*hwconv));
 }

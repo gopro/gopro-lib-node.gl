@@ -79,11 +79,14 @@ static int offscreen_rendertarget_init(struct ngl_ctx *s)
             .attachment = s->rt_depth
         },
     };
-    ret = ngli_rendertarget_init(&s->rt, s, &rt_params);
+    s->rt = ngli_rendertarget_create(s);
+    if (!s->rt)
+        return NGL_ERROR_MEMORY;
+    ret = ngli_rendertarget_init(s->rt, &rt_params);
     if (ret < 0)
         return ret;
 
-    ngli_gctx_set_rendertarget(s, &s->rt);
+    ngli_gctx_set_rendertarget(s, s->rt);
     const int vp[4] = {0, 0, config->width, config->height};
     ngli_gctx_set_viewport(s, vp);
 
@@ -92,7 +95,7 @@ static int offscreen_rendertarget_init(struct ngl_ctx *s)
 
 static void offscreen_rendertarget_reset(struct ngl_ctx *s)
 {
-    ngli_rendertarget_reset(&s->rt);
+    ngli_rendertarget_freep(&s->rt);
     ngli_texture_freep(&s->rt_color);
     ngli_texture_freep(&s->rt_depth);
 }
@@ -100,8 +103,8 @@ static void offscreen_rendertarget_reset(struct ngl_ctx *s)
 static void capture_default(struct ngl_ctx *s)
 {
     struct ngl_config *config = &s->config;
-    struct rendertarget *rt = &s->rt;
-    struct rendertarget *capture_rt = &s->capture_rt;
+    struct rendertarget *rt = s->rt;
+    struct rendertarget *capture_rt = s->capture_rt;
 
     ngli_rendertarget_blit(rt, capture_rt, 1);
     ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
@@ -110,8 +113,8 @@ static void capture_default(struct ngl_ctx *s)
 static void capture_ios(struct ngl_ctx *s)
 {
     struct glcontext *gl = s->glcontext;
-    struct rendertarget *rt = &s->rt;
-    struct rendertarget *capture_rt = &s->capture_rt;
+    struct rendertarget *rt = s->rt;
+    struct rendertarget *capture_rt = s->capture_rt;
 
     ngli_rendertarget_blit(rt, capture_rt, 1);
     ngli_glFinish(gl);
@@ -120,9 +123,9 @@ static void capture_ios(struct ngl_ctx *s)
 static void capture_gles_msaa(struct ngl_ctx *s)
 {
     struct ngl_config *config = &s->config;
-    struct rendertarget *rt = &s->rt;
-    struct rendertarget *capture_rt = &s->capture_rt;
-    struct rendertarget *oes_resolve_rt = &s->oes_resolve_rt;
+    struct rendertarget *rt = s->rt;
+    struct rendertarget *capture_rt = s->capture_rt;
+    struct rendertarget *oes_resolve_rt = s->oes_resolve_rt;
 
     ngli_rendertarget_blit(rt, oes_resolve_rt, 0);
     ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 1);
@@ -132,9 +135,9 @@ static void capture_gles_msaa(struct ngl_ctx *s)
 static void capture_ios_msaa(struct ngl_ctx *s)
 {
     struct glcontext *gl = s->glcontext;
-    struct rendertarget *rt = &s->rt;
-    struct rendertarget *capture_rt = &s->capture_rt;
-    struct rendertarget *oes_resolve_rt = &s->oes_resolve_rt;
+    struct rendertarget *rt = s->rt;
+    struct rendertarget *capture_rt = s->capture_rt;
+    struct rendertarget *oes_resolve_rt = s->oes_resolve_rt;
 
     ngli_rendertarget_blit(rt, oes_resolve_rt, 0);
     ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 1);
@@ -144,7 +147,7 @@ static void capture_ios_msaa(struct ngl_ctx *s)
 static void capture_cpu_fallback(struct ngl_ctx *s)
 {
     struct ngl_config *config = &s->config;
-    struct rendertarget *rt = &s->rt;
+    struct rendertarget *rt = s->rt;
 
     ngli_rendertarget_read_pixels(rt, s->capture_buffer);
     const int step = config->width * 4;
@@ -233,7 +236,10 @@ static int capture_init(struct ngl_ctx *s)
                 .attachment = s->capture_rt_color,
             },
         };
-        int ret = ngli_rendertarget_init(&s->capture_rt, s, &rt_params);
+        s->capture_rt = ngli_rendertarget_create(s);
+        if (!s->capture_rt)
+            return NGL_ERROR_MEMORY;
+        int ret = ngli_rendertarget_init(s->capture_rt, &rt_params);
         if (ret < 0)
             return ret;
 
@@ -259,7 +265,10 @@ static int capture_init(struct ngl_ctx *s)
                     .attachment = s->oes_resolve_rt_color,
                 }
             };
-            ret = ngli_rendertarget_init(&s->oes_resolve_rt, s, &rt_params);
+            s->oes_resolve_rt = ngli_rendertarget_create(s);
+            if (!s->oes_resolve_rt)
+                return NGL_ERROR_MEMORY;
+            ret = ngli_rendertarget_init(s->oes_resolve_rt, &rt_params);
             if (ret < 0)
                 return ret;
 
@@ -288,9 +297,9 @@ static int capture_init(struct ngl_ctx *s)
 
 static void capture_reset(struct ngl_ctx *s)
 {
-    ngli_rendertarget_reset(&s->capture_rt);
+    ngli_rendertarget_freep(&s->capture_rt);
     ngli_texture_freep(&s->capture_rt_color);
-    ngli_rendertarget_reset(&s->oes_resolve_rt);
+    ngli_rendertarget_freep(&s->oes_resolve_rt);
     ngli_texture_freep(&s->oes_resolve_rt_color);
     ngli_free(s->capture_buffer);
     s->capture_buffer = NULL;

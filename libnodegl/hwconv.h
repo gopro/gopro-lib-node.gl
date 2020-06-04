@@ -35,7 +35,7 @@ struct hwconv {
     struct ngl_ctx *ctx;
     struct image_params src_params;
 
-    struct rendertarget rt;
+    struct rendertarget *rt;
     struct buffer vertices;
     struct pgcraft *crafter;
     struct pipeline pipeline;

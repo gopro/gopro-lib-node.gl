@@ -62,7 +62,7 @@ struct hud_priv {
 
     struct pgcraft *crafter;
     struct texture *texture;
-    struct buffer coords;
+    struct buffer *coords;
     struct pipeline pipeline;
     struct graphicstate graphicstate;
 
@@ -1264,11 +1264,16 @@ static int hud_init(struct ngl_node *node)
          1.0f,  1.0f, 1.0f, 0.0f,
         -1.0f,  1.0f, 0.0f, 0.0f,
     };
-    ret = ngli_buffer_init(&s->coords, ctx, sizeof(coords), NGLI_BUFFER_USAGE_STATIC);
+
+    s->coords = ngli_buffer_create(ctx);
+    if (!s->coords)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_buffer_init(s->coords, sizeof(coords), NGLI_BUFFER_USAGE_STATIC);
     if (ret < 0)
         return ret;
 
-    ret = ngli_buffer_upload(&s->coords, coords, sizeof(coords));
+    ret = ngli_buffer_upload(s->coords, coords, sizeof(coords));
     if (ret < 0)
         return ret;
 
@@ -1306,7 +1311,7 @@ static int hud_init(struct ngl_node *node)
             .type     = NGLI_TYPE_VEC4,
             .format   = NGLI_FORMAT_R32G32B32A32_SFLOAT,
             .stride   = 4 * 4,
-            .buffer   = &s->coords,
+            .buffer   = s->coords,
         },
     };
 
@@ -1407,7 +1412,7 @@ static void hud_uninit(struct ngl_node *node)
     ngli_pipeline_reset(&s->pipeline);
     ngli_pgcraft_freep(&s->crafter);
     ngli_texture_freep(&s->texture);
-    ngli_buffer_reset(&s->coords);
+    ngli_buffer_freep(&s->coords);
 
     widgets_uninit(node);
     ngli_free(s->canvas.buf);

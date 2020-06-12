@@ -36,7 +36,7 @@ struct hwconv {
     struct image_params src_params;
 
     struct rendertarget *rt;
-    struct buffer vertices;
+    struct buffer *vertices;
     struct pgcraft *crafter;
     struct pipeline pipeline;
 };

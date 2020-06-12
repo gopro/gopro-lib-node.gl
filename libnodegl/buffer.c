@@ -24,6 +24,7 @@
 #include "buffer.h"
 #include "glcontext.h"
 #include "glincludes.h"
+#include "memory.h"
 #include "nodes.h"
 
 static const GLenum gl_usage_map[NGLI_BUFFER_USAGE_NB] = {
@@ -36,12 +37,22 @@ static GLenum get_gl_usage(int usage)
     return gl_usage_map[usage];
 }
 
-int ngli_buffer_init(struct buffer *s, struct ngl_ctx *ctx, int size, int usage)
+struct buffer *ngli_buffer_create(struct ngl_ctx *ctx)
 {
+    struct buffer *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
     s->ctx = ctx;
+    return s;
+}
+
+int ngli_buffer_init(struct buffer *s, int size, int usage)
+{
+    struct ngl_ctx *ctx = s->ctx;
+    struct glcontext *gl = ctx->glcontext;
+
     s->size = size;
     s->usage = usage;
-    struct glcontext *gl = ctx->glcontext;
     ngli_glGenBuffers(gl, 1, &s->id);
     ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->id);
     ngli_glBufferData(gl, GL_ARRAY_BUFFER, size, NULL, get_gl_usage(usage));
@@ -57,12 +68,13 @@ int ngli_buffer_upload(struct buffer *s, const void *data, int size)
     return 0;
 }
 
-void ngli_buffer_reset(struct buffer *s)
+void ngli_buffer_freep(struct buffer **sp)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    if (!ctx)
+    if (!*sp)
         return;
+    struct buffer *s = *sp;
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = ctx->glcontext;
     ngli_glDeleteBuffers(gl, 1, &s->id);
-    memset(s, 0, sizeof(*s));
+    ngli_freep(sp);
 }

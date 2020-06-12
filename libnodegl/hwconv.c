@@ -99,11 +99,14 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
          1.0f,  1.0f, 1.0f, 1.0f,
         -1.0f,  1.0f, 0.0f, 1.0f,
     };
-    ret = ngli_buffer_init(&hwconv->vertices, ctx, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC);
+    hwconv->vertices = ngli_buffer_create(ctx);
+    if (!hwconv->vertices)
+        return NGL_ERROR_MEMORY;
+    ret = ngli_buffer_init(hwconv->vertices, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC);
     if (ret < 0)
         return ret;
 
-    ret = ngli_buffer_upload(&hwconv->vertices, vertices, sizeof(vertices));
+    ret = ngli_buffer_upload(hwconv->vertices, vertices, sizeof(vertices));
     if (ret < 0)
         return ret;
 
@@ -117,7 +120,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
             .type     = NGLI_TYPE_VEC4,
             .format   = NGLI_FORMAT_R32G32B32A32_SFLOAT,
             .stride   = 4 * 4,
-            .buffer   = &hwconv->vertices,
+            .buffer   = hwconv->vertices,
         },
     };
 
@@ -223,7 +226,7 @@ void ngli_hwconv_reset(struct hwconv *hwconv)
 
     ngli_pipeline_reset(&hwconv->pipeline);
     ngli_pgcraft_freep(&hwconv->crafter);
-    ngli_buffer_reset(&hwconv->vertices);
+    ngli_buffer_freep(&hwconv->vertices);
     ngli_rendertarget_freep(&hwconv->rt);
 
     memset(hwconv, 0, sizeof(*hwconv));

@@ -58,11 +58,15 @@ int ngli_node_buffer_ref(struct ngl_node *node)
         return ngli_node_block_ref(s->block);
 
     if (s->buffer_refcount++ == 0) {
-        int ret = ngli_buffer_init(&s->buffer, ctx, s->data_size, s->usage);
+        s->buffer = ngli_buffer_create(ctx);
+        if (!s->buffer)
+            return NGL_ERROR_MEMORY;
+
+        int ret = ngli_buffer_init(s->buffer, s->data_size, s->usage);
         if (ret < 0)
             return ret;
 
-        ret = ngli_buffer_upload(&s->buffer, s->data, s->data_size);
+        ret = ngli_buffer_upload(s->buffer, s->data, s->data_size);
         if (ret < 0)
             return ret;
 
@@ -81,7 +85,7 @@ void ngli_node_buffer_unref(struct ngl_node *node)
 
     ngli_assert(s->buffer_refcount);
     if (s->buffer_refcount-- == 1)
-        ngli_buffer_reset(&s->buffer);
+        ngli_buffer_freep(&s->buffer);
 }
 
 int ngli_node_buffer_upload(struct ngl_node *node)
@@ -92,7 +96,7 @@ int ngli_node_buffer_upload(struct ngl_node *node)
         return ngli_node_block_upload(s->block);
 
     if (s->dynamic && s->buffer_last_upload_time != node->last_update_time) {
-        int ret = ngli_buffer_upload(&s->buffer, s->data, s->data_size);
+        int ret = ngli_buffer_upload(s->buffer, s->data, s->data_size);
         if (ret < 0)
             return ret;
         s->buffer_last_upload_time = node->last_update_time;

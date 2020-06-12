@@ -225,7 +225,7 @@ struct buffer_priv {
     int data_type;          // any of NGLI_TYPE_*
     int last_index;
 
-    struct buffer buffer;
+    struct buffer *buffer;
     int buffer_refcount;
     double buffer_last_upload_time;
 };
@@ -289,7 +289,7 @@ struct block_priv {
     int data_size;
     int usage;
 
-    struct buffer buffer;
+    struct buffer *buffer;
     int buffer_refcount;
     int has_changed;
     double buffer_last_upload_time;

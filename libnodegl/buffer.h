@@ -39,8 +39,9 @@ struct buffer {
     GLuint id;
 };
 
-int ngli_buffer_init(struct buffer *s, struct ngl_ctx *ctx, int size, int usage);
+struct buffer *ngli_buffer_create(struct ngl_ctx *ctx);
+int ngli_buffer_init(struct buffer *s, int size, int usage);
 int ngli_buffer_upload(struct buffer *s, const void *data, int size);
-void ngli_buffer_reset(struct buffer *s);
+void ngli_buffer_freep(struct buffer **sp);
 
 #endif

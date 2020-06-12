@@ -212,7 +212,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
      */
     block->type = type;
     crafter_block.block = block;
-    crafter_block.buffer = &block_priv->buffer;
+    crafter_block.buffer = block_priv->buffer;
 
     if (!ngli_darray_push(&s->crafter_blocks, &crafter_block))
         return NGL_ERROR_MEMORY;
@@ -279,7 +279,7 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
     const int format = attribute_priv->data_format;
     int stride = attribute_priv->data_stride;
     int offset = 0;
-    struct buffer *buffer = &attribute_priv->buffer;
+    struct buffer *buffer = attribute_priv->buffer;
 
     if (attribute_priv->block) {
         struct block_priv *block_priv = attribute_priv->block->priv_data;
@@ -288,7 +288,7 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
         const struct block_field *fi = &fields[attribute_priv->block_field];
         stride = fi->stride;
         offset = fi->offset;
-        buffer = &block_priv->buffer;
+        buffer = block_priv->buffer;
     }
 
     /*
@@ -373,11 +373,11 @@ static int pass_graphics_init(struct pass *s)
             return ret;
 
         s->indices = indices;
-        s->indices_buffer = &indices_priv->buffer;
+        s->indices_buffer = indices_priv->buffer;
 
         graphics->nb_indices = indices_priv->count;
         graphics->indices_format = indices_priv->data_format;
-        graphics->indices = &indices_priv->buffer;
+        graphics->indices = indices_priv->buffer;
     } else {
         struct ngl_node *vertices = geometry_priv->vertices_buffer;
         struct buffer_priv *buffer_priv = vertices->priv_data;

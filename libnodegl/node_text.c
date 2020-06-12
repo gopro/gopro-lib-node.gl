@@ -59,8 +59,8 @@ struct text_priv {
 
     struct texture *texture;
     struct canvas canvas;
-    struct buffer vertices;
-    struct buffer uvcoords;
+    struct buffer *vertices;
+    struct buffer *uvcoords;
     struct darray pipeline_descs;
 };
 
@@ -230,19 +230,27 @@ static int text_init(struct ngl_node *node)
 
     static const float uvs[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
 
-    ret = ngli_buffer_init(&s->vertices, ctx, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC);
+    s->vertices = ngli_buffer_create(ctx);
+    if (!s->vertices)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_buffer_init(s->vertices, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC);
     if (ret < 0)
         return ret;
 
-    ret = ngli_buffer_upload(&s->vertices, vertices, sizeof(vertices));
+    ret = ngli_buffer_upload(s->vertices, vertices, sizeof(vertices));
     if (ret < 0)
         return ret;
 
-    ret = ngli_buffer_init(&s->uvcoords, ctx, sizeof(uvs), NGLI_BUFFER_USAGE_STATIC);
+    s->uvcoords = ngli_buffer_create(ctx);
+    if (!s->uvcoords)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_buffer_init(s->uvcoords, sizeof(uvs), NGLI_BUFFER_USAGE_STATIC);
     if (ret < 0)
         return ret;
 
-    ret = ngli_buffer_upload(&s->uvcoords, uvs, sizeof(uvs));
+    ret = ngli_buffer_upload(s->uvcoords, uvs, sizeof(uvs));
     if (ret < 0)
         return ret;
 
@@ -294,14 +302,14 @@ static int text_prepare(struct ngl_node *node)
             .type     = NGLI_TYPE_VEC4,
             .format   = NGLI_FORMAT_R32G32B32_SFLOAT,
             .stride   = 3 * 4,
-            .buffer   = &s->vertices,
+            .buffer   = s->vertices,
         },
         {
             .name     = "uvcoord",
             .type     = NGLI_TYPE_VEC2,
             .format   = NGLI_FORMAT_R32G32_SFLOAT,
             .stride   = 2 * 4,
-            .buffer   = &s->uvcoords,
+            .buffer   = s->uvcoords,
         },
     };
 
@@ -382,8 +390,8 @@ static void text_uninit(struct ngl_node *node)
     }
     ngli_darray_reset(&s->pipeline_descs);
     ngli_texture_freep(&s->texture);
-    ngli_buffer_reset(&s->vertices);
-    ngli_buffer_reset(&s->uvcoords);
+    ngli_buffer_freep(&s->vertices);
+    ngli_buffer_freep(&s->uvcoords);
     ngli_free(s->canvas.buf);
 }
 

@@ -63,7 +63,7 @@ struct hud_priv {
     struct pgcraft *crafter;
     struct texture *texture;
     struct buffer *coords;
-    struct pipeline pipeline;
+    struct pipeline *pipeline;
     struct graphicstate graphicstate;
 
     int modelview_matrix_index;
@@ -1353,7 +1353,11 @@ static int hud_init(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    ret = ngli_pipeline_init(&s->pipeline, ctx, &pipeline_params);
+    s->pipeline = ngli_pipeline_create(ctx);
+    if (!s->pipeline)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_pipeline_init(s->pipeline, &pipeline_params);
     if (ret < 0)
         return ret;
 
@@ -1400,16 +1404,16 @@ static void hud_draw(struct ngl_node *node)
 
     const float *modelview_matrix  = ngli_darray_tail(&ctx->modelview_matrix_stack);
     const float *projection_matrix = ngli_darray_tail(&ctx->projection_matrix_stack);
-    ngli_pipeline_update_uniform(&s->pipeline, s->modelview_matrix_index, modelview_matrix);
-    ngli_pipeline_update_uniform(&s->pipeline, s->projection_matrix_index, projection_matrix);
-    ngli_pipeline_exec(&s->pipeline);
+    ngli_pipeline_update_uniform(s->pipeline, s->modelview_matrix_index, modelview_matrix);
+    ngli_pipeline_update_uniform(s->pipeline, s->projection_matrix_index, projection_matrix);
+    ngli_pipeline_exec(s->pipeline);
 }
 
 static void hud_uninit(struct ngl_node *node)
 {
     struct hud_priv *s = node->priv_data;
 
-    ngli_pipeline_reset(&s->pipeline);
+    ngli_pipeline_freep(&s->pipeline);
     ngli_pgcraft_freep(&s->crafter);
     ngli_texture_freep(&s->texture);
     ngli_buffer_freep(&s->coords);

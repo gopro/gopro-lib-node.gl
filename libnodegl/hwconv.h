@@ -38,7 +38,7 @@ struct hwconv {
     struct rendertarget *rt;
     struct buffer *vertices;
     struct pgcraft *crafter;
-    struct pipeline pipeline;
+    struct pipeline *pipeline;
 };
 
 int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,

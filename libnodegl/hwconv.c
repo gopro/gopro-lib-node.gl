@@ -153,7 +153,11 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     if (ret < 0)
         return ret;
 
-    ret = ngli_pipeline_init(&hwconv->pipeline, ctx, &pipeline_params);
+    hwconv->pipeline = ngli_pipeline_create(ctx);
+    if (!hwconv->pipeline)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_pipeline_init(hwconv->pipeline, &pipeline_params);
     if (ret < 0)
         return ret;
 
@@ -177,7 +181,7 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
 
     ngli_gctx_clear_color(ctx);
 
-    struct pipeline *pipeline = &hwconv->pipeline;
+    struct pipeline *pipeline = hwconv->pipeline;
 
     struct darray *texture_infos_array = &hwconv->crafter->texture_infos;
     struct pgcraft_texture_info *info = ngli_darray_data(texture_infos_array);
@@ -210,7 +214,7 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
     ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COORDINATE_MATRIX].index, image->coordinates_matrix);
     ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COLOR_MATRIX].index, image->color_matrix);
 
-    ngli_pipeline_exec(&hwconv->pipeline);
+    ngli_pipeline_exec(hwconv->pipeline);
 
     ngli_gctx_set_rendertarget(ctx, prev_rt);
     ngli_gctx_set_viewport(ctx, prev_vp);
@@ -224,7 +228,7 @@ void ngli_hwconv_reset(struct hwconv *hwconv)
     if (!ctx)
         return;
 
-    ngli_pipeline_reset(&hwconv->pipeline);
+    ngli_pipeline_freep(&hwconv->pipeline);
     ngli_pgcraft_freep(&hwconv->crafter);
     ngli_buffer_freep(&hwconv->vertices);
     ngli_rendertarget_freep(&hwconv->rt);

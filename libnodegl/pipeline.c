@@ -24,6 +24,7 @@
 #include "format.h"
 #include "glcontext.h"
 #include "log.h"
+#include "memory.h"
 #include "nodes.h"
 #include "pipeline.h"
 #include "topology.h"
@@ -510,11 +511,17 @@ static int pipeline_compute_init(struct pipeline *s)
     return 0;
 }
 
-int ngli_pipeline_init(struct pipeline *s, struct ngl_ctx *ctx, const struct pipeline_params *params)
+struct pipeline *ngli_pipeline_create(struct ngl_ctx *ctx)
 {
-    memset(s, 0, sizeof(*s));
+    struct pipeline *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
+    s->ctx = ctx;
+    return s;
+}
 
-    s->ctx      = ctx;
+int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params)
+{
     s->type     = params->type;
     s->graphics = params->graphics;
     s->compute  = params->compute;
@@ -596,11 +603,12 @@ void ngli_pipeline_exec(struct pipeline *s)
     s->exec(s, gl);
 }
 
-void ngli_pipeline_reset(struct pipeline *s)
+void ngli_pipeline_freep(struct pipeline **sp)
 {
-    if (!s->ctx)
+    if (!*sp)
         return;
 
+    struct pipeline *s = *sp;
     ngli_darray_reset(&s->uniform_descs);
     ngli_darray_reset(&s->texture_descs);
     ngli_darray_reset(&s->buffer_descs);
@@ -610,5 +618,5 @@ void ngli_pipeline_reset(struct pipeline *s)
     struct glcontext *gl = ctx->glcontext;
     ngli_glDeleteVertexArrays(gl, 1, &s->vao_id);
 
-    memset(s, 0, sizeof(*s));
+    ngli_freep(sp);
 }

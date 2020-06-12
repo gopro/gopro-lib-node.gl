@@ -37,7 +37,7 @@
 
 struct pipeline_desc {
     struct pgcraft *crafter;
-    struct pipeline pipeline;
+    struct pipeline *pipeline;
     int modelview_matrix_index;
     int projection_matrix_index;
 };
@@ -351,7 +351,11 @@ static int text_prepare(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    ret = ngli_pipeline_init(&desc->pipeline, ctx, &pipeline_params);
+    desc->pipeline = ngli_pipeline_create(ctx);
+    if (!desc->pipeline)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_pipeline_init(desc->pipeline, &pipeline_params);
     if (ret < 0)
         return ret;
 
@@ -372,10 +376,10 @@ static void text_draw(struct ngl_node *node)
     struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
     struct pipeline_desc *desc = &descs[ctx->rnode_pos->id];
 
-    ngli_pipeline_update_uniform(&desc->pipeline, desc->modelview_matrix_index, modelview_matrix);
-    ngli_pipeline_update_uniform(&desc->pipeline, desc->projection_matrix_index, projection_matrix);
+    ngli_pipeline_update_uniform(desc->pipeline, desc->modelview_matrix_index, modelview_matrix);
+    ngli_pipeline_update_uniform(desc->pipeline, desc->projection_matrix_index, projection_matrix);
 
-    ngli_pipeline_exec(&desc->pipeline);
+    ngli_pipeline_exec(desc->pipeline);
 }
 
 static void text_uninit(struct ngl_node *node)
@@ -385,7 +389,7 @@ static void text_uninit(struct ngl_node *node)
     const int nb_descs = ngli_darray_count(&s->pipeline_descs);
     for (int i = 0; i < nb_descs; i++) {
         struct pipeline_desc *desc = &descs[i];
-        ngli_pipeline_reset(&desc->pipeline);
+        ngli_pipeline_freep(&desc->pipeline);
         ngli_pgcraft_freep(&desc->crafter);
     }
     ngli_darray_reset(&s->pipeline_descs);

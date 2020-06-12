@@ -47,7 +47,7 @@
 
 struct pipeline_desc {
     struct pgcraft *crafter;
-    struct pipeline pipeline;
+    struct pipeline *pipeline;
     int modelview_matrix_index;
     int projection_matrix_index;
     int normal_matrix_index;
@@ -482,8 +482,11 @@ int ngli_pass_prepare(struct pass *s)
     if (ret < 0)
         return ret;
 
-    struct pipeline *pipeline = &desc->pipeline;
-    ret = ngli_pipeline_init(pipeline, ctx, &pipeline_params);
+    desc->pipeline = ngli_pipeline_create(ctx);
+    if (!desc->pipeline)
+        return NGL_ERROR_MEMORY;
+
+    ret = ngli_pipeline_init(desc->pipeline, &pipeline_params);
     if (ret < 0)
         return ret;
 
@@ -556,7 +559,7 @@ void ngli_pass_uninit(struct pass *s)
     const int nb_descs = ngli_darray_count(&s->pipeline_descs);
     for (int i = 0; i < nb_descs; i++) {
         struct pipeline_desc *desc = &descs[i];
-        ngli_pipeline_reset(&desc->pipeline);
+        ngli_pipeline_freep(&desc->pipeline);
         ngli_pgcraft_freep(&desc->crafter);
     }
     ngli_darray_reset(&s->pipeline_descs);
@@ -625,7 +628,7 @@ int ngli_pass_exec(struct pass *s)
     struct ngl_ctx *ctx = s->ctx;
     struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
     struct pipeline_desc *desc = &descs[ctx->rnode_pos->id];
-    struct pipeline *pipeline = &desc->pipeline;
+    struct pipeline *pipeline = desc->pipeline;
 
     const float *modelview_matrix = ngli_darray_tail(&ctx->modelview_matrix_stack);
     const float *projection_matrix = ngli_darray_tail(&ctx->projection_matrix_stack);

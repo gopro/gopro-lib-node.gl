@@ -42,10 +42,11 @@ struct gtimer {
     void (*glGetQueryObjectui64v)(const struct glcontext *gl, GLuint id, GLenum pname, GLuint64 *params);
 };
 
-int ngli_gtimer_init(struct gtimer *s, struct ngl_ctx *ctx);
+struct gtimer *ngli_gtimer_create(struct ngl_ctx *ctx);
+int ngli_gtimer_init(struct gtimer *s);
 int ngli_gtimer_start(struct gtimer *s);
 int ngli_gtimer_stop(struct gtimer *s);
 int64_t ngli_gtimer_read(struct gtimer *s);
-void ngli_gtimer_reset(struct gtimer *s);
+void ngli_gtimer_freep(struct gtimer **sp);
 
 #endif

@@ -286,7 +286,7 @@ struct latency_measure {
 
 struct widget_latency {
     struct latency_measure measures[NB_LATENCY];
-    struct gtimer timer;
+    struct gtimer *timer;
 };
 
 struct widget_memory {
@@ -335,7 +335,11 @@ static int widget_latency_init(struct ngl_node *node, struct widget *widget)
     struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
-    int ret = ngli_gtimer_init(&priv->timer, ctx);
+    priv->timer = ngli_gtimer_create(ctx);
+    if (!priv->timer)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_gtimer_init(priv->timer);
     if (ret < 0)
         return ret;
 
@@ -452,13 +456,13 @@ static int widget_latency_update(struct ngl_node *node, struct widget *widget, d
     struct ngl_node *child = s->child;
     struct widget_latency *priv = widget->priv_data;
 
-    ngli_gtimer_start(&priv->timer);
+    ngli_gtimer_start(priv->timer);
     int64_t update_start = ngli_gettime_relative();
     ret = ngli_node_update(child, t);
     int64_t update_end = ngli_gettime_relative();
-    ngli_gtimer_stop(&priv->timer);
+    ngli_gtimer_stop(priv->timer);
 
-    const int64_t gpu_tupdate = ngli_gtimer_read(&priv->timer);
+    const int64_t gpu_tupdate = ngli_gtimer_read(priv->timer);
     register_time(s, &priv->measures[LATENCY_UPDATE_CPU], update_end - update_start);
     register_time(s, &priv->measures[LATENCY_UPDATE_GPU], gpu_tupdate);
 
@@ -472,14 +476,14 @@ static void widget_latency_make_stats(struct ngl_node *node, struct widget *widg
     struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
-    ngli_gtimer_start(&priv->timer);
+    ngli_gtimer_start(priv->timer);
     const int64_t draw_start = ngli_gettime_relative();
     ngli_node_draw(s->child);
     const int64_t draw_end = ngli_gettime_relative();
-    ngli_gtimer_stop(&priv->timer);
+    ngli_gtimer_stop(priv->timer);
 
     int64_t cpu_tdraw = draw_end - draw_start;
-    int64_t gpu_tdraw = ngli_gtimer_read(&priv->timer);
+    int64_t gpu_tdraw = ngli_gtimer_read(priv->timer);
     register_time(s, &priv->measures[LATENCY_DRAW_CPU], cpu_tdraw);
     register_time(s, &priv->measures[LATENCY_DRAW_GPU], gpu_tdraw);
 
@@ -859,7 +863,7 @@ static void widget_latency_uninit(struct ngl_node *node, struct widget *widget)
     struct widget_latency *priv = widget->priv_data;
     for (int i = 0; i < NB_LATENCY; i++)
         ngli_free(priv->measures[i].times);
-    ngli_gtimer_reset(&priv->timer);
+    ngli_gtimer_freep(&priv->timer);
 }
 
 static void widget_memory_uninit(struct ngl_node *node, struct widget *widget)

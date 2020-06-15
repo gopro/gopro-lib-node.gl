@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "buffer.h"
+#include "gctx.h"
 #include "glcontext.h"
 #include "glincludes.h"
 #include "memory.h"
@@ -37,19 +38,19 @@ static GLenum get_gl_usage(int usage)
     return gl_usage_map[usage];
 }
 
-struct buffer *ngli_buffer_create(struct ngl_ctx *ctx)
+struct buffer *ngli_buffer_create(struct gctx *gctx)
 {
     struct buffer *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->ctx = ctx;
+    s->gctx = gctx;
     return s;
 }
 
 int ngli_buffer_init(struct buffer *s, int size, int usage)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     s->size = size;
     s->usage = usage;
@@ -61,8 +62,8 @@ int ngli_buffer_init(struct buffer *s, int size, int usage)
 
 int ngli_buffer_upload(struct buffer *s, const void *data, int size)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
     ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->id);
     ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, 0, size, data);
     return 0;
@@ -73,8 +74,8 @@ void ngli_buffer_freep(struct buffer **sp)
     if (!*sp)
         return;
     struct buffer *s = *sp;
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
     ngli_glDeleteBuffers(gl, 1, &s->id);
     ngli_freep(sp);
 }

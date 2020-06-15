@@ -29,6 +29,7 @@
 #include <va/va_drmcommon.h>
 
 #include "egl.h"
+#include "gctx.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -65,7 +66,8 @@ static int support_direct_rendering(struct ngl_node *node)
 static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
@@ -95,7 +97,7 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
             .external_storage = 1,
         };
 
-        vaapi->planes[i] = ngli_texture_create(ctx);
+        vaapi->planes[i] = ngli_texture_create(gctx);
         if (!vaapi->planes[i])
             return NGL_ERROR_MEMORY;
 
@@ -120,7 +122,8 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
 static void vaapi_uninit(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
@@ -148,7 +151,8 @@ static void vaapi_uninit(struct ngl_node *node)
 static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;

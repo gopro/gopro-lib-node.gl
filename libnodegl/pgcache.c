@@ -55,18 +55,19 @@ static int query_cache(struct pgcache *s, struct program **dstp,
                        const char *vert, const char *frag, const char *comp)
 {
     struct ngl_ctx *ctx = s->ctx;
+    struct gctx *gctx = ctx->gctx;
 
     struct program *cached_program = ngli_hmap_get(cache, cache_key);
     if (cached_program) {
         /* make sure the cached program has not been reset by the user */
-        ngli_assert(cached_program->ctx);
+        ngli_assert(cached_program->gctx);
 
         *dstp = cached_program;
         return 0;
     }
 
     /* this is free'd by the reset_cached_program() when destroying the cache */
-    struct program *new_program = ngli_program_create(ctx);
+    struct program *new_program = ngli_program_create(gctx);
     if (!new_program)
         return NGL_ERROR_MEMORY;
 

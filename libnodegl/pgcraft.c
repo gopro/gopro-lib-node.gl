@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stddef.h>
 
+#include "gctx.h"
 #include "format.h"
 #include "hmap.h"
 #include "log.h"
@@ -999,7 +1000,8 @@ struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx)
 
     s->ctx = ctx;
 
-    setup_glsl_info(s, ctx->glcontext);
+    struct gctx *gctx = ctx->gctx;
+    setup_glsl_info(s, gctx->glcontext);
 
     ngli_darray_init(&s->texture_infos, sizeof(struct pgcraft_texture_info), 0);
 
@@ -1036,7 +1038,7 @@ static int get_program_compute(struct pgcraft *s, const struct pgcraft_params *p
         return ret;
 
     const char *comp = ngli_bstr_strptr(s->shaders[NGLI_PROGRAM_SHADER_COMP]);
-    ret = ngli_pgcache_get_compute_program(&s->ctx->pgcache, &s->program, comp);
+    ret = ngli_pgcache_get_compute_program(&s->ctx->gctx->pgcache, &s->program, comp);
     ngli_bstr_freep(&s->shaders[NGLI_PROGRAM_SHADER_COMP]);
     return ret;
 }
@@ -1061,7 +1063,7 @@ static int get_program_graphics(struct pgcraft *s, const struct pgcraft_params *
 
     const char *vert = ngli_bstr_strptr(s->shaders[NGLI_PROGRAM_SHADER_VERT]);
     const char *frag = ngli_bstr_strptr(s->shaders[NGLI_PROGRAM_SHADER_FRAG]);
-    ret = ngli_pgcache_get_graphics_program(&s->ctx->pgcache, &s->program, vert, frag);
+    ret = ngli_pgcache_get_graphics_program(&s->ctx->gctx->pgcache, &s->program, vert, frag);
     ngli_bstr_freep(&s->shaders[NGLI_PROGRAM_SHADER_VERT]);
     ngli_bstr_freep(&s->shaders[NGLI_PROGRAM_SHADER_FRAG]);
     return ret;

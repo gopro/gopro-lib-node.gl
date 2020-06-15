@@ -305,19 +305,20 @@ static int graphicconfig_prepare(struct ngl_node *node)
 static void graphicconfig_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct graphicconfig_priv *s = node->priv_data;
     struct ngl_node *child = s->child;
 
     int prev_scissor[4];
     if (s->use_scissor) {
-        ngli_gctx_get_scissor(ctx, prev_scissor);
-        ngli_gctx_set_scissor(ctx, s->scissor);
+        ngli_gctx_get_scissor(gctx, prev_scissor);
+        ngli_gctx_set_scissor(gctx, s->scissor);
     }
 
     ngli_node_draw(child);
 
     if (s->use_scissor)
-        ngli_gctx_set_scissor(ctx, prev_scissor);
+        ngli_gctx_set_scissor(gctx, prev_scissor);
 }
 
 const struct node_class ngli_graphicconfig_class = {

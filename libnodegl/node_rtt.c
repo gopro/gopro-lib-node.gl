@@ -166,7 +166,8 @@ static int rtt_prefetch(struct ngl_node *node)
 {
     int ret = 0;
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct rtt_priv *s = node->priv_data;
 
     if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && s->samples > 0) {
@@ -222,7 +223,7 @@ static int rtt_prefetch(struct ngl_node *node)
         const int n = params->type == NGLI_TEXTURE_TYPE_CUBE ? 6 : 1;
         for (int j = 0; j < n; j++) {
             if (s->samples) {
-                struct texture *ms_texture = ngli_texture_create(ctx);
+                struct texture *ms_texture = ngli_texture_create(gctx);
                 if (!ms_texture)
                     return NGL_ERROR_MEMORY;
                 s->ms_colors[s->nb_ms_colors++] = ms_texture;
@@ -254,7 +255,7 @@ static int rtt_prefetch(struct ngl_node *node)
         struct texture_params *params = &texture->params;
 
         if (s->samples) {
-            struct texture *ms_texture = ngli_texture_create(ctx);
+            struct texture *ms_texture = ngli_texture_create(gctx);
             if (!ms_texture)
                 return NGL_ERROR_MEMORY;
             s->ms_depth = ms_texture;
@@ -279,7 +280,7 @@ static int rtt_prefetch(struct ngl_node *node)
             depth_format = NGLI_FORMAT_D16_UNORM;
 
         if (depth_format != NGLI_FORMAT_UNDEFINED) {
-            struct texture *depth = ngli_texture_create(ctx);
+            struct texture *depth = ngli_texture_create(gctx);
             if (!depth)
                 return NGL_ERROR_MEMORY;
             s->depth = depth;
@@ -299,7 +300,7 @@ static int rtt_prefetch(struct ngl_node *node)
         }
     }
 
-    s->rt = ngli_rendertarget_create(ctx);
+    s->rt = ngli_rendertarget_create(gctx);
     if (!s->rt)
         return NGL_ERROR_MEMORY;
     ret = ngli_rendertarget_init(s->rt, &rt_params);
@@ -352,27 +353,28 @@ static int rtt_update(struct ngl_node *node, double t)
 static void rtt_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct rtt_priv *s = node->priv_data;
 
     struct rendertarget *rt = s->rt;
-    struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(ctx);
-    ngli_gctx_set_rendertarget(ctx, rt);
+    struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(gctx);
+    ngli_gctx_set_rendertarget(gctx, rt);
 
     int prev_vp[4] = {0};
-    ngli_gctx_get_viewport(ctx, prev_vp);
+    ngli_gctx_get_viewport(gctx, prev_vp);
 
     const int vp[4] = {0, 0, s->width, s->height};
-    ngli_gctx_set_viewport(ctx, vp);
+    ngli_gctx_set_viewport(gctx, vp);
 
     float prev_clear_color[4] = {0};
     if (s->use_clear_color) {
-        ngli_gctx_get_clear_color(ctx, prev_clear_color);
-        ngli_gctx_set_clear_color(ctx, s->clear_color);
+        ngli_gctx_get_clear_color(gctx, prev_clear_color);
+        ngli_gctx_set_clear_color(gctx, s->clear_color);
     }
 
     if (!(s->features & FEATURE_NO_CLEAR)) {
-        ngli_gctx_clear_color(ctx);
-        ngli_gctx_clear_depth_stencil(ctx);
+        ngli_gctx_clear_color(gctx);
+        ngli_gctx_clear_depth_stencil(gctx);
     }
 
     ngli_node_draw(s->child);
@@ -381,13 +383,13 @@ static void rtt_draw(struct ngl_node *node)
         ngli_rendertarget_resolve(rt);
 
     if (s->invalidate_depth_stencil)
-        ngli_gctx_invalidate_depth_stencil(ctx);
+        ngli_gctx_invalidate_depth_stencil(gctx);
 
-    ngli_gctx_set_rendertarget(ctx, prev_rt);
-    ngli_gctx_set_viewport(ctx, prev_vp);
+    ngli_gctx_set_rendertarget(gctx, prev_rt);
+    ngli_gctx_set_viewport(gctx, prev_vp);
 
     if (s->use_clear_color)
-        ngli_gctx_set_clear_color(ctx, prev_clear_color);
+        ngli_gctx_set_clear_color(gctx, prev_clear_color);
 
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;

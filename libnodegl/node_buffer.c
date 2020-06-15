@@ -52,13 +52,14 @@ static const struct node_param buffer_params[] = {
 int ngli_node_buffer_ref(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct buffer_priv *s = node->priv_data;
 
     if (s->block)
         return ngli_node_block_ref(s->block);
 
     if (s->buffer_refcount++ == 0) {
-        s->buffer = ngli_buffer_create(ctx);
+        s->buffer = ngli_buffer_create(gctx);
         if (!s->buffer)
             return NGL_ERROR_MEMORY;
 

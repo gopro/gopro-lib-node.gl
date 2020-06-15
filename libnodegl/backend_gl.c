@@ -35,10 +35,11 @@
 #include "vaapi.h"
 #endif
 
-static int offscreen_rendertarget_init(struct ngl_ctx *s)
+static int offscreen_rendertarget_init(struct gctx *s)
 {
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = s->glcontext;
-    struct ngl_config *config = &s->config;
+    struct ngl_config *config = &ctx->config;
 
     if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && config->samples > 0) {
         LOG(WARNING, "context does not support the framebuffer object feature, "
@@ -92,16 +93,17 @@ static int offscreen_rendertarget_init(struct ngl_ctx *s)
     return 0;
 }
 
-static void offscreen_rendertarget_reset(struct ngl_ctx *s)
+static void offscreen_rendertarget_reset(struct gctx *s)
 {
     ngli_rendertarget_freep(&s->rt);
     ngli_texture_freep(&s->rt_color);
     ngli_texture_freep(&s->rt_depth);
 }
 
-static void capture_default(struct ngl_ctx *s)
+static void capture_default(struct gctx *s)
 {
-    struct ngl_config *config = &s->config;
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_config *config = &ctx->config;
     struct rendertarget *rt = s->rt;
     struct rendertarget *capture_rt = s->capture_rt;
 
@@ -109,7 +111,7 @@ static void capture_default(struct ngl_ctx *s)
     ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
 }
 
-static void capture_ios(struct ngl_ctx *s)
+static void capture_ios(struct gctx *s)
 {
     struct glcontext *gl = s->glcontext;
     struct rendertarget *rt = s->rt;
@@ -119,9 +121,10 @@ static void capture_ios(struct ngl_ctx *s)
     ngli_glFinish(gl);
 }
 
-static void capture_gles_msaa(struct ngl_ctx *s)
+static void capture_gles_msaa(struct gctx *s)
 {
-    struct ngl_config *config = &s->config;
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_config *config = &ctx->config;
     struct rendertarget *rt = s->rt;
     struct rendertarget *capture_rt = s->capture_rt;
     struct rendertarget *oes_resolve_rt = s->oes_resolve_rt;
@@ -131,7 +134,7 @@ static void capture_gles_msaa(struct ngl_ctx *s)
     ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
 }
 
-static void capture_ios_msaa(struct ngl_ctx *s)
+static void capture_ios_msaa(struct gctx *s)
 {
     struct glcontext *gl = s->glcontext;
     struct rendertarget *rt = s->rt;
@@ -143,9 +146,10 @@ static void capture_ios_msaa(struct ngl_ctx *s)
     ngli_glFinish(gl);
 }
 
-static void capture_cpu_fallback(struct ngl_ctx *s)
+static void capture_cpu_fallback(struct gctx *s)
 {
-    struct ngl_config *config = &s->config;
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_config *config = &ctx->config;
     struct rendertarget *rt = s->rt;
 
     ngli_rendertarget_read_pixels(rt, s->capture_buffer);
@@ -159,10 +163,11 @@ static void capture_cpu_fallback(struct ngl_ctx *s)
     }
 }
 
-static int capture_init(struct ngl_ctx *s)
+static int capture_init(struct gctx *s)
 {
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = s->glcontext;
-    struct ngl_config *config = &s->config;
+    struct ngl_config *config = &ctx->config;
     const int ios_capture = gl->platform == NGL_PLATFORM_IOS && config->window;
 
     if (!config->capture_buffer && !ios_capture)
@@ -294,7 +299,7 @@ static int capture_init(struct ngl_ctx *s)
     return 0;
 }
 
-static void capture_reset(struct ngl_ctx *s)
+static void capture_reset(struct gctx *s)
 {
     ngli_rendertarget_freep(&s->capture_rt);
     ngli_texture_freep(&s->capture_rt_color);
@@ -315,10 +320,11 @@ static void capture_reset(struct ngl_ctx *s)
     s->capture_func = NULL;
 }
 
-static int gl_init(struct ngl_ctx *s)
+static int gl_init(struct gctx *s)
 {
     int ret;
-    const struct ngl_config *config = &s->config;
+    struct ngl_ctx *ctx = s->ctx;
+    const struct ngl_config *config = &ctx->config;
 
     s->glcontext = ngli_glcontext_new(config);
     if (!s->glcontext)
@@ -342,11 +348,11 @@ static int gl_init(struct ngl_ctx *s)
     s->default_rendertarget_desc.depth_stencil.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
     s->default_rendertarget_desc.depth_stencil.samples = gl->samples;
     s->default_rendertarget_desc.depth_stencil.resolve = gl->samples > 1;
-    s->rendertarget_desc = &s->default_rendertarget_desc;
+    ctx->rendertarget_desc = &s->default_rendertarget_desc;
 
     ngli_glstate_probe(gl, &s->glstate);
 
-    ret = ngli_pgcache_init(&s->pgcache, s);
+    ret = ngli_pgcache_init(&s->pgcache, s->ctx);
     if (ret < 0)
         return ret;
 
@@ -370,11 +376,11 @@ static int gl_init(struct ngl_ctx *s)
 
     ngli_gctx_set_clear_color(s, config->clear_color);
 
-    struct graphicstate *graphicstate = &s->graphicstate;
+    struct graphicstate *graphicstate = &ctx->graphicstate;
     ngli_graphicstate_init(graphicstate);
 
 #if defined(HAVE_VAAPI)
-    ret = ngli_vaapi_init(s);
+    ret = ngli_vaapi_init(s->ctx);
     if (ret < 0)
         LOG(WARNING, "could not initialize vaapi");
 #endif
@@ -382,7 +388,7 @@ static int gl_init(struct ngl_ctx *s)
     return 0;
 }
 
-static int gl_resize(struct ngl_ctx *s, int width, int height, const int *viewport)
+static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
 {
     struct glcontext *gl = s->glcontext;
     if (gl->offscreen)
@@ -405,7 +411,7 @@ static int gl_resize(struct ngl_ctx *s, int width, int height, const int *viewpo
     return 0;
 }
 
-static int gl_pre_draw(struct ngl_ctx *s, double t)
+static int gl_pre_draw(struct gctx *s, double t)
 {
     ngli_gctx_clear_color(s);
     ngli_gctx_clear_depth_stencil(s);
@@ -413,12 +419,13 @@ static int gl_pre_draw(struct ngl_ctx *s, double t)
     return 0;
 }
 
-static int gl_post_draw(struct ngl_ctx *s, double t)
+static int gl_post_draw(struct gctx *s, double t)
 {
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = s->glcontext;
-    struct ngl_config *config = &s->config;
+    struct ngl_config *config = &ctx->config;
 
-    ngli_glstate_update(s, &s->graphicstate);
+    ngli_glstate_update(s, &ctx->graphicstate);
 
     if (s->capture_func)
         s->capture_func(s);
@@ -435,13 +442,13 @@ static int gl_post_draw(struct ngl_ctx *s, double t)
     return ret;
 }
 
-static void gl_destroy(struct ngl_ctx *s)
+static void gl_destroy(struct gctx *s)
 {
     ngli_pgcache_reset(&s->pgcache);
     capture_reset(s);
     offscreen_rendertarget_reset(s);
 #if defined(HAVE_VAAPI)
-    ngli_vaapi_reset(s);
+    ngli_vaapi_reset(s->ctx);
 #endif
     ngli_glcontext_freep(&s->glcontext);
 }

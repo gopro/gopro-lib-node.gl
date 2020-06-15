@@ -28,6 +28,7 @@
 
 #include "block.h"
 #include "buffer.h"
+#include "gctx.h"
 #include "glincludes.h"
 #include "hmap.h"
 #include "image.h"
@@ -168,7 +169,8 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     }
 
     struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     struct pgcraft_block crafter_block = {.stage = stage};
     snprintf(crafter_block.name, sizeof(crafter_block.name), "%s", name);
@@ -439,6 +441,7 @@ static int pass_compute_init(struct pass *s)
 int ngli_pass_prepare(struct pass *s)
 {
     struct ngl_ctx *ctx = s->ctx;
+    struct gctx *gctx = ctx->gctx;
 
     struct pipeline_graphics pipeline_graphics = s->pipeline_graphics;
     pipeline_graphics.state = ctx->graphicstate;
@@ -482,7 +485,7 @@ int ngli_pass_prepare(struct pass *s)
     if (ret < 0)
         return ret;
 
-    desc->pipeline = ngli_pipeline_create(ctx);
+    desc->pipeline = ngli_pipeline_create(gctx);
     if (!desc->pipeline)
         return NGL_ERROR_MEMORY;
 

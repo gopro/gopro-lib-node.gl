@@ -27,10 +27,10 @@
 #include "glincludes.h"
 #include "nodes.h"
 
-struct ngl_ctx;
+struct gctx;
 
 struct gtimer {
-    struct ngl_ctx *ctx;
+    struct gctx *gctx;
 
     int started;
     GLuint query;
@@ -42,7 +42,7 @@ struct gtimer {
     void (*glGetQueryObjectui64v)(const struct glcontext *gl, GLuint id, GLenum pname, GLuint64 *params);
 };
 
-struct gtimer *ngli_gtimer_create(struct ngl_ctx *ctx);
+struct gtimer *ngli_gtimer_create(struct gctx *gctx);
 int ngli_gtimer_init(struct gtimer *s);
 int ngli_gtimer_start(struct gtimer *s);
 int ngli_gtimer_stop(struct gtimer *s);

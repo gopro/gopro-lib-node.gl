@@ -215,6 +215,7 @@ static const struct pgcraft_iovar vert_out_vars[] = {
 static int text_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct text_priv *s = node->priv_data;
 
     int ret = prepare_canvas(s);
@@ -230,7 +231,7 @@ static int text_init(struct ngl_node *node)
 
     static const float uvs[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0};
 
-    s->vertices = ngli_buffer_create(ctx);
+    s->vertices = ngli_buffer_create(gctx);
     if (!s->vertices)
         return NGL_ERROR_MEMORY;
 
@@ -242,7 +243,7 @@ static int text_init(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    s->uvcoords = ngli_buffer_create(ctx);
+    s->uvcoords = ngli_buffer_create(gctx);
     if (!s->uvcoords)
         return NGL_ERROR_MEMORY;
 
@@ -261,7 +262,7 @@ static int text_init(struct ngl_node *node)
     tex_params.min_filter = s->min_filter;
     tex_params.mag_filter = s->mag_filter;
     tex_params.mipmap_filter = s->mipmap_filter;
-    s->texture = ngli_texture_create(ctx);
+    s->texture = ngli_texture_create(gctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
     ret = ngli_texture_init(s->texture, &tex_params);
@@ -280,6 +281,7 @@ static int text_init(struct ngl_node *node)
 static int text_prepare(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct text_priv *s = node->priv_data;
 
     const struct pgcraft_uniform uniforms[] = {
@@ -351,7 +353,7 @@ static int text_prepare(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    desc->pipeline = ngli_pipeline_create(ctx);
+    desc->pipeline = ngli_pipeline_create(gctx);
     if (!desc->pipeline)
         return NGL_ERROR_MEMORY;
 

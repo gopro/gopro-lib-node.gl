@@ -40,7 +40,7 @@ enum {
 };
 
 struct program {
-    struct ngl_ctx *ctx;
+    struct gctx *gctx;
     struct hmap *uniforms;
     struct hmap *attributes;
     struct hmap *buffer_blocks;
@@ -48,7 +48,7 @@ struct program {
     GLuint id;
 };
 
-struct program *ngli_program_create(struct ngl_ctx *ctx);
+struct program *ngli_program_create(struct gctx *gctx);
 int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
 void ngli_program_freep(struct program **sp);
 

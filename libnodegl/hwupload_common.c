@@ -48,6 +48,7 @@ static int common_get_data_format(int pix_fmt)
 static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
 
@@ -59,7 +60,7 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
     if (params.format < 0)
         return -1;
 
-    s->texture = ngli_texture_create(ctx);
+    s->texture = ngli_texture_create(gctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
 

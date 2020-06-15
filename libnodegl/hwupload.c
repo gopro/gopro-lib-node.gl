@@ -64,6 +64,7 @@ static const struct hwmap_class *get_hwmap_class(struct sxplayer_frame *frame)
 static int init_hwconv(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct texture_priv *s = node->priv_data;
     struct image *image = &s->image;
     struct hwupload *hwupload = &s->hwupload;
@@ -81,7 +82,7 @@ static int init_hwconv(struct ngl_node *node)
     params.width  = mapped_image->params.width;
     params.height = mapped_image->params.height;
 
-    s->texture = ngli_texture_create(ctx);
+    s->texture = ngli_texture_create(gctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
     int ret = ngli_texture_init(s->texture, &params);

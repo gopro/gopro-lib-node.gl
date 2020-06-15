@@ -56,14 +56,13 @@ int ngli_gctx_init(struct gctx *s)
     }
     s->class = backend_map[config->backend];
 
-    return s->class->init(s->ctx);
+    return s->class->init(s);
 }
 
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport)
 {
-    struct ngl_ctx *ctx = s->ctx;
     const struct gctx_class *class = s->class;
-    return class->resize(ctx, width, height, viewport);
+    return class->resize(s, width, height, viewport);
 }
 
 int ngli_gctx_draw(struct gctx *s, double t)
@@ -71,7 +70,7 @@ int ngli_gctx_draw(struct gctx *s, double t)
     struct ngl_ctx *ctx = s->ctx;
     const struct gctx_class *class = s->class;
 
-    int ret = class->pre_draw(ctx, t);
+    int ret = class->pre_draw(s, t);
     if (ret < 0)
         goto end;
 
@@ -81,7 +80,7 @@ int ngli_gctx_draw(struct gctx *s, double t)
     }
 
 end:;
-    int end_ret = class->post_draw(ctx, t);
+    int end_ret = class->post_draw(s, t);
     if (end_ret < 0)
         return end_ret;
 
@@ -94,15 +93,14 @@ void ngli_gctx_freep(struct gctx **sp)
         return;
 
     struct gctx *s = *sp;
-    struct ngl_ctx *ctx = s->ctx;
     const struct gctx_class *class = s->class;
     if (class)
-        class->destroy(ctx);
+        class->destroy(s);
 
     ngli_freep(sp);
 }
 
-void ngli_gctx_set_rendertarget(struct ngl_ctx *s, struct rendertarget *rt)
+void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt)
 {
     struct glcontext *gl = s->glcontext;
 
@@ -115,48 +113,48 @@ void ngli_gctx_set_rendertarget(struct ngl_ctx *s, struct rendertarget *rt)
     s->rendertarget = rt;
 }
 
-struct rendertarget *ngli_gctx_get_rendertarget(struct ngl_ctx *s)
+struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)
 {
     return s->rendertarget;
 }
 
-void ngli_gctx_set_viewport(struct ngl_ctx *s, const int *viewport)
+void ngli_gctx_set_viewport(struct gctx *s, const int *viewport)
 {
     struct glcontext *gl = s->glcontext;
     ngli_glViewport(gl, viewport[0], viewport[1], viewport[2], viewport[3]);
     memcpy(&s->viewport, viewport, sizeof(s->viewport));
 }
 
-void ngli_gctx_get_viewport(struct ngl_ctx *s, int *viewport)
+void ngli_gctx_get_viewport(struct gctx *s, int *viewport)
 {
     memcpy(viewport, &s->viewport, sizeof(s->viewport));
 }
 
-void ngli_gctx_set_scissor(struct ngl_ctx *s, const int *scissor)
+void ngli_gctx_set_scissor(struct gctx *s, const int *scissor)
 {
     struct glcontext *gl = s->glcontext;
     ngli_glScissor(gl, scissor[0], scissor[1], scissor[2], scissor[3]);
     memcpy(&s->scissor, scissor, sizeof(s->scissor));
 }
 
-void ngli_gctx_get_scissor(struct ngl_ctx *s, int *scissor)
+void ngli_gctx_get_scissor(struct gctx *s, int *scissor)
 {
     memcpy(scissor, &s->scissor, sizeof(s->scissor));
 }
 
-void ngli_gctx_set_clear_color(struct ngl_ctx *s, const float *color)
+void ngli_gctx_set_clear_color(struct gctx *s, const float *color)
 {
     struct glcontext *gl = s->glcontext;
     memcpy(s->clear_color, color, sizeof(s->clear_color));
     ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
 }
 
-void ngli_gctx_get_clear_color(struct ngl_ctx *s, float *color)
+void ngli_gctx_get_clear_color(struct gctx *s, float *color)
 {
     memcpy(color, &s->clear_color, sizeof(s->clear_color));
 }
 
-void ngli_gctx_clear_color(struct ngl_ctx *s)
+void ngli_gctx_clear_color(struct gctx *s)
 {
     struct glcontext *gl = s->glcontext;
     struct glstate *glstate = &s->glstate;
@@ -170,7 +168,7 @@ void ngli_gctx_clear_color(struct ngl_ctx *s)
         ngli_glEnable(gl, GL_SCISSOR_TEST);
 }
 
-void ngli_gctx_clear_depth_stencil(struct ngl_ctx *s)
+void ngli_gctx_clear_depth_stencil(struct gctx *s)
 {
     struct glcontext *gl = s->glcontext;
     struct glstate *glstate = &s->glstate;
@@ -184,7 +182,7 @@ void ngli_gctx_clear_depth_stencil(struct ngl_ctx *s)
         ngli_glEnable(gl, GL_SCISSOR_TEST);
 }
 
-void ngli_gctx_invalidate_depth_stencil(struct ngl_ctx *s)
+void ngli_gctx_invalidate_depth_stencil(struct gctx *s)
 {
     struct glcontext *gl = s->glcontext;
 

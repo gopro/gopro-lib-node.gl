@@ -332,10 +332,11 @@ struct widget_spec {
 static int widget_latency_init(struct ngl_node *node, struct widget *widget)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
-    priv->timer = ngli_gtimer_create(ctx);
+    priv->timer = ngli_gtimer_create(gctx);
     if (!priv->timer)
         return NGL_ERROR_MEMORY;
 
@@ -1242,6 +1243,7 @@ static const struct pgcraft_iovar vert_out_vars[] = {
 static int hud_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct hud_priv *s = node->priv_data;
 
     int ret = widgets_init(node);
@@ -1269,7 +1271,7 @@ static int hud_init(struct ngl_node *node)
         -1.0f,  1.0f, 0.0f, 0.0f,
     };
 
-    s->coords = ngli_buffer_create(ctx);
+    s->coords = ngli_buffer_create(gctx);
     if (!s->coords)
         return NGL_ERROR_MEMORY;
 
@@ -1288,7 +1290,7 @@ static int hud_init(struct ngl_node *node)
     tex_params.min_filter = NGLI_FILTER_LINEAR;
     tex_params.mag_filter = NGLI_FILTER_NEAREST;
     tex_params.mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR;
-    s->texture = ngli_texture_create(ctx);
+    s->texture = ngli_texture_create(gctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
     ret = ngli_texture_init(s->texture, &tex_params);
@@ -1357,7 +1359,7 @@ static int hud_init(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    s->pipeline = ngli_pipeline_create(ctx);
+    s->pipeline = ngli_pipeline_create(gctx);
     if (!s->pipeline)
         return NGL_ERROR_MEMORY;
 

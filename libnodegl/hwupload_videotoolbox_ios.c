@@ -27,6 +27,7 @@
 #include <CoreVideo/CoreVideo.h>
 
 #include "format.h"
+#include "gctx.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -88,7 +89,8 @@ static int vt_get_format_desc(OSType format, struct format_desc *desc)
 static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, int index)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
@@ -217,6 +219,7 @@ static int support_direct_rendering(struct ngl_node *node, struct sxplayer_frame
 static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
@@ -239,7 +242,7 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
     for (int i = 0; i < format_desc.nb_planes; i++) {
         plane_params.format = format_desc.planes[i].format;
 
-        vt->planes[i] = ngli_texture_create(ctx);
+        vt->planes[i] = ngli_texture_create(gctx);
         if (!vt->planes[i])
             return NGL_ERROR_MEMORY;
 

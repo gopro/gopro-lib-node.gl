@@ -25,7 +25,7 @@
 #include "glincludes.h"
 #include "utils.h"
 
-struct ngl_ctx;
+struct gctx;
 
 enum {
     NGLI_MIPMAP_FILTER_NONE,
@@ -106,7 +106,7 @@ struct texture_params {
 };
 
 struct texture {
-    struct ngl_ctx *ctx;
+    struct gctx *gctx;
     struct texture_params params;
     int wrapped;
     int external_storage;
@@ -119,7 +119,7 @@ struct texture {
     GLenum format_type;
 };
 
-struct texture *ngli_texture_create(struct ngl_ctx *ctx);
+struct texture *ngli_texture_create(struct gctx *gctx);
 
 int ngli_texture_init(struct texture *s,
                       const struct texture_params *params);

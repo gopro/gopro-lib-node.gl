@@ -226,7 +226,8 @@ static void *worker_thread(void *arg)
 static int cmd_make_current(struct ngl_ctx *s, void *arg)
 {
     const int current = *(int *)arg;
-    ngli_glcontext_make_current(s->glcontext, current);
+    struct gctx *gctx = s->gctx;
+    ngli_glcontext_make_current(gctx->glcontext, current);
     return 0;
 }
 

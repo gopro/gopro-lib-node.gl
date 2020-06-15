@@ -23,6 +23,7 @@
 
 #include "rendertarget.h"
 #include "format.h"
+#include "gctx.h"
 #include "glcontext.h"
 #include "glincludes.h"
 #include "log.h"
@@ -53,8 +54,8 @@ static GLenum get_gl_attachment_index(GLenum format)
 
 static void blit(struct rendertarget *s, int width, int height, int vflip, int flags)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (vflip)
         ngli_glBlitFramebuffer(gl, 0, 0, s->width, s->height, 0, height, width, 0, flags, GL_NEAREST);
@@ -69,8 +70,8 @@ static void blit_no_draw_buffers(struct rendertarget *s, int nb_color_attachment
 
 static void blit_draw_buffers(struct rendertarget *s, int nb_color_attachments, int width, int height, int vflip)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     const GLenum *draw_buffers = s->blit_draw_buffers;
     const int n = NGLI_MIN(s->nb_color_attachments, nb_color_attachments);
@@ -94,8 +95,8 @@ static void resolve_no_draw_buffers(struct rendertarget *s)
 
 static void resolve_draw_buffers(struct rendertarget *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct rendertarget_params *params = &s->params;
 
     const GLenum *draw_buffers = s->blit_draw_buffers;
@@ -119,8 +120,8 @@ static void resolve_draw_buffers(struct rendertarget *s)
 static int create_fbo(struct rendertarget *s, int resolve)
 {
     int ret = -1;
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
     const struct rendertarget_params *params = &s->params;
 
     GLuint id = 0;
@@ -216,19 +217,19 @@ static int require_resolve_fbo(struct rendertarget *s)
     return 0;
 }
 
-struct rendertarget *ngli_rendertarget_create(struct ngl_ctx *ctx)
+struct rendertarget *ngli_rendertarget_create(struct gctx *gctx)
 {
     struct rendertarget *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->ctx = ctx;
+    s->gctx = gctx;
     return s;
 }
 
 int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     s->params = *params;
     s->width = params->width;
@@ -271,7 +272,7 @@ int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_par
     }
 
 done:;
-    struct rendertarget *rt = ctx->rendertarget;
+    struct rendertarget *rt = gctx->rendertarget;
     const GLuint fbo_id = rt ? rt->id : ngli_glcontext_get_default_framebuffer(gl);
     ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 
@@ -280,8 +281,8 @@ done:;
 
 void ngli_rendertarget_blit(struct rendertarget *s, struct rendertarget *dst, int vflip)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT))
         return;
@@ -290,15 +291,15 @@ void ngli_rendertarget_blit(struct rendertarget *s, struct rendertarget *dst, in
     ngli_glBindFramebuffer(gl, GL_DRAW_FRAMEBUFFER, dst->id);
     s->blit(s, dst->nb_color_attachments, dst->width, dst->height, vflip);
 
-    struct rendertarget *rt = ctx->rendertarget;
+    struct rendertarget *rt = gctx->rendertarget;
     const GLuint fbo_id = rt ? rt->id : ngli_glcontext_get_default_framebuffer(gl);
     ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 }
 
 void ngli_rendertarget_resolve(struct rendertarget *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT))
         return;
@@ -310,16 +311,16 @@ void ngli_rendertarget_resolve(struct rendertarget *s)
     ngli_glBindFramebuffer(gl, GL_DRAW_FRAMEBUFFER, s->resolve_id);
     s->resolve(s);
 
-    struct rendertarget *rt = ctx->rendertarget;
+    struct rendertarget *rt = gctx->rendertarget;
     const GLuint fbo_id = rt ? rt->id : ngli_glcontext_get_default_framebuffer(gl);
     ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 }
 
 void ngli_rendertarget_read_pixels(struct rendertarget *s, uint8_t *data)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
-    struct rendertarget *rt = ctx->rendertarget;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
+    struct rendertarget *rt = gctx->rendertarget;
 
     const GLuint fbo_id = rt ? rt->id : ngli_glcontext_get_default_framebuffer(gl);
     const GLuint id = s->resolve_id ? s->resolve_id : s->id;
@@ -338,8 +339,8 @@ void ngli_rendertarget_freep(struct rendertarget **sp)
         return;
 
     struct rendertarget *s = *sp;
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
     ngli_glDeleteFramebuffers(gl, 1, &s->id);
     ngli_glDeleteFramebuffers(gl, 1, &s->resolve_id);
 

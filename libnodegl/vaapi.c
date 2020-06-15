@@ -29,6 +29,7 @@
 #include <va/va_wayland.h>
 #endif
 
+#include "gctx.h"
 #include "glcontext.h"
 #include "log.h"
 #include "nodes.h"
@@ -36,7 +37,8 @@
 
 int ngli_vaapi_init(struct ngl_ctx *s)
 {
-    struct glcontext *gl = s->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (gl->features & NGLI_FEATURE_SOFTWARE)
         return -1;

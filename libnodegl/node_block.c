@@ -24,6 +24,7 @@
 
 #include "block.h"
 #include "buffer.h"
+#include "gctx.h"
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"
@@ -115,10 +116,11 @@ static const struct node_param block_params[] = {
 int ngli_node_block_ref(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct block_priv *s = node->priv_data;
 
     if (s->buffer_refcount++ == 0) {
-        s->buffer = ngli_buffer_create(ctx);
+        s->buffer = ngli_buffer_create(gctx);
         if (!s->buffer)
             return NGL_ERROR_MEMORY;
 
@@ -277,7 +279,8 @@ static int check_dup_labels(const char *block_name, struct ngl_node * const *nod
 static int block_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct block_priv *s = node->priv_data;
 
     if (s->layout == NGLI_BLOCK_LAYOUT_STD140 && !(gl->features & FEATURES_STD140)) {

@@ -29,6 +29,7 @@
 #include <OpenGL/CGLIOSurface.h>
 
 #include "format.h"
+#include "gctx.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -45,7 +46,8 @@ struct hwupload_vt_darwin {
 static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
@@ -106,6 +108,7 @@ static int support_direct_rendering(struct ngl_node *node)
 static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
@@ -116,7 +119,7 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
         plane_params.rectangle = 1;
         plane_params.external_storage = 1;
 
-        vt->planes[i] = ngli_texture_create(ctx);
+        vt->planes[i] = ngli_texture_create(gctx);
         if (!vt->planes[i])
             return NGL_ERROR_MEMORY;
 

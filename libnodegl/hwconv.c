@@ -55,6 +55,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
                      const struct image *dst_image,
                      const struct image_params *src_params)
 {
+    struct gctx *gctx = ctx->gctx;
     hwconv->ctx = ctx;
     hwconv->src_params = *src_params;
 
@@ -78,7 +79,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
             .attachment = texture,
         }
     };
-    hwconv->rt = ngli_rendertarget_create(ctx);
+    hwconv->rt = ngli_rendertarget_create(gctx);
     if (!hwconv->rt)
         return NGL_ERROR_MEMORY;
     int ret = ngli_rendertarget_init(hwconv->rt, &rt_params);
@@ -99,7 +100,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
          1.0f,  1.0f, 1.0f, 1.0f,
         -1.0f,  1.0f, 0.0f, 1.0f,
     };
-    hwconv->vertices = ngli_buffer_create(ctx);
+    hwconv->vertices = ngli_buffer_create(gctx);
     if (!hwconv->vertices)
         return NGL_ERROR_MEMORY;
     ret = ngli_buffer_init(hwconv->vertices, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC);
@@ -153,7 +154,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     if (ret < 0)
         return ret;
 
-    hwconv->pipeline = ngli_pipeline_create(ctx);
+    hwconv->pipeline = ngli_pipeline_create(gctx);
     if (!hwconv->pipeline)
         return NGL_ERROR_MEMORY;
 
@@ -167,19 +168,20 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
 int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
 {
     struct ngl_ctx *ctx = hwconv->ctx;
+    struct gctx *gctx = ctx->gctx;
     ngli_assert(hwconv->src_params.layout == image->params.layout);
 
     struct rendertarget *rt = hwconv->rt;
-    struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(ctx);
-    ngli_gctx_set_rendertarget(ctx, rt);
+    struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(gctx);
+    ngli_gctx_set_rendertarget(gctx, rt);
 
     int prev_vp[4] = {0};
-    ngli_gctx_get_viewport(ctx, prev_vp);
+    ngli_gctx_get_viewport(gctx, prev_vp);
 
     const int vp[4] = {0, 0, rt->width, rt->height};
-    ngli_gctx_set_viewport(ctx, vp);
+    ngli_gctx_set_viewport(gctx, vp);
 
-    ngli_gctx_clear_color(ctx);
+    ngli_gctx_clear_color(gctx);
 
     struct pipeline *pipeline = hwconv->pipeline;
 
@@ -216,8 +218,8 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
 
     ngli_pipeline_exec(hwconv->pipeline);
 
-    ngli_gctx_set_rendertarget(ctx, prev_rt);
-    ngli_gctx_set_viewport(ctx, prev_vp);
+    ngli_gctx_set_rendertarget(gctx, prev_rt);
+    ngli_gctx_set_viewport(gctx, prev_vp);
 
     return 0;
 }

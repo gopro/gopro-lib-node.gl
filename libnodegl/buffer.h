@@ -24,7 +24,7 @@
 
 #include "glincludes.h"
 
-struct ngl_ctx;
+struct gctx;
 
 enum {
     NGLI_BUFFER_USAGE_STATIC,
@@ -33,13 +33,13 @@ enum {
 };
 
 struct buffer {
-    struct ngl_ctx *ctx;
+    struct gctx *gctx;
     int size;
     int usage;
     GLuint id;
 };
 
-struct buffer *ngli_buffer_create(struct ngl_ctx *ctx);
+struct buffer *ngli_buffer_create(struct gctx *gctx);
 int ngli_buffer_init(struct buffer *s, int size, int usage);
 int ngli_buffer_upload(struct buffer *s, const void *data, int size);
 void ngli_buffer_freep(struct buffer **sp);

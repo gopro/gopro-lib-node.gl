@@ -28,6 +28,7 @@
 
 #include "android_surface.h"
 #include "format.h"
+#include "gctx.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -61,7 +62,8 @@ static int support_direct_rendering(struct ngl_node *node)
 static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     const struct texture_params *params = &s->params;
     struct media_priv *media = s->data_src->priv_data;

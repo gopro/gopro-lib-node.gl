@@ -21,6 +21,7 @@
 
 #include <string.h>
 
+#include "gctx.h"
 #include "gtimer.h"
 #include "log.h"
 #include "memory.h"
@@ -29,19 +30,19 @@ static void noop(const struct glcontext *gl, ...)
 {
 }
 
-struct gtimer *ngli_gtimer_create(struct ngl_ctx *ctx)
+struct gtimer *ngli_gtimer_create(struct gctx *gctx)
 {
     struct gtimer *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->ctx = ctx;
+    s->gctx = gctx;
     return s;
 }
 
 int ngli_gtimer_init(struct gtimer *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (gl->features & NGLI_FEATURE_TIMER_QUERY) {
         s->glGenQueries          = ngli_glGenQueries;
@@ -69,10 +70,10 @@ int ngli_gtimer_init(struct gtimer *s)
 
 int ngli_gtimer_start(struct gtimer *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
-    if (ctx->timer_active) {
+    if (gctx->timer_active) {
         LOG(WARNING, "only one instance of GPU timings can be present "
             "in the same graph due to OpenGL limitations");
         return 0;
@@ -82,7 +83,7 @@ int ngli_gtimer_start(struct gtimer *s)
      * This specific instance of gtimer was able to grab the global
      * "timer active" lock
      */
-    ctx->timer_active = 1;
+    gctx->timer_active = 1;
     s->started = 1;
     s->query_result = 0;
     s->glBeginQuery(gl, GL_TIME_ELAPSED, s->query);
@@ -91,14 +92,14 @@ int ngli_gtimer_start(struct gtimer *s)
 
 int ngli_gtimer_stop(struct gtimer *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (s->started) {
         s->glEndQuery(gl, GL_TIME_ELAPSED);
         s->glGetQueryObjectui64v(gl, s->query, GL_QUERY_RESULT, &s->query_result);
         s->started = 0;
-        ctx->timer_active = 0;
+        gctx->timer_active = 0;
     }
     return 0;
 }
@@ -114,7 +115,8 @@ void ngli_gtimer_freep(struct gtimer **sp)
         return;
 
     struct gtimer *s = *sp;
-    struct glcontext *gl = s->ctx->glcontext;
+    struct gctx *gctx = s->gctx;
+    struct glcontext *gl = gctx->glcontext;
     s->glDeleteQueries(gl, 1, &s->query);
     ngli_freep(sp);
 }

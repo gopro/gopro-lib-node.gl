@@ -29,7 +29,7 @@
 #include "rendertarget.h"
 #include "texture.h"
 
-struct ngl_ctx;
+struct gctx;
 struct glcontext;
 
 struct pipeline_uniform {
@@ -105,7 +105,7 @@ struct pipeline_params {
 };
 
 struct pipeline {
-    struct ngl_ctx *ctx;
+    struct gctx *gctx;
 
     int type;
     struct pipeline_graphics graphics;
@@ -123,7 +123,7 @@ struct pipeline {
     GLuint vao_id;
 };
 
-struct pipeline *ngli_pipeline_create(struct ngl_ctx *ctx);
+struct pipeline *ngli_pipeline_create(struct gctx *gctx);
 int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params);
 int ngli_pipeline_update_uniform(struct pipeline *s, int index, const void *value);
 int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *texture);

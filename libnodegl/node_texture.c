@@ -25,6 +25,7 @@
 #include <sxplayer.h>
 
 #include "format.h"
+#include "gctx.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -259,7 +260,8 @@ static const struct node_param texturecube_params[] = {
 static int texture_prefetch(struct ngl_node *node, enum texture_type type)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
     struct texture_priv *s = node->priv_data;
     struct texture_params *params = &s->params;
 
@@ -332,7 +334,7 @@ static int texture_prefetch(struct ngl_node *node, enum texture_type type)
         }
     }
 
-    s->texture = ngli_texture_create(ctx);
+    s->texture = ngli_texture_create(gctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
 
@@ -429,7 +431,8 @@ static int texture2d_init(struct ngl_node *node)
 static int texture3d_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (!(gl->features & NGLI_FEATURE_TEXTURE_3D)) {
         LOG(ERROR, "context does not support 3D textures");
@@ -441,7 +444,8 @@ static int texture3d_init(struct ngl_node *node)
 static int texturecube_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct glcontext *gl = ctx->glcontext;
+    struct gctx *gctx = ctx->gctx;
+    struct glcontext *gl = gctx->glcontext;
 
     if (!(gl->features & NGLI_FEATURE_TEXTURE_CUBE_MAP)) {
         LOG(ERROR, "context does not support cube map textures");

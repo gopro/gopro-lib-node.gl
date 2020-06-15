@@ -143,6 +143,7 @@ static int media_init(struct ngl_node *node)
 
 #if defined(TARGET_ANDROID)
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
 
     struct texture_params params = {
         .type = NGLI_TEXTURE_TYPE_2D,
@@ -156,7 +157,7 @@ static int media_init(struct ngl_node *node)
         .external_oes = 1,
     };
 
-    s->android_texture = ngli_texture_create(ctx);
+    s->android_texture = ngli_texture_create(gctx);
     if (!s->android_texture)
         return NGL_ERROR_MEMORY;
 

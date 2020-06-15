@@ -50,9 +50,6 @@
 #include "animation.h"
 #include "block.h"
 #include "drawutils.h"
-#include "glincludes.h"
-#include "glcontext.h"
-#include "glstate.h"
 #include "graphicstate.h"
 #include "hmap.h"
 #include "hwconv.h"
@@ -73,8 +70,6 @@ struct node_class;
 
 typedef int (*cmd_func_type)(struct ngl_ctx *s, void *arg);
 
-typedef void (*capture_func_type)(struct ngl_ctx *s);
-
 struct ngl_ctx {
     /* Controller-only fields */
     int configured;
@@ -82,22 +77,13 @@ struct ngl_ctx {
 
     /* Worker-only fields */
     struct gctx *gctx;
-    struct glcontext *glcontext;
-    struct glstate glstate;
-    struct graphicstate graphicstate;
-    struct rendertarget *rendertarget;
     struct rnode rnode;
     struct rnode *rnode_pos;
+    struct graphicstate graphicstate;
     struct rendertarget_desc default_rendertarget_desc;
     struct rendertarget_desc *rendertarget_desc;
-    int viewport[4];
-    int scissor[4];
-    float clear_color[4];
-    int program_id;
-    struct pgcache pgcache;
     struct ngl_node *scene;
     struct ngl_config config;
-    int timer_active;
     struct darray modelview_matrix_stack;
     struct darray projection_matrix_stack;
     struct darray activitycheck_nodes;
@@ -110,21 +96,6 @@ struct ngl_ctx {
 #if defined(HAVE_VAAPI)
     VADisplay va_display;
     int va_version;
-#endif
-    /* Offscreen render target */
-    struct rendertarget *rt;
-    struct texture *rt_color;
-    struct texture *rt_depth;
-    /* Capture offscreen render target */
-    capture_func_type capture_func;
-    struct rendertarget *oes_resolve_rt;
-    struct texture *oes_resolve_rt_color;
-    struct rendertarget *capture_rt;
-    struct texture *capture_rt_color;
-    uint8_t *capture_buffer;
-#if defined(TARGET_IPHONE)
-    CVPixelBufferRef capture_cvbuffer;
-    CVOpenGLESTextureRef capture_cvtexture;
 #endif
 
     /* Shared fields */

@@ -56,7 +56,7 @@ struct rendertarget_params {
 };
 
 struct rendertarget {
-    struct ngl_ctx *ctx;
+    struct gctx *gctx;
     struct rendertarget_params params;
     int width;
     int height;
@@ -72,7 +72,7 @@ struct rendertarget {
     void (*resolve)(struct rendertarget *s);
 };
 
-struct rendertarget *ngli_rendertarget_create(struct ngl_ctx *ctx);
+struct rendertarget *ngli_rendertarget_create(struct gctx *gctx);
 int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params);
 void ngli_rendertarget_blit(struct rendertarget *s, struct rendertarget *dst, int vflip);
 void ngli_rendertarget_resolve(struct rendertarget *s);

@@ -22,7 +22,85 @@
 #include <string.h>
 
 #include "gctx.h"
+#include "log.h"
+#include "memory.h"
 #include "nodes.h"
+
+extern const struct gctx_class ngli_gctx_gl;
+extern const struct gctx_class ngli_gctx_gles;
+
+static const struct gctx_class *backend_map[] = {
+    [NGL_BACKEND_OPENGL]   = &ngli_gctx_gl,
+    [NGL_BACKEND_OPENGLES] = &ngli_gctx_gles,
+};
+
+struct gctx *ngli_gctx_create(struct ngl_ctx *ctx)
+{
+    struct gctx *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
+    s->ctx = ctx;
+    return s;
+}
+
+int ngli_gctx_init(struct gctx *s)
+{
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_config *config = &ctx->config;
+
+    if (config->backend < 0 ||
+        config->backend >= NGLI_ARRAY_NB(backend_map) ||
+        !backend_map[config->backend]) {
+        LOG(ERROR, "unknown backend %d", config->backend);
+        return NGL_ERROR_INVALID_ARG;
+    }
+    s->class = backend_map[config->backend];
+
+    return s->class->configure(s->ctx);
+}
+
+int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport)
+{
+    struct ngl_ctx *ctx = s->ctx;
+    const struct gctx_class *class = s->class;
+    return class->resize(ctx, width, height, viewport);
+}
+
+int ngli_gctx_draw(struct gctx *s, double t)
+{
+    struct ngl_ctx *ctx = s->ctx;
+    const struct gctx_class *class = s->class;
+
+    int ret = class->pre_draw(ctx, t);
+    if (ret < 0)
+        goto end;
+
+    if (ctx->scene) {
+        LOG(DEBUG, "draw scene %s @ t=%f", ctx->scene->label, t);
+        ngli_node_draw(ctx->scene);
+    }
+
+end:;
+    int end_ret = class->post_draw(ctx, t);
+    if (end_ret < 0)
+        return end_ret;
+
+    return ret;
+}
+
+void ngli_gctx_freep(struct gctx **sp)
+{
+    if (!*sp)
+        return;
+
+    struct gctx *s = *sp;
+    struct ngl_ctx *ctx = s->ctx;
+    const struct gctx_class *class = s->class;
+    if (class)
+        class->destroy(ctx);
+
+    ngli_freep(sp);
+}
 
 void ngli_gctx_set_rendertarget(struct ngl_ctx *s, struct rendertarget *rt)
 {

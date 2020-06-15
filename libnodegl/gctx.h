@@ -25,6 +25,26 @@
 #include "nodegl.h"
 #include "rendertarget.h"
 
+struct gctx_class {
+    const char *name;
+    int (*configure)(struct ngl_ctx *s);
+    int (*resize)(struct ngl_ctx *s, int width, int height, const int *viewport);
+    int (*pre_draw)(struct ngl_ctx *s, double t);
+    int (*post_draw)(struct ngl_ctx *s, double t);
+    void (*destroy)(struct ngl_ctx *s);
+};
+
+struct gctx {
+    struct ngl_ctx *ctx;
+    const struct gctx_class *class;
+};
+
+struct gctx *ngli_gctx_create(struct ngl_ctx *ctx);
+int ngli_gctx_init(struct gctx *s);
+int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport);
+int ngli_gctx_draw(struct gctx *s, double t);
+void ngli_gctx_freep(struct gctx **sp);
+
 void ngli_gctx_set_rendertarget(struct ngl_ctx *s, struct rendertarget *rt);
 struct rendertarget *ngli_gctx_get_rendertarget(struct ngl_ctx *s);
 

@@ -24,7 +24,6 @@
 #include "log.h"
 #include "gctx.h"
 #include "nodes.h"
-#include "backend.h"
 #include "glcontext.h"
 #include "memory.h"
 
@@ -447,7 +446,7 @@ static void gl_destroy(struct ngl_ctx *s)
     ngli_glcontext_freep(&s->glcontext);
 }
 
-const struct backend ngli_backend_gl = {
+const struct gctx_class ngli_gctx_gl = {
     .name         = "OpenGL",
     .configure    = gl_configure,
     .resize       = gl_resize,
@@ -456,7 +455,7 @@ const struct backend ngli_backend_gl = {
     .destroy      = gl_destroy,
 };
 
-const struct backend ngli_backend_gles = {
+const struct gctx_class ngli_gctx_gles = {
     .name         = "OpenGL ES",
     .configure    = gl_configure,
     .resize       = gl_resize,

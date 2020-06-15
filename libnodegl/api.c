@@ -29,8 +29,8 @@
 #include "jni_utils.h"
 #endif
 
-#include "backend.h"
 #include "darray.h"
+#include "gctx.h"
 #include "log.h"
 #include "math_utils.h"
 #include "memory.h"
@@ -43,14 +43,6 @@
 #else
 # define DEFAULT_BACKEND NGL_BACKEND_OPENGL
 #endif
-
-extern const struct backend ngli_backend_gl;
-extern const struct backend ngli_backend_gles;
-
-static const struct backend *backend_map[] = {
-    [NGL_BACKEND_OPENGL]   = &ngli_backend_gl,
-    [NGL_BACKEND_OPENGLES] = &ngli_backend_gles,
-};
 
 static int get_default_platform(void)
 {
@@ -77,23 +69,10 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         ngli_node_detach_ctx(s->scene, s);
     ngli_rnode_clear(&s->rnode);
 
-    if (s->backend) {
-        s->backend->destroy(s);
-        s->backend = NULL;
-    }
+    ngli_gctx_freep(&s->gctx);
 
     if (config->backend == NGL_BACKEND_AUTO)
         config->backend = DEFAULT_BACKEND;
-
-    if (config->backend < 0 ||
-        config->backend >= NGLI_ARRAY_NB(backend_map) ||
-        !backend_map[config->backend]) {
-        LOG(ERROR, "unknown backend %d", config->backend);
-        return NGL_ERROR_INVALID_ARG;
-    }
-
-    const struct backend *backend = backend_map[config->backend];
-    LOG(INFO, "selected backend: %s", backend->name);
 
     if (config->platform == NGL_PLATFORM_AUTO)
         config->platform = get_default_platform();
@@ -104,21 +83,23 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
 
     s->config = *config;
 
-    int ret = backend->configure(s);
+    s->gctx = ngli_gctx_create(s);
+    if (!s->gctx)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_gctx_init(s->gctx);
     if (ret < 0) {
-        LOG(ERROR, "unable to configure %s", backend->name);
-        backend->destroy(s);
+        LOG(ERROR, "unable to initialize gpu context");
+        ngli_gctx_freep(&s->gctx);
         return ret;
     }
-    s->backend = backend;
 
     if (s->scene) {
         ret = ngli_node_attach_ctx(s->scene, s);
         if (ret < 0) {
             ngli_node_detach_ctx(s->scene, s);
             ngl_node_unrefp(&s->scene);
-            s->backend->destroy(s);
-            s->backend = NULL;
+            ngli_gctx_freep(&s->gctx);
             return ret;
         }
     }
@@ -135,7 +116,7 @@ struct resize_params {
 static int cmd_resize(struct ngl_ctx *s, void *arg)
 {
     const struct resize_params *params = arg;
-    return s->backend->resize(s, params->width, params->height, params->viewport);
+    return ngli_gctx_resize(s->gctx, params->width, params->height, params->viewport);
 }
 
 static int cmd_set_scene(struct ngl_ctx *s, void *arg)
@@ -193,29 +174,14 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
 
     int ret = cmd_prepare_draw(s, arg);
     if (ret < 0)
-        goto end;
+        return ret;
 
-    ret = s->backend->pre_draw(s, t);
-    if (ret < 0)
-        goto end;
-
-    if (s->scene) {
-        LOG(DEBUG, "draw scene %s @ t=%f", s->scene->label, t);
-        ngli_node_draw(s->scene);
-    }
-
-end:;
-    int end_ret = s->backend->post_draw(s, t);
-    if (end_ret < 0)
-        return end_ret;
-
-    return ret;
+    return ngli_gctx_draw(s->gctx, t);
 }
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
-    if (s->backend)
-        s->backend->destroy(s);
+    ngli_gctx_freep(&s->gctx);
 
     return 0;
 }

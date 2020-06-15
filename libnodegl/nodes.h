@@ -77,11 +77,11 @@ typedef void (*capture_func_type)(struct ngl_ctx *s);
 
 struct ngl_ctx {
     /* Controller-only fields */
-    const struct backend *backend;
     int configured;
     pthread_t worker_tid;
 
     /* Worker-only fields */
+    struct gctx *gctx;
     struct glcontext *glcontext;
     struct glstate glstate;
     struct graphicstate graphicstate;

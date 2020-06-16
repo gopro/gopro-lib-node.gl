@@ -30,7 +30,6 @@
 #include "texture.h"
 
 struct gctx;
-struct glcontext;
 
 struct pipeline_uniform {
     char name[MAX_ID_LEN];
@@ -116,11 +115,6 @@ struct pipeline {
     struct darray texture_descs;
     struct darray buffer_descs;
     struct darray attribute_descs;
-
-    void (*exec)(const struct pipeline *s, struct glcontext *gl);
-
-    uint64_t used_texture_units;
-    GLuint vao_id;
 };
 
 struct pipeline *ngli_pipeline_create(struct gctx *gctx);

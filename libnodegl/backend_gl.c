@@ -28,6 +28,7 @@
 #include "memory.h"
 
 #include "buffer_gl.h"
+#include "pipeline_gl.h"
 
 #if defined(TARGET_IPHONE)
 #include <CoreVideo/CoreVideo.h>
@@ -470,6 +471,13 @@ const struct gctx_class ngli_gctx_gl = {
     .buffer_init   = ngli_buffer_gl_init,
     .buffer_upload = ngli_buffer_gl_upload,
     .buffer_freep  = ngli_buffer_gl_freep,
+
+    .pipeline_create         = ngli_pipeline_gl_create,
+    .pipeline_init           = ngli_pipeline_gl_init,
+    .pipeline_update_uniform = ngli_pipeline_gl_update_uniform,
+    .pipeline_update_texture = ngli_pipeline_gl_update_texture,
+    .pipeline_exec           = ngli_pipeline_gl_exec,
+    .pipeline_freep          = ngli_pipeline_gl_freep,
 };
 
 const struct gctx_class ngli_gctx_gles = {
@@ -484,4 +492,11 @@ const struct gctx_class ngli_gctx_gles = {
     .buffer_init   = ngli_buffer_gl_init,
     .buffer_upload = ngli_buffer_gl_upload,
     .buffer_freep  = ngli_buffer_gl_freep,
+
+    .pipeline_create         = ngli_pipeline_gl_create,
+    .pipeline_init           = ngli_pipeline_gl_init,
+    .pipeline_update_uniform = ngli_pipeline_gl_update_uniform,
+    .pipeline_update_texture = ngli_pipeline_gl_update_texture,
+    .pipeline_exec           = ngli_pipeline_gl_exec,
+    .pipeline_freep          = ngli_pipeline_gl_freep,
 };

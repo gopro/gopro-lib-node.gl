@@ -19,38 +19,28 @@
  * under the License.
  */
 
+#ifndef PIPELINE_GL_H
+#define PIPELINE_GL_H
 
-#include "gctx.h"
 #include "pipeline.h"
+#include "glincludes.h"
 
-struct pipeline *ngli_pipeline_create(struct gctx *gctx)
-{
-    return gctx->class->pipeline_create(gctx);
-}
+struct gctx;
+struct glcontext;
 
-int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params)
-{
-    return s->gctx->class->pipeline_init(s, params);
-}
+struct pipeline_gl {
+    struct pipeline parent;
 
-int ngli_pipeline_update_uniform(struct pipeline *s, int index, const void *value)
-{
-    return s->gctx->class->pipeline_update_uniform(s, index, value);
-}
+    void (*exec)(const struct pipeline *s, struct glcontext *gl);
+    uint64_t used_texture_units;
+    GLuint vao_id;
+};
 
-int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *texture)
-{
-    return s->gctx->class->pipeline_update_texture(s, index, texture);
-}
+struct pipeline *ngli_pipeline_gl_create(struct gctx *gctx);
+int ngli_pipeline_gl_init(struct pipeline *s, const struct pipeline_params *params);
+int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *value);
+int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct texture *texture);
+void ngli_pipeline_gl_exec(struct pipeline *s);
+void ngli_pipeline_gl_freep(struct pipeline **sp);
 
-void ngli_pipeline_exec(struct pipeline *s)
-{
-    s->gctx->class->pipeline_exec(s);
-}
-
-void ngli_pipeline_freep(struct pipeline **sp)
-{
-    if (!*sp)
-        return;
-    (*sp)->gctx->class->pipeline_freep(sp);
-}
+#endif

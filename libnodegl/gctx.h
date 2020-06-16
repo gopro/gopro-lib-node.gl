@@ -33,6 +33,7 @@
 #include "limits.h"
 #include "nodegl.h"
 #include "pgcache.h"
+#include "pipeline.h"
 #include "rendertarget.h"
 #include "texture.h"
 
@@ -48,6 +49,13 @@ struct gctx_class {
     int (*buffer_init)(struct buffer *s, int size, int usage);
     int (*buffer_upload)(struct buffer *s, const void *data, int size);
     void (*buffer_freep)(struct buffer **sp);
+
+    struct pipeline *(*pipeline_create)(struct gctx *ctx);
+    int (*pipeline_init)(struct pipeline *s, const struct pipeline_params *params);
+    int (*pipeline_update_uniform)(struct pipeline *s, int index, const void *value);
+    int (*pipeline_update_texture)(struct pipeline *s, int index, struct texture *texture);
+    void (*pipeline_exec)(struct pipeline *s);
+    void (*pipeline_freep)(struct pipeline **sp);
 };
 
 typedef void (*capture_func_type)(struct gctx *s);

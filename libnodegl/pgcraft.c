@@ -902,9 +902,9 @@ static int probe_pipeline_elems(struct pgcraft *s)
 {
     int ret;
 
-    const struct hmap *uniforms_info   = s->program.uniforms;
-    const struct hmap *buffers_info    = s->program.buffer_blocks;
-    const struct hmap *attributes_info = s->program.attributes;
+    const struct hmap *uniforms_info   = s->program->uniforms;
+    const struct hmap *buffers_info    = s->program->buffer_blocks;
+    const struct hmap *attributes_info = s->program->attributes;
 
     if ((ret = filter_pipeline_elems(s, probe_pipeline_uniform,   uniforms_info,   &s->pipeline_uniforms,   &s->filtered_pipeline_uniforms))   < 0 ||
         (ret = filter_pipeline_elems(s, probe_pipeline_buffer,    buffers_info,    &s->pipeline_buffers,    &s->filtered_pipeline_buffers))    < 0 ||
@@ -1080,7 +1080,7 @@ int ngli_pgcraft_craft(struct pgcraft *s,
     if (ret < 0)
         return ret;
 
-    dst_params->program       = &s->program;
+    dst_params->program       = s->program;
     dst_params->uniforms      = ngli_darray_data(&s->filtered_pipeline_uniforms);
     dst_params->nb_uniforms   = ngli_darray_count(&s->filtered_pipeline_uniforms);
     dst_params->textures      = ngli_darray_data(&s->filtered_pipeline_textures);

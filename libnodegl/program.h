@@ -48,7 +48,8 @@ struct program {
     GLuint id;
 };
 
-int ngli_program_init(struct program *s, struct ngl_ctx *ctx, const char *vertex, const char *fragment, const char *compute);
-void ngli_program_reset(struct program *s);
+struct program *ngli_program_create(struct ngl_ctx *ctx);
+int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
+void ngli_program_freep(struct program **sp);
 
 #endif

@@ -165,7 +165,7 @@ struct pgcraft {
 
     struct darray vert_out_vars; // pgcraft_iovar
 
-    struct program program;
+    struct program *program;
 
     int bindings[NB_BINDINGS];
     int *next_bindings[NB_BINDINGS];

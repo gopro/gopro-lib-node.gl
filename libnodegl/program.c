@@ -242,7 +242,16 @@ static struct hmap *program_probe_buffer_blocks(struct glcontext *gl, GLuint pid
     return bmap;
 }
 
-int ngli_program_init(struct program *s, struct ngl_ctx *ctx, const char *vertex, const char *fragment, const char *compute)
+struct program *ngli_program_create(struct ngl_ctx *ctx)
+{
+    struct program *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
+    s->ctx = ctx;
+    return s;
+}
+
+int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute)
 {
     int ret = 0;
     struct {
@@ -255,6 +264,7 @@ int ngli_program_init(struct program *s, struct ngl_ctx *ctx, const char *vertex
         [NGLI_PROGRAM_SHADER_COMP] = {GL_COMPUTE_SHADER,  compute,  0},
     };
 
+    struct ngl_ctx *ctx = s->ctx;
     struct glcontext *gl = ctx->glcontext;
 
     if (compute && (gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
@@ -262,7 +272,6 @@ int ngli_program_init(struct program *s, struct ngl_ctx *ctx, const char *vertex
         return NGL_ERROR_UNSUPPORTED;
     }
 
-    s->ctx = ctx;
     s->id = ngli_glCreateProgram(gl);
 
     for (int i = 0; i < NGLI_ARRAY_NB(shaders); i++) {
@@ -303,14 +312,15 @@ fail:
     return ret;
 }
 
-void ngli_program_reset(struct program *s)
+void ngli_program_freep(struct program **sp)
 {
-    if (!s->ctx)
+    if (!*sp)
         return;
+    struct program *s = *sp;
     ngli_hmap_freep(&s->uniforms);
     ngli_hmap_freep(&s->attributes);
     ngli_hmap_freep(&s->buffer_blocks);
     struct glcontext *gl = s->ctx->glcontext;
     ngli_glDeleteProgram(gl, s->id);
-    memset(s, 0, sizeof(*s));
+    ngli_freep(sp);
 }

@@ -32,8 +32,8 @@ struct pgcache {
 };
 
 int ngli_pgcache_init(struct pgcache *s, struct ngl_ctx *ctx);
-int ngli_pgcache_get_graphics_program(struct pgcache *s, struct program *dst, const char *vert, const char *frag);
-int ngli_pgcache_get_compute_program(struct pgcache *s, struct program *dst, const char *comp);
+int ngli_pgcache_get_graphics_program(struct pgcache *s, struct program **dstp, const char *vert, const char *frag);
+int ngli_pgcache_get_compute_program(struct pgcache *s, struct program **dstp, const char *comp);
 void ngli_pgcache_reset(struct pgcache *s);
 
 #endif

@@ -29,8 +29,7 @@
 static void reset_cached_program(void *user_arg, void *data)
 {
     struct program *p = data;
-    ngli_program_reset(p);
-    ngli_free(p);
+    ngli_program_freep(&p);
 }
 
 static void reset_cached_frag_map(void *user_arg, void *data)
@@ -51,43 +50,43 @@ int ngli_pgcache_init(struct pgcache *s, struct ngl_ctx *ctx)
     return 0;
 }
 
-static int query_cache(struct pgcache *s, struct program *dst,
+static int query_cache(struct pgcache *s, struct program **dstp,
                        struct hmap *cache, const char *cache_key,
                        const char *vert, const char *frag, const char *comp)
 {
+    struct ngl_ctx *ctx = s->ctx;
+
     struct program *cached_program = ngli_hmap_get(cache, cache_key);
     if (cached_program) {
         /* make sure the cached program has not been reset by the user */
         ngli_assert(cached_program->ctx);
 
-        memcpy(dst, cached_program, sizeof(*dst));
+        *dstp = cached_program;
         return 0;
     }
 
     /* this is free'd by the reset_cached_program() when destroying the cache */
-    struct program *new_program = ngli_calloc(1, sizeof(*new_program));
+    struct program *new_program = ngli_program_create(ctx);
     if (!new_program)
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_program_init(new_program, s->ctx, vert, frag, comp);
+    int ret = ngli_program_init(new_program, vert, frag, comp);
     if (ret < 0) {
-        ngli_program_reset(new_program);
-        ngli_free(new_program);
+        ngli_program_freep(&new_program);
         return ret;
     }
 
     ret = ngli_hmap_set(cache, cache_key, new_program);
     if (ret < 0) {
-        ngli_program_reset(new_program);
-        ngli_free(new_program);
+        ngli_program_freep(&new_program);
         return ret;
     }
 
-    memcpy(dst, new_program, sizeof(*dst));
+    *dstp = new_program;
     return 0;
 }
 
-int ngli_pgcache_get_graphics_program(struct pgcache *s, struct program *dst, const char *vert, const char *frag)
+int ngli_pgcache_get_graphics_program(struct pgcache *s, struct program **dstp, const char *vert, const char *frag)
 {
     /*
      * The first dimension of the graphics_cache hmap is another hmap: what we
@@ -108,12 +107,12 @@ int ngli_pgcache_get_graphics_program(struct pgcache *s, struct program *dst, co
         }
     }
 
-    return query_cache(s, dst, frag_map, frag, vert, frag, NULL);
+    return query_cache(s, dstp, frag_map, frag, vert, frag, NULL);
 }
 
-int ngli_pgcache_get_compute_program(struct pgcache *s, struct program *dst, const char *comp)
+int ngli_pgcache_get_compute_program(struct pgcache *s, struct program **dstp, const char *comp)
 {
-    return query_cache(s, dst, s->compute_cache, comp, NULL, NULL, comp);
+    return query_cache(s, dstp, s->compute_cache, comp, NULL, NULL, comp);
 }
 
 void ngli_pgcache_reset(struct pgcache *s)

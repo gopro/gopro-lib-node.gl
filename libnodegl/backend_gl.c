@@ -28,6 +28,7 @@
 #include "memory.h"
 
 #include "buffer_gl.h"
+#include "gtimer_gl.h"
 #include "pipeline_gl.h"
 #include "rendertarget_gl.h"
 #include "texture_gl.h"
@@ -474,6 +475,13 @@ const struct gctx_class ngli_gctx_gl = {
     .buffer_upload = ngli_buffer_gl_upload,
     .buffer_freep  = ngli_buffer_gl_freep,
 
+    .gtimer_create = ngli_gtimer_gl_create,
+    .gtimer_init   = ngli_gtimer_gl_init,
+    .gtimer_start  = ngli_gtimer_gl_start,
+    .gtimer_stop   = ngli_gtimer_gl_stop,
+    .gtimer_read   = ngli_gtimer_gl_read,
+    .gtimer_freep  = ngli_gtimer_gl_freep,
+
     .pipeline_create         = ngli_pipeline_gl_create,
     .pipeline_init           = ngli_pipeline_gl_init,
     .pipeline_update_uniform = ngli_pipeline_gl_update_uniform,
@@ -509,6 +517,13 @@ const struct gctx_class ngli_gctx_gles = {
     .buffer_init   = ngli_buffer_gl_init,
     .buffer_upload = ngli_buffer_gl_upload,
     .buffer_freep  = ngli_buffer_gl_freep,
+
+    .gtimer_create = ngli_gtimer_gl_create,
+    .gtimer_init   = ngli_gtimer_gl_init,
+    .gtimer_start  = ngli_gtimer_gl_start,
+    .gtimer_stop   = ngli_gtimer_gl_stop,
+    .gtimer_read   = ngli_gtimer_gl_read,
+    .gtimer_freep  = ngli_gtimer_gl_freep,
 
     .pipeline_create         = ngli_pipeline_gl_create,
     .pipeline_init           = ngli_pipeline_gl_init,

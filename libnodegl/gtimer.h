@@ -24,22 +24,10 @@
 
 #include <stdint.h>
 
-#include "glincludes.h"
-#include "nodes.h"
-
 struct gctx;
 
 struct gtimer {
     struct gctx *gctx;
-
-    int started;
-    GLuint query;
-    GLuint64 query_result;
-    void (*glGenQueries)(const struct glcontext *gl, GLsizei n, GLuint * ids);
-    void (*glDeleteQueries)(const struct glcontext *gl, GLsizei n, const GLuint * ids);
-    void (*glBeginQuery)(const struct glcontext *gl, GLenum target, GLuint id);
-    void (*glEndQuery)(const struct glcontext *gl, GLenum target);
-    void (*glGetQueryObjectui64v)(const struct glcontext *gl, GLuint id, GLenum pname, GLuint64 *params);
 };
 
 struct gtimer *ngli_gtimer_create(struct gctx *gctx);

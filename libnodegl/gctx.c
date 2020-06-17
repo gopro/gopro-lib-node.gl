@@ -25,6 +25,7 @@
 #include "log.h"
 #include "memory.h"
 #include "nodes.h"
+#include "rendertarget_gl.h"
 
 extern const struct gctx_class ngli_gctx_gl;
 extern const struct gctx_class ngli_gctx_gles;
@@ -107,7 +108,8 @@ void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt)
     if (rt == s->rendertarget)
         return;
 
-    const GLuint fbo_id = rt ? rt->id : ngli_glcontext_get_default_framebuffer(gl);
+    struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)rt;
+    const GLuint fbo_id = rt_gl ? rt_gl->id : ngli_glcontext_get_default_framebuffer(gl);
     ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 
     s->rendertarget = rt;

@@ -23,7 +23,6 @@
 #define RENDERTARGET_H
 
 #include "darray.h"
-#include "glcontext.h"
 #include "texture.h"
 
 #define NGLI_MAX_COLOR_ATTACHMENTS 8
@@ -62,14 +61,6 @@ struct rendertarget {
     int height;
     int nb_color_attachments;
     int nb_resolve_color_attachments;
-
-    GLuint id;
-    GLuint resolve_id;
-    GLuint prev_id;
-    GLenum draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS];
-    GLenum blit_draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS*(NGLI_MAX_COLOR_ATTACHMENTS+1)/2];
-    void (*blit)(struct rendertarget *s, int nb_color_attachments, int width, int height, int vflip);
-    void (*resolve)(struct rendertarget *s);
 };
 
 struct rendertarget *ngli_rendertarget_create(struct gctx *gctx);

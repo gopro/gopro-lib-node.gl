@@ -29,6 +29,7 @@
 
 #include "buffer_gl.h"
 #include "pipeline_gl.h"
+#include "rendertarget_gl.h"
 
 #if defined(TARGET_IPHONE)
 #include <CoreVideo/CoreVideo.h>
@@ -478,6 +479,13 @@ const struct gctx_class ngli_gctx_gl = {
     .pipeline_update_texture = ngli_pipeline_gl_update_texture,
     .pipeline_exec           = ngli_pipeline_gl_exec,
     .pipeline_freep          = ngli_pipeline_gl_freep,
+
+    .rendertarget_create      = ngli_rendertarget_gl_create,
+    .rendertarget_init        = ngli_rendertarget_gl_init,
+    .rendertarget_blit        = ngli_rendertarget_gl_blit,
+    .rendertarget_resolve     = ngli_rendertarget_gl_resolve,
+    .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
+    .rendertarget_freep       = ngli_rendertarget_gl_freep,
 };
 
 const struct gctx_class ngli_gctx_gles = {
@@ -499,4 +507,11 @@ const struct gctx_class ngli_gctx_gles = {
     .pipeline_update_texture = ngli_pipeline_gl_update_texture,
     .pipeline_exec           = ngli_pipeline_gl_exec,
     .pipeline_freep          = ngli_pipeline_gl_freep,
+
+    .rendertarget_create      = ngli_rendertarget_gl_create,
+    .rendertarget_init        = ngli_rendertarget_gl_init,
+    .rendertarget_blit        = ngli_rendertarget_gl_blit,
+    .rendertarget_resolve     = ngli_rendertarget_gl_resolve,
+    .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
+    .rendertarget_freep       = ngli_rendertarget_gl_freep,
 };

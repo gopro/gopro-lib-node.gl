@@ -141,6 +141,7 @@ LIB_OBJS += $(LIB_OBJS_ARCH_$(ARCH))
 
 LIB_OBJS_GL = buffer_gl.o           \
               pipeline_gl.o         \
+              rendertarget_gl.o     \
 
 LIB_OBJS += $(LIB_OBJS_GL)
 

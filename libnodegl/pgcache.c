@@ -124,8 +124,3 @@ void ngli_pgcache_reset(struct pgcache *s)
     ngli_hmap_freep(&s->graphics_cache);
     memset(s, 0, sizeof(*s));
 }
-
-void ngli_pgcache_release_program(struct program *p)
-{
-    memset(p, 0, sizeof(*p));
-}

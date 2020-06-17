@@ -1109,7 +1109,6 @@ void ngli_pgcraft_freep(struct pgcraft **sp)
 
     for (int i = 0; i < NGLI_ARRAY_NB(s->shaders); i++)
         ngli_bstr_freep(&s->shaders[i]);
-    ngli_pgcache_release_program(&s->program);
 
     ngli_darray_reset(&s->pipeline_uniforms);
     ngli_darray_reset(&s->pipeline_textures);

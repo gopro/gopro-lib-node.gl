@@ -51,6 +51,7 @@ struct gctx {
     const struct gctx_class *class;
     int version;
     int features;
+    struct limits limits;
     struct glcontext *glcontext;
     struct glstate glstate;
     struct rendertarget *rendertarget;

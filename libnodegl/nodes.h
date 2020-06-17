@@ -277,8 +277,6 @@ struct program_priv {
     struct hmap *properties;
     struct hmap *vert_out_vars;
     int nb_frag_output;
-
-    struct program program;
 };
 
 extern const struct param_choices ngli_mipmap_filter_choices;

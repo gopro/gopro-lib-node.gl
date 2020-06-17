@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "gctx.h"
+#include "gctx_gl.h"
 #include "gtimer_gl.h"
 #include "log.h"
 #include "memory.h"
@@ -42,7 +43,7 @@ struct gtimer *ngli_gtimer_gl_create(struct gctx *gctx)
 int ngli_gtimer_gl_init(struct gtimer *s)
 {
     struct gtimer_gl *s_priv = (struct gtimer_gl *)s;
-    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx->glcontext;
 
     if (gl->features & NGLI_FEATURE_TIMER_QUERY) {
@@ -72,7 +73,7 @@ int ngli_gtimer_gl_init(struct gtimer *s)
 int ngli_gtimer_gl_start(struct gtimer *s)
 {
     struct gtimer_gl *s_priv = (struct gtimer_gl *)s;
-    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx->glcontext;
 
     if (gctx->timer_active) {
@@ -95,7 +96,7 @@ int ngli_gtimer_gl_start(struct gtimer *s)
 int ngli_gtimer_gl_stop(struct gtimer *s)
 {
     struct gtimer_gl *s_priv = (struct gtimer_gl *)s;
-    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx->glcontext;
 
     if (s_priv->started) {
@@ -120,7 +121,7 @@ void ngli_gtimer_gl_freep(struct gtimer **sp)
 
     struct gtimer *s = *sp;
     struct gtimer_gl *s_priv = (struct gtimer_gl *)s;
-    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx->glcontext;
     s_priv->glDeleteQueries(gl, 1, &s_priv->query);
     ngli_freep(sp);

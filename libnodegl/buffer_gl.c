@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "buffer_gl.h"
-#include "gctx.h"
+#include "gctx_gl.h"
 #include "glcontext.h"
 #include "glincludes.h"
 #include "memory.h"
@@ -49,8 +49,8 @@ struct buffer *ngli_buffer_gl_create(struct gctx *gctx)
 
 int ngli_buffer_gl_init(struct buffer *s, int size, int usage)
 {
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct buffer_gl *s_priv = (struct buffer_gl *)s;
 
     s->size = size;
@@ -63,8 +63,8 @@ int ngli_buffer_gl_init(struct buffer *s, int size, int usage)
 
 int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size)
 {
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     const struct buffer_gl *s_priv = (struct buffer_gl *)s;
     ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s_priv->id);
     ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, 0, size, data);
@@ -76,8 +76,8 @@ void ngli_buffer_gl_freep(struct buffer **sp)
     if (!*sp)
         return;
     struct buffer *s = *sp;
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct buffer_gl *s_priv = (struct buffer_gl *)s;
     ngli_glDeleteBuffers(gl, 1, &s_priv->id);
     ngli_freep(sp);

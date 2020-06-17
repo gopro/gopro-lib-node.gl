@@ -30,6 +30,7 @@
 
 #include "egl.h"
 #include "gctx.h"
+#include "gctx_gl.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -68,7 +69,8 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
@@ -123,8 +125,8 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
 static void vaapi_uninit(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
@@ -153,7 +155,8 @@ static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;

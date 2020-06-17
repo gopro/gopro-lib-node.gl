@@ -23,7 +23,7 @@
 
 #include "buffer_gl.h"
 #include "format.h"
-#include "gctx.h"
+#include "gctx_gl.h"
 #include "glcontext.h"
 #include "log.h"
 #include "memory.h"
@@ -150,8 +150,8 @@ static int build_uniform_descs(struct pipeline *s, const struct pipeline_params 
     if (!program->uniforms)
         return 0;
 
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
 
     for (int i = 0; i < params->nb_uniforms; i++) {
         const struct pipeline_uniform *uniform = &params->uniforms[i];
@@ -201,8 +201,8 @@ static int build_texture_descs(struct pipeline *s, const struct pipeline_params 
         const struct pipeline_texture *texture = &params->textures[i];
 
         if (texture->type == NGLI_TYPE_IMAGE_2D) {
-            struct gctx *gctx = s->gctx;
-            struct glcontext *gl = gctx->glcontext;
+            struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+            struct glcontext *gl = gctx_gl->glcontext;
             const struct limits *limits = &gl->limits;
 
             int max_nb_textures = NGLI_MIN(limits->max_texture_image_units, sizeof(s_priv->used_texture_units) * 8);
@@ -298,8 +298,8 @@ static int build_buffer_descs(struct pipeline *s, const struct pipeline_params *
         const struct pipeline_buffer *pipeline_buffer = &params->buffers[i];
         const struct buffer *buffer = pipeline_buffer->buffer;
 
-        struct gctx *gctx = s->gctx;
-        struct glcontext *gl = gctx->glcontext;
+        struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+        struct glcontext *gl = gctx_gl->glcontext;
         const struct limits *limits = &gl->limits;
         if (pipeline_buffer->type == NGLI_TYPE_UNIFORM_BUFFER &&
             buffer->size > limits->max_uniform_block_size) {
@@ -354,8 +354,8 @@ static void reset_vertex_attribs(const struct pipeline *s, struct glcontext *gl)
 
 static int build_attribute_descs(struct pipeline *s, const struct pipeline_params *params)
 {
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
 
     for (int i = 0; i < params->nb_attributes; i++) {
         const struct pipeline_attribute *attribute = &params->attributes[i];
@@ -377,12 +377,12 @@ static int build_attribute_descs(struct pipeline *s, const struct pipeline_param
 
 static void use_program(struct pipeline *s, struct glcontext *gl)
 {
-    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     const struct program_gl *program_gl = (const struct program_gl *)s->program;
 
-    if (gctx->program_id != program_gl->id) {
+    if (gctx_gl->program_id != program_gl->id) {
         ngli_glUseProgram(gl, program_gl->id);
-        gctx->program_id = program_gl->id;
+        gctx_gl->program_id = program_gl->id;
     }
 }
 
@@ -474,8 +474,8 @@ static void dispatch_compute(const struct pipeline *s, struct glcontext *gl)
 static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct pipeline_graphics *graphics = &s->graphics;
 
     if (graphics->nb_instances && !(gl->features & NGLI_FEATURE_DRAW_INSTANCED)) {
@@ -504,8 +504,8 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
 static int pipeline_compute_init(struct pipeline *s)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     const struct limits *limits = &gl->limits;
 
     if ((gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
@@ -582,8 +582,8 @@ int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *d
     struct uniform_desc *desc = &descs[index];
     struct pipeline_uniform *pipeline_uniform = &desc->uniform;
     if (data) {
-        struct gctx *gctx = s->gctx;
-        struct glcontext *gl = gctx->glcontext;
+        struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+        struct glcontext *gl = gctx_gl->glcontext;
         use_program(s, gl);
         desc->set(gl, desc->location, pipeline_uniform->count, data);
     }
@@ -608,7 +608,8 @@ int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct textur
 void ngli_pipeline_gl_exec(struct pipeline *s)
 {
     struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
 
     if (s->type == NGLI_PIPELINE_TYPE_GRAPHICS) {
@@ -635,7 +636,8 @@ void ngli_pipeline_gl_freep(struct pipeline **sp)
     ngli_darray_reset(&s->attribute_descs);
 
     struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
     ngli_glDeleteVertexArrays(gl, 1, &s_priv->vao_id);
 

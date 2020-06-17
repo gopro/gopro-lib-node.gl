@@ -25,7 +25,7 @@
 #include "log.h"
 #include "memory.h"
 #include "nodes.h"
-#include "rendertarget_gl.h"
+#include "rendertarget.h"
 
 extern const struct gctx_class ngli_gctx_gl;
 extern const struct gctx_class ngli_gctx_gles;
@@ -37,26 +37,25 @@ static const struct gctx_class *backend_map[] = {
 
 struct gctx *ngli_gctx_create(struct ngl_ctx *ctx)
 {
-    struct gctx *s = ngli_calloc(1, sizeof(*s));
-    if (!s)
-        return NULL;
-    s->ctx = ctx;
-    return s;
-}
-
-int ngli_gctx_init(struct gctx *s)
-{
-    struct ngl_ctx *ctx = s->ctx;
     struct ngl_config *config = &ctx->config;
 
     if (config->backend < 0 ||
         config->backend >= NGLI_ARRAY_NB(backend_map) ||
         !backend_map[config->backend]) {
         LOG(ERROR, "unknown backend %d", config->backend);
-        return NGL_ERROR_INVALID_ARG;
+        return NULL;
     }
-    s->class = backend_map[config->backend];
+    const struct gctx_class *class = backend_map[config->backend];
+    struct gctx *s = class->create(ctx);
+    if (!s)
+        return NULL;
+    s->ctx = ctx;
+    s->class = class;
+    return s;
+}
 
+int ngli_gctx_init(struct gctx *s)
+{
     return s->class->init(s);
 }
 
@@ -103,94 +102,55 @@ void ngli_gctx_freep(struct gctx **sp)
 
 void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt)
 {
-    struct glcontext *gl = s->glcontext;
-
-    if (rt == s->rendertarget)
-        return;
-
-    struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)rt;
-    const GLuint fbo_id = rt_gl ? rt_gl->id : ngli_glcontext_get_default_framebuffer(gl);
-    ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
-
-    s->rendertarget = rt;
+    s->class->gctx_set_rendertarget(s, rt);
 }
 
 struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)
 {
-    return s->rendertarget;
+    return s->class->gctx_get_rendertarget(s);
 }
 
 void ngli_gctx_set_viewport(struct gctx *s, const int *viewport)
 {
-    struct glcontext *gl = s->glcontext;
-    ngli_glViewport(gl, viewport[0], viewport[1], viewport[2], viewport[3]);
-    memcpy(&s->viewport, viewport, sizeof(s->viewport));
+    s->class->gctx_set_viewport(s, viewport);
 }
 
 void ngli_gctx_get_viewport(struct gctx *s, int *viewport)
 {
-    memcpy(viewport, &s->viewport, sizeof(s->viewport));
+    s->class->gctx_get_viewport(s, viewport);
 }
 
 void ngli_gctx_set_scissor(struct gctx *s, const int *scissor)
 {
-    struct glcontext *gl = s->glcontext;
-    ngli_glScissor(gl, scissor[0], scissor[1], scissor[2], scissor[3]);
-    memcpy(&s->scissor, scissor, sizeof(s->scissor));
+    s->class->gctx_set_scissor(s, scissor);
 }
 
 void ngli_gctx_get_scissor(struct gctx *s, int *scissor)
 {
-    memcpy(scissor, &s->scissor, sizeof(s->scissor));
+    s->class->gctx_get_scissor(s, scissor);
 }
 
 void ngli_gctx_set_clear_color(struct gctx *s, const float *color)
 {
-    struct glcontext *gl = s->glcontext;
-    memcpy(s->clear_color, color, sizeof(s->clear_color));
-    ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
+    s->class->gctx_set_clear_color(s, color);
 }
 
 void ngli_gctx_get_clear_color(struct gctx *s, float *color)
 {
-    memcpy(color, &s->clear_color, sizeof(s->clear_color));
+    s->class->gctx_get_clear_color(s, color);
 }
 
 void ngli_gctx_clear_color(struct gctx *s)
 {
-    struct glcontext *gl = s->glcontext;
-    struct glstate *glstate = &s->glstate;
-
-    const int scissor_test = glstate->scissor_test;
-    ngli_glDisable(gl, GL_SCISSOR_TEST);
-
-    ngli_glClear(gl, GL_COLOR_BUFFER_BIT);
-
-    if (scissor_test)
-        ngli_glEnable(gl, GL_SCISSOR_TEST);
+    s->class->gctx_clear_color(s);
 }
 
 void ngli_gctx_clear_depth_stencil(struct gctx *s)
 {
-    struct glcontext *gl = s->glcontext;
-    struct glstate *glstate = &s->glstate;
-
-    const int scissor_test = glstate->scissor_test;
-    ngli_glDisable(gl, GL_SCISSOR_TEST);
-
-    ngli_glClear(gl, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    if (scissor_test)
-        ngli_glEnable(gl, GL_SCISSOR_TEST);
+    s->class->gctx_clear_depth_stencil(s);
 }
 
 void ngli_gctx_invalidate_depth_stencil(struct gctx *s)
 {
-    struct glcontext *gl = s->glcontext;
-
-    if (!(gl->features & NGLI_FEATURE_INVALIDATE_SUBDATA))
-        return;
-
-    static const GLenum attachments[] = {GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT};
-    ngli_glInvalidateFramebuffer(gl, GL_FRAMEBUFFER, NGLI_ARRAY_NB(attachments), attachments);
+    s->class->gctx_invalidate_depth_stencil(s);
 }

@@ -37,7 +37,7 @@
 int ngli_vaapi_init(struct ngl_ctx *s)
 {
     struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    const struct ngl_config *config = &s->config;
 
     if (gctx->features & NGLI_FEATURE_SOFTWARE)
         return -1;
@@ -50,7 +50,7 @@ int ngli_vaapi_init(struct ngl_ctx *s)
     }
 
     VADisplay va_display = NULL;
-    if (gl->platform == NGL_PLATFORM_XLIB) {
+    if (config->platform == NGL_PLATFORM_XLIB) {
 #if defined(HAVE_VAAPI_X11)
         Display *x11_display = XOpenDisplay(NULL);
         if (!x11_display) {
@@ -61,7 +61,7 @@ int ngli_vaapi_init(struct ngl_ctx *s)
 
         va_display = vaGetDisplay(x11_display);
 #endif
-    } else if (gl->platform == NGL_PLATFORM_WAYLAND) {
+    } else if (config->platform == NGL_PLATFORM_WAYLAND) {
 #if defined(HAVE_VAAPI_WAYLAND)
         struct wl_display *wl_display = (struct wl_display *)s->config.display;
         if (!wl_display) {

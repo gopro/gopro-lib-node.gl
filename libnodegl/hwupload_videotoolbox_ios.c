@@ -27,7 +27,7 @@
 #include <CoreVideo/CoreVideo.h>
 
 #include "format.h"
-#include "gctx.h"
+#include "gctx_gl.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -90,8 +90,8 @@ static int vt_get_format_desc(OSType format, struct format_desc *desc)
 static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, int index)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;

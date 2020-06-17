@@ -22,30 +22,37 @@
 #ifndef GCTX_H
 #define GCTX_H
 
-#if defined(TARGET_IPHONE)
-#include <CoreVideo/CoreVideo.h>
-#endif
-
 #include "buffer.h"
 #include "features.h"
-#include "glcontext.h"
-#include "glstate.h"
 #include "gtimer.h"
 #include "limits.h"
 #include "nodegl.h"
 #include "pgcache.h"
 #include "pipeline.h"
-#include "program.h"
 #include "rendertarget.h"
 #include "texture.h"
 
 struct gctx_class {
     const char *name;
+
+    struct gctx *(*create)(struct ngl_ctx *ctx);
     int (*init)(struct gctx *s);
     int (*resize)(struct gctx *s, int width, int height, const int *viewport);
     int (*pre_draw)(struct gctx *s, double t);
     int (*post_draw)(struct gctx *s, double t);
     void (*destroy)(struct gctx *s);
+
+    void (*gctx_set_rendertarget)(struct gctx *s, struct rendertarget *rt);
+    struct rendertarget *(*gctx_get_rendertarget)(struct gctx *s);
+    void (*gctx_set_viewport)(struct gctx *s, const int *viewport);
+    void (*gctx_get_viewport)(struct gctx *s, int *viewport);
+    void (*gctx_set_scissor)(struct gctx *s, const int *scissor);
+    void (*gctx_get_scissor)(struct gctx *s, int *scissor);
+    void (*gctx_set_clear_color)(struct gctx *s, const float *color);
+    void (*gctx_get_clear_color)(struct gctx *s, float *color);
+    void (*gctx_clear_color)(struct gctx *s);
+    void (*gctx_clear_depth_stencil)(struct gctx *s);
+    void (*gctx_invalidate_depth_stencil)(struct gctx *s);
 
     struct buffer *(*buffer_create)(struct gctx *ctx);
     int (*buffer_init)(struct buffer *s, int size, int usage);
@@ -86,39 +93,13 @@ struct gctx_class {
     void (*texture_freep)(struct texture **sp);
 };
 
-typedef void (*capture_func_type)(struct gctx *s);
-
 struct gctx {
     struct ngl_ctx *ctx;
     const struct gctx_class *class;
     int version;
     int features;
     struct limits limits;
-    struct glcontext *glcontext;
-    struct glstate glstate;
-    struct rendertarget *rendertarget;
-    struct rendertarget_desc default_rendertarget_desc;
-    int viewport[4];
-    int scissor[4];
-    float clear_color[4];
-    int program_id;
     struct pgcache pgcache;
-    int timer_active;
-    /* Offscreen render target */
-    struct rendertarget *rt;
-    struct texture *rt_color;
-    struct texture *rt_depth;
-    /* Capture offscreen render target */
-    capture_func_type capture_func;
-    struct rendertarget *oes_resolve_rt;
-    struct texture *oes_resolve_rt_color;
-    struct rendertarget *capture_rt;
-    struct texture *capture_rt_color;
-    uint8_t *capture_buffer;
-#if defined(TARGET_IPHONE)
-    CVPixelBufferRef capture_cvbuffer;
-    CVOpenGLESTextureRef capture_cvtexture;
-#endif
 };
 
 struct gctx *ngli_gctx_create(struct ngl_ctx *ctx);

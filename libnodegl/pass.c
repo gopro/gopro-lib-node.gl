@@ -169,8 +169,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
 
     struct ngl_ctx *ctx = s->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
-    const struct limits *limits = &gl->limits;
+    const struct limits *limits = &gctx->limits;
 
     struct pgcraft_block crafter_block = {.stage = stage};
     snprintf(crafter_block.name, sizeof(crafter_block.name), "%s", name);

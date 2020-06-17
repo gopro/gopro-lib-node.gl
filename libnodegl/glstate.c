@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "gctx.h"
+#include "gctx_gl.h"
 #include "glcontext.h"
 #include "glincludes.h"
 #include "glstate.h"
@@ -283,12 +283,13 @@ static int honor_state(const struct glcontext *gl,
 
 void ngli_glstate_update(struct gctx *gctx, const struct graphicstate *state)
 {
-    struct glcontext *gl = gctx->glcontext;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
 
     struct glstate glstate = {0};
     init_state(&glstate, state);
 
-    int ret = honor_state(gl, &glstate, &gctx->glstate);
+    int ret = honor_state(gl, &glstate, &gctx_gl->glstate);
     if (ret > 0)
-        gctx->glstate = glstate;
+        gctx_gl->glstate = glstate;
 }

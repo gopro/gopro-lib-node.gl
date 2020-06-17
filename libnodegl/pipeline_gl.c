@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "nodes.h"
 #include "pipeline_gl.h"
+#include "program_gl.h"
 #include "texture_gl.h"
 #include "topology.h"
 #include "type.h"
@@ -377,10 +378,11 @@ static int build_attribute_descs(struct pipeline *s, const struct pipeline_param
 static void use_program(struct pipeline *s, struct glcontext *gl)
 {
     struct gctx *gctx = s->gctx;
-    const struct program *program = s->program;
-    if (gctx->program_id != program->id) {
-        ngli_glUseProgram(gl, program->id);
-        gctx->program_id = program->id;
+    const struct program_gl *program_gl = (const struct program_gl *)s->program;
+
+    if (gctx->program_id != program_gl->id) {
+        ngli_glUseProgram(gl, program_gl->id);
+        gctx->program_id = program_gl->id;
     }
 }
 

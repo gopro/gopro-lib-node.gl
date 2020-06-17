@@ -35,6 +35,7 @@
 #include "nodegl.h"
 #include "pgcache.h"
 #include "pipeline.h"
+#include "program.h"
 #include "rendertarget.h"
 #include "texture.h"
 
@@ -64,6 +65,10 @@ struct gctx_class {
     int (*pipeline_update_texture)(struct pipeline *s, int index, struct texture *texture);
     void (*pipeline_exec)(struct pipeline *s);
     void (*pipeline_freep)(struct pipeline **sp);
+
+    struct program *(*program_create)(struct gctx *ctx);
+    int (*program_init)(struct program *s, const char *vertex, const char *fragment, const char *compute);
+    void (*program_freep)(struct program **sp);
 
     struct rendertarget *(*rendertarget_create)(struct gctx *ctx);
     int (*rendertarget_init)(struct rendertarget *s, const struct rendertarget_params *params);

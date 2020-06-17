@@ -25,6 +25,8 @@
 #include "glincludes.h"
 #include "hmap.h"
 
+struct gctx;
+
 #define MAX_ID_LEN 128
 
 struct program_variable_info {

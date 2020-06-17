@@ -221,9 +221,10 @@ static int renderbuffer_check_samples(struct texture *s)
 {
     struct gctx *gctx = s->gctx;
     struct glcontext *gl = gctx->glcontext;
+    const struct limits *limits = &gl->limits;
     const struct texture_params *params = &s->params;
 
-    int max_samples = gl->max_samples;
+    int max_samples = limits->max_samples;
     if (gl->features & NGLI_FEATURE_INTERNALFORMAT_QUERY)
         ngli_glGetInternalformativ(gl, GL_RENDERBUFFER, s->format, GL_SAMPLES, 1, &max_samples);
 

@@ -171,6 +171,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     struct ngl_ctx *ctx = s->ctx;
     struct gctx *gctx = ctx->gctx;
     struct glcontext *gl = gctx->glcontext;
+    const struct limits *limits = &gl->limits;
 
     struct pgcraft_block crafter_block = {.stage = stage};
     snprintf(crafter_block.name, sizeof(crafter_block.name), "%s", name);
@@ -186,9 +187,9 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     if (block->layout == NGLI_BLOCK_LAYOUT_STD430) {
         LOG(DEBUG, "block %s has a std430 layout, declaring it as SSBO", name);
         type = NGLI_TYPE_STORAGE_BUFFER;
-    } else if (block->size > gl->max_uniform_block_size) {
+    } else if (block->size > limits->max_uniform_block_size) {
         LOG(DEBUG, "block %s is larger than the max UBO size (%d > %d), declaring it as SSBO",
-            name, block->size, gl->max_uniform_block_size);
+            name, block->size, limits->max_uniform_block_size);
         type = NGLI_TYPE_STORAGE_BUFFER;
     } else {
         const struct pass_params *params = &s->params;

@@ -29,6 +29,7 @@
 #include "features.h"
 #include "glcontext.h"
 #include "glstate.h"
+#include "limits.h"
 #include "nodegl.h"
 #include "pgcache.h"
 #include "rendertarget.h"

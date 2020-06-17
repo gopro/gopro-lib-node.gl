@@ -198,8 +198,9 @@ static int build_texture_descs(struct pipeline *s, const struct pipeline_params 
         if (texture->type == NGLI_TYPE_IMAGE_2D) {
             struct gctx *gctx = s->gctx;
             struct glcontext *gl = gctx->glcontext;
+            const struct limits *limits = &gl->limits;
 
-            int max_nb_textures = NGLI_MIN(gl->max_texture_image_units, sizeof(s->used_texture_units) * 8);
+            int max_nb_textures = NGLI_MIN(limits->max_texture_image_units, sizeof(s->used_texture_units) * 8);
             if (texture->binding >= max_nb_textures) {
                 LOG(ERROR, "maximum number (%d) of texture unit reached", max_nb_textures);
                 return NGL_ERROR_LIMIT_EXCEEDED;
@@ -291,10 +292,11 @@ static int build_buffer_descs(struct pipeline *s, const struct pipeline_params *
 
         struct gctx *gctx = s->gctx;
         struct glcontext *gl = gctx->glcontext;
+        const struct limits *limits = &gl->limits;
         if (pipeline_buffer->type == NGLI_TYPE_UNIFORM_BUFFER &&
-            buffer->size > gl->max_uniform_block_size) {
+            buffer->size > limits->max_uniform_block_size) {
             LOG(ERROR, "buffer %s size (%d) exceeds max uniform block size (%d)",
-                pipeline_buffer->name, buffer->size, gl->max_uniform_block_size);
+                pipeline_buffer->name, buffer->size, limits->max_uniform_block_size);
             return NGL_ERROR_LIMIT_EXCEEDED;
         }
 
@@ -489,6 +491,7 @@ static int pipeline_compute_init(struct pipeline *s)
 {
     struct gctx *gctx = s->gctx;
     struct glcontext *gl = gctx->glcontext;
+    const struct limits *limits = &gl->limits;
 
     if ((gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
         LOG(ERROR, "context does not support compute shaders");
@@ -496,7 +499,7 @@ static int pipeline_compute_init(struct pipeline *s)
     }
 
     const struct pipeline_compute *compute = &s->compute;
-    const int *max_work_groups = gl->max_compute_work_group_counts;
+    const int *max_work_groups = limits->max_compute_work_group_counts;
     if (compute->nb_group_x > max_work_groups[0] ||
         compute->nb_group_y > max_work_groups[1] ||
         compute->nb_group_z > max_work_groups[2]) {

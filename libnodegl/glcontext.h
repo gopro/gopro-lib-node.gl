@@ -26,6 +26,7 @@
 
 #include "features.h"
 #include "glfunctions.h"
+#include "limits.h"
 #include "nodegl.h"
 
 struct glcontext_class;
@@ -48,12 +49,9 @@ struct glcontext {
 
     /* GL features */
     int features;
-    int max_texture_image_units;
-    int max_compute_work_group_counts[3];
-    int max_uniform_block_size;
-    int max_samples;
-    int max_color_attachments;
-    int max_draw_buffers;
+
+    /* GL limits */
+    struct limits limits;
 
     /* GL functions */
     struct glfunctions funcs;

@@ -25,6 +25,7 @@
 
 #include "bstr.h"
 #include "glcontext.h"
+#include "limits.h"
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"
@@ -286,28 +287,30 @@ static int glcontext_check_mandatory_extensions(struct glcontext *glcontext)
 
 static int glcontext_probe_settings(struct glcontext *glcontext)
 {
-    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_IMAGE_UNITS, &glcontext->max_texture_image_units);
+    struct limits *limits = &glcontext->limits;
 
-    glcontext->max_color_attachments = 1;
+    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_IMAGE_UNITS, &limits->max_texture_image_units);
+
+    limits->max_color_attachments = 1;
     if (glcontext->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) {
-        ngli_glGetIntegerv(glcontext, GL_MAX_SAMPLES, &glcontext->max_samples);
-        ngli_glGetIntegerv(glcontext, GL_MAX_COLOR_ATTACHMENTS, &glcontext->max_color_attachments);
+        ngli_glGetIntegerv(glcontext, GL_MAX_SAMPLES, &limits->max_samples);
+        ngli_glGetIntegerv(glcontext, GL_MAX_COLOR_ATTACHMENTS, &limits->max_color_attachments);
     }
 
     if (glcontext->features & NGLI_FEATURE_UNIFORM_BUFFER_OBJECT) {
-        ngli_glGetIntegerv(glcontext, GL_MAX_UNIFORM_BLOCK_SIZE, &glcontext->max_uniform_block_size);
+        ngli_glGetIntegerv(glcontext, GL_MAX_UNIFORM_BLOCK_SIZE, &limits->max_uniform_block_size);
     }
 
     if (glcontext->features & NGLI_FEATURE_COMPUTE_SHADER) {
-        for (int i = 0; i < NGLI_ARRAY_NB(glcontext->max_compute_work_group_counts); i++) {
+        for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_counts); i++) {
             ngli_glGetIntegeri_v(glcontext, GL_MAX_COMPUTE_WORK_GROUP_COUNT,
-                                 i, &glcontext->max_compute_work_group_counts[i]);
+                                 i, &limits->max_compute_work_group_counts[i]);
         }
     }
 
-    glcontext->max_draw_buffers = 1;
+    limits->max_draw_buffers = 1;
     if (glcontext->features & NGLI_FEATURE_DRAW_BUFFERS) {
-        ngli_glGetIntegerv(glcontext, GL_MAX_DRAW_BUFFERS, &glcontext->max_draw_buffers);
+        ngli_glGetIntegerv(glcontext, GL_MAX_DRAW_BUFFERS, &limits->max_draw_buffers);
     }
 
     return 0;

@@ -280,15 +280,14 @@ static int block_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
     struct block_priv *s = node->priv_data;
 
-    if (s->layout == NGLI_BLOCK_LAYOUT_STD140 && !(gl->features & FEATURES_STD140)) {
+    if (s->layout == NGLI_BLOCK_LAYOUT_STD140 && !(gctx->features & FEATURES_STD140)) {
         LOG(ERROR, "std140 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }
 
-    if (s->layout == NGLI_BLOCK_LAYOUT_STD430 && !(gl->features & FEATURES_STD430)) {
+    if (s->layout == NGLI_BLOCK_LAYOUT_STD430 && !(gctx->features & FEATURES_STD430)) {
         LOG(ERROR, "std430 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }

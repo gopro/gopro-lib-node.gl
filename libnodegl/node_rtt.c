@@ -167,10 +167,9 @@ static int rtt_prefetch(struct ngl_node *node)
     int ret = 0;
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct glcontext *gl = gctx->glcontext;
     struct rtt_priv *s = node->priv_data;
 
-    if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && s->samples > 0) {
+    if (!(gctx->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && s->samples > 0) {
         LOG(WARNING, "context does not support the framebuffer object feature, "
             "multisample anti-aliasing will be disabled");
         s->samples = 0;

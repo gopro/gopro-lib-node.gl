@@ -37,6 +37,7 @@
 #include "math_utils.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "texture_gl.h"
 
 struct hwupload_vt_darwin {
     struct sxplayer_frame *frame;
@@ -70,18 +71,19 @@ static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *fra
 
     for (int i = 0; i < 2; i++) {
         struct texture *plane = vt->planes[i];
+        struct texture_gl *plane_gl = (struct texture_gl *)plane;
 
-        ngli_glBindTexture(gl, plane->target, plane->id);
+        ngli_glBindTexture(gl, plane_gl->target, plane_gl->id);
 
         int width = IOSurfaceGetWidthOfPlane(surface, i);
         int height = IOSurfaceGetHeightOfPlane(surface, i);
-        ngli_texture_set_dimensions(plane, width, height, 0);
+        ngli_texture_gl_set_dimensions(plane, width, height, 0);
 
-        CGLError err = CGLTexImageIOSurface2D(CGLGetCurrentContext(), plane->target,
-                                              plane->internal_format, width, height,
-                                              plane->format, plane->format_type, surface, i);
+        CGLError err = CGLTexImageIOSurface2D(CGLGetCurrentContext(), plane_gl->target,
+                                              plane_gl->internal_format, width, height,
+                                              plane_gl->format, plane_gl->format_type, surface, i);
         if (err != kCGLNoError) {
-            LOG(ERROR, "could not bind IOSurface plane %d to texture %d: %d", i, plane->id, err);
+            LOG(ERROR, "could not bind IOSurface plane %d to texture %d: %d", i, plane_gl->id, err);
             return -1;
         }
 

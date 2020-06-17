@@ -32,6 +32,11 @@
 #include "nodegl.h"
 #include "nodes.h"
 
+#if defined(TARGET_ANDROID)
+#include "gctx.h"
+#include "texture_gl.h"
+#endif
+
 static const struct param_choices sxplayer_log_level_choices = {
     .name = "sxplayer_log_level",
     .consts = {
@@ -143,45 +148,49 @@ static int media_init(struct ngl_node *node)
 
 #if defined(TARGET_ANDROID)
     struct ngl_ctx *ctx = node->ctx;
+    const struct ngl_config *config = &ctx->config;
     struct gctx *gctx = ctx->gctx;
 
-    struct texture_params params = {
-        .type = NGLI_TEXTURE_TYPE_2D,
-        .format = NGLI_FORMAT_UNDEFINED,
-        .min_filter = NGLI_FILTER_NEAREST,
-        .mag_filter = NGLI_FILTER_NEAREST,
-        .wrap_s = NGLI_WRAP_CLAMP_TO_EDGE,
-        .wrap_t = NGLI_WRAP_CLAMP_TO_EDGE,
-        .wrap_r = NGLI_WRAP_CLAMP_TO_EDGE,
-        .access = NGLI_ACCESS_READ_WRITE,
-        .external_oes = 1,
-    };
+    if (config->backend == NGL_BACKEND_OPENGLES) {
+        struct texture_params params = {
+            .type = NGLI_TEXTURE_TYPE_2D,
+            .format = NGLI_FORMAT_UNDEFINED,
+            .min_filter = NGLI_FILTER_NEAREST,
+            .mag_filter = NGLI_FILTER_NEAREST,
+            .wrap_s = NGLI_WRAP_CLAMP_TO_EDGE,
+            .wrap_t = NGLI_WRAP_CLAMP_TO_EDGE,
+            .wrap_r = NGLI_WRAP_CLAMP_TO_EDGE,
+            .access = NGLI_ACCESS_READ_WRITE,
+            .external_oes = 1,
+        };
 
-    s->android_texture = ngli_texture_create(gctx);
-    if (!s->android_texture)
-        return NGL_ERROR_MEMORY;
+        s->android_texture = ngli_texture_create(gctx);
+        if (!s->android_texture)
+            return NGL_ERROR_MEMORY;
 
-    int ret = ngli_texture_init(s->android_texture, &params);
-    if (ret < 0)
-        return ret;
+        int ret = ngli_texture_init(s->android_texture, &params);
+        if (ret < 0)
+            return ret;
 
-    s->android_handlerthread = ngli_android_handlerthread_new();
-    if (!s->android_handlerthread)
-        return NGL_ERROR_MEMORY;
+        s->android_handlerthread = ngli_android_handlerthread_new();
+        if (!s->android_handlerthread)
+            return NGL_ERROR_MEMORY;
 
-    void *handler = ngli_android_handlerthread_get_native_handler(s->android_handlerthread);
-    if (!handler)
-        return NGL_ERROR_EXTERNAL;
+        void *handler = ngli_android_handlerthread_get_native_handler(s->android_handlerthread);
+        if (!handler)
+            return NGL_ERROR_EXTERNAL;
 
-    s->android_surface = ngli_android_surface_new(s->android_texture->id, handler);
-    if (!s->android_surface)
-        return NGL_ERROR_MEMORY;
+        struct texture_gl *texture_gl = (struct texture_gl *)s->android_texture;
+        s->android_surface = ngli_android_surface_new(texture_gl->id, handler);
+        if (!s->android_surface)
+            return NGL_ERROR_MEMORY;
 
-    void *android_surface = ngli_android_surface_get_surface(s->android_surface);
-    if (!android_surface)
-        return NGL_ERROR_EXTERNAL;
+        void *android_surface = ngli_android_surface_get_surface(s->android_surface);
+        if (!android_surface)
+            return NGL_ERROR_EXTERNAL;
 
-    sxplayer_set_option(s->player, "opaque", &android_surface);
+        sxplayer_set_option(s->player, "opaque", &android_surface);
+    }
 #elif defined(HAVE_VAAPI)
     struct ngl_ctx *ctx = node->ctx;
     sxplayer_set_option(s->player, "opaque", &ctx->va_display);

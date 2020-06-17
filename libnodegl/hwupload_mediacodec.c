@@ -36,6 +36,7 @@
 #include "math_utils.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "texture_gl.h"
 
 static int support_direct_rendering(struct ngl_node *node)
 {
@@ -68,9 +69,10 @@ static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
     const struct texture_params *params = &s->params;
     struct media_priv *media = s->data_src->priv_data;
     struct hwupload *hwupload = &s->hwupload;
+    struct texture_gl *android_texture_gl = (struct texture_gl *)media->android_texture;
 
-    GLint id = media->android_texture->id;
-    GLenum target = media->android_texture->target;
+    GLint id = android_texture_gl->id;
+    GLenum target = android_texture_gl->target;
     const GLint min_filter = ngli_texture_get_gl_min_filter(params->min_filter, params->mipmap_filter);
     const GLint mag_filter = ngli_texture_get_gl_mag_filter(params->mag_filter);
 
@@ -110,7 +112,7 @@ static int mc_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     ngli_android_surface_render_buffer(media->android_surface, buffer, matrix);
     ngli_mat4_mul(matrix, matrix, flip_matrix);
 
-    ngli_texture_set_dimensions(media->android_texture, frame->width, frame->height, 0);
+    ngli_texture_gl_set_dimensions(media->android_texture, frame->width, frame->height, 0);
 
     return 0;
 }

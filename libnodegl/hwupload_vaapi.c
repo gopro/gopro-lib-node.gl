@@ -36,6 +36,7 @@
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "texture_gl.h"
 #include "utils.h"
 
 struct hwupload_vaapi {
@@ -246,10 +247,11 @@ static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
         }
 
         struct texture *plane = vaapi->planes[i];
-        ngli_texture_set_dimensions(plane, width, height, 0);
+        struct texture_gl *plane_gl = (struct texture_gl *)plane;
+        ngli_texture_gl_set_dimensions(plane, width, height, 0);
 
-        ngli_glBindTexture(gl, plane->target, plane->id);
-        ngli_glEGLImageTargetTexture2DOES(gl, plane->target, vaapi->egl_images[i]);
+        ngli_glBindTexture(gl, plane_gl->target, plane_gl->id);
+        ngli_glEGLImageTargetTexture2DOES(gl, plane_gl->target, vaapi->egl_images[i]);
     }
 
     return 0;

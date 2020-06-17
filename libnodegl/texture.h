@@ -22,7 +22,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "glincludes.h"
 #include "utils.h"
 
 struct gctx;
@@ -40,17 +39,12 @@ enum {
     NGLI_NB_FILTER
 };
 
-GLint ngli_texture_get_gl_min_filter(int min_filter, int mipmap_filter);
-GLint ngli_texture_get_gl_mag_filter(int mag_filter);
-
 enum {
     NGLI_WRAP_CLAMP_TO_EDGE,
     NGLI_WRAP_MIRRORED_REPEAT,
     NGLI_WRAP_REPEAT,
     NGLI_NB_WRAP
 };
-
-GLint ngli_texture_get_gl_wrap(int wrap);
 
 enum {
     NGLI_ACCESS_UNDEFINED,
@@ -61,8 +55,6 @@ enum {
 };
 
 NGLI_STATIC_ASSERT(texture_access, (NGLI_ACCESS_READ_BIT | NGLI_ACCESS_WRITE_BIT) == NGLI_ACCESS_READ_WRITE);
-
-GLenum ngli_texture_get_gl_access(int access);
 
 #define NGLI_TEXTURE_PARAM_DEFAULTS {          \
     .type = NGLI_TEXTURE_TYPE_2D,              \
@@ -111,25 +103,12 @@ struct texture {
     int wrapped;
     int external_storage;
     int bytes_per_pixel;
-
-    GLenum target;
-    GLuint id;
-    GLint format;
-    GLint internal_format;
-    GLenum format_type;
 };
 
 struct texture *ngli_texture_create(struct gctx *gctx);
 
 int ngli_texture_init(struct texture *s,
                       const struct texture_params *params);
-
-int ngli_texture_wrap(struct texture *s,
-                      const struct texture_params *params,
-                      GLuint id);
-
-void ngli_texture_set_id(struct texture *s, GLuint id);
-void ngli_texture_set_dimensions(struct texture *s, int width, int height, int depth);
 
 int ngli_texture_has_mipmap(const struct texture *s);
 int ngli_texture_match_dimensions(const struct texture *s, int width, int height, int depth);

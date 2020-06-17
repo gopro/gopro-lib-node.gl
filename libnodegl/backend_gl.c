@@ -30,6 +30,7 @@
 #include "buffer_gl.h"
 #include "pipeline_gl.h"
 #include "rendertarget_gl.h"
+#include "texture_gl.h"
 
 #if defined(TARGET_IPHONE)
 #include <CoreVideo/CoreVideo.h>
@@ -218,7 +219,7 @@ static int capture_init(struct gctx *s)
             s->capture_rt_color = ngli_texture_create(s);
             if (!s->capture_rt_color)
                 return NGL_ERROR_MEMORY;
-            int ret = ngli_texture_wrap(s->capture_rt_color, &attachment_params, id);
+            int ret = ngli_texture_gl_wrap(s->capture_rt_color, &attachment_params, id);
             if (ret < 0)
                 return ret;
 #endif
@@ -486,6 +487,14 @@ const struct gctx_class ngli_gctx_gl = {
     .rendertarget_resolve     = ngli_rendertarget_gl_resolve,
     .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
     .rendertarget_freep       = ngli_rendertarget_gl_freep,
+
+    .texture_create           = ngli_texture_gl_create,
+    .texture_init             = ngli_texture_gl_init,
+    .texture_has_mipmap       = ngli_texture_gl_has_mipmap,
+    .texture_match_dimensions = ngli_texture_gl_match_dimensions,
+    .texture_upload           = ngli_texture_gl_upload,
+    .texture_generate_mipmap  = ngli_texture_gl_generate_mipmap,
+    .texture_freep            = ngli_texture_gl_freep,
 };
 
 const struct gctx_class ngli_gctx_gles = {
@@ -514,4 +523,12 @@ const struct gctx_class ngli_gctx_gles = {
     .rendertarget_resolve     = ngli_rendertarget_gl_resolve,
     .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
     .rendertarget_freep       = ngli_rendertarget_gl_freep,
+
+    .texture_create           = ngli_texture_gl_create,
+    .texture_init             = ngli_texture_gl_init,
+    .texture_has_mipmap       = ngli_texture_gl_has_mipmap,
+    .texture_match_dimensions = ngli_texture_gl_match_dimensions,
+    .texture_upload           = ngli_texture_gl_upload,
+    .texture_generate_mipmap  = ngli_texture_gl_generate_mipmap,
+    .texture_freep            = ngli_texture_gl_freep,
 };

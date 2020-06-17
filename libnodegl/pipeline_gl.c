@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "nodes.h"
 #include "pipeline_gl.h"
+#include "texture_gl.h"
 #include "topology.h"
 #include "type.h"
 
@@ -246,6 +247,7 @@ static void set_textures(struct pipeline *s, struct glcontext *gl)
         const struct texture_desc *desc = &descs[i];
         const struct pipeline_texture *pipeline_texture = &desc->texture;
         const struct texture *texture = pipeline_texture->texture;
+        const struct texture_gl *texture_gl = (const struct texture_gl *)texture;
 
         if (pipeline_texture->type == NGLI_TYPE_IMAGE_2D) {
             GLuint texture_id = 0;
@@ -253,9 +255,9 @@ static void set_textures(struct pipeline *s, struct glcontext *gl)
             GLenum internal_format = GL_RGBA8;
             if (texture) {
                 const struct texture_params *params = &texture->params;
-                texture_id = texture->id;
+                texture_id = texture_gl->id;
                 access = ngli_texture_get_gl_access(params->access);
-                internal_format = texture->internal_format;
+                internal_format = texture_gl->internal_format;
             }
             ngli_glBindImageTexture(gl, pipeline_texture->binding, texture_id, 0, GL_FALSE, 0, access, internal_format);
         } else {
@@ -265,7 +267,7 @@ static void set_textures(struct pipeline *s, struct glcontext *gl)
             ngli_glUniform1i(gl, pipeline_texture->location, texture_index);
             ngli_glActiveTexture(gl, GL_TEXTURE0 + texture_index);
             if (texture) {
-                ngli_glBindTexture(gl, texture->target, texture->id);
+                ngli_glBindTexture(gl, texture_gl->target, texture_gl->id);
             } else {
                 ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
                 if (gl->features & NGLI_FEATURE_TEXTURE_3D)

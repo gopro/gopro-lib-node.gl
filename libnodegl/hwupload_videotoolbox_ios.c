@@ -36,6 +36,7 @@
 #include "memory.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "texture_gl.h"
 
 #define NGLI_CFRELEASE(ref) do { \
     if (ref) {                   \
@@ -95,6 +96,7 @@ static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, in
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
     struct texture *plane = vt->planes[index];
+    struct texture_gl *plane_gl = (struct texture_gl *)plane;
     const struct texture_params *plane_params = &plane->params;
 
     NGLI_CFRELEASE(vt->ios_textures[index]);
@@ -109,11 +111,11 @@ static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, in
                                                                 cvpixbuf,
                                                                 NULL,
                                                                 GL_TEXTURE_2D,
-                                                                plane->internal_format,
+                                                                plane_gl->internal_format,
                                                                 width,
                                                                 height,
-                                                                plane->format,
-                                                                plane->format_type,
+                                                                plane_gl->format,
+                                                                plane_gl->format_type,
                                                                 index,
                                                                 &vt->ios_textures[index]);
     if (err != noErr) {
@@ -134,8 +136,8 @@ static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, in
     ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
     ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
 
-    ngli_texture_set_id(plane, id);
-    ngli_texture_set_dimensions(plane, width, height, 0);
+    ngli_texture_gl_set_id(plane, id);
+    ngli_texture_gl_set_dimensions(plane, width, height, 0);
 
     return 0;
 }
@@ -246,7 +248,7 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
         if (!vt->planes[i])
             return NGL_ERROR_MEMORY;
 
-        ret = ngli_texture_wrap(vt->planes[i], &plane_params, 0);
+        ret = ngli_texture_gl_wrap(vt->planes[i], &plane_params, 0);
         if (ret < 0)
             return ret;
     }

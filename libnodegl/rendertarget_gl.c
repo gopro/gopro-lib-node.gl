@@ -29,7 +29,7 @@
 #include "log.h"
 #include "memory.h"
 #include "nodes.h"
-#include "texture.h"
+#include "texture_gl.h"
 #include "utils.h"
 
 static GLenum get_gl_attachment_index(GLenum format)
@@ -142,7 +142,8 @@ static int create_fbo(struct rendertarget *s, int resolve)
         if (!texture)
             continue;
 
-        GLenum attachment_index = get_gl_attachment_index(texture->format);
+        const struct texture_gl *texture_gl = (const struct texture_gl *)texture;
+        GLenum attachment_index = get_gl_attachment_index(texture_gl->format);
         ngli_assert(attachment_index == GL_COLOR_ATTACHMENT0);
 
         if (nb_color_attachments >= limits->max_color_attachments) {
@@ -152,15 +153,15 @@ static int create_fbo(struct rendertarget *s, int resolve)
         }
         attachment_index = attachment_index + nb_color_attachments++;
 
-        switch (texture->target) {
+        switch (texture_gl->target) {
         case GL_RENDERBUFFER:
-            ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, attachment_index, GL_RENDERBUFFER, texture->id);
+            ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, attachment_index, GL_RENDERBUFFER, texture_gl->id);
             break;
         case GL_TEXTURE_2D:
-            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index, GL_TEXTURE_2D, texture->id, 0);
+            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index, GL_TEXTURE_2D, texture_gl->id, 0);
             break;
         case GL_TEXTURE_CUBE_MAP:
-            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index++, GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, texture->id, 0);
+            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index++, GL_TEXTURE_CUBE_MAP_POSITIVE_X + layer, texture_gl->id, 0);
             break;
         default:
             ngli_assert(0);
@@ -170,20 +171,21 @@ static int create_fbo(struct rendertarget *s, int resolve)
     const struct attachment *attachment = &params->depth_stencil;
     struct texture *texture = resolve ? attachment->resolve_target : attachment->attachment;
     if (texture) {
-        const GLenum attachment_index = get_gl_attachment_index(texture->format);
+        const struct texture_gl *texture_gl = (const struct texture_gl *)texture;
+        const GLenum attachment_index = get_gl_attachment_index(texture_gl->format);
         ngli_assert(attachment_index != GL_COLOR_ATTACHMENT0);
 
-        switch (texture->target) {
+        switch (texture_gl->target) {
         case GL_RENDERBUFFER:
             if (gl->backend == NGL_BACKEND_OPENGLES && gl->version < 300 && attachment_index == GL_DEPTH_STENCIL_ATTACHMENT) {
-                ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texture->id);
-                ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, texture->id);
+                ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texture_gl->id);
+                ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, texture_gl->id);
             } else {
-                ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, attachment_index, GL_RENDERBUFFER, texture->id);
+                ngli_glFramebufferRenderbuffer(gl, GL_FRAMEBUFFER, attachment_index, GL_RENDERBUFFER, texture_gl->id);
             }
             break;
         case GL_TEXTURE_2D:
-            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index, GL_TEXTURE_2D, texture->id, 0);
+            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index, GL_TEXTURE_2D, texture_gl->id, 0);
             break;
         default:
             ngli_assert(0);

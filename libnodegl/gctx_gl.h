@@ -68,19 +68,4 @@ struct gctx_gl {
 #endif
 };
 
-void ngli_gctx_gl_set_rendertarget(struct gctx *s, struct rendertarget *rt);
-struct rendertarget *ngli_gctx_gl_get_rendertarget(struct gctx *s);
-
-void ngli_gctx_gl_set_viewport(struct gctx *s, const int *viewport);
-void ngli_gctx_gl_get_viewport(struct gctx *s, int *viewport);
-void ngli_gctx_gl_set_scissor(struct gctx *s, const int *scissor);
-void ngli_gctx_gl_get_scissor(struct gctx *s, int *scissor);
-
-void ngli_gctx_gl_set_clear_color(struct gctx *s, const float *color);
-void ngli_gctx_gl_get_clear_color(struct gctx *s, float *color);
-
-void ngli_gctx_gl_clear_color(struct gctx *s);
-void ngli_gctx_gl_clear_depth_stencil(struct gctx *s);
-void ngli_gctx_gl_invalidate_depth_stencil(struct gctx *s);
-
 #endif

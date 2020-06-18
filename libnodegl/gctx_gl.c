@@ -486,7 +486,7 @@ static void gl_destroy(struct gctx *s)
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 
-void ngli_gctx_gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
+static void gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -501,13 +501,13 @@ void ngli_gctx_gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
     s_priv->rendertarget = rt;
 }
 
-struct rendertarget *ngli_gctx_gl_get_rendertarget(struct gctx *s)
+static struct rendertarget *gl_get_rendertarget(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     return s_priv->rendertarget;
 }
 
-void ngli_gctx_gl_set_viewport(struct gctx *s, const int *viewport)
+static void gl_set_viewport(struct gctx *s, const int *viewport)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -515,13 +515,13 @@ void ngli_gctx_gl_set_viewport(struct gctx *s, const int *viewport)
     memcpy(&s_priv->viewport, viewport, sizeof(s_priv->viewport));
 }
 
-void ngli_gctx_gl_get_viewport(struct gctx *s, int *viewport)
+static void gl_get_viewport(struct gctx *s, int *viewport)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     memcpy(viewport, &s_priv->viewport, sizeof(s_priv->viewport));
 }
 
-void ngli_gctx_gl_set_scissor(struct gctx *s, const int *scissor)
+static void gl_set_scissor(struct gctx *s, const int *scissor)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -529,13 +529,13 @@ void ngli_gctx_gl_set_scissor(struct gctx *s, const int *scissor)
     memcpy(&s_priv->scissor, scissor, sizeof(s_priv->scissor));
 }
 
-void ngli_gctx_gl_get_scissor(struct gctx *s, int *scissor)
+static void gl_get_scissor(struct gctx *s, int *scissor)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     memcpy(scissor, &s_priv->scissor, sizeof(s_priv->scissor));
 }
 
-void ngli_gctx_gl_set_clear_color(struct gctx *s, const float *color)
+static void gl_set_clear_color(struct gctx *s, const float *color)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -543,13 +543,13 @@ void ngli_gctx_gl_set_clear_color(struct gctx *s, const float *color)
     ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
 }
 
-void ngli_gctx_gl_get_clear_color(struct gctx *s, float *color)
+static void gl_get_clear_color(struct gctx *s, float *color)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     memcpy(color, &s_priv->clear_color, sizeof(s_priv->clear_color));
 }
 
-void ngli_gctx_gl_clear_color(struct gctx *s)
+static void gl_clear_color(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -564,7 +564,7 @@ void ngli_gctx_gl_clear_color(struct gctx *s)
         ngli_glEnable(gl, GL_SCISSOR_TEST);
 }
 
-void ngli_gctx_gl_clear_depth_stencil(struct gctx *s)
+static void gl_clear_depth_stencil(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -579,7 +579,7 @@ void ngli_gctx_gl_clear_depth_stencil(struct gctx *s)
         ngli_glEnable(gl, GL_SCISSOR_TEST);
 }
 
-void ngli_gctx_gl_invalidate_depth_stencil(struct gctx *s)
+static void gl_invalidate_depth_stencil(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -605,17 +605,17 @@ const struct gctx_class ngli_gctx_gl = {
     .buffer_upload = ngli_buffer_gl_upload,
     .buffer_freep  = ngli_buffer_gl_freep,
 
-    .gctx_set_rendertarget         = ngli_gctx_gl_set_rendertarget,
-    .gctx_get_rendertarget         = ngli_gctx_gl_get_rendertarget,
-    .gctx_set_viewport             = ngli_gctx_gl_set_viewport,
-    .gctx_get_viewport             = ngli_gctx_gl_get_viewport,
-    .gctx_set_scissor              = ngli_gctx_gl_set_scissor,
-    .gctx_get_scissor              = ngli_gctx_gl_get_scissor,
-    .gctx_set_clear_color          = ngli_gctx_gl_set_clear_color,
-    .gctx_get_clear_color          = ngli_gctx_gl_get_clear_color,
-    .gctx_clear_color              = ngli_gctx_gl_clear_color,
-    .gctx_clear_depth_stencil      = ngli_gctx_gl_clear_depth_stencil,
-    .gctx_invalidate_depth_stencil = ngli_gctx_gl_invalidate_depth_stencil,
+    .gctx_set_rendertarget         = gl_set_rendertarget,
+    .gctx_get_rendertarget         = gl_get_rendertarget,
+    .gctx_set_viewport             = gl_set_viewport,
+    .gctx_get_viewport             = gl_get_viewport,
+    .gctx_set_scissor              = gl_set_scissor,
+    .gctx_get_scissor              = gl_get_scissor,
+    .gctx_set_clear_color          = gl_set_clear_color,
+    .gctx_get_clear_color          = gl_get_clear_color,
+    .gctx_clear_color              = gl_clear_color,
+    .gctx_clear_depth_stencil      = gl_clear_depth_stencil,
+    .gctx_invalidate_depth_stencil = gl_invalidate_depth_stencil,
 
     .gtimer_create = ngli_gtimer_gl_create,
     .gtimer_init   = ngli_gtimer_gl_init,
@@ -665,17 +665,17 @@ const struct gctx_class ngli_gctx_gles = {
     .buffer_upload = ngli_buffer_gl_upload,
     .buffer_freep  = ngli_buffer_gl_freep,
 
-    .gctx_set_rendertarget         = ngli_gctx_gl_set_rendertarget,
-    .gctx_get_rendertarget         = ngli_gctx_gl_get_rendertarget,
-    .gctx_set_viewport             = ngli_gctx_gl_set_viewport,
-    .gctx_get_viewport             = ngli_gctx_gl_get_viewport,
-    .gctx_set_scissor              = ngli_gctx_gl_set_scissor,
-    .gctx_get_scissor              = ngli_gctx_gl_get_scissor,
-    .gctx_set_clear_color          = ngli_gctx_gl_set_clear_color,
-    .gctx_get_clear_color          = ngli_gctx_gl_get_clear_color,
-    .gctx_clear_color              = ngli_gctx_gl_clear_color,
-    .gctx_clear_depth_stencil      = ngli_gctx_gl_clear_depth_stencil,
-    .gctx_invalidate_depth_stencil = ngli_gctx_gl_invalidate_depth_stencil,
+    .gctx_set_rendertarget         = gl_set_rendertarget,
+    .gctx_get_rendertarget         = gl_get_rendertarget,
+    .gctx_set_viewport             = gl_set_viewport,
+    .gctx_get_viewport             = gl_get_viewport,
+    .gctx_set_scissor              = gl_set_scissor,
+    .gctx_get_scissor              = gl_get_scissor,
+    .gctx_set_clear_color          = gl_set_clear_color,
+    .gctx_get_clear_color          = gl_get_clear_color,
+    .gctx_clear_color              = gl_clear_color,
+    .gctx_clear_depth_stencil      = gl_clear_depth_stencil,
+    .gctx_invalidate_depth_stencil = gl_invalidate_depth_stencil,
 
     .gtimer_create = ngli_gtimer_gl_create,
     .gtimer_init   = ngli_gtimer_gl_init,

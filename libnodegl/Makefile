@@ -129,7 +129,6 @@ LIB_OBJS = animation.o              \
            rnode.o                  \
            serialize.o              \
            texture.o                \
-           topology.o               \
            transforms.o             \
            utils.o                  \
 
@@ -145,6 +144,7 @@ LIB_OBJS_GL = buffer_gl.o           \
               program_gl.o          \
               rendertarget_gl.o     \
               texture_gl.o          \
+              topology_gl.o         \
               type_gl.o             \
 
 LIB_OBJS += $(LIB_OBJS_GL)

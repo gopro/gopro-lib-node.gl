@@ -20,7 +20,7 @@
  */
 
 #include "glincludes.h"
-#include "topology.h"
+#include "topology_gl.h"
 
 static const GLenum gl_primitive_topology_map[NGLI_PRIMITIVE_TOPOLOGY_NB] = {
     [NGLI_PRIMITIVE_TOPOLOGY_POINT_LIST]     = GL_POINTS,

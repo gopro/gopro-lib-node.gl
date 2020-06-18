@@ -19,17 +19,12 @@
  * under the License.
  */
 
-#ifndef TOPOLOGY_H
-#define TOPOLOGY_H
+#ifndef TOPOLOGY_GL_H
+#define TOPOLOGY_GL_H
 
-enum {
-    NGLI_PRIMITIVE_TOPOLOGY_POINT_LIST,
-    NGLI_PRIMITIVE_TOPOLOGY_LINE_LIST,
-    NGLI_PRIMITIVE_TOPOLOGY_LINE_STRIP,
-    NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-    NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
-    NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
-    NGLI_PRIMITIVE_TOPOLOGY_NB
-};
+#include "glincludes.h"
+#include "topology.h"
+
+GLenum ngli_topology_get_gl_topology(int topology);
 
 #endif

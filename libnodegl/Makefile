@@ -138,6 +138,7 @@ LIB_OBJS_ARCH_aarch64 = asm_aarch64.o
 LIB_OBJS += $(LIB_OBJS_ARCH_$(ARCH))
 
 LIB_OBJS_GL = buffer_gl.o           \
+              format_gl.o           \
               gctx_gl.o             \
               gtimer_gl.o           \
               pipeline_gl.o         \

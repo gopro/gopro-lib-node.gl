@@ -22,9 +22,6 @@
 #ifndef FORMAT_H
 #define FORMAT_H
 
-#include "glcontext.h"
-#include "glincludes.h"
-
 enum {
     NGLI_FORMAT_UNDEFINED,
     NGLI_FORMAT_R8_UNORM,
@@ -94,16 +91,5 @@ enum {
 int ngli_format_get_bytes_per_pixel(int format);
 
 int ngli_format_get_nb_comp(int format);
-
-int ngli_format_get_gl_texture_format(struct glcontext *gl,
-                                      int data_format,
-                                      GLint *formatp,
-                                      GLint *internal_formatp,
-                                      GLenum *typep);
-
-int ngli_format_get_gl_renderbuffer_format(struct glcontext *gl,
-                                           int data_format,
-                                           GLint *formatp);
-
 
 #endif

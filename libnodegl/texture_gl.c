@@ -23,7 +23,7 @@
 
 #include "log.h"
 #include "utils.h"
-#include "format.h"
+#include "format_gl.h"
 #include "gctx_gl.h"
 #include "glincludes.h"
 #include "glcontext.h"

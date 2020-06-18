@@ -24,6 +24,8 @@ include ../common.mak
 DEBUG_GL ?= no
 LOGTRACE ?= no
 
+BACKEND_GL ?= yes
+
 ifeq ($(DEBUG_GL),yes)
 	PROJECT_CFLAGS += -DDEBUG_GL
 endif
@@ -71,8 +73,6 @@ LIB_OBJS = animation.o              \
            drawutils.o              \
            format.o                 \
            gctx.o                   \
-           glcontext.o              \
-           glstate.o                \
            graphicstate.o           \
            gtimer.o                 \
            hmap.o                   \
@@ -136,9 +136,42 @@ LIB_OBJS_ARCH_aarch64 = asm_aarch64.o
 
 LIB_OBJS += $(LIB_OBJS_ARCH_$(ARCH))
 
+LIB_CFLAGS = -fPIC
+LIB_LDLIBS = -lm -lpthread
+
+LIB_EXTRA_OBJS_Linux     =
+LIB_EXTRA_OBJS_Darwin    =
+LIB_EXTRA_OBJS_Android   = jni_utils.o android_utils.o android_looper.o android_surface.o android_handler.o android_handlerthread.o
+LIB_EXTRA_OBJS_iPhone    =
+LIB_EXTRA_OBJS_MinGW-w64 =
+
+LIB_EXTRA_CFLAGS_Linux     =
+LIB_EXTRA_CFLAGS_Darwin    =
+LIB_EXTRA_CFLAGS_Android   =
+LIB_EXTRA_CFLAGS_iPhone    =
+LIB_EXTRA_CFLAGS_MinGW-w64 =
+
+LIB_EXTRA_LDLIBS_Linux     =
+LIB_EXTRA_LDLIBS_Darwin    = -framework CoreVideo -framework CoreFoundation -framework AppKit -framework IOSurface
+LIB_EXTRA_LDLIBS_Android   = -landroid
+LIB_EXTRA_LDLIBS_iPhone    = -framework CoreMedia
+LIB_EXTRA_LDLIBS_MinGW-w64 =
+
+LIB_PKG_CONFIG_LIBS               = "libsxplayer >= 9.4.0"
+LIB_EXTRA_PKG_CONFIG_LIBS_Linux   = x11
+LIB_EXTRA_PKG_CONFIG_LIBS_Darwin  =
+LIB_EXTRA_PKG_CONFIG_LIBS_Android = libavcodec
+LIB_EXTRA_PKG_CONFIG_LIBS_iPhone  =
+
+#
+# Backends
+#
+ifeq ($(BACKEND_GL),yes)
 LIB_OBJS_GL = buffer_gl.o           \
               format_gl.o           \
               gctx_gl.o             \
+              glcontext.o           \
+              glstate.o             \
               gtimer_gl.o           \
               pipeline_gl.o         \
               program_gl.o          \
@@ -147,33 +180,23 @@ LIB_OBJS_GL = buffer_gl.o           \
               topology_gl.o         \
               type_gl.o             \
 
-LIB_OBJS += $(LIB_OBJS_GL)
-
-LIB_EXTRA_OBJS_Linux     = glcontext_egl.o
-LIB_EXTRA_OBJS_Darwin    = glcontext_nsgl.o hwupload_videotoolbox_darwin.o
-LIB_EXTRA_OBJS_Android   = glcontext_egl.o jni_utils.o android_utils.o android_looper.o android_surface.o android_handler.o android_handlerthread.o hwupload_mediacodec.o
-LIB_EXTRA_OBJS_iPhone    = glcontext_eagl.o hwupload_videotoolbox_ios.o
-LIB_EXTRA_OBJS_MinGW-w64 = glcontext_wgl.o
-
-LIB_CFLAGS                 = -fPIC
-LIB_EXTRA_CFLAGS_Linux     = -DHAVE_GLPLATFORM_EGL
-LIB_EXTRA_CFLAGS_Darwin    = -DHAVE_GLPLATFORM_NSGL
-LIB_EXTRA_CFLAGS_Android   = -DHAVE_GLPLATFORM_EGL
-LIB_EXTRA_CFLAGS_iPhone    = -DHAVE_GLPLATFORM_EAGL
-LIB_EXTRA_CFLAGS_MinGW-w64 = -DHAVE_GLPLATFORM_WGL
-
-LIB_LDLIBS                 = -lm -lpthread
-LIB_EXTRA_LDLIBS_Linux     =
-LIB_EXTRA_LDLIBS_Darwin    = -framework OpenGL -framework CoreVideo -framework CoreFoundation -framework AppKit -framework IOSurface
-LIB_EXTRA_LDLIBS_Android   = -legl -landroid
-LIB_EXTRA_LDLIBS_iPhone    = -framework CoreMedia
-LIB_EXTRA_LDLIBS_MinGW-w64 = -lopengl32 -lgdi32
-
-LIB_PKG_CONFIG_LIBS               = "libsxplayer >= 9.4.0"
-LIB_EXTRA_PKG_CONFIG_LIBS_Linux   = x11 gl egl
-LIB_EXTRA_PKG_CONFIG_LIBS_Darwin  =
-LIB_EXTRA_PKG_CONFIG_LIBS_Android = libavcodec
-LIB_EXTRA_PKG_CONFIG_LIBS_iPhone  =
+LIB_OBJS                        += $(LIB_OBJS_GL)
+LIB_CFLAGS                      += -DBACKEND_GL
+LIB_EXTRA_OBJS_Linux            += glcontext_egl.o
+LIB_EXTRA_OBJS_Darwin           += glcontext_nsgl.o hwupload_videotoolbox_darwin.o
+LIB_EXTRA_OBJS_Android          += glcontext_egl.o  hwupload_mediacodec.o
+LIB_EXTRA_OBJS_iPhone           += glcontext_eagl.o hwupload_videotoolbox_ios.o
+LIB_EXTRA_OBJS_MinGW-w64        += glcontext_wgl.o
+LIB_EXTRA_CFLAGS_Linux          += -DHAVE_GLPLATFORM_EGL
+LIB_EXTRA_CFLAGS_Darwin         += -DHAVE_GLPLATFORM_NSGL
+LIB_EXTRA_CFLAGS_Android        += -DHAVE_GLPLATFORM_EGL
+LIB_EXTRA_CFLAGS_iPhone         += -DHAVE_GLPLATFORM_EAGL
+LIB_EXTRA_CFLAGS_MinGW-w64      += -DHAVE_GLPLATFORM_WGL
+LIB_EXTRA_LDLIBS_Darwin         += -framework OpenGL
+LIB_EXTRA_LDLIBS_Android        += -legl
+LIB_EXTRA_LDLIBS_MinGW-w64      += -lopengl32 -lgdi32
+LIB_EXTRA_PKG_CONFIG_LIBS_Linux += gl egl
+endif
 
 WAYLAND_PKG_CONFIG_LIBS = "wayland-client wayland-egl"
 
@@ -218,7 +241,10 @@ endif
 
 ifeq ($(ENABLE_VAAPI),yes)
 	PROJECT_CFLAGS += -DHAVE_VAAPI
-	LIB_EXTRA_OBJS_Linux += hwupload_vaapi.o vaapi.o
+	LIB_EXTRA_OBJS_Linux += vaapi.o
+ifeq ($(BACKEND_GL),yes)
+	LIB_EXTRA_OBJS_Linux += hwupload_vaapi.o
+endif
 endif
 
 LIB_OBJS   += $(LIB_EXTRA_OBJS_$(TARGET_OS))

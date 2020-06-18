@@ -39,7 +39,9 @@
 #include "rnode.h"
 
 #if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
+#if defined(BACKEND_GL)
 #include "gctx_gl.h"
+#endif
 #endif
 
 #if defined(TARGET_IPHONE) || defined(TARGET_ANDROID)
@@ -229,6 +231,7 @@ static void *worker_thread(void *arg)
 #if defined(TARGET_IPHONE) || defined(TARGET_DARWIN)
 static int cmd_make_current(struct ngl_ctx *s, void *arg)
 {
+#if defined(BACKEND_GL)
     const struct ngl_config *config = &s->config;
     if (config->backend == NGL_BACKEND_OPENGL ||
         config->backend == NGL_BACKEND_OPENGLES) {
@@ -236,6 +239,7 @@ static int cmd_make_current(struct ngl_ctx *s, void *arg)
         struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
         ngli_glcontext_make_current(gctx_gl->glcontext, current);
     }
+#endif
     return 0;
 }
 

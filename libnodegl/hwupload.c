@@ -41,6 +41,7 @@ static const struct hwmap_class *hwupload_class_map[] = {
     [SXPLAYER_PIXFMT_RGBA]        = &ngli_hwmap_common_class,
     [SXPLAYER_PIXFMT_BGRA]        = &ngli_hwmap_common_class,
     [SXPLAYER_SMPFMT_FLT]         = &ngli_hwmap_common_class,
+#ifdef BACKEND_GL
 #if defined(TARGET_ANDROID)
     [SXPLAYER_PIXFMT_MEDIACODEC]  = &ngli_hwmap_mc_class,
 #elif defined(TARGET_DARWIN)
@@ -49,6 +50,7 @@ static const struct hwmap_class *hwupload_class_map[] = {
     [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_ios_class,
 #elif defined(HAVE_VAAPI)
     [SXPLAYER_PIXFMT_VAAPI]       = &ngli_hwmap_vaapi_class,
+#endif
 #endif
 };
 

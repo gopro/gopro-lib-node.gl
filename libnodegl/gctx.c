@@ -31,8 +31,10 @@ extern const struct gctx_class ngli_gctx_gl;
 extern const struct gctx_class ngli_gctx_gles;
 
 static const struct gctx_class *backend_map[] = {
+#ifdef BACKEND_GL
     [NGL_BACKEND_OPENGL]   = &ngli_gctx_gl,
     [NGL_BACKEND_OPENGLES] = &ngli_gctx_gles,
+#endif
 };
 
 struct gctx *ngli_gctx_create(struct ngl_ctx *ctx)

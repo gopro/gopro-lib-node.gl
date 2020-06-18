@@ -131,7 +131,6 @@ LIB_OBJS = animation.o              \
            texture.o                \
            topology.o               \
            transforms.o             \
-           type.o                   \
            utils.o                  \
 
 LIB_OBJS_ARCH_aarch64 = asm_aarch64.o
@@ -145,6 +144,7 @@ LIB_OBJS_GL = buffer_gl.o           \
               program_gl.o          \
               rendertarget_gl.o     \
               texture_gl.o          \
+              type_gl.o             \
 
 LIB_OBJS += $(LIB_OBJS_GL)
 

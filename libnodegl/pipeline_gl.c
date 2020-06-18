@@ -32,7 +32,7 @@
 #include "program_gl.h"
 #include "texture_gl.h"
 #include "topology.h"
-#include "type.h"
+#include "type_gl.h"
 
 typedef void (*set_uniform_func)(struct glcontext *gl, GLint location, int count, const void *data);
 

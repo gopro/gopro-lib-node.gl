@@ -19,36 +19,12 @@
  * under the License.
  */
 
-#ifndef TYPE_H
-#define TYPE_H
+#ifndef TYPE_GL_H
+#define TYPE_GL_H
 
-enum {
-    NGLI_TYPE_NONE,
-    NGLI_TYPE_INT,
-    NGLI_TYPE_IVEC2,
-    NGLI_TYPE_IVEC3,
-    NGLI_TYPE_IVEC4,
-    NGLI_TYPE_UINT,
-    NGLI_TYPE_UIVEC2,
-    NGLI_TYPE_UIVEC3,
-    NGLI_TYPE_UIVEC4,
-    NGLI_TYPE_FLOAT,
-    NGLI_TYPE_VEC2,
-    NGLI_TYPE_VEC3,
-    NGLI_TYPE_VEC4,
-    NGLI_TYPE_MAT3,
-    NGLI_TYPE_MAT4,
-    NGLI_TYPE_BOOL,
-    NGLI_TYPE_SAMPLER_2D,
-    NGLI_TYPE_SAMPLER_2D_RECT,
-    NGLI_TYPE_SAMPLER_3D,
-    NGLI_TYPE_SAMPLER_CUBE,
-    NGLI_TYPE_SAMPLER_EXTERNAL_OES,
-    NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT,
-    NGLI_TYPE_IMAGE_2D,
-    NGLI_TYPE_UNIFORM_BUFFER,
-    NGLI_TYPE_STORAGE_BUFFER,
-    NGLI_TYPE_NB
-};
+#include "glincludes.h"
+#include "type.h"
+
+GLenum ngli_type_get_gl_type(int type);
 
 #endif

@@ -19,7 +19,7 @@
  * under the License.
  */
 
-#include "type.h"
+#include "type_gl.h"
 
 static int gl_type_map[] = {
     [NGLI_TYPE_INT]                         = GL_INT,

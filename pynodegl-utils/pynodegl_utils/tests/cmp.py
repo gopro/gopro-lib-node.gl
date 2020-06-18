@@ -23,6 +23,8 @@
 import os
 import os.path as op
 import difflib
+import subprocess
+import tempfile
 import pynodegl as ngl
 from pynodegl_utils.misc import get_backend, get_nodegl_tempdir
 
@@ -113,6 +115,15 @@ class CompareSceneBase(CompareBase):
                              hud=self._hud,
                              hud_export_filename=self._hud_export_filename) == 0
         timescale = duration / float(self._nb_keyframes)
+
+        valgrind = os.environ.get('VALGRIND')
+        if valgrind:
+            scene_str = scene.serialize()
+            with tempfile.NamedTemporaryFile() as fp:
+                fp.write(scene_str)
+                fp.flush()
+                cmd = [valgrind, '--error-exitcode=1', 'ngl-render', '-o', '/dev/null', '-t', f'0:{duration}:{max(int(1/timescale),1)}', '-s', f'{width}x{height}', fp.name]
+                assert subprocess.call(cmd) == 0
 
         if self._exercise_dot:
             assert scene.dot()

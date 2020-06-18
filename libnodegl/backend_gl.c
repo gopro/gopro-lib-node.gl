@@ -316,13 +316,12 @@ static void capture_reset(struct ngl_ctx *s)
     s->capture_func = NULL;
 }
 
-static int gl_configure(struct ngl_ctx *s, const struct ngl_config *config)
+static int gl_configure(struct ngl_ctx *s)
 {
     int ret;
+    const struct ngl_config *config = &s->config;
 
-    memcpy(&s->config, config, sizeof(s->config));
-
-    s->glcontext = ngli_glcontext_new(&s->config);
+    s->glcontext = ngli_glcontext_new(config);
     if (!s->glcontext)
         return NGL_ERROR_MEMORY;
 

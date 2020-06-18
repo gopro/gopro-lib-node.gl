@@ -102,7 +102,9 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         return config->platform;
     }
 
-    int ret = backend->configure(s, config);
+    s->config = *config;
+
+    int ret = backend->configure(s);
     if (ret < 0) {
         LOG(ERROR, "unable to configure %s", backend->name);
         backend->destroy(s);

@@ -26,7 +26,6 @@
 
 #include "format.h"
 #include "gctx.h"
-#include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
 #include "log.h"

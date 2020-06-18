@@ -102,55 +102,55 @@ void ngli_gctx_freep(struct gctx **sp)
 
 void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt)
 {
-    s->class->gctx_set_rendertarget(s, rt);
+    s->class->set_rendertarget(s, rt);
 }
 
 struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)
 {
-    return s->class->gctx_get_rendertarget(s);
+    return s->class->get_rendertarget(s);
 }
 
 void ngli_gctx_set_viewport(struct gctx *s, const int *viewport)
 {
-    s->class->gctx_set_viewport(s, viewport);
+    s->class->set_viewport(s, viewport);
 }
 
 void ngli_gctx_get_viewport(struct gctx *s, int *viewport)
 {
-    s->class->gctx_get_viewport(s, viewport);
+    s->class->get_viewport(s, viewport);
 }
 
 void ngli_gctx_set_scissor(struct gctx *s, const int *scissor)
 {
-    s->class->gctx_set_scissor(s, scissor);
+    s->class->set_scissor(s, scissor);
 }
 
 void ngli_gctx_get_scissor(struct gctx *s, int *scissor)
 {
-    s->class->gctx_get_scissor(s, scissor);
+    s->class->get_scissor(s, scissor);
 }
 
 void ngli_gctx_set_clear_color(struct gctx *s, const float *color)
 {
-    s->class->gctx_set_clear_color(s, color);
+    s->class->set_clear_color(s, color);
 }
 
 void ngli_gctx_get_clear_color(struct gctx *s, float *color)
 {
-    s->class->gctx_get_clear_color(s, color);
+    s->class->get_clear_color(s, color);
 }
 
 void ngli_gctx_clear_color(struct gctx *s)
 {
-    s->class->gctx_clear_color(s);
+    s->class->clear_color(s);
 }
 
 void ngli_gctx_clear_depth_stencil(struct gctx *s)
 {
-    s->class->gctx_clear_depth_stencil(s);
+    s->class->clear_depth_stencil(s);
 }
 
 void ngli_gctx_invalidate_depth_stencil(struct gctx *s)
 {
-    s->class->gctx_invalidate_depth_stencil(s);
+    s->class->invalidate_depth_stencil(s);
 }

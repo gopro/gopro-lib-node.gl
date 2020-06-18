@@ -42,17 +42,17 @@ struct gctx_class {
     int (*post_draw)(struct gctx *s, double t);
     void (*destroy)(struct gctx *s);
 
-    void (*gctx_set_rendertarget)(struct gctx *s, struct rendertarget *rt);
-    struct rendertarget *(*gctx_get_rendertarget)(struct gctx *s);
-    void (*gctx_set_viewport)(struct gctx *s, const int *viewport);
-    void (*gctx_get_viewport)(struct gctx *s, int *viewport);
-    void (*gctx_set_scissor)(struct gctx *s, const int *scissor);
-    void (*gctx_get_scissor)(struct gctx *s, int *scissor);
-    void (*gctx_set_clear_color)(struct gctx *s, const float *color);
-    void (*gctx_get_clear_color)(struct gctx *s, float *color);
-    void (*gctx_clear_color)(struct gctx *s);
-    void (*gctx_clear_depth_stencil)(struct gctx *s);
-    void (*gctx_invalidate_depth_stencil)(struct gctx *s);
+    void (*set_rendertarget)(struct gctx *s, struct rendertarget *rt);
+    struct rendertarget *(*get_rendertarget)(struct gctx *s);
+    void (*set_viewport)(struct gctx *s, const int *viewport);
+    void (*get_viewport)(struct gctx *s, int *viewport);
+    void (*set_scissor)(struct gctx *s, const int *scissor);
+    void (*get_scissor)(struct gctx *s, int *scissor);
+    void (*set_clear_color)(struct gctx *s, const float *color);
+    void (*get_clear_color)(struct gctx *s, float *color);
+    void (*clear_color)(struct gctx *s);
+    void (*clear_depth_stencil)(struct gctx *s);
+    void (*invalidate_depth_stencil)(struct gctx *s);
 
     struct buffer *(*buffer_create)(struct gctx *ctx);
     int (*buffer_init)(struct buffer *s, int size, int usage);

@@ -29,7 +29,6 @@
 #include "block.h"
 #include "buffer.h"
 #include "gctx.h"
-#include "glincludes.h"
 #include "hmap.h"
 #include "image.h"
 #include "log.h"

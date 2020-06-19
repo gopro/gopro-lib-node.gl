@@ -917,26 +917,27 @@ static int probe_pipeline_elems(struct pgcraft *s)
     return 0;
 }
 
-#define IS_GL_ES_MIN(min)   (config->backend == NGL_BACKEND_OPENGLES && gl->version >= (min))
-#define IS_GL_MIN(min)      (config->backend == NGL_BACKEND_OPENGL   && gl->version >= (min))
+#define IS_GL_ES_MIN(min)   (config->backend == NGL_BACKEND_OPENGLES && gctx->version >= (min))
+#define IS_GL_MIN(min)      (config->backend == NGL_BACKEND_OPENGL   && gctx->version >= (min))
 #define IS_GLSL_ES_MIN(min) (config->backend == NGL_BACKEND_OPENGLES && s->glsl_version >= (min))
 #define IS_GLSL_MIN(min)    (config->backend == NGL_BACKEND_OPENGL   && s->glsl_version >= (min))
 
-static void setup_glsl_info_gl(struct pgcraft *s, const struct glcontext *gl)
+static void setup_glsl_info_gl(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
     const struct ngl_config *config = &ctx->config;
+    struct gctx *gctx = ctx->gctx;
 
     if (config->backend == NGL_BACKEND_OPENGL) {
-        switch (gl->version) {
+        switch (gctx->version) {
         case 300: s->glsl_version = 130;           break;
         case 310: s->glsl_version = 140;           break;
         case 320: s->glsl_version = 150;           break;
-        default:  s->glsl_version = gl->version;   break;
+        default:  s->glsl_version = gctx->version; break;
         }
     } else if (config->backend == NGL_BACKEND_OPENGLES) {
-        if (gl->version >= 300) {
-            s->glsl_version = gl->version;
+        if (gctx->version >= 300) {
+            s->glsl_version = gctx->version;
             s->glsl_version_suffix = " es";
         } else {
             s->glsl_version = 100;
@@ -945,7 +946,7 @@ static void setup_glsl_info_gl(struct pgcraft *s, const struct glcontext *gl)
 #if defined(TARGET_ANDROID)
         static const char * const img_ext[]  = {"GL_OES_EGL_image_external", NULL};
         static const char * const img_ext3[] = {"GL_OES_EGL_image_external_essl3", NULL};
-        s->required_tex_exts = gl->version < 300 ? img_ext : img_ext3;
+        s->required_tex_exts = gctx->version < 300 ? img_ext : img_ext3;
 #endif
     } else {
         ngli_assert(0);
@@ -978,7 +979,7 @@ static void setup_glsl_info_gl(struct pgcraft *s, const struct glcontext *gl)
     }
 }
 
-static void setup_glsl_info(struct pgcraft *s, const struct glcontext *gl)
+static void setup_glsl_info(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
     const struct ngl_config *config = &ctx->config;
@@ -987,7 +988,7 @@ static void setup_glsl_info(struct pgcraft *s, const struct glcontext *gl)
     s->glsl_version_suffix = "";
 
     if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES)
-        setup_glsl_info_gl(s, gl);
+        setup_glsl_info_gl(s);
     else
         ngli_assert(0);
 }
@@ -1000,8 +1001,7 @@ struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx)
 
     s->ctx = ctx;
 
-    struct gctx *gctx = ctx->gctx;
-    setup_glsl_info(s, gctx->glcontext);
+    setup_glsl_info(s);
 
     ngli_darray_init(&s->texture_infos, sizeof(struct pgcraft_texture_info), 0);
 

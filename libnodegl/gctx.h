@@ -48,6 +48,7 @@ typedef void (*capture_func_type)(struct gctx *s);
 struct gctx {
     struct ngl_ctx *ctx;
     const struct gctx_class *class;
+    int version;
     int features;
     struct glcontext *glcontext;
     struct glstate glstate;

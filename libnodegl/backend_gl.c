@@ -341,6 +341,7 @@ static int gl_init(struct gctx *s)
             return ret;
     }
 
+    s->version = gl->version;
     s->features = gl->features;
     s->default_rendertarget_desc.nb_colors = 1;
     s->default_rendertarget_desc.colors[0].format = NGLI_FORMAT_R8G8B8A8_UNORM;

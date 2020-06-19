@@ -26,6 +26,7 @@
 #include <CoreVideo/CoreVideo.h>
 #endif
 
+#include "buffer.h"
 #include "features.h"
 #include "glcontext.h"
 #include "glstate.h"
@@ -42,6 +43,11 @@ struct gctx_class {
     int (*pre_draw)(struct gctx *s, double t);
     int (*post_draw)(struct gctx *s, double t);
     void (*destroy)(struct gctx *s);
+
+    struct buffer *(*buffer_create)(struct gctx *ctx);
+    int (*buffer_init)(struct buffer *s, int size, int usage);
+    int (*buffer_upload)(struct buffer *s, const void *data, int size);
+    void (*buffer_freep)(struct buffer **sp);
 };
 
 typedef void (*capture_func_type)(struct gctx *s);

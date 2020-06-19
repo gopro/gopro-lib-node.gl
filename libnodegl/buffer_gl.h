@@ -19,26 +19,22 @@
  * under the License.
  */
 
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef BUFFER_GL_H
+#define BUFFER_GL_H
+
+#include "buffer.h"
+#include "glincludes.h"
+
+struct buffer_gl {
+    struct buffer parent;
+    GLuint id;
+};
 
 struct gctx;
 
-enum {
-    NGLI_BUFFER_USAGE_STATIC,
-    NGLI_BUFFER_USAGE_DYNAMIC,
-    NGLI_BUFFER_USAGE_NB
-};
-
-struct buffer {
-    struct gctx *gctx;
-    int size;
-    int usage;
-};
-
-struct buffer *ngli_buffer_create(struct gctx *gctx);
-int ngli_buffer_init(struct buffer *s, int size, int usage);
-int ngli_buffer_upload(struct buffer *s, const void *data, int size);
-void ngli_buffer_freep(struct buffer **sp);
+struct buffer *ngli_buffer_gl_create(struct gctx *gctx);
+int ngli_buffer_gl_init(struct buffer *s, int size, int usage);
+int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size);
+void ngli_buffer_gl_freep(struct buffer **sp);
 
 #endif

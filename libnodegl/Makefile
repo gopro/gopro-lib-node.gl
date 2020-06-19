@@ -139,6 +139,10 @@ LIB_OBJS_ARCH_aarch64 = asm_aarch64.o
 
 LIB_OBJS += $(LIB_OBJS_ARCH_$(ARCH))
 
+LIB_OBJS_GL = buffer_gl.o
+
+LIB_OBJS += $(LIB_OBJS_GL)
+
 LIB_EXTRA_OBJS_Linux     = glcontext_egl.o
 LIB_EXTRA_OBJS_Darwin    = glcontext_nsgl.o hwupload_videotoolbox_darwin.o
 LIB_EXTRA_OBJS_Android   = glcontext_egl.o jni_utils.o android_utils.o android_looper.o android_surface.o android_handler.o android_handlerthread.o hwupload_mediacodec.o

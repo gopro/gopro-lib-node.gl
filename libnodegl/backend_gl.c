@@ -27,6 +27,8 @@
 #include "glcontext.h"
 #include "memory.h"
 
+#include "buffer_gl.h"
+
 #if defined(TARGET_IPHONE)
 #include <CoreVideo/CoreVideo.h>
 #endif
@@ -463,6 +465,11 @@ const struct gctx_class ngli_gctx_gl = {
     .pre_draw     = gl_pre_draw,
     .post_draw    = gl_post_draw,
     .destroy      = gl_destroy,
+
+    .buffer_create = ngli_buffer_gl_create,
+    .buffer_init   = ngli_buffer_gl_init,
+    .buffer_upload = ngli_buffer_gl_upload,
+    .buffer_freep  = ngli_buffer_gl_freep,
 };
 
 const struct gctx_class ngli_gctx_gles = {
@@ -472,4 +479,9 @@ const struct gctx_class ngli_gctx_gles = {
     .pre_draw     = gl_pre_draw,
     .post_draw    = gl_post_draw,
     .destroy      = gl_destroy,
+
+    .buffer_create = ngli_buffer_gl_create,
+    .buffer_init   = ngli_buffer_gl_init,
+    .buffer_upload = ngli_buffer_gl_upload,
+    .buffer_freep  = ngli_buffer_gl_freep,
 };

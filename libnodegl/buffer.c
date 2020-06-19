@@ -23,59 +23,25 @@
 
 #include "buffer.h"
 #include "gctx.h"
-#include "glcontext.h"
-#include "glincludes.h"
-#include "memory.h"
-#include "nodes.h"
-
-static const GLenum gl_usage_map[NGLI_BUFFER_USAGE_NB] = {
-    [NGLI_BUFFER_USAGE_STATIC]  = GL_STATIC_DRAW,
-    [NGLI_BUFFER_USAGE_DYNAMIC] = GL_DYNAMIC_DRAW,
-};
-
-static GLenum get_gl_usage(int usage)
-{
-    return gl_usage_map[usage];
-}
 
 struct buffer *ngli_buffer_create(struct gctx *gctx)
 {
-    struct buffer *s = ngli_calloc(1, sizeof(*s));
-    if (!s)
-        return NULL;
-    s->gctx = gctx;
-    return s;
+    return gctx->class->buffer_create(gctx);
 }
 
 int ngli_buffer_init(struct buffer *s, int size, int usage)
 {
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
-
-    s->size = size;
-    s->usage = usage;
-    ngli_glGenBuffers(gl, 1, &s->id);
-    ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->id);
-    ngli_glBufferData(gl, GL_ARRAY_BUFFER, size, NULL, get_gl_usage(usage));
-    return 0;
+    return s->gctx->class->buffer_init(s, size, usage);
 }
 
 int ngli_buffer_upload(struct buffer *s, const void *data, int size)
 {
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
-    ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s->id);
-    ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, 0, size, data);
-    return 0;
+    return s->gctx->class->buffer_upload(s, data, size);
 }
 
 void ngli_buffer_freep(struct buffer **sp)
 {
     if (!*sp)
         return;
-    struct buffer *s = *sp;
-    struct gctx *gctx = s->gctx;
-    struct glcontext *gl = gctx->glcontext;
-    ngli_glDeleteBuffers(gl, 1, &s->id);
-    ngli_freep(sp);
+    (*sp)->gctx->class->buffer_freep(sp);
 }

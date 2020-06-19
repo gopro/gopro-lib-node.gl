@@ -21,6 +21,7 @@
 
 #include <string.h>
 
+#include "buffer_gl.h"
 #include "format.h"
 #include "gctx.h"
 #include "glcontext.h"
@@ -279,8 +280,8 @@ static void set_buffers(struct pipeline *s, struct glcontext *gl)
     for (int i = 0; i < ngli_darray_count(&s->buffer_descs); i++) {
         const struct buffer_desc *desc = &descs[i];
         const struct pipeline_buffer *pipeline_buffer = &desc->buffer;
-        const struct buffer *buffer = pipeline_buffer->buffer;
-        ngli_glBindBufferBase(gl, desc->type, pipeline_buffer->binding, buffer->id);
+        const struct buffer_gl *buffer_gl = (struct buffer_gl *)pipeline_buffer->buffer;
+        ngli_glBindBufferBase(gl, desc->type, pipeline_buffer->binding, buffer_gl->id);
     }
 }
 
@@ -317,13 +318,14 @@ static void set_vertex_attribs(const struct pipeline *s, struct glcontext *gl)
     for (int i = 0; i < ngli_darray_count(&s->attribute_descs); i++) {
         const struct attribute_desc *desc = &descs[i];
         const struct pipeline_attribute *attribute = &desc->attribute;
-        const struct buffer *buffer = attribute->buffer;
+        const struct buffer_gl *buffer_gl = (struct buffer_gl *)attribute->buffer;
+
         const GLuint location = attribute->location;
         const GLuint size = ngli_format_get_nb_comp(attribute->format);
         const GLint stride = attribute->stride;
 
         ngli_glEnableVertexAttribArray(gl, location);
-        ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer->id);
+        ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer_gl->id);
         ngli_glVertexAttribPointer(gl, location, size, GL_FLOAT, GL_FALSE, stride, (void*)(uintptr_t)(attribute->offset));
         if ((gl->features & NGLI_FEATURE_INSTANCED_ARRAY) && attribute->rate > 0)
             ngli_glVertexAttribDivisor(gl, location, attribute->rate);
@@ -405,10 +407,10 @@ static void draw_elements(const struct pipeline *s, struct glcontext *gl)
     bind_vertex_attribs(s, gl);
 
     const struct pipeline_graphics *graphics = &s->graphics;
-    const struct buffer *indices = graphics->indices;
+    const struct buffer_gl *indices_gl = (struct buffer_gl *)graphics->indices;
     const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
     const GLenum gl_indices_type = get_gl_indices_type(graphics->indices_format);
-    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices->id);
+    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices_gl->id);
     ngli_glDrawElements(gl, gl_topology, graphics->nb_indices, gl_indices_type, 0);
 
     unbind_vertex_attribs(s, gl);
@@ -419,10 +421,10 @@ static void draw_elements_instanced(const struct pipeline *s, struct glcontext *
     bind_vertex_attribs(s, gl);
 
     const struct pipeline_graphics *graphics = &s->graphics;
-    const struct buffer *indices = graphics->indices;
+    const struct buffer_gl *indices_gl = (struct buffer_gl *)graphics->indices;
     const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
     const GLenum gl_indices_type = get_gl_indices_type(graphics->indices_format);
-    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices->id);
+    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices_gl->id);
     ngli_glDrawElementsInstanced(gl, gl_topology, graphics->nb_indices, gl_indices_type, 0, graphics->nb_instances);
 
     unbind_vertex_attribs(s, gl);

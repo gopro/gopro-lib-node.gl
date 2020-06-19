@@ -27,7 +27,7 @@
 
 struct gctx_class {
     const char *name;
-    int (*configure)(struct ngl_ctx *s);
+    int (*init)(struct ngl_ctx *s);
     int (*resize)(struct ngl_ctx *s, int width, int height, const int *viewport);
     int (*pre_draw)(struct ngl_ctx *s, double t);
     int (*post_draw)(struct ngl_ctx *s, double t);

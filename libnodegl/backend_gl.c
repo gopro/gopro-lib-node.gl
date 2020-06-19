@@ -315,7 +315,7 @@ static void capture_reset(struct ngl_ctx *s)
     s->capture_func = NULL;
 }
 
-static int gl_configure(struct ngl_ctx *s)
+static int gl_init(struct ngl_ctx *s)
 {
     int ret;
     const struct ngl_config *config = &s->config;
@@ -448,7 +448,7 @@ static void gl_destroy(struct ngl_ctx *s)
 
 const struct gctx_class ngli_gctx_gl = {
     .name         = "OpenGL",
-    .configure    = gl_configure,
+    .init         = gl_init,
     .resize       = gl_resize,
     .pre_draw     = gl_pre_draw,
     .post_draw    = gl_post_draw,
@@ -457,7 +457,7 @@ const struct gctx_class ngli_gctx_gl = {
 
 const struct gctx_class ngli_gctx_gles = {
     .name         = "OpenGL ES",
-    .configure    = gl_configure,
+    .init         = gl_init,
     .resize       = gl_resize,
     .pre_draw     = gl_pre_draw,
     .post_draw    = gl_post_draw,

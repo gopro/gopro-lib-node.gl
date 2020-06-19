@@ -56,7 +56,7 @@ int ngli_gctx_init(struct gctx *s)
     }
     s->class = backend_map[config->backend];
 
-    return s->class->configure(s->ctx);
+    return s->class->init(s->ctx);
 }
 
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport)

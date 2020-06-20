@@ -101,8 +101,8 @@ def triangle(cfg, size=0.5):
     colors_buffer = ngl.BufferVec4(data=colors_data)
 
     triangle = ngl.Triangle((-b, -c, 0), (b, -c, 0), (0, size, 0))
-    p = ngl.Program(fragment=cfg.get_frag('triangle'), vertex=cfg.get_vert('triangle'))
-    p.update_vert_out_vars(var_color=ngl.IOVec4())
+    p = ngl.Program(fragment=cfg.get_frag('color'), vertex=cfg.get_vert('triangle'))
+    p.update_vert_out_vars(color=ngl.IOVec4())
     node = ngl.Render(triangle, p)
     node.update_attributes(edge_color=colors_buffer)
     animkf = [ngl.AnimKeyFrameFloat(0, 0),

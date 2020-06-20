@@ -241,7 +241,7 @@ def particules(cfg, particules=32):
 
     compute_shader = cfg.get_comp('particules')
     vertex_shader = cfg.get_vert('particules')
-    fragment_shader = cfg.get_frag('particules')
+    fragment_shader = cfg.get_frag('color')
 
     cfg.duration = 6
 

@@ -45,12 +45,18 @@
 #include "type.h"
 #include "utils.h"
 
+struct uniform_desc {
+    int index;
+    const void *data;
+};
+
 struct pipeline_desc {
     struct pgcraft *crafter;
     struct pipeline *pipeline;
     int modelview_matrix_index;
     int projection_matrix_index;
     int normal_matrix_index;
+    struct darray uniforms;
 };
 
 static int register_uniform(struct pass *s, const char *name, struct ngl_node *uniform, int stage)
@@ -501,6 +507,21 @@ int ngli_pass_prepare(struct pass *s)
     desc->modelview_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "ngl_modelview_matrix", NGLI_PROGRAM_SHADER_VERT);
     desc->projection_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "ngl_projection_matrix", NGLI_PROGRAM_SHADER_VERT);
     desc->normal_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "ngl_normal_matrix", NGLI_PROGRAM_SHADER_VERT);
+
+    ngli_darray_init(&desc->uniforms, sizeof(struct uniform_desc), 0);
+
+    if (desc->crafter->use_ublock) {
+        struct pgcraft_uniform *uniforms = ngli_darray_data(&s->crafter_uniforms);
+        for (int i = 0; i < ngli_darray_count(&s->crafter_uniforms); i++) {
+            struct uniform_desc d = {
+                .index = ngli_pgcraft_get_uniform_index(desc->crafter, uniforms[i].name, uniforms[i].stage),
+                .data = uniforms[i].data,
+            };
+            if (!ngli_darray_push(&desc->uniforms, &d))
+                return NGL_ERROR_MEMORY;
+        }
+    }
+
     return 0;
 }
 
@@ -569,6 +590,7 @@ void ngli_pass_uninit(struct pass *s)
         struct pipeline_desc *desc = &descs[i];
         ngli_pipeline_freep(&desc->pipeline);
         ngli_pgcraft_freep(&desc->crafter);
+        ngli_darray_reset(&desc->uniforms);
     }
     ngli_darray_reset(&s->pipeline_descs);
 
@@ -651,6 +673,13 @@ int ngli_pass_exec(struct pass *s)
         ngli_mat3_inverse(normal_matrix, normal_matrix);
         ngli_mat3_transpose(normal_matrix, normal_matrix);
         ngli_pipeline_update_uniform(pipeline, desc->normal_matrix_index, normal_matrix);
+    }
+
+    /* update uniforms */
+    struct uniform_desc *uniforms = ngli_darray_data(&desc->uniforms);
+    for (int i = 0; i < ngli_darray_count(&desc->uniforms); i++) {
+        if (uniforms[i].data)
+            ngli_pipeline_update_uniform(pipeline, uniforms[i].index, uniforms[i].data);
     }
 
     struct darray *texture_infos_array = &desc->crafter->texture_infos;

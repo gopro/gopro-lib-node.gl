@@ -183,3 +183,8 @@ int ngli_gctx_get_preferred_depth_stencil_format(struct gctx *s)
 {
     return s->class->get_preferred_depth_stencil_format(s);
 }
+
+void ngli_gctx_flush(struct gctx *s)
+{
+    s->class->flush(s);
+}

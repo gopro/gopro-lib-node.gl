@@ -265,9 +265,9 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     return 0;
 }
 
-static int register_block(struct pass *s, const char *name, struct ngl_node *block, int stage)
+static int register_block(struct pass *s, const char *name, struct ngl_node *block_node, int stage)
 {
-    if (!block)
+    if (!block_node)
         return 0;
 
     const struct hmap *infos = s->pipeline_program->buffer_blocks;
@@ -278,7 +278,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
         return 0;
     }
 
-    struct block_priv *block_priv = block->priv_data;
+    struct block_priv *block_priv = block_node->priv_data;
     struct buffer *buffer = &block_priv->buffer;
     struct pipeline_buffer pipeline_buffer = {
         .type = info->type,
@@ -290,12 +290,12 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     if (!ngli_darray_push(&s->pipeline_buffers, &pipeline_buffer))
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_node_block_ref(block);
+    int ret = ngli_node_block_ref(block_node);
     if (ret < 0)
         return ret;
 
-    if (!ngli_darray_push(&s->block_nodes, &block)) {
-        ngli_node_block_unref(block);
+    if (!ngli_darray_push(&s->block_nodes, &block_node)) {
+        ngli_node_block_unref(block_node);
         return NGL_ERROR_MEMORY;
     }
 

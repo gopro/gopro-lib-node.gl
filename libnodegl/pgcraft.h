@@ -171,6 +171,11 @@ struct pgcraft_pipeline_info {
 struct pgcraft {
     struct darray texture_infos; // pgcraft_texture_info
 
+    /* uniforms block */
+    int use_ublock;
+    struct block ublock[NGLI_PROGRAM_SHADER_NB];
+    struct buffer *ubuffer[NGLI_PROGRAM_SHADER_NB];
+
     /* private */
     struct ngl_ctx *ctx;
     struct bstr *shaders[NGLI_PROGRAM_SHADER_NB];

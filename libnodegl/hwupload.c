@@ -37,7 +37,7 @@ extern const struct hwmap_class ngli_hwmap_vt_darwin_gl_class;
 extern const struct hwmap_class ngli_hwmap_vt_ios_gl_class;
 extern const struct hwmap_class ngli_hwmap_vaapi_gl_class;
 
-static const struct hwmap_class *hwupload_class_map[] = {
+static const struct hwmap_class *hwupload_gl_class_map[] = {
     [SXPLAYER_PIXFMT_RGBA]        = &ngli_hwmap_common_class,
     [SXPLAYER_PIXFMT_BGRA]        = &ngli_hwmap_common_class,
     [SXPLAYER_SMPFMT_FLT]         = &ngli_hwmap_common_class,
@@ -56,10 +56,10 @@ static const struct hwmap_class *hwupload_class_map[] = {
 
 static const struct hwmap_class *get_hwmap_class(struct sxplayer_frame *frame)
 {
-    if (frame->pix_fmt < 0 || frame->pix_fmt >= NGLI_ARRAY_NB(hwupload_class_map))
+    if (frame->pix_fmt < 0 || frame->pix_fmt >= NGLI_ARRAY_NB(hwupload_gl_class_map))
         return NULL;
 
-    return hwupload_class_map[frame->pix_fmt];
+    return hwupload_gl_class_map[frame->pix_fmt];
 }
 
 static int init_hwconv(struct ngl_node *node)

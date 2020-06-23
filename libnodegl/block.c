@@ -152,6 +152,17 @@ int ngli_block_add_field(struct block *s, const char *name, int type, int count)
     return 0;
 }
 
+void ngli_block_datacopy(const struct block_field *fi, uint8_t *dst, const uint8_t *src)
+{
+    const int src_stride = sizes_map[fi->type];
+    if (fi->count == 0 || src_stride == fi->stride) {
+        memcpy(dst, src, fi->size);
+    } else {
+        for (int i = 0; i < fi->count; i++)
+            memcpy(dst + i * fi->stride, src + i * src_stride, src_stride);
+    }
+}
+
 void ngli_block_reset(struct block *s)
 {
     ngli_darray_reset(&s->fields);

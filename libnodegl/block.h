@@ -22,6 +22,8 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <stdint.h>
+
 #include "buffer.h"
 #include "darray.h"
 #include "program.h" // MAX_ID_LEN
@@ -50,6 +52,7 @@ struct block {
 
 void ngli_block_init(struct block *s, enum block_layout layout);
 int ngli_block_add_field(struct block *s, const char *name, int type, int count);
+void ngli_block_datacopy(const struct block_field *fi, uint8_t *dst, const uint8_t *src);
 void ngli_block_reset(struct block *s);
 
 #endif

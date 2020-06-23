@@ -266,7 +266,7 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
     return 0;
 }
 
-const struct hwmap_class ngli_hwmap_vt_ios_class = {
+const struct hwmap_class ngli_hwmap_vt_ios_gl_class = {
     .name      = "videotoolbox (zero-copy)",
     .priv_size = sizeof(struct hwupload_vt_ios),
     .init      = vt_ios_init,

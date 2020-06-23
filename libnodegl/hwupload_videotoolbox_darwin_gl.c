@@ -156,7 +156,7 @@ static void vt_darwin_uninit(struct ngl_node *node)
     vt->frame = NULL;
 }
 
-const struct hwmap_class ngli_hwmap_vt_darwin_class = {
+const struct hwmap_class ngli_hwmap_vt_darwin_gl_class = {
     .name      = "videotoolbox (iosurface → nv12)",
     .flags     = HWMAP_FLAG_FRAME_OWNER,
     .priv_size = sizeof(struct hwupload_vt_darwin),

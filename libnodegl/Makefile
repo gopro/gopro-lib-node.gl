@@ -183,9 +183,9 @@ LIB_OBJS_GL = buffer_gl.o           \
 LIB_OBJS                        += $(LIB_OBJS_GL)
 LIB_CFLAGS                      += -DBACKEND_GL
 LIB_EXTRA_OBJS_Linux            += glcontext_egl.o
-LIB_EXTRA_OBJS_Darwin           += glcontext_nsgl.o hwupload_videotoolbox_darwin.o
-LIB_EXTRA_OBJS_Android          += glcontext_egl.o  hwupload_mediacodec.o
-LIB_EXTRA_OBJS_iPhone           += glcontext_eagl.o hwupload_videotoolbox_ios.o
+LIB_EXTRA_OBJS_Darwin           += glcontext_nsgl.o hwupload_videotoolbox_darwin_gl.o
+LIB_EXTRA_OBJS_Android          += glcontext_egl.o  hwupload_mediacodec_gl.o
+LIB_EXTRA_OBJS_iPhone           += glcontext_eagl.o hwupload_videotoolbox_ios_gl.o
 LIB_EXTRA_OBJS_MinGW-w64        += glcontext_wgl.o
 LIB_EXTRA_CFLAGS_Linux          += -DHAVE_GLPLATFORM_EGL
 LIB_EXTRA_CFLAGS_Darwin         += -DHAVE_GLPLATFORM_NSGL
@@ -243,7 +243,7 @@ ifeq ($(ENABLE_VAAPI),yes)
 	PROJECT_CFLAGS += -DHAVE_VAAPI
 	LIB_EXTRA_OBJS_Linux += vaapi.o
 ifeq ($(BACKEND_GL),yes)
-	LIB_EXTRA_OBJS_Linux += hwupload_vaapi.o
+	LIB_EXTRA_OBJS_Linux += hwupload_vaapi_gl.o
 endif
 endif
 

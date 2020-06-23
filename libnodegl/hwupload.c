@@ -32,10 +32,10 @@
 #include "nodes.h"
 
 extern const struct hwmap_class ngli_hwmap_common_class;
-extern const struct hwmap_class ngli_hwmap_mc_class;
-extern const struct hwmap_class ngli_hwmap_vt_darwin_class;
-extern const struct hwmap_class ngli_hwmap_vt_ios_class;
-extern const struct hwmap_class ngli_hwmap_vaapi_class;
+extern const struct hwmap_class ngli_hwmap_mc_gl_class;
+extern const struct hwmap_class ngli_hwmap_vt_darwin_gl_class;
+extern const struct hwmap_class ngli_hwmap_vt_ios_gl_class;
+extern const struct hwmap_class ngli_hwmap_vaapi_gl_class;
 
 static const struct hwmap_class *hwupload_class_map[] = {
     [SXPLAYER_PIXFMT_RGBA]        = &ngli_hwmap_common_class,
@@ -43,13 +43,13 @@ static const struct hwmap_class *hwupload_class_map[] = {
     [SXPLAYER_SMPFMT_FLT]         = &ngli_hwmap_common_class,
 #ifdef BACKEND_GL
 #if defined(TARGET_ANDROID)
-    [SXPLAYER_PIXFMT_MEDIACODEC]  = &ngli_hwmap_mc_class,
+    [SXPLAYER_PIXFMT_MEDIACODEC]  = &ngli_hwmap_mc_gl_class,
 #elif defined(TARGET_DARWIN)
-    [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_darwin_class,
+    [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_darwin_gl_class,
 #elif defined(TARGET_IPHONE)
-    [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_ios_class,
+    [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_ios_gl_class,
 #elif defined(HAVE_VAAPI)
-    [SXPLAYER_PIXFMT_VAAPI]       = &ngli_hwmap_vaapi_class,
+    [SXPLAYER_PIXFMT_VAAPI]       = &ngli_hwmap_vaapi_gl_class,
 #endif
 #endif
 };

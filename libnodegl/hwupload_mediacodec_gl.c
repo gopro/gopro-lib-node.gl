@@ -117,7 +117,7 @@ static int mc_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     return 0;
 }
 
-const struct hwmap_class ngli_hwmap_mc_class = {
+const struct hwmap_class ngli_hwmap_mc_gl_class = {
     .name      = "mediacodec (oes zero-copy)",
     .init      = mc_init,
     .map_frame = mc_map_frame,

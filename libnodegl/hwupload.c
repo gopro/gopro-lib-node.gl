@@ -54,12 +54,16 @@ static const struct hwmap_class *hwupload_gl_class_map[] = {
 #endif
 };
 
-static const struct hwmap_class *get_hwmap_class(struct sxplayer_frame *frame)
+static const struct hwmap_class *get_hwmap_class(int backend, struct sxplayer_frame *frame)
 {
-    if (frame->pix_fmt < 0 || frame->pix_fmt >= NGLI_ARRAY_NB(hwupload_gl_class_map))
-        return NULL;
+    if (backend == NGL_BACKEND_OPENGL || backend == NGL_BACKEND_OPENGLES) {
+        if (frame->pix_fmt < 0 || frame->pix_fmt >= NGLI_ARRAY_NB(hwupload_gl_class_map))
+            return NULL;
 
-    return hwupload_gl_class_map[frame->pix_fmt];
+        return hwupload_gl_class_map[frame->pix_fmt];
+    }
+
+    return NULL;
 }
 
 static int init_hwconv(struct ngl_node *node)
@@ -131,6 +135,8 @@ static int exec_hwconv(struct ngl_node *node)
 
 int ngli_hwupload_upload_frame(struct ngl_node *node)
 {
+    struct ngl_ctx *ctx = node->ctx;
+    const struct ngl_config *config = &ctx->config;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct media_priv *media = s->data_src->priv_data;
@@ -139,7 +145,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
         return 0;
     media->frame = NULL;
 
-    const struct hwmap_class *hwmap_class = get_hwmap_class(frame);
+    const struct hwmap_class *hwmap_class = get_hwmap_class(config->backend, frame);
     if (!hwmap_class) {
         sxplayer_release_frame(frame);
         return NGL_ERROR_UNSUPPORTED;

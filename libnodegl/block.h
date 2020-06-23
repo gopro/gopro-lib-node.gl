@@ -22,6 +22,8 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
+#include <stdint.h>
+
 #include "buffer.h"
 #include "darray.h"
 #include "program.h" // MAX_ID_LEN
@@ -40,6 +42,8 @@ struct block_field {
     int size;
     int stride;
 };
+
+void ngli_block_field_copy(const struct block_field *fi, uint8_t *dst, const uint8_t *src);
 
 struct block {
     int type; // NGLI_TYPE_UNIFORM_BUFFER or NGLI_TYPE_STORAGE_BUFFER

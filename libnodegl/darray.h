@@ -50,4 +50,9 @@ static inline void *ngli_darray_data(const struct darray *darray)
     return (void *)darray->data;
 }
 
+static inline void ngli_darray_clear(struct darray *darray)
+{
+    darray->count = 0;
+}
+
 #endif

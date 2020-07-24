@@ -49,11 +49,10 @@ def api_reconfigure():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     scene = _get_scene()
-    viewer.set_scene(scene)
-    viewer.draw(0)
+    assert viewer.set_scene(scene) == 0
+    assert viewer.draw(0) == 0
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
-    # FIXME: errors should be raised by the draw call so we can assert here
-    viewer.draw(1)
+    assert viewer.draw(1) == 0
     del viewer
 
 
@@ -61,10 +60,10 @@ def api_reconfigure_fail():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     scene = _get_scene()
-    viewer.set_scene(scene)
-    viewer.draw(0)
+    assert viewer.set_scene(scene) == 0
+    assert viewer.draw(0) == 0
     assert viewer.configure(offscreen=0, backend=_backend) != 0
-    viewer.draw(1)
+    assert viewer.draw(1) != 0
     del viewer
 
 
@@ -74,10 +73,10 @@ def api_ctx_ownership():
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     assert viewer2.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     scene = _get_scene()
-    viewer.set_scene(scene)
-    viewer.draw(0)
+    assert viewer.set_scene(scene) == 0
+    assert viewer.draw(0) == 0
     assert viewer2.set_scene(scene) != 0
-    viewer2.draw(0)
+    assert viewer2.draw(0) == 0
     del viewer
     del viewer2
 
@@ -94,10 +93,10 @@ def api_ctx_ownership_subgraph():
             quad = ngl.Quad()
         render2 = _get_scene(quad)
         scene = ngl.Group([render1, render2])
-        viewer.set_scene(render2)
-        viewer.draw(0)
+        assert viewer.set_scene(render2) == 0
+        assert viewer.draw(0) == 0
         assert viewer2.set_scene(scene) != 0
-        viewer2.draw(0)
+        assert viewer2.draw(0) == 0  # XXX: drawing with no scene is allowed?
         del viewer
         del viewer2
 
@@ -108,8 +107,8 @@ def api_capture_buffer_lifetime(width=1024, height=1024):
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0
     del capture_buffer
     scene = _get_scene()
-    viewer.set_scene(scene)
-    viewer.draw(0)
+    assert viewer.set_scene(scene) == 0
+    assert viewer.draw(0) == 0
     del viewer
 
 
@@ -120,7 +119,7 @@ def api_hud(width=234, height=123):
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
     render = _get_scene()
     scene = ngl.HUD(render)
-    viewer.set_scene(scene)
+    assert viewer.set_scene(scene) == 0
     for i in range(60 * 3):
-        viewer.draw(i / 60.)
+        assert viewer.draw(i / 60.) == 0
     del viewer

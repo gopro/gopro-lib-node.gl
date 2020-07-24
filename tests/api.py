@@ -56,6 +56,24 @@ def api_reconfigure():
     del viewer
 
 
+def api_reconfigure_clearcolor(width=16, height=16):
+    import zlib
+    viewer = ngl.Viewer()
+    capture_buffer = bytearray(width * height * 4)
+    viewer = ngl.Viewer()
+    assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0
+    scene = _get_scene()
+    assert viewer.set_scene(scene) == 0
+    assert viewer.draw(0) == 0
+    assert zlib.crc32(capture_buffer) == 0xb4bd32fa
+    assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer,
+                            clear_color=(0.3, 0.3, 0.3, 1.0)) == 0
+    assert viewer.draw(0) == 0
+    assert zlib.crc32(capture_buffer) == 0xfeb0bb01
+    del capture_buffer
+    del viewer
+
+
 def api_reconfigure_fail():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0

@@ -22,6 +22,7 @@
 API_TEST_NAMES =             \
     backend                  \
     reconfigure              \
+    reconfigure_clearcolor   \
     reconfigure_fail         \
     ctx_ownership            \
     ctx_ownership_subgraph   \

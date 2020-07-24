@@ -215,7 +215,8 @@ cdef class Viewer:
 
     def draw(self, double t):
         with nogil:
-            ngl_draw(self.ctx, t)
+            ret = ngl_draw(self.ctx, t)
+        return ret
 
     def dot(self, double t):
         cdef char *s;

@@ -28,6 +28,16 @@ from pynodegl_utils.misc import get_backend
 _backend_str = os.environ.get('BACKEND')
 _backend = get_backend(_backend_str) if _backend_str else ngl.BACKEND_AUTO
 
+_vert = 'void main() { ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position; }'
+_frag = 'void main() { ngl_out_color = color; }'
+
+def _get_scene(geometry=None):
+    program = ngl.Program(vertex=_vert, fragment=_frag)
+    if geometry is None:
+        geometry = ngl.Quad()
+    scene = ngl.Render(geometry, program)
+    scene.update_frag_resources(color=ngl.UniformVec4(value=(1.0, 1.0, 1.0, 1.0)))
+    return scene
 
 def api_backend():
     viewer = ngl.Viewer()
@@ -38,7 +48,7 @@ def api_backend():
 def api_reconfigure():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
-    scene = ngl.Render(ngl.Quad())
+    scene = _get_scene()
     viewer.set_scene(scene)
     viewer.draw(0)
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
@@ -50,7 +60,7 @@ def api_reconfigure():
 def api_reconfigure_fail():
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
-    scene = ngl.Render(ngl.Quad())
+    scene = _get_scene()
     viewer.set_scene(scene)
     viewer.draw(0)
     assert viewer.configure(offscreen=0, backend=_backend) != 0
@@ -63,7 +73,7 @@ def api_ctx_ownership():
     viewer2 = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     assert viewer2.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
-    scene = ngl.Render(ngl.Quad())
+    scene = _get_scene()
     viewer.set_scene(scene)
     viewer.draw(0)
     assert viewer2.set_scene(scene) != 0
@@ -79,10 +89,10 @@ def api_ctx_ownership_subgraph():
         assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
         assert viewer2.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
         quad = ngl.Quad()
-        render1 = ngl.Render(quad)
+        render1 = _get_scene(quad)
         if not shared:
             quad = ngl.Quad()
-        render2 = ngl.Render(quad)
+        render2 = _get_scene(quad)
         scene = ngl.Group([render1, render2])
         viewer.set_scene(render2)
         viewer.draw(0)
@@ -97,7 +107,7 @@ def api_capture_buffer_lifetime(width=1024, height=1024):
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0
     del capture_buffer
-    scene = ngl.Render(ngl.Quad())
+    scene = _get_scene()
     viewer.set_scene(scene)
     viewer.draw(0)
     del viewer
@@ -108,8 +118,7 @@ def api_capture_buffer_lifetime(width=1024, height=1024):
 def api_hud(width=234, height=123):
     viewer = ngl.Viewer()
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
-    quad = ngl.Quad()
-    render = ngl.Render(quad)
+    render = _get_scene()
     scene = ngl.HUD(render)
     viewer.set_scene(scene)
     for i in range(60 * 3):

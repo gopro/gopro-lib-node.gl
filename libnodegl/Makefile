@@ -361,7 +361,7 @@ test_asm: test_asm.o math_utils.o $(LIB_OBJS_ARCH_$(ARCH))
 test_colorconv: LDLIBS = $(PROJECT_LDLIBS) -lm
 test_colorconv: test_colorconv.o colorconv.o log.o
 test_darray: test_darray.o darray.o memory.o
-test_draw: test_draw.o drawutils.o
+test_draw: test_draw.o drawutils.o memory.o
 test_hmap: test_hmap.o utils.o memory.o
 test_utils: test_utils.o utils.o memory.o
 

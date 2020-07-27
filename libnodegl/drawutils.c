@@ -19,7 +19,11 @@
  * under the License.
  */
 
+#include <string.h>
+
 #include "drawutils.h"
+#include "memory.h"
+#include "nodegl.h"
 
 #define BYTES_PER_PIXEL 4 /* RGBA */
 
@@ -124,4 +128,59 @@ void ngli_drawutils_print(struct canvas *canvas, int x, int y, const char *str, 
         }
         px++;
     }
+}
+
+#define ATLAS_COLS 16
+#define ATLAS_ROWS  6
+#define ATLAS_CHAR_PAD 1 // prevent interpolation overlap issues with texture picking
+#define ATLAS_CHR_W (NGLI_FONT_W + 2 * ATLAS_CHAR_PAD)
+#define ATLAS_CHR_H (NGLI_FONT_H + 2 * ATLAS_CHAR_PAD)
+#define ATLAS_W (ATLAS_COLS * ATLAS_CHR_W)
+#define ATLAS_H (ATLAS_ROWS * ATLAS_CHR_H)
+
+int ngli_drawutils_get_font_atlas(struct canvas *c_dst)
+{
+    struct canvas c = {.w = ATLAS_W, .h = ATLAS_H};
+    c.buf = ngli_calloc(c.w * c.h, 1);
+    if (!c.buf)
+        return NGL_ERROR_MEMORY;
+
+    uint8_t chr = 0;
+    for (int y = 0; y < ATLAS_ROWS; y++) {
+        for (int x = 0; x < ATLAS_COLS; x++) {
+            for (int char_y = 0; char_y < NGLI_FONT_H; char_y++) {
+                for (int char_x = 0; char_x < NGLI_FONT_W; char_x++) {
+                    const int pix_x = x * ATLAS_CHR_W + ATLAS_CHAR_PAD + char_x;
+                    const int pix_y = y * ATLAS_CHR_H + ATLAS_CHAR_PAD + char_y;
+                    uint8_t *p = c.buf + (pix_y * c.w + pix_x);
+                    if (font8[chr][char_y] & (1 << char_x))
+                        *p = 0xff;
+                }
+            }
+            chr++;
+        }
+    }
+
+    *c_dst = c;
+    return 0;
+}
+
+void ngli_drawutils_get_atlas_uvcoords(uint8_t chr, float *dst)
+{
+    const int c_id = chr < FONT_OFFSET || chr > 127 ? 0 : chr - FONT_OFFSET;
+    const float scale_w = 1.f / ATLAS_W;
+    const float scale_h = 1.f / ATLAS_H;
+    const int col = c_id % ATLAS_COLS;
+    const int row = c_id / ATLAS_COLS; // from the top of the buffer
+    const float cx =                 (col * ATLAS_CHR_W + ATLAS_CHAR_PAD) * scale_w;
+    const float cy = (ATLAS_H - (row + 1) * ATLAS_CHR_H + ATLAS_CHAR_PAD) * scale_h;
+    const float cw = NGLI_FONT_W * scale_w;
+    const float ch = NGLI_FONT_H * scale_h;
+    const float chr_uvs[] = {
+        cx,      1.f - cy,
+        cx + cw, 1.f - cy,
+        cx + cw, 1.f - cy - ch,
+        cx,      1.f - cy - ch,
+    };
+    memcpy(dst, chr_uvs, sizeof(chr_uvs));
 }

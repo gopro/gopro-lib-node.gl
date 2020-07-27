@@ -62,7 +62,7 @@ def texture_data_animated(cfg, dim=8):
     time_scale = cfg.duration / float(nb_kf)
     for i, buf in enumerate(buffers + [buffers[0]]):
         random_animkf.append(ngl.AnimKeyFrameBuffer(i*time_scale, buf))
-    random_buffer = ngl.AnimatedBufferVec3(keyframes=random_animkf)
+    random_buffer = ngl.AnimatedBufferVec4(keyframes=random_animkf)
     random_tex = ngl.Texture2D(data_src=random_buffer, width=dim, height=dim)
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     prog = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))

@@ -46,5 +46,5 @@ COLORS = {
 def get_random_color_buffer(dim):
     data = []
     for i in range(dim ** 2):
-        data += (random.random(), random.random(), random.random())
+        data += (random.random(), random.random(), random.random(), 1.0)
     return array.array('f', data)

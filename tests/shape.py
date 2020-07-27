@@ -259,7 +259,7 @@ def _get_cropboard_function(set_indices=False):
         time_scale = cfg.duration / float(nb_kf)
         for i, buf in enumerate(buffers + [buffers[0]]):
             random_animkf.append(ngl.AnimKeyFrameBuffer(i*time_scale, buf))
-        random_buffer = ngl.AnimatedBufferVec3(keyframes=random_animkf)
+        random_buffer = ngl.AnimatedBufferVec4(keyframes=random_animkf)
         random_tex = ngl.Texture2D(data_src=random_buffer, width=dim_clr, height=dim_clr)
 
         kw = kh = 1. / dim_cut

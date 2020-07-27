@@ -114,9 +114,6 @@ static const struct param_choices format_choices = {
         {"r32g32_uint",          NGLI_FORMAT_R32G32_UINT,         .desc=NGLI_DOCSTRING("32-bit unsigned integer RG components")},
         {"r32g32_sint",          NGLI_FORMAT_R32G32_SINT,         .desc=NGLI_DOCSTRING("32-bit signed integer RG components")},
         {"r32g32_sfloat",        NGLI_FORMAT_R32G32_SFLOAT,       .desc=NGLI_DOCSTRING("32-bit signed float RG components")},
-        {"r32g32b32_uint",       NGLI_FORMAT_R32G32B32_UINT,      .desc=NGLI_DOCSTRING("32-bit unsigned integer RGB components")},
-        {"r32g32b32_sint",       NGLI_FORMAT_R32G32B32_SINT,      .desc=NGLI_DOCSTRING("32-bit signed integer RGB components")},
-        {"r32g32b32_sfloat",     NGLI_FORMAT_R32G32B32_SFLOAT,    .desc=NGLI_DOCSTRING("32-bit signed float RGB components")},
         {"r32g32b32a32_uint",    NGLI_FORMAT_R32G32B32A32_UINT,   .desc=NGLI_DOCSTRING("32-bit unsigned integer RGBA components")},
         {"r32g32b32a32_sint",    NGLI_FORMAT_R32G32B32A32_SINT,   .desc=NGLI_DOCSTRING("32-bit signed integer RGBA components")},
         {"r32g32b32a32_sfloat",  NGLI_FORMAT_R32G32B32A32_SFLOAT, .desc=NGLI_DOCSTRING("32-bit signed float RGBA components")},
@@ -138,14 +135,12 @@ static const struct param_choices format_choices = {
 #define BUFFER_NODES                \
     NGL_NODE_ANIMATEDBUFFERFLOAT,   \
     NGL_NODE_ANIMATEDBUFFERVEC2,    \
-    NGL_NODE_ANIMATEDBUFFERVEC3,    \
     NGL_NODE_ANIMATEDBUFFERVEC4,    \
     NGL_NODE_BUFFERBYTE,            \
     NGL_NODE_BUFFERBVEC2,           \
     NGL_NODE_BUFFERBVEC4,           \
     NGL_NODE_BUFFERINT,             \
     NGL_NODE_BUFFERIVEC2,           \
-    NGL_NODE_BUFFERIVEC3,           \
     NGL_NODE_BUFFERIVEC4,           \
     NGL_NODE_BUFFERSHORT,           \
     NGL_NODE_BUFFERSVEC2,           \
@@ -155,14 +150,12 @@ static const struct param_choices format_choices = {
     NGL_NODE_BUFFERUBVEC4,          \
     NGL_NODE_BUFFERUINT,            \
     NGL_NODE_BUFFERUIVEC2,          \
-    NGL_NODE_BUFFERUIVEC3,          \
     NGL_NODE_BUFFERUIVEC4,          \
     NGL_NODE_BUFFERUSHORT,          \
     NGL_NODE_BUFFERUSVEC2,          \
     NGL_NODE_BUFFERUSVEC4,          \
     NGL_NODE_BUFFERFLOAT,           \
     NGL_NODE_BUFFERVEC2,            \
-    NGL_NODE_BUFFERVEC3,            \
     NGL_NODE_BUFFERVEC4,            \
 
 
@@ -277,14 +270,12 @@ static int texture_prefetch(struct ngl_node *node)
             return 0;
         case NGL_NODE_ANIMATEDBUFFERFLOAT:
         case NGL_NODE_ANIMATEDBUFFERVEC2:
-        case NGL_NODE_ANIMATEDBUFFERVEC3:
         case NGL_NODE_ANIMATEDBUFFERVEC4:
         case NGL_NODE_BUFFERBYTE:
         case NGL_NODE_BUFFERBVEC2:
         case NGL_NODE_BUFFERBVEC4:
         case NGL_NODE_BUFFERINT:
         case NGL_NODE_BUFFERIVEC2:
-        case NGL_NODE_BUFFERIVEC3:
         case NGL_NODE_BUFFERIVEC4:
         case NGL_NODE_BUFFERSHORT:
         case NGL_NODE_BUFFERSVEC2:
@@ -294,14 +285,12 @@ static int texture_prefetch(struct ngl_node *node)
         case NGL_NODE_BUFFERUBVEC4:
         case NGL_NODE_BUFFERUINT:
         case NGL_NODE_BUFFERUIVEC2:
-        case NGL_NODE_BUFFERUIVEC3:
         case NGL_NODE_BUFFERUIVEC4:
         case NGL_NODE_BUFFERUSHORT:
         case NGL_NODE_BUFFERUSVEC2:
         case NGL_NODE_BUFFERUSVEC4:
         case NGL_NODE_BUFFERFLOAT:
         case NGL_NODE_BUFFERVEC2:
-        case NGL_NODE_BUFFERVEC3:
         case NGL_NODE_BUFFERVEC4: {
             struct buffer_priv *buffer = s->data_src->priv_data;
 
@@ -387,7 +376,6 @@ static int texture_update(struct ngl_node *node, double t)
             break;
         case NGL_NODE_ANIMATEDBUFFERFLOAT:
         case NGL_NODE_ANIMATEDBUFFERVEC2:
-        case NGL_NODE_ANIMATEDBUFFERVEC3:
         case NGL_NODE_ANIMATEDBUFFERVEC4:
             ret = ngli_node_update(s->data_src, t);
             if (ret < 0)

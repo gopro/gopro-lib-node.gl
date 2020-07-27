@@ -20,6 +20,10 @@
 # under the License.
 #
 
+import array
+import random
+
+
 # https://en.wikipedia.org/wiki/Color_term
 COLORS = {
     'white':   (1.0, 1.0, 1.0, 1.0),
@@ -37,3 +41,10 @@ COLORS = {
     'magenta': (1.0, 0.0, 1.0, 1.0),
     'rose':    (1.0, 0.0, 0.5, 1.0),
 }
+
+
+def get_random_color_buffer(dim):
+    data = []
+    for i in range(dim ** 2):
+        data += (random.random(), random.random(), random.random())
+    return array.array('f', data)

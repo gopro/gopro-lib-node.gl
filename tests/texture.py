@@ -28,6 +28,7 @@ from pynodegl_utils.tests.debug import get_debug_points
 from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 from pynodegl_utils.tests.cmp_cuepoints import test_cuepoints
 from pynodegl_utils.toolbox.colors import COLORS
+from pynodegl_utils.toolbox.colors import get_random_color_buffer
 
 
 def _render_buffer(cfg, w, h):
@@ -55,9 +56,8 @@ def texture_data(cfg, w=4, h=5):
 def texture_data_animated(cfg, dim=8):
     cfg.duration = 3.0
     random.seed(0)
-    get_rand = lambda: array.array('f', [random.random() for i in range(dim ** 2 * 3)])
     nb_kf = int(cfg.duration)
-    buffers = [get_rand() for i in range(nb_kf)]
+    buffers = [get_random_color_buffer(dim) for i in range(nb_kf)]
     random_animkf = []
     time_scale = cfg.duration / float(nb_kf)
     for i, buf in enumerate(buffers + [buffers[0]]):

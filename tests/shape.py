@@ -26,6 +26,7 @@ import itertools
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
 from pynodegl_utils.toolbox.colors import COLORS
+from pynodegl_utils.toolbox.colors import get_random_color_buffer
 from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 from pynodegl_utils.toolbox.shapes import equilateral_triangle_coords
 from pynodegl_utils.toolbox.grid import autogrid_simple
@@ -252,10 +253,8 @@ def _get_cropboard_function(set_indices=False):
         cfg.duration = 5. + 1.
 
         random.seed(0)
-
-        get_rand = lambda: array.array('f', [random.random() for i in range(dim_clr ** 2 * 3)])
         nb_kf = 2
-        buffers = [get_rand() for i in range(nb_kf)]
+        buffers = [get_random_color_buffer(dim_clr) for i in range(nb_kf)]
         random_animkf = []
         time_scale = cfg.duration / float(nb_kf)
         for i, buf in enumerate(buffers + [buffers[0]]):

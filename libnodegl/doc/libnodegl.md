@@ -580,8 +580,6 @@ Parameter | Live-chg. | Type | Description | Default
 `valign` |  | [`valign`](#valign-choices) | vertical alignment of the text in the box | `center`
 `halign` |  | [`halign`](#halign-choices) | horizontal alignment of the text in the box | `center`
 `aspect_ratio` |  | [`rational`](#parameter-types) | box aspect ratio | 
-`min_filter` |  | [`filter`](#filter-choices) | rasterized text texture minifying function | `linear`
-`mag_filter` |  | [`filter`](#filter-choices) | rasterized text texture magnification function | `nearest`
 
 
 **Source**: [node_text.c](/libnodegl/node_text.c)
@@ -1448,13 +1446,6 @@ Constant | Description
 `right` | right positioned
 `left` | left positioned
 
-## filter choices
-
-Constant | Description
--------- | -----------
-`nearest` | nearest filtering
-`linear` | linear filtering
-
 ## format choices
 
 Constant | Description
@@ -1509,6 +1500,13 @@ Constant | Description
 `s8_uint` | 8-bit unsigned integer stencil component
 `auto_depth` | select automatically the preferred depth format
 `auto_depth_stencil` | select automatically the preferred depth + stencil format
+
+## filter choices
+
+Constant | Description
+-------- | -----------
+`nearest` | nearest filtering
+`linear` | linear filtering
 
 ## mipmap_filter choices
 

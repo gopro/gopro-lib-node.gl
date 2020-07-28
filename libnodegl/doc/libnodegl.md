@@ -582,7 +582,6 @@ Parameter | Live-chg. | Type | Description | Default
 `aspect_ratio` |  | [`rational`](#parameter-types) | box aspect ratio | 
 `min_filter` |  | [`filter`](#filter-choices) | rasterized text texture minifying function | `linear`
 `mag_filter` |  | [`filter`](#filter-choices) | rasterized text texture magnification function | `nearest`
-`mipmap_filter` |  | [`mipmap_filter`](#mipmap_filter-choices) | rasterized text texture minifying mipmap function | `linear`
 
 
 **Source**: [node_text.c](/libnodegl/node_text.c)
@@ -1456,14 +1455,6 @@ Constant | Description
 `nearest` | nearest filtering
 `linear` | linear filtering
 
-## mipmap_filter choices
-
-Constant | Description
--------- | -----------
-`none` | no mipmap generation
-`nearest` | nearest filtering
-`linear` | linear filtering
-
 ## format choices
 
 Constant | Description
@@ -1518,6 +1509,14 @@ Constant | Description
 `s8_uint` | 8-bit unsigned integer stencil component
 `auto_depth` | select automatically the preferred depth format
 `auto_depth_stencil` | select automatically the preferred depth + stencil format
+
+## mipmap_filter choices
+
+Constant | Description
+-------- | -----------
+`none` | no mipmap generation
+`nearest` | nearest filtering
+`linear` | linear filtering
 
 ## wrap choices
 

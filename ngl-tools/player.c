@@ -161,6 +161,29 @@ static void size_callback(SDL_Window *window, int width, int height)
     ngl_resize(p->ngl, width, height, p->ngl_config.viewport);
 }
 
+static void update_text(void)
+{
+    struct player *p = g_player;
+
+    if (!p->pgbar_text_node)
+        return;
+
+    const int frame_ts = p->frame_ts / 1000000;
+    const int duration = p->duration / 1000000;
+    if (frame_ts == p->text_last_frame_ts && duration == p->text_last_duration)
+        return;
+
+    char buf[128];
+    const int cm = frame_ts / 60;
+    const int cs = frame_ts % 60;
+    const int dm = duration / 60;
+    const int ds = duration % 60;
+    snprintf(buf, sizeof(buf), "%02d:%02d / %02d:%02d", cm, cs, dm, ds);
+    ngl_node_param_set(p->pgbar_text_node, "text", buf);
+    p->text_last_frame_ts = frame_ts;
+    p->text_last_duration = duration;
+}
+
 static void update_time(int64_t seek_at)
 {
     struct player *p = g_player;
@@ -183,6 +206,13 @@ static void update_time(int64_t seek_at)
         const int64_t t64_diff = gettime() - p->lasthover;
         const double opacity = clipd(1.5 - t64_diff / 1000000.0, 0, 1);
         ngl_node_param_set(p->pgbar_opacity_node, "value", opacity);
+
+        const float text_bg[4] = {1.0, 1.0, 1.0, opacity};
+        const float text_fg[4] = {0.0, 0.0, 0.0, opacity};
+        ngl_node_param_set(p->pgbar_text_node, "bg_color", text_bg);
+        ngl_node_param_set(p->pgbar_text_node, "fg_color", text_fg);
+
+        update_text();
     }
 }
 
@@ -190,7 +220,7 @@ static void seek_event(int x)
 {
     struct player *p = g_player;
     const int *vp = p->ngl_config.viewport;
-    const int pos = clipi(x - vp[0], 0, vp[2]);
+    const int pos = clipi(x - vp[0], 0, vp[2]) * 3/2;
     const int64_t seek_at64 = p->duration * pos / vp[2];
     p->lasthover = gettime();
     update_time(seek_at64);
@@ -238,9 +268,16 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     struct player *p = g_player;
 
     static const float bar_corner[3] = {-1.0, -1.0, 0.0};
-    static const float bar_width[3]  = { 2.0,  0.0, 0.0};
-    static const float bar_height[3] = { 0.0,  2.0 * 0.03, 0.0}; // 3% of the height
+    static const float bar_width[3]  = { 2.0 * 2/3.,  0.0, 0.0};
+    static const float bar_height[3] = { 0.0,  2.0 * 0.05, 0.0}; // 5% of the height
 
+    static const float text_corner[3] = {1.0 - 2.0 * 1/3., -1.0, 0.0};
+    static const float text_width[3]  = {2.0 * 1/3.,  0.0, 0.0};
+    static const float text_height[3] = {0.0,  2.0 * 0.05, 0.0};
+    static const float text_bg[4]     = {1.0, 1.0, 1.0, 0.0};
+    static const float text_fg[4]     = {0.0, 0.0, 0.0, 0.0};
+
+    struct ngl_node *text       = ngl_node_create(NGL_NODE_TEXT);
     struct ngl_node *quad       = ngl_node_create(NGL_NODE_QUAD);
     struct ngl_node *program    = ngl_node_create(NGL_NODE_PROGRAM);
     struct ngl_node *render     = ngl_node_create(NGL_NODE_RENDER);
@@ -251,13 +288,13 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     struct ngl_node *group      = ngl_node_create(NGL_NODE_GROUP);
     struct ngl_node *gcfg       = ngl_node_create(NGL_NODE_GRAPHICCONFIG);
 
-    if (!quad || !program || !render || !time || !v_duration || !v_opacity ||
+    if (!text || !quad || !program || !render || !time || !v_duration || !v_opacity ||
         !coord || !group || !gcfg) {
         ngl_node_unrefp(&gcfg);
         goto end;
     }
 
-    struct ngl_node *children[] = {scene, render};
+    struct ngl_node *children[] = {scene, render, text};
 
     ngl_node_param_set(quad, "corner", bar_corner);
     ngl_node_param_set(quad, "width",  bar_width);
@@ -285,7 +322,16 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     ngl_node_param_set(gcfg, "blend_src_factor_a", "zero");
     ngl_node_param_set(gcfg, "blend_dst_factor_a", "one");
 
+    ngl_node_param_set(text, "box_corner", text_corner);
+    ngl_node_param_set(text, "box_width", text_width);
+    ngl_node_param_set(text, "box_height", text_height);
+    ngl_node_param_set(text, "bg_color", text_bg);
+    ngl_node_param_set(text, "fg_color", text_fg);
+    ngl_node_param_set(text, "aspect_ratio", p->aspect[0], p->aspect[1]);
+
     p->pgbar_opacity_node  = v_opacity;
+    p->pgbar_duration_node = v_duration;
+    p->pgbar_text_node     = text;
 
 end:
     ngl_node_unrefp(&quad);

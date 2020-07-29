@@ -43,7 +43,11 @@ struct player {
     int64_t lasthover;
     int mouse_down;
     int fullscreen;
+    int text_last_frame_ts;
+    int text_last_duration;
     struct ngl_node *pgbar_opacity_node;
+    struct ngl_node *pgbar_text_node;
+    struct ngl_node *pgbar_duration_node;
 };
 
 int player_init(struct player *p, const char *win_title, struct ngl_node *scene,

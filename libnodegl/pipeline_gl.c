@@ -332,10 +332,13 @@ static void set_vertex_attribs(const struct pipeline *s, struct glcontext *gl)
         const GLint stride = attribute->stride;
 
         ngli_glEnableVertexAttribArray(gl, location);
-        ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer_gl->id);
-        ngli_glVertexAttribPointer(gl, location, size, GL_FLOAT, GL_FALSE, stride, (void*)(uintptr_t)(attribute->offset));
         if ((gl->features & NGLI_FEATURE_INSTANCED_ARRAY) && attribute->rate > 0)
             ngli_glVertexAttribDivisor(gl, location, attribute->rate);
+
+        if (buffer_gl) {
+            ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer_gl->id);
+            ngli_glVertexAttribPointer(gl, location, size, GL_FLOAT, GL_FALSE, stride, (void*)(uintptr_t)(attribute->offset));
+        }
     }
 }
 
@@ -364,6 +367,9 @@ static int build_attribute_descs(struct pipeline *s, const struct pipeline_param
             LOG(ERROR, "context does not support instanced arrays");
             return NGL_ERROR_UNSUPPORTED;
         }
+
+        if (!attribute->buffer)
+            s->nb_unbound_attributes++;
 
         struct attribute_desc desc = {
             .attribute = *attribute,
@@ -572,6 +578,46 @@ int ngli_pipeline_gl_init(struct pipeline *s, const struct pipeline_params *para
     return 0;
 }
 
+int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buffer *buffer)
+{
+    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
+    struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
+
+    if (index == -1)
+        return NGL_ERROR_NOT_FOUND;
+
+    ngli_assert(s->type == NGLI_PIPELINE_TYPE_GRAPHICS);
+    ngli_assert(index >= 0 && index < ngli_darray_count(&s->attribute_descs));
+
+    struct attribute_desc *descs = ngli_darray_data(&s->attribute_descs);
+    struct attribute_desc *desc = &descs[index];
+    struct pipeline_attribute *attribute = &desc->attribute;
+
+    if (!attribute->buffer && buffer)
+        s->nb_unbound_attributes--;
+    else if (attribute->buffer && !buffer)
+        s->nb_unbound_attributes++;
+
+    attribute->buffer = buffer;
+
+    if (!buffer)
+        return 0;
+
+    if (gl->features & NGLI_FEATURE_VERTEX_ARRAY_OBJECT) {
+        const GLuint location = attribute->location;
+        const GLuint size = ngli_format_get_nb_comp(attribute->format);
+        const GLint stride = attribute->stride;
+        struct buffer_gl *buffer_gl = (struct buffer_gl *)buffer;
+        ngli_glBindVertexArray(gl, s_priv->vao_id);
+        ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, buffer_gl->id);
+        ngli_glVertexAttribPointer(gl, location, size, GL_FLOAT, GL_FALSE, stride, (void*)(uintptr_t)(attribute->offset));
+    }
+
+    return 0;
+}
+
 int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *data)
 {
     if (index == -1)
@@ -611,6 +657,11 @@ void ngli_pipeline_gl_exec(struct pipeline *s)
     struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
     struct glcontext *gl = gctx_gl->glcontext;
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
+
+    if (s->nb_unbound_attributes) {
+        LOG(ERROR, "pipeline has unbound vertex attributes");
+        return;
+    }
 
     if (s->type == NGLI_PIPELINE_TYPE_GRAPHICS) {
         struct pipeline_graphics *graphics = &s->graphics;

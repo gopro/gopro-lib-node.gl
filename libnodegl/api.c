@@ -69,6 +69,7 @@ static int get_default_platform(void)
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
+    ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_gctx_freep(&s->gctx);
 
     return 0;

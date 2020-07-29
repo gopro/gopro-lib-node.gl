@@ -59,7 +59,6 @@ struct text_priv {
     int valign, halign;
     int aspect_ratio[2];
 
-    struct texture *texture;
     struct buffer *vertices;
     struct buffer *uvcoords;
     struct buffer *indices;
@@ -376,7 +375,9 @@ static int atlas_create(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct text_priv *s = node->priv_data;
+
+    if (ctx->font_atlas)
+        return 0;
 
     struct canvas canvas = {0};
     int ret = ngli_drawutils_get_font_atlas(&canvas);
@@ -390,17 +391,18 @@ static int atlas_create(struct ngl_node *node)
     tex_params.min_filter = NGLI_FILTER_LINEAR;
     tex_params.mag_filter = NGLI_FILTER_NEAREST;
     tex_params.mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR;
-    s->texture = ngli_texture_create(gctx);
-    if (!s->texture) {
+
+    ctx->font_atlas = ngli_texture_create(gctx); // freed at context reconfiguration/destruction
+    if (!ctx->font_atlas) {
         ret = NGL_ERROR_MEMORY;
         goto end;
     }
 
-    ret = ngli_texture_init(s->texture, &tex_params);
+    ret = ngli_texture_init(ctx->font_atlas, &tex_params);
     if (ret < 0)
         goto end;
 
-    ret = ngli_texture_upload(s->texture, canvas.buf, 0);
+    ret = ngli_texture_upload(ctx->font_atlas, canvas.buf, 0);
     if (ret < 0)
         goto end;
 
@@ -518,7 +520,7 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
             .name     = "tex",
             .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D,
             .stage    = NGLI_PROGRAM_SHADER_FRAG,
-            .texture  = s->texture,
+            .texture  = ctx->font_atlas,
         },
     };
 
@@ -632,7 +634,6 @@ static void text_uninit(struct ngl_node *node)
         ngli_pgcraft_freep(&desc->fg.crafter);
     }
     ngli_darray_reset(&s->pipeline_descs);
-    ngli_texture_freep(&s->texture);
     ngli_buffer_freep(&s->vertices);
     ngli_buffer_freep(&s->uvcoords);
     ngli_buffer_freep(&s->indices);

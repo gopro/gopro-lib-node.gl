@@ -417,77 +417,11 @@ static void unbind_vertex_attribs(const struct pipeline *s, struct glcontext *gl
         reset_vertex_attribs(s, gl);
 }
 
-static void draw_elements(const struct pipeline *s, struct glcontext *gl)
-{
-    bind_vertex_attribs(s, gl);
-
-    const struct pipeline_graphics *graphics = &s->graphics;
-    const struct buffer *indices = graphics->indices;
-    const struct buffer_gl *indices_gl = (const struct buffer_gl *)indices;
-    const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
-    const GLenum gl_indices_type = get_gl_indices_type(graphics->indices_format);
-    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices_gl->id);
-    ngli_glDrawElements(gl, gl_topology, graphics->nb_indices, gl_indices_type, 0);
-
-    unbind_vertex_attribs(s, gl);
-}
-
-static void draw_elements_instanced(const struct pipeline *s, struct glcontext *gl)
-{
-    bind_vertex_attribs(s, gl);
-
-    const struct pipeline_graphics *graphics = &s->graphics;
-    const struct buffer *indices = graphics->indices;
-    const struct buffer_gl *indices_gl = (const struct buffer_gl *)indices;
-    const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
-    const GLenum gl_indices_type = get_gl_indices_type(graphics->indices_format);
-    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices_gl->id);
-    ngli_glDrawElementsInstanced(gl, gl_topology, graphics->nb_indices, gl_indices_type, 0, graphics->nb_instances);
-
-    unbind_vertex_attribs(s, gl);
-}
-
-static void draw_arrays(const struct pipeline *s, struct glcontext *gl)
-{
-    bind_vertex_attribs(s, gl);
-
-    const struct pipeline_graphics *graphics = &s->graphics;
-    const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
-    ngli_glDrawArrays(gl, gl_topology, 0, graphics->nb_vertices);
-
-    unbind_vertex_attribs(s, gl);
-}
-
-static void draw_arrays_instanced(const struct pipeline *s, struct glcontext *gl)
-{
-    bind_vertex_attribs(s, gl);
-
-    const struct pipeline_graphics *graphics = &s->graphics;
-    const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
-    ngli_glDrawArraysInstanced(gl, gl_topology, 0, graphics->nb_vertices, graphics->nb_instances);
-
-    unbind_vertex_attribs(s, gl);
-}
-
-static void dispatch_compute(const struct pipeline *s, struct glcontext *gl)
-{
-    const struct pipeline_compute *compute = &s->compute;
-    ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
-    ngli_glDispatchCompute(gl, compute->nb_group_x, compute->nb_group_y, compute->nb_group_z);
-    ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
-}
-
 static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
-    struct pipeline_graphics *graphics = &s->graphics;
-
-    if (graphics->nb_instances > 1 && !(gl->features & NGLI_FEATURE_DRAW_INSTANCED)) {
-        LOG(ERROR, "context does not support instanced draws");
-        return NGL_ERROR_UNSUPPORTED;
-    }
 
     int ret = build_attribute_descs(s, params);
     if (ret < 0)
@@ -499,17 +433,11 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
         set_vertex_attribs(s, gl);
     }
 
-    if (graphics->indices)
-        s_priv->exec = graphics->nb_instances > 1 ? draw_elements_instanced : draw_elements;
-    else
-        s_priv->exec = graphics->nb_instances > 1 ? draw_arrays_instanced : draw_arrays;
-
     return 0;
 }
 
 static int pipeline_compute_init(struct pipeline *s)
 {
-    struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
     const struct limits *limits = &gl->limits;
@@ -530,8 +458,6 @@ static int pipeline_compute_init(struct pipeline *s)
             max_work_groups[0], max_work_groups[1], max_work_groups[2]);
         return NGL_ERROR_LIMIT_EXCEEDED;
     }
-
-    s_priv->exec = dispatch_compute;
 
     return 0;
 }
@@ -651,28 +577,91 @@ int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct textur
     return 0;
 }
 
-void ngli_pipeline_gl_exec(struct pipeline *s)
+void ngli_pipeline_gl_draw(struct pipeline *s, int nb_vertices, int nb_instances)
 {
     struct gctx *gctx = s->gctx;
     struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
     struct glcontext *gl = gctx_gl->glcontext;
-    struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
+    struct pipeline_graphics *graphics = &s->graphics;
+
+    ngli_glstate_update(gctx, &graphics->state);
+    use_program(s, gl);
+    set_uniforms(s, gl);
+    set_buffers(s, gl);
+    set_textures(s, gl);
+    bind_vertex_attribs(s, gl);
 
     if (s->nb_unbound_attributes) {
         LOG(ERROR, "pipeline has unbound vertex attributes");
         return;
     }
 
-    if (s->type == NGLI_PIPELINE_TYPE_GRAPHICS) {
-        struct pipeline_graphics *graphics = &s->graphics;
-        ngli_glstate_update(gctx, &graphics->state);
+    if (nb_instances > 1 && !(gl->features & NGLI_FEATURE_DRAW_INSTANCED)) {
+        LOG(ERROR, "context does not support instanced draws");
+        return;
     }
+
+    const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
+    if (nb_instances > 1)
+        ngli_glDrawArraysInstanced(gl, gl_topology, 0, nb_vertices, nb_instances);
+    else
+        ngli_glDrawArrays(gl, gl_topology, 0, nb_vertices);
+
+    unbind_vertex_attribs(s, gl);
+}
+
+void ngli_pipeline_gl_draw_indexed(struct pipeline *s, struct buffer *indices, int indices_format, int nb_indices, int nb_instances)
+{
+    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
+    struct pipeline_graphics *graphics = &s->graphics;
+
+    ngli_glstate_update(gctx, &graphics->state);
+    use_program(s, gl);
+    set_uniforms(s, gl);
+    set_buffers(s, gl);
+    set_textures(s, gl);
+    bind_vertex_attribs(s, gl);
+
+    if (s->nb_unbound_attributes) {
+        LOG(ERROR, "pipeline has unbound vertex attributes");
+        return;
+    }
+
+    if (nb_instances > 1 && !(gl->features & NGLI_FEATURE_DRAW_INSTANCED)) {
+        LOG(ERROR, "context does not support instanced draws");
+        return;
+    }
+
+    ngli_assert(indices);
+    const struct buffer_gl *indices_gl = (const struct buffer_gl *)indices;
+    const GLenum gl_indices_type = get_gl_indices_type(indices_format);
+    ngli_glBindBuffer(gl, GL_ELEMENT_ARRAY_BUFFER, indices_gl->id);
+
+    const GLenum gl_topology = ngli_topology_get_gl_topology(graphics->topology);
+    if (nb_instances > 1)
+        ngli_glDrawElementsInstanced(gl, gl_topology, nb_indices, gl_indices_type, 0, nb_instances);
+    else
+        ngli_glDrawElements(gl, gl_topology, nb_indices, gl_indices_type, 0);
+
+    unbind_vertex_attribs(s, gl);
+}
+
+void ngli_pipeline_gl_dispatch(struct pipeline *s, int nb_group_x, int nb_group_y, int nb_group_z)
+{
+    struct gctx *gctx = s->gctx;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
 
     use_program(s, gl);
     set_uniforms(s, gl);
     set_buffers(s, gl);
     set_textures(s, gl);
-    s_priv->exec(s, gl);
+
+    ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
+    ngli_glDispatchCompute(gl, nb_group_x, nb_group_y, nb_group_z);
+    ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
 }
 
 void ngli_pipeline_gl_freep(struct pipeline **sp)

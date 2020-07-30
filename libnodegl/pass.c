@@ -359,7 +359,6 @@ static int pass_graphics_init(struct pass *s)
     struct pipeline_graphics *graphics = &s->pipeline_graphics;
 
     graphics->topology = geometry_priv->topology;
-    graphics->nb_instances = s->params.nb_instances;
 
     if (geometry_priv->indices_buffer) {
         struct ngl_node *indices = geometry_priv->indices_buffer;
@@ -375,15 +374,14 @@ static int pass_graphics_init(struct pass *s)
 
         s->indices = indices;
         s->indices_buffer = indices_priv->buffer;
-
-        graphics->nb_indices = indices_priv->count;
-        graphics->indices_format = indices_priv->data_format;
-        graphics->indices = indices_priv->buffer;
+        s->indices_format = indices_priv->data_format;
+        s->nb_indices = indices_priv->count;
     } else {
         struct ngl_node *vertices = geometry_priv->vertices_buffer;
         struct buffer_priv *buffer_priv = vertices->priv_data;
-        graphics->nb_vertices = buffer_priv->count;
+        s->nb_vertices = buffer_priv->count;
     }
+    s->nb_instances = s->params.nb_instances;
 
     int ret;
 
@@ -430,9 +428,6 @@ static int pass_compute_init(struct pass *s)
         return ret;
 
     s->pipeline_type = NGLI_PIPELINE_TYPE_COMPUTE;
-    s->pipeline_compute.nb_group_x = params->nb_group_x;
-    s->pipeline_compute.nb_group_y = params->nb_group_y;
-    s->pipeline_compute.nb_group_z = params->nb_group_z;
 
     return 0;
 }
@@ -628,6 +623,7 @@ int ngli_pass_update(struct pass *s, double t)
 int ngli_pass_exec(struct pass *s)
 {
     struct ngl_ctx *ctx = s->ctx;
+    const struct pass_params *params = &s->params;
     struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
     struct pipeline_desc *desc = &descs[ctx->rnode_pos->id];
     struct pipeline *pipeline = desc->pipeline;
@@ -686,7 +682,13 @@ int ngli_pass_exec(struct pass *s)
         ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_SAMPLING_MODE].index, &layout);
     }
 
-    ngli_pipeline_exec(pipeline);
+    if (s->pipeline_type == NGLI_PIPELINE_TYPE_GRAPHICS)
+        if (s->indices_buffer)
+            ngli_pipeline_draw_indexed(pipeline, s->indices_buffer, s->indices_format, s->nb_indices, s->nb_instances);
+        else
+            ngli_pipeline_draw(pipeline, s->nb_vertices, s->nb_instances);
+    else
+        ngli_pipeline_dispatch(pipeline, params->nb_group_x, params->nb_group_y, params->nb_group_z);
 
     return 0;
 }

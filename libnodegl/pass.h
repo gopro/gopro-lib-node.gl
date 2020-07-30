@@ -70,6 +70,10 @@ struct pass {
 
     struct ngl_node *indices;
     struct buffer *indices_buffer;
+    int indices_format;
+    int nb_indices;
+    int nb_vertices;
+    int nb_instances;
 
     int pipeline_type;
     struct pipeline_graphics pipeline_graphics;

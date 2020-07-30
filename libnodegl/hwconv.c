@@ -129,7 +129,6 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
         .type          = NGLI_PIPELINE_TYPE_GRAPHICS,
         .graphics      = {
             .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
-            .nb_vertices = 4,
             .state       = ctx->graphicstate,
             .rt_desc     = rt_desc,
         },
@@ -216,7 +215,7 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
     ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COORDINATE_MATRIX].index, image->coordinates_matrix);
     ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COLOR_MATRIX].index, image->color_matrix);
 
-    ngli_pipeline_exec(hwconv->pipeline);
+    ngli_pipeline_draw(hwconv->pipeline, 4, 1);
 
     ngli_gctx_set_rendertarget(gctx, prev_rt);
     ngli_gctx_set_viewport(gctx, prev_vp);

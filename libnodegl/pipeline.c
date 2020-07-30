@@ -48,9 +48,19 @@ int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *
     return s->gctx->class->pipeline_update_texture(s, index, texture);
 }
 
-void ngli_pipeline_exec(struct pipeline *s)
+void ngli_pipeline_draw(struct pipeline *s, int nb_vertices, int nb_instances)
 {
-    s->gctx->class->pipeline_exec(s);
+    return s->gctx->class->pipeline_draw(s, nb_vertices, nb_instances);
+}
+
+void ngli_pipeline_draw_indexed(struct pipeline *s, struct buffer *indices, int indices_format, int nb_indices, int nb_instances)
+{
+    return s->gctx->class->pipeline_draw_indexed(s, indices, indices_format, nb_indices, nb_instances);
+}
+
+void ngli_pipeline_dispatch(struct pipeline *s, int nb_group_x, int nb_group_y, int nb_group_z)
+{
+    return s->gctx->class->pipeline_dispatch(s, nb_group_x, nb_group_y, nb_group_z);
 }
 
 void ngli_pipeline_freep(struct pipeline **sp)

@@ -19,8 +19,12 @@
  * under the License.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "common.h"
 
@@ -63,4 +67,45 @@ void get_viewport(int width, int height, const int *aspect_ratio, int *vp)
     }
     vp[0] = (width  - vp[2]) / 2.0;
     vp[1] = (height - vp[3]) / 2.0;
+}
+
+#define BUF_SIZE 1024
+
+char *get_text_file_content(const char *filename)
+{
+    char *buf = NULL;
+
+    int fd = filename ? open(filename, O_RDONLY) : STDIN_FILENO;
+    if (fd == -1) {
+        fprintf(stderr, "unable to open %s\n", filename);
+        goto end;
+    }
+
+    ssize_t pos = 0;
+    for (;;) {
+        const ssize_t needed = pos + BUF_SIZE + 1;
+        void *new_buf = realloc(buf, needed);
+        if (!new_buf) {
+            free(buf);
+            buf = NULL;
+            goto end;
+        }
+        buf = new_buf;
+        const ssize_t n = read(fd, buf + pos, BUF_SIZE);
+        if (n < 0) {
+            free(buf);
+            buf = NULL;
+            goto end;
+        }
+        if (n == 0) {
+            buf[pos] = 0;
+            break;
+        }
+        pos += n;
+    }
+
+end:
+    if (fd != -1 && fd != STDIN_FILENO)
+        close(fd);
+    return buf;
 }

@@ -28,5 +28,6 @@ API_TEST_NAMES =             \
     ctx_ownership_subgraph   \
     capture_buffer_lifetime  \
     hud                      \
+    text_live_change         \
 
 $(eval $(call DECLARE_SIMPLE_TESTS,api,$(API_TEST_NAMES)))

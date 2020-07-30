@@ -23,6 +23,7 @@
 import os
 import pynodegl as ngl
 from pynodegl_utils.misc import get_backend
+from pynodegl_utils.toolbox.grid import autogrid_simple
 
 
 _backend_str = os.environ.get('BACKEND')
@@ -141,3 +142,28 @@ def api_hud(width=234, height=123):
     for i in range(60 * 3):
         assert viewer.draw(i / 60.) == 0
     del viewer
+
+
+def api_text_live_change(width=320, height=240):
+    import zlib
+    viewer = ngl.Context()
+    capture_buffer = bytearray(width * height * 4)
+    assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0
+
+    # An empty string forces the text node to deal with a pipeline with nul
+    # attributes, this is what we exercise here, along with a varying up and
+    # down number of characters
+    text_strings = ["foo", "", "foobar", "world", "hello\nworld", "\n\n", "last"]
+
+    # Exercise the diamond-form/prepare mechanism
+    text_node = ngl.Text()
+    viewer.set_scene(autogrid_simple([text_node] * 4))
+
+    viewer.draw(0)
+    last_crc = zlib.crc32(capture_buffer)
+    for i, s in enumerate(text_strings, 1):
+        text_node.set_text(s)
+        viewer.draw(i)
+        crc = zlib.crc32(capture_buffer)
+        assert crc != last_crc
+        last_crc = crc

@@ -412,6 +412,8 @@ void player_uninit(void)
 {
     struct player *p = g_player;
 
+    if (!p)
+        return;
     ngl_freep(&p->ngl);
     SDL_DestroyWindow(p->window);
     SDL_Quit();

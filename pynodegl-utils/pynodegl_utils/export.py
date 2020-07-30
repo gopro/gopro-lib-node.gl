@@ -91,7 +91,7 @@ class Exporter(QtCore.QThread):
         capture_buffer = bytearray(width * height * 4)
 
         # node.gl context
-        ngl_viewer = ngl.Viewer()
+        ngl_viewer = ngl.Context()
         ngl_viewer.configure(
             platform=ngl.PLATFORM_AUTO,
             backend=get_backend(cfg['backend']),

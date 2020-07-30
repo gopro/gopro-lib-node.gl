@@ -162,7 +162,7 @@ def easing_solve(name, v, args=None, offsets=None):
     return _eval_solve(name, v, args, offsets, False)
 
 
-cdef class Viewer:
+cdef class Context:
     cdef ngl_ctx *ctx
     cdef object capture_buffer
 

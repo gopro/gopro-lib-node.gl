@@ -94,7 +94,7 @@ class CompareSceneBase(CompareBase):
         scene = ret['scene']
 
         capture_buffer = bytearray(width * height * 4)
-        viewer = ngl.Viewer()
+        viewer = ngl.Context()
         assert viewer.configure(offscreen=1, width=width, height=height,
                                 backend=get_backend(backend) if backend else ngl.BACKEND_AUTO,
                                 samples=self._samples,

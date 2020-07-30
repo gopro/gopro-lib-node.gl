@@ -40,13 +40,13 @@ def _get_scene(geometry=None):
     return scene
 
 def api_backend():
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     assert viewer.configure(backend=0x1234) < 0
     del viewer
 
 
 def api_reconfigure():
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     scene = _get_scene()
     assert viewer.set_scene(scene) == 0
@@ -58,9 +58,9 @@ def api_reconfigure():
 
 def api_reconfigure_clearcolor(width=16, height=16):
     import zlib
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     capture_buffer = bytearray(width * height * 4)
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0
     scene = _get_scene()
     assert viewer.set_scene(scene) == 0
@@ -75,7 +75,7 @@ def api_reconfigure_clearcolor(width=16, height=16):
 
 
 def api_reconfigure_fail():
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     scene = _get_scene()
     assert viewer.set_scene(scene) == 0
@@ -86,8 +86,8 @@ def api_reconfigure_fail():
 
 
 def api_ctx_ownership():
-    viewer = ngl.Viewer()
-    viewer2 = ngl.Viewer()
+    viewer = ngl.Context()
+    viewer2 = ngl.Context()
     assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     assert viewer2.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
     scene = _get_scene()
@@ -101,8 +101,8 @@ def api_ctx_ownership():
 
 def api_ctx_ownership_subgraph():
     for shared in (True, False):
-        viewer = ngl.Viewer()
-        viewer2 = ngl.Viewer()
+        viewer = ngl.Context()
+        viewer2 = ngl.Context()
         assert viewer.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
         assert viewer2.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
         quad = ngl.Quad()
@@ -121,7 +121,7 @@ def api_ctx_ownership_subgraph():
 
 def api_capture_buffer_lifetime(width=1024, height=1024):
     capture_buffer = bytearray(width * height * 4)
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0
     del capture_buffer
     scene = _get_scene()
@@ -133,7 +133,7 @@ def api_capture_buffer_lifetime(width=1024, height=1024):
 # Exercise the HUD rasterization. We can't really check the output, so this is
 # just for blind coverage and similar code instrumentalization.
 def api_hud(width=234, height=123):
-    viewer = ngl.Viewer()
+    viewer = ngl.Context()
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
     render = _get_scene()
     scene = ngl.HUD(render)

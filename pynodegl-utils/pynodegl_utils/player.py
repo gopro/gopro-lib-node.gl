@@ -117,7 +117,7 @@ class Player(QtCore.QThread):
         self._events = []
         self._wait_first_frame = True
         self._clock = Clock(self._framerate, self._duration)
-        self._viewer = ngl.Viewer()
+        self._viewer = ngl.Context()
         self._configure_viewer()
 
     def _configure_viewer(self):

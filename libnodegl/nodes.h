@@ -481,7 +481,6 @@ void ngli_node_detach_ctx(struct ngl_node *node, struct ngl_ctx *ctx);
 
 char *ngli_node_default_label(const char *class_name);
 int ngli_is_default_label(const char *class_name, const char *str);
-struct ngl_node *ngli_node_create_noconstructor(int type);
 const struct node_param *ngli_node_param_find(const struct ngl_node *node, const char *key,
                                               uint8_t **base_ptrp);
 

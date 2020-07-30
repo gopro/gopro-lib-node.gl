@@ -444,25 +444,6 @@ static int set_node_params(struct darray *nodes_array, char *str,
     if (!params)
         return 0;
 
-    for (int i = 0; params[i].key; i++) {
-        const struct node_param *par = &params[i];
-
-        if (!(par->flags & PARAM_FLAG_CONSTRUCTOR))
-            break;
-
-        int ret = parse_param(nodes_array, base_ptr, par, str);
-        if (ret < 0) {
-            LOG(ERROR, "unable to set node param %s.%s: %s",
-                node->class->name, par->key, NGLI_RET_STR(ret));
-            return ret;
-        }
-
-        str += ret;
-        if (*str != ' ')
-            break;
-        str++;
-    }
-
     for (;;) {
         char *eok = strchr(str, ':');
         if (!eok)
@@ -529,7 +510,7 @@ struct ngl_node *ngl_node_deserialize(const char *str)
         if (*s == ' ')
             s++;
 
-        node = ngli_node_create_noconstructor(type);
+        node = ngl_node_create(type);
         if (!node)
             break;
 

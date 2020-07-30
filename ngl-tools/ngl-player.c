@@ -57,16 +57,18 @@ static struct ngl_node *get_scene(const char *filename)
     static const float width[3]  = { 2.0,  0.0, 0.0};
     static const float height[3] = { 0.0,  2.0, 0.0};
 
-    struct ngl_node *media   = ngl_node_create(NGL_NODE_MEDIA, filename);
+    struct ngl_node *media   = ngl_node_create(NGL_NODE_MEDIA);
     struct ngl_node *texture = ngl_node_create(NGL_NODE_TEXTURE2D);
     struct ngl_node *quad    = ngl_node_create(NGL_NODE_QUAD);
     struct ngl_node *program = ngl_node_create(NGL_NODE_PROGRAM);
-    struct ngl_node *render  = ngl_node_create(NGL_NODE_RENDER, quad);
+    struct ngl_node *render  = ngl_node_create(NGL_NODE_RENDER);
 
     struct ngl_node *u_media_duration = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *u_ar             = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *u_opacity        = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *var_tex0_coord = ngl_node_create(NGL_NODE_IOVEC2);
+
+    ngl_node_param_set(media, "filename", filename);
 
     ngl_node_param_set(quad, "corner", corner);
     ngl_node_param_set(quad, "width", width);
@@ -80,6 +82,7 @@ static struct ngl_node *get_scene(const char *filename)
     ngl_node_param_set(u_ar,             "value", g_info.width / (double)g_info.height);
     ngl_node_param_set(u_opacity,        "value", 0.0);
 
+    ngl_node_param_set(render, "geometry", quad);
     ngl_node_param_set(render, "program", program);
     ngl_node_param_set(render, "frag_resources", "tex0",           texture);
     ngl_node_param_set(render, "frag_resources", "media_duration", u_media_duration);

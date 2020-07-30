@@ -105,7 +105,6 @@ const struct node_param *ngli_params_find(const struct node_param *params, const
 void ngli_params_bstr_print_val(struct bstr *b, uint8_t *base_ptr, const struct node_param *par);
 int ngli_params_set(uint8_t *base_ptr, const struct node_param *par, va_list *ap);
 int ngli_params_vset(uint8_t *base_ptr, const struct node_param *par, ...);
-int ngli_params_set_constructors(uint8_t *base_ptr, const struct node_param *params, va_list *ap);
 int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params);
 int ngli_params_add(uint8_t *base_ptr, const struct node_param *par, int nb_elems, void *elems);
 void ngli_params_free(uint8_t *base_ptr, const struct node_param *params);

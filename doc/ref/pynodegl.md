@@ -22,13 +22,10 @@ Parameter type          | Python type                         | Example
 `vec*`, `mat*`, `*List` | Iterable such as `tuple` or `list`  | `scale = Scale(child, factors=(0.3, 1.2, 1.0))`
 All the others          | `-`                                 | `circle = Circle(radius=0.5, npoints=128)`
 
-**Note**: Every parameter marked as a *Ctor.* (*Constructor*) will need to be
-passed as arguments to the constructor.
-
 ## Parameter type to method correspondence
 
-Every non constructor parameter has a setter method associated, named according
-to the parameter name and its type.
+Every parameter also has a setter method associated, named according to the
+parameter name and its type.
 
 Parameter type | Node method                      | Python <param> type        | Example
 -------------- | -------------------------------- | -------------------------- | --------

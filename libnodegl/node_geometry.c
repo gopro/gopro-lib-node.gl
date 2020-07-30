@@ -31,9 +31,13 @@
 
 struct ngl_node *ngli_node_geometry_generate_buffer(struct ngl_ctx *ctx, int type, int count, int size, void *data)
 {
-    struct ngl_node *node = ngl_node_create(type, count);
+    struct ngl_node *node = ngl_node_create(type);
     if (!node)
         return NULL;
+
+    int ret = ngl_node_param_set(node, "count", count);
+    if (ret < 0)
+        goto fail;
 
     if (data) {
         int ret = ngl_node_param_set(node, "data", size, data);
@@ -41,7 +45,7 @@ struct ngl_node *ngli_node_geometry_generate_buffer(struct ngl_ctx *ctx, int typ
             goto fail;
     }
 
-    int ret = ngli_node_attach_ctx(node, ctx);
+    ret = ngli_node_attach_ctx(node, ctx);
     if (ret < 0)
         goto fail;
 

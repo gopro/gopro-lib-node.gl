@@ -549,25 +549,6 @@ int ngli_params_vset(uint8_t *base_ptr, const struct node_param *par, ...)
     return ret;
 }
 
-int ngli_params_set_constructors(uint8_t *base_ptr, const struct node_param *params, va_list *ap)
-{
-    if (!params)
-        return 0;
-
-    for (int i = 0; params[i].key; i++) {
-        const struct node_param *par = &params[i];
-
-        if (par->flags & PARAM_FLAG_CONSTRUCTOR) {
-            int ret = ngli_params_set(base_ptr, par, ap);
-            if (ret < 0)
-                return ret;
-        } else {
-            break; /* assume all constructors are at the start */
-        }
-    }
-    return 0;
-}
-
 int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params)
 {
     int last_offset = 0;
@@ -587,7 +568,7 @@ int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params)
         last_offset = par->offset;
 
         int ret = 0;
-        if (!(par->flags & PARAM_FLAG_CONSTRUCTOR)) {
+        // TODO: reindent
             switch (par->type) {
                 case PARAM_TYPE_SELECT: {
                     const int v = (int)par->def_value.i64;
@@ -643,7 +624,6 @@ int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params)
                     ret = ngli_params_vset(base_ptr, par, par->def_value.r[0], par->def_value.r[1]);
                     break;
             }
-        }
         if (ret < 0)
             return ret;
     }

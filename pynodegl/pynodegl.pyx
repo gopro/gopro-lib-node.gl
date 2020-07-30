@@ -36,7 +36,7 @@ cdef extern from "nodegl.h":
 
     cdef struct ngl_node
 
-    ngl_node *ngl_node_create(int type, ...)
+    ngl_node *ngl_node_create(int type)
     ngl_node *ngl_node_ref(ngl_node *node)
     void ngl_node_unrefp(ngl_node **nodep)
 

@@ -31,29 +31,13 @@ NODE_MAP_TYPE2CLASS(CLASS_LIST)
 extern const struct node_param ngli_base_node_params[];
 extern const struct param_specs ngli_params_specs[];
 
-static void print_param(const struct node_param *p)
-{
-    printf("        - [%s, %s]\n",
-           p->key, ngli_params_specs[p->type].name);
-}
-
 static void print_node_params(const char *name, const struct node_param *p)
 {
     printf("- %s:\n", name);
     if (p) {
-        if (p->key && (p->flags & PARAM_FLAG_CONSTRUCTOR)) {
-            printf("    constructors:\n");
-            while (p->key && (p->flags & PARAM_FLAG_CONSTRUCTOR)) {
-                print_param(p);
-                p++;
-            }
-        }
-        if (p->key && !(p->flags & PARAM_FLAG_CONSTRUCTOR)) {
-            printf("    optional:\n");
-            while (p->key && !(p->flags & PARAM_FLAG_CONSTRUCTOR)) {
-                print_param(p);
-                p++;
-            }
+        while (p->key) {
+            printf("    - [%s, %s]\n", p->key, ngli_params_specs[p->type].name);
+            p++;
         }
     }
     printf("\n");

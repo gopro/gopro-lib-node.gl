@@ -90,7 +90,6 @@ class CommandUtils:
         nodes_decls = []
         for item in specs:
             node = list(item.keys())[0]
-            fields = item[node]
             if not node.startswith('_'):
                 nodes_decls.append(f'cdef int NGL_NODE_{node.upper()}')
         nodes_decls.append(None)
@@ -108,51 +107,18 @@ class CommandUtils:
 
             # Grab inheritance and fields information about the node
             if not fields:
-                fields = {}
+                fields = []
             if isinstance(fields, str):
-                opt_fields = []
                 parent_node = fields
-                fields = {}
+                fields = []
             else:
-                opt_fields = fields.get('optional', [])
                 parent_node = '_Node'
 
-            # Prepare the transformation of the constructor arguments from
-            # Python object to C types which will be passed to the C
-            # constructor function (ngl_node_create()).
-            for field in fields.get('constructors', []):
-                field_name, field_type = field
-                assert not field_type.endswith('List')
-                assert not field_type.endswith('Dict')
-                if field_type in ('int', 'float', 'double'):
-                    construct_cargs.append(field_name)
-                    construct_args.append(f'{field_type} {field_name}')
-                elif field_type == 'uint':
-                    construct_cargs.append('unsigned')
-                    construct_args.append(f'unsigned {field_name}')
-                elif field_type == 'bool':
-                    construct_cargs.append('bint')
-                    construct_args.append(f'bint {field_name}')
-                elif field_type in ('select', 'flags', 'string'):
-                    construct_cargs.append(field_name)
-                    construct_args.append(f'const char *{field_name}')
-                elif 'vec' in field_type or field_type == 'mat4':
-                    cparam, vec_init_code = _get_vec_init_code(field_type, field_name)
-                    special_inits += vec_init_code
-                    construct_cargs.append(cparam)
-                    construct_args.append(field_name)
-                else:
-                    special_inits += f'''
-        assert {field_name} is not None
-'''
-                    construct_cargs.append(f'{field_name}.ctx')
-                    construct_args.append(f'_Node {field_name}')
-
-            # For every optional arguments user-specified (not None), we will
+            # For every arguments user-specified (not None), we will
             # call the corresponding set/add/update method.
             optional_args = ['self']
             optional_varnames = []
-            for field in opt_fields:
+            for field in fields:
                 field_name, field_type = field
                 construct_args.append(f'{field_name}=None')
                 optional_args.append(f'{field_name}=None')
@@ -324,9 +290,8 @@ cdef class {node}({parent_node}):
 '''
 
             # Declare a set, add or update method for every optional field of
-            # the node. The constructor parameters can not be changed so we
-            # only handle the optional ones.
-            for field in fields.get('optional', []):
+            # the node.
+            for field in fields:
                 field_name, field_type = field
 
                 # Add method

@@ -251,13 +251,10 @@ struct ngl_node;
  * Must be destroyed using ngl_node_unrefp().
  *
  * @param type  identify the node (any of NGL_NODE_*)
- * @param ...   variable arguments specific to the node type, refer to the
- *              constructors in the reference documentation for the expected
- *              parameters
  *
  * @return a new allocated node or NULL on error
  */
-struct ngl_node *ngl_node_create(int type, ...);
+struct ngl_node *ngl_node_create(int type);
 
 /**
  * Increment the reference counter of a given node by 1.

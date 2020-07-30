@@ -127,7 +127,7 @@ static const struct node_class *get_node_class(int type)
     return NULL;
 }
 
-struct ngl_node *ngli_node_create_noconstructor(int type)
+struct ngl_node *ngl_node_create(int type)
 {
     const struct node_class *class = get_node_class(type);
     if (!class) {
@@ -147,25 +147,6 @@ struct ngl_node *ngli_node_create_noconstructor(int type)
 
     node->label = ngli_node_default_label(node->class->name);
     if (!node->label) {
-        ngl_node_unrefp(&node);
-        return NULL;
-    }
-
-    return node;
-}
-
-struct ngl_node *ngl_node_create(int type, ...)
-{
-    struct ngl_node *node = ngli_node_create_noconstructor(type);
-    if (!node)
-        return NULL;
-
-    va_list ap;
-    va_start(ap, type);
-    int ret = ngli_params_set_constructors(node->priv_data, node->class->params, &ap);
-    va_end(ap);
-
-    if (ret < 0) {
         ngl_node_unrefp(&node);
         return NULL;
     }

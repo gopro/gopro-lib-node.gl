@@ -149,16 +149,16 @@ static void print_node_params(const char *name, const struct node_param *p)
     printf("\n## %s\n\n", name);
     if (!p)
         return;
-    printf("Parameter | Ctor. | Live-chg. | Type | Description | Default\n");
-    printf("--------- | :---: | :-------: | ---- | ----------- | :-----:\n");
+    printf("Parameter | Live-chg. | Type | Description | Default\n");
+    printf("--------- | :-------: | ---- | ----------- | :-----:\n");
     while (p->key) {
         char *type = get_type_str(p);
         char *def = get_default_str(p);
 
         if (type && def) {
             ngli_assert(p->desc);
-            printf("`%s` | %s | %s | %s | %s | %s\n",
-                   p->key, (p->flags & PARAM_FLAG_CONSTRUCTOR) ? "✓" : "",
+            printf("`%s` | %s | %s | %s | %s\n",
+                   p->key,
                    (p->flags & PARAM_FLAG_ALLOW_LIVE_CHANGE) ? "✓" : "",
                    type, p->desc, def);
         }

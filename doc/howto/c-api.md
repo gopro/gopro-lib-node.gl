@@ -110,15 +110,17 @@ static struct ngl_node *get_scene(const char *filename)
     static const float width[3]  = { 2.0,  0.0, 0.0};
     static const float height[3] = { 0.0,  2.0, 0.0};
 
-    struct ngl_node *media   = ngl_node_create(NGL_NODE_MEDIA, filename);
+    struct ngl_node *media   = ngl_node_create(NGL_NODE_MEDIA);
     struct ngl_node *texture = ngl_node_create(NGL_NODE_TEXTURE2D);
     struct ngl_node *quad    = ngl_node_create(NGL_NODE_QUAD);
-    struct ngl_node *render  = ngl_node_create(NGL_NODE_RENDER, quad);
+    struct ngl_node *render  = ngl_node_create(NGL_NODE_RENDER);
 
+    ngl_node_param_set(media, "filename", filename);
     ngl_node_param_set(texture, "data_src", media);
     ngl_node_param_set(quad, "corner", corner);
     ngl_node_param_set(quad, "width",  width);
     ngl_node_param_set(quad, "height", height);
+    ngl_node_param_set(render, "geometry", quad);
     ngl_node_param_set(render, "textures", "tex0", texture);
 
     ngl_node_unrefp(&media);
@@ -128,21 +130,10 @@ static struct ngl_node *get_scene(const char *filename)
     return render;
 }
 ```
-
-A few important notes here:
-
-- Some nodes (`Media` and `Quad` here) require variable arguments in
-  `ngl_node_create()`: those **arguments are the constructors and are
-  mandatory**.
-- Make sure variable arguments are **passed in the correct type** to avoid
-  undefined behaviour: the implicit rules conversion can not happen
-  automatically.
-- Extra variable arguments in `ngl_node_create()` after the constructors will
-  **NOT** be honored as optional node parameters.
-- When a node is referenced by another through parameters (be it through
-  constructors or optionals parameters), its reference counter is incremented
-  because the parent holds a reference to its children. As a result, you **must
-  release your own references** using `ngl_node_unrefp()`.
+**Note**: When a node is referenced by another through parameters, its
+reference counter is incremented because the parent holds a reference to its
+children.  As a result, you **must release your own references** using
+`ngl_node_unrefp()`.
 
 #### Node parameters
 

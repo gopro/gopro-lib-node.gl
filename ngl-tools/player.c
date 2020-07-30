@@ -243,13 +243,13 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
 
     struct ngl_node *quad       = ngl_node_create(NGL_NODE_QUAD);
     struct ngl_node *program    = ngl_node_create(NGL_NODE_PROGRAM);
-    struct ngl_node *render     = ngl_node_create(NGL_NODE_RENDER, quad);
+    struct ngl_node *render     = ngl_node_create(NGL_NODE_RENDER);
     struct ngl_node *time       = ngl_node_create(NGL_NODE_TIME);
     struct ngl_node *v_duration = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *v_opacity  = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *coord      = ngl_node_create(NGL_NODE_IOVEC2);
     struct ngl_node *group      = ngl_node_create(NGL_NODE_GROUP);
-    struct ngl_node *gcfg       = ngl_node_create(NGL_NODE_GRAPHICCONFIG, group);
+    struct ngl_node *gcfg       = ngl_node_create(NGL_NODE_GRAPHICCONFIG);
 
     if (!quad || !program || !render || !time || !v_duration || !v_opacity ||
         !coord || !group || !gcfg) {
@@ -270,6 +270,7 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     ngl_node_param_set(v_duration, "value", p->duration_f);
     ngl_node_param_set(v_opacity,  "value", 0.0);
 
+    ngl_node_param_set(render, "geometry", quad);
     ngl_node_param_set(render, "program", program);
     ngl_node_param_set(render, "frag_resources", "time",     time);
     ngl_node_param_set(render, "frag_resources", "duration", v_duration);
@@ -277,6 +278,7 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
 
     ngl_node_param_add(group, "children", ARRAY_NB(children), children);
 
+    ngl_node_param_set(gcfg, "child", group);
     ngl_node_param_set(gcfg, "blend", 1);
     ngl_node_param_set(gcfg, "blend_src_factor",   "src_alpha");
     ngl_node_param_set(gcfg, "blend_dst_factor",   "one_minus_src_alpha");

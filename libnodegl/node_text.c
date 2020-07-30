@@ -137,6 +137,8 @@ static const struct node_param text_params[] = {
                      .choices=&halign_choices,
                      .desc=NGLI_DOCSTRING("horizontal alignment of the text in the box")},
     {"aspect_ratio", PARAM_TYPE_RATIONAL, OFFSET(aspect_ratio),
+                     .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+                     .update_func=set_live_changed,
                      .desc=NGLI_DOCSTRING("box aspect ratio")},
     {NULL}
 };

@@ -578,7 +578,7 @@ Parameter | Live-chg. | Type | Description | Default
 `font_scale` |  | [`double`](#parameter-types) | scaling of the font | `1`
 `valign` |  | [`valign`](#valign-choices) | vertical alignment of the text in the box | `center`
 `halign` |  | [`halign`](#halign-choices) | horizontal alignment of the text in the box | `center`
-`aspect_ratio` |  | [`rational`](#parameter-types) | box aspect ratio | 
+`aspect_ratio` | ✓ | [`rational`](#parameter-types) | box aspect ratio | 
 
 
 **Source**: [node_text.c](/libnodegl/node_text.c)

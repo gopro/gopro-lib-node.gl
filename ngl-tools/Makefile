@@ -38,7 +38,7 @@ endif
 # "pkg-config --exists python" never will, so an explicit version is needed.
 HAS_PYTHON := $(if $(shell pkg-config --exists python$(PYTHON_MAJOR) && echo 1),yes,no)
 
-TOOLS = player render
+TOOLS = desktop ipc player render
 ifeq ($(HAS_PYTHON),yes)
 PYTHON_CFLAGS := $(shell python$(PYTHON_MAJOR)-config --cflags)
 #
@@ -77,6 +77,14 @@ WSI_OBJS_Linux  = wsi_linux.o
 WSI_OBJS_Darwin = wsi_cocoa.o
 WSI_OBJS_MinGW-w64 = wsi_windows.o
 WSI_OBJS = wsi.o $(WSI_OBJS_$(TARGET_OS))
+
+ngl-desktop$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(SDL_CFLAGS) $(TOOLS_CFLAGS)
+ngl-desktop$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(SDL_LDLIBS) $(TOOLS_LDLIBS) -lpthread
+ngl-desktop$(EXESUF): ngl-desktop.o ipc.o player.o opts.o $(WSI_OBJS)
+
+ngl-ipc$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS)
+ngl-ipc$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS)
+ngl-ipc$(EXESUF): ngl-ipc.o ipc.o opts.o
 
 ngl-serialize$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS) $(PYTHON_CFLAGS)
 ngl-serialize$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS) $(PYTHON_LDLIBS)

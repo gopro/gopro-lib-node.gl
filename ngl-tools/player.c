@@ -444,10 +444,90 @@ void player_uninit(void)
 
     if (!p)
         return;
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+        if (event.type == SDL_USEREVENT)
+            free(event.user.data1);
+
     ngl_freep(&p->ngl);
     SDL_DestroyWindow(p->window);
     SDL_Quit();
 }
+
+static int handle_scene(const void *data)
+{
+    struct ngl_node *scene = ngl_node_deserialize(data);
+    if (!scene)
+        return NGL_ERROR_INVALID_DATA;
+    int ret = set_scene(scene);
+    ngl_node_unrefp(&scene);
+    return ret;
+}
+
+static int handle_duration(const void *data)
+{
+    struct player *p = g_player;
+    memcpy(&p->duration_f, data, sizeof(p->duration_f));
+    p->duration = p->duration_f * 1000000;
+    if (p->pgbar_duration_node)
+        ngl_node_param_set(p->pgbar_duration_node, "value", p->duration_f);
+    update_text();
+    return 0;
+}
+
+static int handle_clearcolor(const void *data)
+{
+    struct player *p = g_player;
+    memcpy(p->ngl_config.clear_color, data, sizeof(p->ngl_config.clear_color));
+    return 0;
+}
+
+static int handle_samples(const void *data)
+{
+    struct player *p = g_player;
+    memcpy(&p->ngl_config.samples, data, sizeof(p->ngl_config.samples));
+    return 0;
+}
+
+static int handle_aspect_ratio(const void *data)
+{
+    struct player *p = g_player;
+    memcpy(p->aspect, data, sizeof(p->aspect));
+    if (!p->aspect[0] || !p->aspect[1])
+        p->aspect[0] = p->aspect[1] = 1;
+    int width, height;
+    SDL_GetWindowSize(p->window, &width, &height);
+    size_callback(p->window, width, height);
+    if (p->pgbar_text_node)
+        ngl_node_param_set(p->pgbar_text_node, "aspect_ratio", p->aspect[0], p->aspect[1]);
+    return 0;
+}
+
+static int handle_framerate(const void *data)
+{
+    const int *rate = data;
+    fprintf(stderr, "WARNING: unhandled framerate %d/%d\n", rate[0], rate[1]);
+    return 0;
+}
+
+static int handle_reconfigure(const void *data)
+{
+    struct player *p = g_player;
+    return ngl_configure(p->ngl, &p->ngl_config);
+}
+
+typedef int (*handle_func)(const void *data);
+
+static const handle_func handle_map[] = {
+    [PLAYER_SIGNAL_SCENE]        = handle_scene,
+    [PLAYER_SIGNAL_DURATION]     = handle_duration,
+    [PLAYER_SIGNAL_ASPECT_RATIO] = handle_aspect_ratio,
+    [PLAYER_SIGNAL_FRAMERATE]    = handle_framerate,
+    [PLAYER_SIGNAL_CLEARCOLOR]   = handle_clearcolor,
+    [PLAYER_SIGNAL_SAMPLES]      = handle_samples,
+    [PLAYER_SIGNAL_RECONFIGURE]  = handle_reconfigure,
+};
 
 void player_main_loop(void)
 {
@@ -477,6 +557,10 @@ void player_main_loop(void)
                 break;
             case SDL_MOUSEMOTION:
                 mouse_pos_callback(p->window, &event.motion);
+                break;
+            case SDL_USEREVENT:
+                run = handle_map[event.user.code](event.user.data1) == 0;
+                free(event.user.data1);
                 break;
             }
         }

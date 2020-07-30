@@ -80,6 +80,27 @@ at build time.
 **Source**: [ngl-tools/ngl-serialize.c](/ngl-tools/ngl-serialize.c)
 
 
+## ngl-desktop
+
+`ngl-desktop` is a player waiting for user commands from a socket connection.
+It is meant to be used with `ngl-ipc` for communicating commands.
+
+By default, `ngl-desktop` listen for connections on `localhost` on port `1234`.
+
+The detail of available options can be obtained with `ngl-desktop -h`.
+
+**Example**: `ngl-desktop -x 0.0.0.0 -p 2000 --backend opengles -c 223344FF`
+
+
+## ngl-ipc
+
+`ngl-ipc` is the tool used to make queries to `ngl-desktop` instances.
+
+The detail of available options can be obtained with `ngl-ipc -h`.
+
+**Example**: `ngl-serialize pynodegl_utils.examples.misc fibo - | ngl-ipc -p 2000 -f - -t 5`
+
+
 ## Player keyboard controls
 
 `ngl-player` and `ngl-python` are both scene players supporting the following

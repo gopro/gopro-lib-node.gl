@@ -27,6 +27,21 @@
 #include <SDL.h>
 #include <nodegl.h>
 
+/*
+ * Warning: clear color and samples will NOT trigger a reconfigure, an explicit
+ * reconfigure signal is required so to have them honored. The rationale is to
+ * have the ability to batch multiple operations before doing a reconfigure.
+ */
+enum player_signal {
+    PLAYER_SIGNAL_SCENE,
+    PLAYER_SIGNAL_DURATION,
+    PLAYER_SIGNAL_ASPECT_RATIO,
+    PLAYER_SIGNAL_FRAMERATE,
+    PLAYER_SIGNAL_CLEARCOLOR,
+    PLAYER_SIGNAL_SAMPLES,
+    PLAYER_SIGNAL_RECONFIGURE,
+};
+
 struct player {
 
     SDL_Window *window;

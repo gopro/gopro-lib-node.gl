@@ -19,7 +19,6 @@
  * under the License.
  */
 
-
 #ifndef COMMON_H
 #define COMMON_H
 

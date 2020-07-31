@@ -724,9 +724,9 @@ Parameter | Live-chg. | Type | Description | Default
 
 Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
-`edge0` |  | [`vec3`](#parameter-types) | first edge coordinate of the triangle | (`0`,`0`,`0`)
-`edge1` |  | [`vec3`](#parameter-types) | second edge coordinate of the triangle | (`0`,`0`,`0`)
-`edge2` |  | [`vec3`](#parameter-types) | third edge coordinate of the triangle | (`0`,`0`,`0`)
+`edge0` |  | [`vec3`](#parameter-types) | first edge coordinate of the triangle | (`1`,`-1`,`0`)
+`edge1` |  | [`vec3`](#parameter-types) | second edge coordinate of the triangle | (`0`,`1`,`0`)
+`edge2` |  | [`vec3`](#parameter-types) | third edge coordinate of the triangle | (`-1`,`-1`,`0`)
 `uv_edge0` |  | [`vec2`](#parameter-types) | UV coordinate associated with `edge0` | (`0`,`0`)
 `uv_edge1` |  | [`vec2`](#parameter-types) | UV coordinate associated with `edge1` | (`0`,`1`)
 `uv_edge2` |  | [`vec2`](#parameter-types) | UV coordinate associated with `edge2` | (`1`,`1`)

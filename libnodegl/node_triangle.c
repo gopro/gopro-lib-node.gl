@@ -32,11 +32,14 @@
 
 #define OFFSET(x) offsetof(struct geometry_priv, x)
 static const struct node_param triangle_params[] = {
-    {"edge0", PARAM_TYPE_VEC3, OFFSET(triangle_edges[0]), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"edge0", PARAM_TYPE_VEC3, OFFSET(triangle_edges[0]),
+              {.vec={1.0, -1.0, 0.0}},
               .desc=NGLI_DOCSTRING("first edge coordinate of the triangle")},
-    {"edge1", PARAM_TYPE_VEC3, OFFSET(triangle_edges[3]), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"edge1", PARAM_TYPE_VEC3, OFFSET(triangle_edges[3]),
+              {.vec={0.0, 1.0, 0.0}},
               .desc=NGLI_DOCSTRING("second edge coordinate of the triangle")},
-    {"edge2", PARAM_TYPE_VEC3, OFFSET(triangle_edges[6]), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"edge2", PARAM_TYPE_VEC3, OFFSET(triangle_edges[6]),
+              {.vec={-1.0, -1.0, 0.0}},
              .desc=NGLI_DOCSTRING("third edge coordinate of the triangle")},
     {"uv_edge0", PARAM_TYPE_VEC2, OFFSET(triangle_uvs[0]), {.vec={0.0f, 0.0f}},
                  .desc=NGLI_DOCSTRING("UV coordinate associated with `edge0`")},

@@ -40,6 +40,7 @@ struct pipeline_subdesc {
     struct pipeline *pipeline;
     int modelview_matrix_index;
     int projection_matrix_index;
+    int color_index;
 };
 
 struct pipeline_desc {
@@ -114,8 +115,10 @@ static const struct node_param text_params[] = {
                      .update_func=set_live_changed,
                      .desc=NGLI_DOCSTRING("text string to rasterize")},
     {"fg_color",     PARAM_TYPE_VEC4, OFFSET(fg_color), {.vec={1.0, 1.0, 1.0, 1.0}},
+                     .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
                      .desc=NGLI_DOCSTRING("foreground text color")},
     {"bg_color",     PARAM_TYPE_VEC4, OFFSET(bg_color), {.vec={0.0, 0.0, 0.0, 0.8}},
+                     .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
                      .desc=NGLI_DOCSTRING("background text color")},
     {"box_corner",   PARAM_TYPE_VEC3, OFFSET(box_corner), {.vec={-1.0, -1.0, 0.0}},
                      .desc=NGLI_DOCSTRING("origin coordinates of `box_width` and `box_height` vectors")},
@@ -492,6 +495,7 @@ static int init_subdesc(struct ngl_node *node,
 
     desc->modelview_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "modelview_matrix", NGLI_PROGRAM_SHADER_VERT);
     desc->projection_matrix_index = ngli_pgcraft_get_uniform_index(desc->crafter, "projection_matrix", NGLI_PROGRAM_SHADER_VERT);
+    desc->color_index = ngli_pgcraft_get_uniform_index(desc->crafter, "color", NGLI_PROGRAM_SHADER_FRAG);
 
     return 0;
 }
@@ -665,12 +669,14 @@ static void text_draw(struct ngl_node *node)
     struct pipeline_subdesc *bg_desc = &desc->bg;
     ngli_pipeline_update_uniform(bg_desc->pipeline, bg_desc->modelview_matrix_index, modelview_matrix);
     ngli_pipeline_update_uniform(bg_desc->pipeline, bg_desc->projection_matrix_index, projection_matrix);
+    ngli_pipeline_update_uniform(bg_desc->pipeline, bg_desc->color_index, s->bg_color);
     ngli_pipeline_draw_indexed(bg_desc->pipeline, s->bg_indices, NGLI_FORMAT_R16_UNORM, s->nb_bg_indices, 1);
 
     if (s->nb_indices) {
         struct pipeline_subdesc *fg_desc = &desc->fg;
         ngli_pipeline_update_uniform(fg_desc->pipeline, fg_desc->modelview_matrix_index, modelview_matrix);
         ngli_pipeline_update_uniform(fg_desc->pipeline, fg_desc->projection_matrix_index, projection_matrix);
+        ngli_pipeline_update_uniform(fg_desc->pipeline, fg_desc->color_index, s->fg_color);
         ngli_pipeline_draw_indexed(fg_desc->pipeline, s->indices, NGLI_FORMAT_R16_UNORM, s->nb_indices, 1);
     }
 }

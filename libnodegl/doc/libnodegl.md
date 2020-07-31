@@ -570,8 +570,8 @@ Parameter | Live-chg. | Type | Description | Default
 Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
 `text` | ✓ | [`string`](#parameter-types) | text string to rasterize | 
-`fg_color` |  | [`vec4`](#parameter-types) | foreground text color | (`1`,`1`,`1`,`1`)
-`bg_color` |  | [`vec4`](#parameter-types) | background text color | (`0`,`0`,`0`,`0.8`)
+`fg_color` | ✓ | [`vec4`](#parameter-types) | foreground text color | (`1`,`1`,`1`,`1`)
+`bg_color` | ✓ | [`vec4`](#parameter-types) | background text color | (`0`,`0`,`0`,`0.8`)
 `box_corner` |  | [`vec3`](#parameter-types) | origin coordinates of `box_width` and `box_height` vectors | (`-1`,`-1`,`0`)
 `box_width` |  | [`vec3`](#parameter-types) | box width vector | (`2`,`0`,`0`)
 `box_height` |  | [`vec3`](#parameter-types) | box height vector | (`0`,`2`,`0`)

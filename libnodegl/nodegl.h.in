@@ -327,6 +327,30 @@ NGL_API int ngl_node_param_add(struct ngl_node *node, const char *key,
 NGL_API int ngl_node_param_set(struct ngl_node *node, const char *key, ...);
 
 /**
+ * Type explicit versions of ngl_node_param_set()
+ */
+int ngl_node_param_set_bool(struct ngl_node *node, const char *key, int value);
+int ngl_node_param_set_data(struct ngl_node *node, const char *key, int size, const uint8_t *data);
+int ngl_node_param_set_f64(struct ngl_node *node, const char *key, double value);
+int ngl_node_param_set_flags(struct ngl_node *node, const char *key, const char *value);
+int ngl_node_param_set_i32(struct ngl_node *node, const char *key, int value);
+int ngl_node_param_set_ivec2(struct ngl_node *node, const char *key, const int *value);
+int ngl_node_param_set_ivec3(struct ngl_node *node, const char *key, const int *value);
+int ngl_node_param_set_ivec4(struct ngl_node *node, const char *key, const int *value);
+int ngl_node_param_set_mat4(struct ngl_node *node, const char *key, const float *value);
+int ngl_node_param_set_node(struct ngl_node *node, const char *key, struct ngl_node *value);
+int ngl_node_param_set_rational(struct ngl_node *node, const char *key, int num, int den);
+int ngl_node_param_set_select(struct ngl_node *node, const char *key, const char *value);
+int ngl_node_param_set_str(struct ngl_node *node, const char *key, const char *value);
+int ngl_node_param_set_u32(struct ngl_node *node, const char *key, const unsigned *value);
+int ngl_node_param_set_uvec2(struct ngl_node *node, const char *key, const unsigned *value);
+int ngl_node_param_set_uvec3(struct ngl_node *node, const char *key, const unsigned *value);
+int ngl_node_param_set_uvec4(struct ngl_node *node, const char *key, const unsigned *value);
+int ngl_node_param_set_vec2(struct ngl_node *node, const char *key, const float *value);
+int ngl_node_param_set_vec3(struct ngl_node *node, const char *key, const float *value);
+int ngl_node_param_set_vec4(struct ngl_node *node, const char *key, const float *value);
+
+/**
  * Serialize in Graphviz format (.dot) a node graph.
  *
  * Must be destroyed using free().

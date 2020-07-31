@@ -252,10 +252,34 @@ static int track_children(struct ngl_node *node)
     return 0;
 }
 
+static int check_params_sanity(struct ngl_node *node)
+{
+    const uint8_t *base_ptr = node->priv_data;
+    const struct node_param *par = node->class->params;
+
+    if (!par)
+        return 0;
+
+    while (par->key) {
+        const void *p = *(uint8_t **)(base_ptr + par->offset);
+        if ((par->flags & PARAM_FLAG_NON_NULL) && !p) {
+            LOG(ERROR, "%s: %s parameter can not be null", node->label, par->key);
+            return NGL_ERROR_INVALID_ARG;
+        }
+        par++;
+    }
+
+    return 0;
+}
+
 static int node_init(struct ngl_node *node)
 {
     if (node->state != STATE_UNINITIALIZED)
         return 0;
+
+    int ret = check_params_sanity(node);
+    if (ret < 0)
+        return ret;
 
     ngli_darray_init(&node->children, sizeof(struct ngl_node *), 0);
 
@@ -271,7 +295,7 @@ static int node_init(struct ngl_node *node)
         }
     }
 
-    int ret = track_children(node);
+    ret = track_children(node);
     if (ret < 0) {
         node->state = STATE_INIT_FAILED;
         node_uninit(node);

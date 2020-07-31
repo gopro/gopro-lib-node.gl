@@ -56,31 +56,6 @@ class CommandUtils:
         with open(specs) as f:
             specs = yaml.safe_load(f)
 
-        def _get_vec_init_code(vectype, vecname):
-            cvecname = f'{vecname}_c'
-            if vectype.startswith('ivec'):
-                n = int(vectype[4:])
-                ctype = 'int'
-            elif vectype.startswith('uivec'):
-                n = int(vectype[5:])
-                ctype = 'unsigned'
-            elif vectype.startswith('vec'):
-                n = int(vectype[3:])
-                ctype = 'float'
-            else:
-                assert vectype == 'mat4'
-                n = 16
-                ctype = 'float'
-            return cvecname, f'''
-        cdef {ctype}[{n}] {cvecname}
-        cdef int {vecname}_i
-        if len({vecname}) != {n}:
-            raise TypeError("%s parameter is expected to be vec%d but got %d values" % (
-                            "{vecname}", {n}, len({vecname})))
-        for {vecname}_i in range({n}):
-            {cvecname}[{vecname}_i] = {vecname}[{vecname}_i]
-'''
-
         content = 'from libc.stdlib cimport free\n'
         content += 'from libc.stdint cimport uintptr_t\n'
         content += 'from cpython cimport array\n'
@@ -94,6 +69,33 @@ class CommandUtils:
                 nodes_decls.append(f'cdef int NGL_NODE_{node.upper()}')
         nodes_decls.append(None)
         content += '\n'.join((f'    {d}') if d else '' for d in nodes_decls) + '\n'
+
+        # Vector utils
+        vector_map = dict(
+            ivec2=('int', 2),
+            ivec3=('int', 3),
+            ivec4=('int', 4),
+            uivec2=('unsigned', 2),
+            uivec3=('unsigned', 3),
+            uivec4=('unsigned', 4),
+            vec2=('float', 2),
+            vec3=('float', 3),
+            vec4=('float', 4),
+            mat4=('float', 16),
+        )
+
+        for vector_name, (ctype, n) in vector_map.items():
+            content += f'''
+def _set_node_param_{vector_name}(_Node node, const char *key, *value):
+    cdef {ctype}[{n}] value_c
+    cdef int i
+    if len(value) != {n}:
+        raise TypeError("%s parameter is expected to be vec%d but got %d values" % (
+                        key, {n}, len(value)))
+    for i in range({n}):
+        value_c[i] = value[i]
+    return ngl_node_param_set(node.ctx, key, value_c)
+'''
 
         for item in specs:
             node = list(item.keys())[0]
@@ -305,10 +307,9 @@ cdef class {node}({parent_node}):
 
                 # Set method for vectors and matrices
                 elif 'vec' in field_type or field_type == 'mat4':
-                    cparam, vec_init_code = _get_vec_init_code(field_type, field_name)
                     class_str += f'''
-    def set_{field_name}(self, *{field_name}):{vec_init_code}
-        return ngl_node_param_set(self.ctx, "{field_name}", {cparam})
+    def set_{field_name}(self, *{field_name}):
+        return _set_node_param_{field_type}(self, "{field_name}", *{field_name})
 '''
 
                 # Set method for data

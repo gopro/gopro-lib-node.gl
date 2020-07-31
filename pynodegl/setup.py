@@ -101,7 +101,6 @@ class CommandUtils:
 
             type_id = f'NGL_NODE_{node.upper()}'
             construct_args = ['self']
-            construct_cargs = [type_id]
             special_inits = ''
             extra_args = ''
 
@@ -148,7 +147,6 @@ class CommandUtils:
                 optional_varnames += va_args
 
             construct_args_str = ', '.join(construct_args)
-            construct_cargs_str = ', '.join(construct_cargs)
             optional_args_str = ', '.join(optional_args)
             optional_varnames_str = ', '.join(optional_varnames)
 
@@ -232,10 +230,7 @@ cdef class {node}({parent_node}):
                 if parent_node != '_Node':
                     class_str += f'''
     def __init__({construct_args_str}):{special_inits}
-        assert self.ctx is NULL
-        self.ctx = ngl_node_create({construct_cargs_str})
-        if self.ctx is NULL:
-            raise MemoryError()
+        _set_node_ctx(self, {type_id})
         self._init_params({optional_varnames_str})
 '''
 
@@ -259,10 +254,7 @@ cdef class {node}({parent_node}):
                 else:
                     class_str += f'''
     def __init__({construct_args_str}):{special_inits}
-        assert self.ctx is NULL
-        self.ctx = ngl_node_create({construct_cargs_str})
-        if self.ctx is NULL:
-            raise MemoryError()
+        _set_node_ctx(self, {type_id})
         {parent_node}._init_params(self, *args, **kwargs)
 {extra_args}
 '''

@@ -162,6 +162,13 @@ def easing_solve(name, v, args=None, offsets=None):
     return _eval_solve(name, v, args, offsets, False)
 
 
+cdef _set_node_ctx(_Node node, int type):
+    assert node.ctx is NULL
+    node.ctx = ngl_node_create(type)
+    if node.ctx is NULL:
+        raise MemoryError()
+
+
 cdef class Context:
     cdef ngl_ctx *ctx
     cdef object capture_buffer

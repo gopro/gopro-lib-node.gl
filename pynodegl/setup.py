@@ -56,7 +56,10 @@ class CommandUtils:
         with open(specs) as f:
             specs = yaml.safe_load(f)
 
-        content = 'from libc.stdlib cimport free\n'
+        import pprint
+        content = f'_SPECS = {pprint.pformat(specs)}\n'
+
+        content += 'from libc.stdlib cimport free\n'
         content += 'from libc.stdint cimport uintptr_t\n'
         content += 'from cpython cimport array\n'
 
@@ -69,7 +72,7 @@ class CommandUtils:
         nodes_decls.append(None)
         content += '\n'.join((f'    {d}') if d else '' for d in nodes_decls) + '\n'
 
-        # Vector utils
+        # Setters: vector/matrices
         vector_map = dict(
             ivec2=('int', 2),
             ivec3=('int', 3),
@@ -94,6 +97,29 @@ def _set_node_param_{vector_name}(_Node node, const char *key, *value):
     for i in range({n}):
         value_c[i] = value[i]
     return ngl_node_param_set(node.ctx, key, value_c)
+'''
+
+        # Setters: specials
+        basetype_map = dict(
+            select='const char *',
+            flags='const char *',
+            string='const char *',
+            bool='bint',
+            uint='unsigned',
+        )
+
+        for basetype_name, ctype in basetype_map.items():
+            content += f'''
+def _set_node_param_{basetype_name}(_Node node, const char *key, {ctype} value):
+    return ngl_node_param_set(node.ctx, key, value)
+'''
+
+        # Setters: simple
+        simpletype_map = {'int', 'double'}
+        for ctype in simpletype_map:
+            content += f'''
+def _set_node_param_{ctype}(_Node node, const char *key, {ctype} value):
+    return ngl_node_param_set(node.ctx, key, value)
 '''
 
         for node, fields in specs.items():
@@ -277,74 +303,6 @@ cdef class {node}({parent_node}):
         cdef float[{n}] vec
         ngl_anim_evaluate(self.ctx, vec, t)
         return {retstr}
-'''
-
-            # Declare a set, add or update method for every optional field of
-            # the node.
-            for field in fields:
-                field_name, field_type = field
-
-                # Add method
-                if field_type.endswith('List'):
-                    field_name, field_type = field
-                    class_str += f'''
-    def add_{field_name}(self, *{field_name}):
-        return self._add_{field_type.lower()}("{field_name}", *{field_name})
-'''
-
-                # Update method
-                elif field_type.endswith('Dict'):
-                    field_type = field_type[:-len('Dict')]
-                    assert field_type == 'Node'
-                    class_str += f'''
-    def update_{field_name}(self, arg=None, **kwargs):
-        return self._update_dict("{field_name}", arg, **kwargs)
-'''
-
-                # Set method for vectors and matrices
-                elif 'vec' in field_type or field_type == 'mat4':
-                    class_str += f'''
-    def set_{field_name}(self, *{field_name}):
-        return _set_node_param_{field_type}(self, "{field_name}", *{field_name})
-'''
-
-                # Set method for data
-                elif field_type == 'data':
-                    class_str += f'''
-    def set_{field_name}(self, array.array {field_name}):
-        return ngl_node_param_set(self.ctx,
-                                  "{field_name}",
-                                  <int>({field_name}.buffer_info()[1] * {field_name}.itemsize),
-                                  <void *>({field_name}.data.as_voidptr))
-
-'''
-
-                # Set method for rationals
-                elif field_type == 'rational':
-                    class_str += f'''
-    def set_{field_name}(self, tuple {field_name}):
-        return ngl_node_param_set(self.ctx,
-                                  "{field_name}",
-                                  <int>{field_name}[0],
-                                  <int>{field_name}[1]);
-'''
-
-                # Set method
-                else:
-                    ctype = field_type
-                    cparam = field_name
-                    if field_type in ('select', 'flags', 'string'):
-                        ctype = 'const char *'
-                    elif field_type == 'Node':
-                        ctype = '_Node'
-                        cparam += '.ctx'
-                    elif field_type == 'bool':
-                        ctype = 'bint'
-                    elif field_type == 'uint':
-                        ctype = 'unsigned'
-                    class_str += f'''
-    def set_{field_name}(self, {ctype} {field_name}):
-        return ngl_node_param_set(self.ctx, "{field_name}", {cparam})
 '''
 
             content += class_str + '\n'

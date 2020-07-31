@@ -117,6 +117,93 @@ cdef _ret_pystr(char *s):
 
 include "nodes_def.pyx"
 
+_param_set_map = dict(
+    ivec2=_set_node_param_ivec2,
+    ivec3=_set_node_param_ivec3,
+    ivec4=_set_node_param_ivec4,
+    uivec2=_set_node_param_uivec2,
+    uivec3=_set_node_param_uivec3,
+    uivec4=_set_node_param_uivec4,
+    vec2=_set_node_param_vec2,
+    vec3=_set_node_param_vec3,
+    vec4=_set_node_param_vec4,
+    mat4=_set_node_param_mat4,
+
+    select=_set_node_param_select,
+    flags=_set_node_param_flags,
+    string=_set_node_param_string,
+    bool=_set_node_param_bool,
+    uint=_set_node_param_uint,
+
+    int=_set_node_param_int,
+    double=_set_node_param_double,
+)
+
+_param_list_map = dict(
+    NodeList=_Node._add_nodelist,
+    doubleList=_Node._add_doublelist,
+)
+
+
+def _set_class_methods():
+    cdef array.array arr
+
+    for class_name, params in _SPECS.items():
+
+        # Inheritance
+        if isinstance(params, str):
+            params = _SPECS[params]
+
+        cls = globals()[class_name]
+
+        for param_name, param_type in params:
+
+            list_func = _param_list_map.get(param_type)
+            if list_func:
+                def add_param(self, *args):
+                    return list_func(self, param_name, args)
+                setattr(cls, f'add_{param_name}', add_param)
+                continue
+
+            if param_type == 'NodeDict':
+                def update_param(self, arg=None, **kwargs):
+                    return self._update_dict(self, param_name, arg, **kwargs)
+                setattr(cls, f'update_{param_name}', update_param)
+                continue
+
+            if param_type == 'data':
+                def set_data(_Node self, array.array arg):
+                    return ngl_node_param_set(self.ctx, param_name,
+                                              <int>(arg.buffer_info()[1] * arg.itemsize),
+                                              <void *>(arg.data.as_voidptr))
+                setattr(cls, f'set_{param_name}', set_data)
+                continue
+
+            if param_type == 'rational':
+                def set_rational(_Node self, tuple args):
+                    return ngl_node_param_set(self.ctx, param_name, <int>args[0], <int>args[1])
+                setattr(cls, f'set_{param_name}', set_rational)
+                continue
+
+            if param_type == '_Node':
+                def set_node(_Node self, _Node node):
+                    return ngl_node_param_set(self.ctx, param_name, node.ctx)
+                setattr(cls, f'set_{param_name}', set_node)
+                continue
+
+            set_func = _param_set_map.get(param_type)
+            if set_func:
+                def set_value(self, *args):
+                    return set_func(self, param_name, *args)
+                setattr(cls, f'set_{param_name}', set_value)
+                continue
+
+            assert False
+
+
+_set_class_methods()
+
+
 def log_set_min_level(int level):
     ngl_log_set_min_level(level)
 

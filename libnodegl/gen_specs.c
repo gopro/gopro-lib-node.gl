@@ -33,7 +33,7 @@ extern const struct param_specs ngli_params_specs[];
 
 static void print_node_params(const char *name, const struct node_param *p)
 {
-    printf("- %s:\n", name);
+    printf("%s:\n", name);
     if (p) {
         while (p->key) {
             printf("    - [%s, %s]\n", p->key, ngli_params_specs[p->type].name);
@@ -76,7 +76,7 @@ int main(void)
                 print_node_params(pname, p);
                 ngli_hmap_set(params_map, c->params_id, (void *)p);
             }
-            printf("- %s: %s\n\n", c->name, pname);
+            printf("%s: %s\n\n", c->name, pname);
             ngli_free(pname);
         } else {
             print_node_params(c->name, p);

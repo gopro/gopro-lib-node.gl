@@ -2,40 +2,40 @@
 # Nodes specifications for node.gl v0.0.0
 #
 
-- _Node:
+_Node:
     - [label, string]
 
-- _AnimatedBuffer:
+_AnimatedBuffer:
     - [keyframes, NodeList]
 
-- AnimatedBufferFloat: _AnimatedBuffer
+AnimatedBufferFloat: _AnimatedBuffer
 
-- AnimatedBufferVec2: _AnimatedBuffer
+AnimatedBufferVec2: _AnimatedBuffer
 
-- AnimatedBufferVec3: _AnimatedBuffer
+AnimatedBufferVec3: _AnimatedBuffer
 
-- AnimatedBufferVec4: _AnimatedBuffer
+AnimatedBufferVec4: _AnimatedBuffer
 
-- AnimatedTime:
+AnimatedTime:
     - [keyframes, NodeList]
 
-- AnimatedFloat:
+AnimatedFloat:
     - [keyframes, NodeList]
 
-- AnimatedVec2:
+AnimatedVec2:
     - [keyframes, NodeList]
 
-- AnimatedVec3:
+AnimatedVec3:
     - [keyframes, NodeList]
 
-- AnimatedVec4:
+AnimatedVec4:
     - [keyframes, NodeList]
 
-- AnimatedQuat:
+AnimatedQuat:
     - [keyframes, NodeList]
     - [as_mat4, bool]
 
-- AnimKeyFrameFloat:
+AnimKeyFrameFloat:
     - [time, double]
     - [value, double]
     - [easing, select]
@@ -43,7 +43,7 @@
     - [easing_start_offset, double]
     - [easing_end_offset, double]
 
-- AnimKeyFrameVec2:
+AnimKeyFrameVec2:
     - [time, double]
     - [value, vec2]
     - [easing, select]
@@ -51,7 +51,7 @@
     - [easing_start_offset, double]
     - [easing_end_offset, double]
 
-- AnimKeyFrameVec3:
+AnimKeyFrameVec3:
     - [time, double]
     - [value, vec3]
     - [easing, select]
@@ -59,7 +59,7 @@
     - [easing_start_offset, double]
     - [easing_end_offset, double]
 
-- AnimKeyFrameVec4:
+AnimKeyFrameVec4:
     - [time, double]
     - [value, vec4]
     - [easing, select]
@@ -67,7 +67,7 @@
     - [easing_start_offset, double]
     - [easing_end_offset, double]
 
-- AnimKeyFrameQuat:
+AnimKeyFrameQuat:
     - [time, double]
     - [quat, vec4]
     - [easing, select]
@@ -75,7 +75,7 @@
     - [easing_start_offset, double]
     - [easing_end_offset, double]
 
-- AnimKeyFrameBuffer:
+AnimKeyFrameBuffer:
     - [time, double]
     - [data, data]
     - [easing, select]
@@ -83,78 +83,78 @@
     - [easing_start_offset, double]
     - [easing_end_offset, double]
 
-- Block:
+Block:
     - [fields, NodeList]
     - [layout, select]
 
-- _Buffer:
+_Buffer:
     - [count, int]
     - [data, data]
     - [filename, string]
     - [block, Node]
     - [block_field, int]
 
-- BufferByte: _Buffer
+BufferByte: _Buffer
 
-- BufferBVec2: _Buffer
+BufferBVec2: _Buffer
 
-- BufferBVec3: _Buffer
+BufferBVec3: _Buffer
 
-- BufferBVec4: _Buffer
+BufferBVec4: _Buffer
 
-- BufferInt: _Buffer
+BufferInt: _Buffer
 
-- BufferInt64: _Buffer
+BufferInt64: _Buffer
 
-- BufferIVec2: _Buffer
+BufferIVec2: _Buffer
 
-- BufferIVec3: _Buffer
+BufferIVec3: _Buffer
 
-- BufferIVec4: _Buffer
+BufferIVec4: _Buffer
 
-- BufferShort: _Buffer
+BufferShort: _Buffer
 
-- BufferSVec2: _Buffer
+BufferSVec2: _Buffer
 
-- BufferSVec3: _Buffer
+BufferSVec3: _Buffer
 
-- BufferSVec4: _Buffer
+BufferSVec4: _Buffer
 
-- BufferUByte: _Buffer
+BufferUByte: _Buffer
 
-- BufferUBVec2: _Buffer
+BufferUBVec2: _Buffer
 
-- BufferUBVec3: _Buffer
+BufferUBVec3: _Buffer
 
-- BufferUBVec4: _Buffer
+BufferUBVec4: _Buffer
 
-- BufferUInt: _Buffer
+BufferUInt: _Buffer
 
-- BufferUIVec2: _Buffer
+BufferUIVec2: _Buffer
 
-- BufferUIVec3: _Buffer
+BufferUIVec3: _Buffer
 
-- BufferUIVec4: _Buffer
+BufferUIVec4: _Buffer
 
-- BufferUShort: _Buffer
+BufferUShort: _Buffer
 
-- BufferUSVec2: _Buffer
+BufferUSVec2: _Buffer
 
-- BufferUSVec3: _Buffer
+BufferUSVec3: _Buffer
 
-- BufferUSVec4: _Buffer
+BufferUSVec4: _Buffer
 
-- BufferFloat: _Buffer
+BufferFloat: _Buffer
 
-- BufferVec2: _Buffer
+BufferVec2: _Buffer
 
-- BufferVec3: _Buffer
+BufferVec3: _Buffer
 
-- BufferVec4: _Buffer
+BufferVec4: _Buffer
 
-- BufferMat4: _Buffer
+BufferMat4: _Buffer
 
-- Camera:
+Camera:
     - [child, Node]
     - [eye, vec3]
     - [center, vec3]
@@ -167,29 +167,29 @@
     - [up_transform, Node]
     - [fov_anim, Node]
 
-- Circle:
+Circle:
     - [radius, double]
     - [npoints, int]
 
-- Compute:
+Compute:
     - [nb_group_x, int]
     - [nb_group_y, int]
     - [nb_group_z, int]
     - [program, Node]
     - [resources, NodeDict]
 
-- ComputeProgram:
+ComputeProgram:
     - [compute, string]
     - [properties, NodeDict]
 
-- Geometry:
+Geometry:
     - [vertices, Node]
     - [uvcoords, Node]
     - [normals, Node]
     - [indices, Node]
     - [topology, select]
 
-- GraphicConfig:
+GraphicConfig:
     - [child, Node]
     - [blend, bool]
     - [blend_src_factor, select]
@@ -215,10 +215,10 @@
     - [scissor_test, bool]
     - [scissor, vec4]
 
-- Group:
+Group:
     - [children, NodeList]
 
-- HUD:
+HUD:
     - [child, Node]
     - [measure_window, int]
     - [refresh_rate, rational]
@@ -226,39 +226,39 @@
     - [bg_color, vec4]
     - [aspect_ratio, rational]
 
-- Identity:
+Identity:
 
-- IOInt:
+IOInt:
 
-- IOIVec2:
+IOIVec2:
 
-- IOIVec3:
+IOIVec3:
 
-- IOIVec4:
+IOIVec4:
 
-- IOUInt:
+IOUInt:
 
-- IOUIvec2:
+IOUIvec2:
 
-- IOUIvec3:
+IOUIvec3:
 
-- IOUIvec4:
+IOUIvec4:
 
-- IOFloat:
+IOFloat:
 
-- IOVec2:
+IOVec2:
 
-- IOVec3:
+IOVec3:
 
-- IOVec4:
+IOVec4:
 
-- IOMat3:
+IOMat3:
 
-- IOMat4:
+IOMat4:
 
-- IOBool:
+IOBool:
 
-- Media:
+Media:
     - [filename, string]
     - [sxplayer_min_level, select]
     - [time_anim, Node]
@@ -269,14 +269,14 @@
     - [max_pixels, int]
     - [stream_idx, int]
 
-- Program:
+Program:
     - [vertex, string]
     - [fragment, string]
     - [properties, NodeDict]
     - [vert_out_vars, NodeDict]
     - [nb_frag_output, int]
 
-- Quad:
+Quad:
     - [corner, vec3]
     - [width, vec3]
     - [height, vec3]
@@ -284,7 +284,7 @@
     - [uv_width, vec2]
     - [uv_height, vec2]
 
-- Render:
+Render:
     - [geometry, Node]
     - [program, Node]
     - [vert_resources, NodeDict]
@@ -293,7 +293,7 @@
     - [instance_attributes, NodeDict]
     - [nb_instances, int]
 
-- RenderToTexture:
+RenderToTexture:
     - [child, Node]
     - [color_textures, NodeList]
     - [depth_texture, Node]
@@ -302,32 +302,32 @@
     - [features, flags]
     - [vflip, bool]
 
-- ResourceProps:
+ResourceProps:
     - [precision, select]
     - [as_image, bool]
     - [writable, bool]
     - [variadic, bool]
 
-- Rotate:
+Rotate:
     - [child, Node]
     - [angle, double]
     - [axis, vec3]
     - [anchor, vec3]
     - [anim, Node]
 
-- RotateQuat:
+RotateQuat:
     - [child, Node]
     - [quat, vec4]
     - [anchor, vec3]
     - [anim, Node]
 
-- Scale:
+Scale:
     - [child, Node]
     - [factors, vec3]
     - [anchor, vec3]
     - [anim, Node]
 
-- Text:
+Text:
     - [text, string]
     - [fg_color, vec4]
     - [bg_color, vec4]
@@ -343,7 +343,7 @@
     - [mag_filter, select]
     - [mipmap_filter, select]
 
-- Texture2D:
+Texture2D:
     - [format, select]
     - [width, int]
     - [height, int]
@@ -356,7 +356,7 @@
     - [data_src, Node]
     - [direct_rendering, bool]
 
-- Texture3D:
+Texture3D:
     - [format, select]
     - [width, int]
     - [height, int]
@@ -370,7 +370,7 @@
     - [access, flags]
     - [data_src, Node]
 
-- TextureCube:
+TextureCube:
     - [format, select]
     - [size, int]
     - [min_filter, select]
@@ -382,32 +382,32 @@
     - [access, flags]
     - [data_src, Node]
 
-- TimeRangeFilter:
+TimeRangeFilter:
     - [child, Node]
     - [ranges, NodeList]
     - [prefetch_time, double]
     - [max_idle_time, double]
 
-- TimeRangeModeCont:
+TimeRangeModeCont:
     - [start_time, double]
 
-- TimeRangeModeNoop:
+TimeRangeModeNoop:
     - [start_time, double]
 
-- TimeRangeModeOnce:
+TimeRangeModeOnce:
     - [start_time, double]
     - [render_time, double]
 
-- Transform:
+Transform:
     - [child, Node]
     - [matrix, mat4]
 
-- Translate:
+Translate:
     - [child, Node]
     - [vector, vec3]
     - [anim, Node]
 
-- Triangle:
+Triangle:
     - [edge0, vec3]
     - [edge1, vec3]
     - [edge2, vec3]
@@ -415,220 +415,220 @@
     - [uv_edge1, vec2]
     - [uv_edge2, vec2]
 
-- StreamedInt:
+StreamedInt:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedIVec2:
+StreamedIVec2:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedIVec3:
+StreamedIVec3:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedIVec4:
+StreamedIVec4:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedUInt:
+StreamedUInt:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedUIVec2:
+StreamedUIVec2:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedUIVec3:
+StreamedUIVec3:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedUIVec4:
+StreamedUIVec4:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedFloat:
+StreamedFloat:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedVec2:
+StreamedVec2:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedVec3:
+StreamedVec3:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedVec4:
+StreamedVec4:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedMat4:
+StreamedMat4:
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferInt:
+StreamedBufferInt:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferIVec2:
+StreamedBufferIVec2:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferIVec3:
+StreamedBufferIVec3:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferIVec4:
+StreamedBufferIVec4:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferUInt:
+StreamedBufferUInt:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferUIVec2:
+StreamedBufferUIVec2:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferUIVec3:
+StreamedBufferUIVec3:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferUIVec4:
+StreamedBufferUIVec4:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferFloat:
+StreamedBufferFloat:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferVec2:
+StreamedBufferVec2:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferVec3:
+StreamedBufferVec3:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferVec4:
+StreamedBufferVec4:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- StreamedBufferMat4:
+StreamedBufferMat4:
     - [count, int]
     - [timestamps, Node]
     - [buffer, Node]
     - [timebase, rational]
     - [time_anim, Node]
 
-- UniformInt:
+UniformInt:
     - [value, int]
 
-- UniformIVec2:
+UniformIVec2:
     - [value, ivec2]
 
-- UniformIVec3:
+UniformIVec3:
     - [value, ivec3]
 
-- UniformIVec4:
+UniformIVec4:
     - [value, ivec4]
 
-- UniformUInt:
+UniformUInt:
     - [value, uint]
 
-- UniformUIVec2:
+UniformUIVec2:
     - [value, uivec2]
 
-- UniformUIVec3:
+UniformUIVec3:
     - [value, uivec3]
 
-- UniformUIVec4:
+UniformUIVec4:
     - [value, uivec4]
 
-- UniformMat4:
+UniformMat4:
     - [value, mat4]
     - [transform, Node]
 
-- UniformFloat:
+UniformFloat:
     - [value, double]
 
-- UniformVec2:
+UniformVec2:
     - [value, vec2]
 
-- UniformVec3:
+UniformVec3:
     - [value, vec3]
 
-- UniformVec4:
+UniformVec4:
     - [value, vec4]
 
-- UniformQuat:
+UniformQuat:
     - [value, vec4]
     - [as_mat4, bool]
 
-- UserSwitch:
+UserSwitch:
     - [child, Node]
     - [enabled, bool]
 

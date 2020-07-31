@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+session=$1
+scenefile=$2
+shift 2
+eval $@
+
+host=${session%%:*}
+port=${session##*:}
+
+set -x
+
+ngl-ipc -x "$host"              \
+        -p "$port"              \
+        -f "$scenefile"         \
+        -t "$duration"          \
+        -a "$aspect_ratio"      \
+        -r "$framerate"         \
+        -c "$clear_color"       \
+        -m "$samples"           \

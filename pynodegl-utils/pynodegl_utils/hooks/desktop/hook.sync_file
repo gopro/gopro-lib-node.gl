@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+session=$1
+ifile=$2
+ofile=$3
+
+host=${session%%:*}
+port=${session##*:}
+
+# Upload file only if it's not local
+if [ "$host" = "localhost" ]; then
+    echo "$ifile"
+    exit 0
+fi
+
+set -x
+ngl-ipc -x "$host" -p "$port" -u "$ofile=$ifile"

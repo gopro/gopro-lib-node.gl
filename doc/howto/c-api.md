@@ -113,6 +113,7 @@ static struct ngl_node *get_scene(const char *filename)
     struct ngl_node *media   = ngl_node_create(NGL_NODE_MEDIA);
     struct ngl_node *texture = ngl_node_create(NGL_NODE_TEXTURE2D);
     struct ngl_node *quad    = ngl_node_create(NGL_NODE_QUAD);
+    struct ngl_node *program = ngl_node_create(NGL_NODE_PROGRAM);
     struct ngl_node *render  = ngl_node_create(NGL_NODE_RENDER);
 
     ngl_node_param_set(media, "filename", filename);
@@ -120,12 +121,16 @@ static struct ngl_node *get_scene(const char *filename)
     ngl_node_param_set(quad, "corner", corner);
     ngl_node_param_set(quad, "width",  width);
     ngl_node_param_set(quad, "height", height);
+    ngl_node_param_set(program, "vertex",   vertex);
+    ngl_node_param_set(program, "fragment", fragment);
     ngl_node_param_set(render, "geometry", quad);
+    ngl_node_param_set(render, "program", program);
     ngl_node_param_set(render, "textures", "tex0", texture);
 
     ngl_node_unrefp(&media);
     ngl_node_unrefp(&texture);
     ngl_node_unrefp(&quad);
+    ngl_node_unrefp(&program);
 
     return render;
 }

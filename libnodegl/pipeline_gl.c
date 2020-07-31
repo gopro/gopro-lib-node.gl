@@ -484,7 +484,7 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
     struct glcontext *gl = gctx_gl->glcontext;
     struct pipeline_graphics *graphics = &s->graphics;
 
-    if (graphics->nb_instances && !(gl->features & NGLI_FEATURE_DRAW_INSTANCED)) {
+    if (graphics->nb_instances > 1 && !(gl->features & NGLI_FEATURE_DRAW_INSTANCED)) {
         LOG(ERROR, "context does not support instanced draws");
         return NGL_ERROR_UNSUPPORTED;
     }
@@ -500,9 +500,9 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
     }
 
     if (graphics->indices)
-        s_priv->exec = graphics->nb_instances > 0 ? draw_elements_instanced : draw_elements;
+        s_priv->exec = graphics->nb_instances > 1 ? draw_elements_instanced : draw_elements;
     else
-        s_priv->exec = graphics->nb_instances > 0 ? draw_arrays_instanced : draw_arrays;
+        s_priv->exec = graphics->nb_instances > 1 ? draw_arrays_instanced : draw_arrays;
 
     return 0;
 }

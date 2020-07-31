@@ -69,6 +69,7 @@ struct text_priv {
     int nb_bg_indices;
 
     struct darray pipeline_descs;
+    int live_changed;
 };
 
 #define VALIGN_CENTER 0
@@ -99,9 +100,18 @@ static const struct param_choices halign_choices = {
     }
 };
 
+static int set_live_changed(struct ngl_node *node)
+{
+    struct text_priv *s = node->priv_data;
+    s->live_changed = 1;
+    return 0;
+}
+
 #define OFFSET(x) offsetof(struct text_priv, x)
 static const struct node_param text_params[] = {
-    {"text",         PARAM_TYPE_STR, OFFSET(text), .flags=PARAM_FLAG_NON_NULL,
+    {"text",         PARAM_TYPE_STR, OFFSET(text), {.str=""},
+                     .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE | PARAM_FLAG_NON_NULL,
+                     .update_func=set_live_changed,
                      .desc=NGLI_DOCSTRING("text string to rasterize")},
     {"fg_color",     PARAM_TYPE_VEC4, OFFSET(fg_color), {.vec={1.0, 1.0, 1.0, 1.0}},
                      .desc=NGLI_DOCSTRING("foreground text color")},
@@ -198,6 +208,9 @@ static int update_character_geometries(struct ngl_node *node)
     int text_cols, text_rows, text_nbchr;
     get_char_box_dim(str, &text_cols, &text_rows, &text_nbchr);
     if (!text_nbchr) {
+        ngli_buffer_freep(&s->vertices);
+        ngli_buffer_freep(&s->uvcoords);
+        ngli_buffer_freep(&s->indices);
         s->nb_indices = 0;
         return 0;
     }
@@ -311,18 +324,39 @@ static int update_character_geometries(struct ngl_node *node)
         px++;
     }
 
-    s->vertices = ngli_buffer_create(gctx);
-    s->uvcoords = ngli_buffer_create(gctx);
-    s->indices  = ngli_buffer_create(gctx);
-    if (!s->vertices || !s->uvcoords || !s->indices) {
-        ret = NGL_ERROR_MEMORY;
-        goto end;
-    }
+    if (nb_indices != s->nb_indices) {
+        const int need_realloc = nb_indices > s->nb_indices;
 
-    if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), NGLI_BUFFER_USAGE_STATIC)) < 0 ||
-        (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), NGLI_BUFFER_USAGE_STATIC)) < 0 ||
-        (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  NGLI_BUFFER_USAGE_STATIC)) < 0)
-        goto end;
+        if (need_realloc) {
+            ngli_buffer_freep(&s->vertices);
+            ngli_buffer_freep(&s->uvcoords);
+            ngli_buffer_freep(&s->indices);
+
+            s->vertices = ngli_buffer_create(gctx);
+            s->uvcoords = ngli_buffer_create(gctx);
+            s->indices  = ngli_buffer_create(gctx);
+            if (!s->vertices || !s->uvcoords || !s->indices) {
+                ret = NGL_ERROR_MEMORY;
+                goto end;
+            }
+
+            if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
+                (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
+                (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  NGLI_BUFFER_USAGE_DYNAMIC)) < 0)
+                goto end;
+        }
+
+        struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
+        const int nb_descs = ngli_darray_count(&s->pipeline_descs);
+        for (int i = 0; i < nb_descs; i++) {
+            struct pipeline_subdesc *desc = &descs[i].fg;
+
+            if (need_realloc) {
+                ngli_pipeline_update_attribute(desc->pipeline, 0, s->vertices);
+                ngli_pipeline_update_attribute(desc->pipeline, 1, s->uvcoords);
+            }
+        }
+    }
 
     if ((ret = ngli_buffer_upload(s->vertices, vertices, nb_vertices * sizeof(*vertices))) < 0 ||
         (ret = ngli_buffer_upload(s->uvcoords, uvcoords, nb_uvcoords * sizeof(*uvcoords))) < 0 ||
@@ -571,7 +605,14 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
         .nb_vert_out_vars = NGLI_ARRAY_NB(vert_out_vars),
     };
 
-    return init_subdesc(node, desc, &pipeline_params, &crafter_params);
+    int ret = init_subdesc(node, desc, &pipeline_params, &crafter_params);
+    if (ret < 0)
+        return ret;
+
+    ngli_assert(!strcmp("position", pipeline_params.attributes[0].name));
+    ngli_assert(!strcmp("uvcoord", pipeline_params.attributes[1].name));
+
+    return 0;
 }
 
 static int text_prepare(struct ngl_node *node)
@@ -594,6 +635,19 @@ static int text_prepare(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
+    return 0;
+}
+
+static int text_update(struct ngl_node *node, double t)
+{
+    struct text_priv *s = node->priv_data;
+
+    if (s->live_changed) {
+        int ret = update_character_geometries(node);
+        if (ret < 0)
+            return ret;
+        s->live_changed = 0;
+    }
     return 0;
 }
 
@@ -644,6 +698,7 @@ const struct node_class ngli_text_class = {
     .name      = "Text",
     .init      = text_init,
     .prepare   = text_prepare,
+    .update    = text_update,
     .draw      = text_draw,
     .uninit    = text_uninit,
     .priv_size = sizeof(struct text_priv),

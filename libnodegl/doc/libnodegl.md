@@ -569,7 +569,7 @@ Parameter | Live-chg. | Type | Description | Default
 
 Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
-`text` |  | [`string`](#parameter-types) | text string to rasterize | 
+`text` | ✓ | [`string`](#parameter-types) | text string to rasterize | 
 `fg_color` |  | [`vec4`](#parameter-types) | foreground text color | (`1`,`1`,`1`,`1`)
 `bg_color` |  | [`vec4`](#parameter-types) | background text color | (`0`,`0`,`0`,`0.8`)
 `box_corner` |  | [`vec3`](#parameter-types) | origin coordinates of `box_width` and `box_height` vectors | (`-1`,`-1`,`0`)

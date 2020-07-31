@@ -78,7 +78,7 @@ static int translate_update(struct ngl_node *node, double t)
 #define OFFSET(x) offsetof(struct translate_priv, x)
 static const struct node_param translate_params[] = {
     {"child",  PARAM_TYPE_NODE, OFFSET(trf.child),
-               .flags=PARAM_FLAG_CONSTRUCTOR,
+               .flags=PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to translate")},
     {"vector", PARAM_TYPE_VEC3, OFFSET(vector),
                .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,

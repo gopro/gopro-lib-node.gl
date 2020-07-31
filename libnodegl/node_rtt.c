@@ -72,7 +72,7 @@ static const struct param_choices feature_choices = {
 #define OFFSET(x) offsetof(struct rtt_priv, x)
 static const struct node_param rtt_params[] = {
     {"child",         PARAM_TYPE_NODE, OFFSET(child),
-                      .flags=PARAM_FLAG_CONSTRUCTOR,
+                      .flags=PARAM_FLAG_NON_NULL,
                       .desc=NGLI_DOCSTRING("scene to be rasterized to `color_textures` and optionally to `depth_texture`")},
     {"color_textures", PARAM_TYPE_NODELIST, OFFSET(color_textures),
                       .node_types=(const int[]){NGL_NODE_TEXTURE2D, NGL_NODE_TEXTURECUBE, -1},

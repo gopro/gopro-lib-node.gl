@@ -94,7 +94,7 @@ static const struct param_choices halign_choices = {
 
 #define OFFSET(x) offsetof(struct text_priv, x)
 static const struct node_param text_params[] = {
-    {"text",         PARAM_TYPE_STR, OFFSET(text), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"text",         PARAM_TYPE_STR, OFFSET(text), .flags=PARAM_FLAG_NON_NULL,
                      .desc=NGLI_DOCSTRING("text string to rasterize")},
     {"fg_color",     PARAM_TYPE_VEC4, OFFSET(fg_color), {.vec={1.0, 1.0, 1.0, 1.0}},
                      .desc=NGLI_DOCSTRING("foreground text color")},

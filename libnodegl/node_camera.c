@@ -61,7 +61,7 @@ struct camera_priv {
 
 #define OFFSET(x) offsetof(struct camera_priv, x)
 static const struct node_param camera_params[] = {
-    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
               .desc=NGLI_DOCSTRING("scene to observe through the lens of the camera")},
     {"eye", PARAM_TYPE_VEC3,  OFFSET(eye), {.vec={0.0f, 0.0f, 0.0f}},
             .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,

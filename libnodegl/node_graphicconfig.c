@@ -153,7 +153,7 @@ static const struct param_choices cull_face_choices = {
 
 #define OFFSET(x) offsetof(struct graphicconfig_priv, x)
 static const struct node_param graphicconfig_params[] = {
-    {"child",              PARAM_TYPE_NODE,   OFFSET(child),              .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"child",              PARAM_TYPE_NODE,   OFFSET(child),              .flags=PARAM_FLAG_NON_NULL,
                            .desc=NGLI_DOCSTRING("scene to which the graphic configuration will be applied")},
     {"blend",              PARAM_TYPE_BOOL,   OFFSET(blend),              {.i64=-1},
                            .desc=NGLI_DOCSTRING("enable blending")},

@@ -72,7 +72,7 @@ struct hud_priv {
 
 #define OFFSET(x) offsetof(struct hud_priv, x)
 static const struct node_param hud_params[] = {
-    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
               .desc=NGLI_DOCSTRING("scene to benchmark")},
     {"measure_window", PARAM_TYPE_INT, OFFSET(measure_window), {.i64=60},
                        .desc=NGLI_DOCSTRING("window size for latency measures")},

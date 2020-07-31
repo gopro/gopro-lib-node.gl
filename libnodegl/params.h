@@ -71,7 +71,7 @@ struct param_choices {
     const struct param_const consts[];
 };
 
-#define PARAM_FLAG_CONSTRUCTOR (1<<0)
+#define PARAM_FLAG_NON_NULL (1<<0)
 #define PARAM_FLAG_DOT_DISPLAY_PACKED (1<<1)
 #define PARAM_FLAG_DOT_DISPLAY_FIELDNAME (1<<2)
 #define PARAM_FLAG_ALLOW_LIVE_CHANGE (1<<3)

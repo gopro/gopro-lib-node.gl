@@ -89,7 +89,7 @@ static const struct node_param compute_params[] = {
                    .desc=NGLI_DOCSTRING("number of work groups to be executed in the y dimension")},
     {"nb_group_z", PARAM_TYPE_INT,      OFFSET(nb_group_z),
                    .desc=NGLI_DOCSTRING("number of work groups to be executed in the z dimension")},
-    {"program",    PARAM_TYPE_NODE,     OFFSET(program),    .flags=PARAM_FLAG_CONSTRUCTOR, .node_types=PROGRAMS_TYPES_LIST,
+    {"program",    PARAM_TYPE_NODE,     OFFSET(program),    .flags=PARAM_FLAG_NON_NULL, .node_types=PROGRAMS_TYPES_LIST,
                    .desc=NGLI_DOCSTRING("compute program to be executed")},
     {"resources",  PARAM_TYPE_NODEDICT, OFFSET(resources),
                    .node_types=DATA_TYPES_LIST,

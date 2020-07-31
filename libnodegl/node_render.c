@@ -118,7 +118,7 @@ struct render_priv {
 
 #define OFFSET(x) offsetof(struct render_priv, x)
 static const struct node_param render_params[] = {
-    {"geometry", PARAM_TYPE_NODE, OFFSET(geometry), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"geometry", PARAM_TYPE_NODE, OFFSET(geometry), .flags=PARAM_FLAG_NON_NULL,
                  .node_types=GEOMETRY_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("geometry to be rasterized")},
     {"program",  PARAM_TYPE_NODE, OFFSET(program),

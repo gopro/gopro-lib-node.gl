@@ -35,10 +35,10 @@
 static const struct node_param streamedbuffer##name##_params[] = {                                        \
     {"count",      PARAM_TYPE_INT, OFFSET(count),                                                         \
                    .desc=NGLI_DOCSTRING("number of elements for each chunk of data to stream")},          \
-    {"timestamps", PARAM_TYPE_NODE, OFFSET(timestamps), .flags=PARAM_FLAG_CONSTRUCTOR,                    \
+    {"timestamps", PARAM_TYPE_NODE, OFFSET(timestamps), .flags=PARAM_FLAG_NON_NULL,                       \
                    .node_types=(const int[]){NGL_NODE_BUFFERINT64, -1},                                   \
                    .desc=NGLI_DOCSTRING("timestamps associated with each chunk of data to stream")},      \
-    {"buffer",     PARAM_TYPE_NODE, OFFSET(buffer_node), .flags=PARAM_FLAG_CONSTRUCTOR,                   \
+    {"buffer",     PARAM_TYPE_NODE, OFFSET(buffer_node), .flags=PARAM_FLAG_NON_NULL,                      \
                    .node_types=(const int[]){allowed_node, -1},                                           \
                    .desc=NGLI_DOCSTRING("buffer containing the data to stream")},                         \
     {"timebase",   PARAM_TYPE_RATIONAL, OFFSET(timebase), {.r={1, 1000000}},                              \

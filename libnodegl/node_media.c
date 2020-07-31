@@ -51,7 +51,7 @@ static const struct param_choices sxplayer_log_level_choices = {
 
 #define OFFSET(x) offsetof(struct media_priv, x)
 static const struct node_param media_params[] = {
-    {"filename", PARAM_TYPE_STR, OFFSET(filename), {.str=NULL}, PARAM_FLAG_CONSTRUCTOR,
+    {"filename", PARAM_TYPE_STR, OFFSET(filename), {.str=NULL}, PARAM_FLAG_NON_NULL,
                  .desc=NGLI_DOCSTRING("path to input media file")},
     {"sxplayer_min_level", PARAM_TYPE_SELECT, OFFSET(sxplayer_min_level), {.i64=SXPLAYER_LOG_WARNING},
                            .choices=&sxplayer_log_level_choices,

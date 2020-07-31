@@ -46,7 +46,7 @@ struct timerangefilter_priv {
 
 #define OFFSET(x) offsetof(struct timerangefilter_priv, x)
 static const struct node_param timerangefilter_params[] = {
-    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
               .desc=NGLI_DOCSTRING("time filtered scene")},
     {"ranges", PARAM_TYPE_NODELIST, OFFSET(ranges),
                .node_types=RANGES_TYPES_LIST,

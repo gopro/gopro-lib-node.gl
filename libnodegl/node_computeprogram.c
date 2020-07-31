@@ -25,7 +25,7 @@
 
 #define OFFSET(x) offsetof(struct program_priv, x)
 static const struct node_param computeprogram_params[] = {
-    {"compute", PARAM_TYPE_STR, OFFSET(compute), .flags=PARAM_FLAG_CONSTRUCTOR,
+    {"compute", PARAM_TYPE_STR, OFFSET(compute), .flags=PARAM_FLAG_NON_NULL,
                 .desc=NGLI_DOCSTRING("compute shader")},
     {"properties", PARAM_TYPE_NODEDICT, OFFSET(properties),
                    .node_types=(const int[]){NGL_NODE_RESOURCEPROPS, -1},

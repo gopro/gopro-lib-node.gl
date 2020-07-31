@@ -94,7 +94,7 @@ static int scale_update(struct ngl_node *node, double t)
 #define OFFSET(x) offsetof(struct scale_priv, x)
 static const struct node_param scale_params[] = {
     {"child",   PARAM_TYPE_NODE, OFFSET(trf.child),
-                .flags=PARAM_FLAG_CONSTRUCTOR,
+                .flags=PARAM_FLAG_NON_NULL,
                 .desc=NGLI_DOCSTRING("scene to scale")},
     {"factors", PARAM_TYPE_VEC3, OFFSET(factors),
                 {.vec={1.0, 1.0, 1.0}},

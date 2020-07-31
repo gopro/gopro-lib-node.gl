@@ -33,10 +33,10 @@
 
 #define DECLARE_STREAMED_PARAMS(name, allowed_node)                                                       \
 static const struct node_param streamed##name##_params[] = {                                              \
-    {"timestamps", PARAM_TYPE_NODE, OFFSET(timestamps), .flags=PARAM_FLAG_CONSTRUCTOR,                    \
+    {"timestamps", PARAM_TYPE_NODE, OFFSET(timestamps), .flags=PARAM_FLAG_NON_NULL,                       \
                    .node_types=(const int[]){NGL_NODE_BUFFERINT64, -1},                                   \
                    .desc=NGLI_DOCSTRING("timestamps associated with each chunk of data to stream")},      \
-    {"buffer",     PARAM_TYPE_NODE, OFFSET(buffer), .flags=PARAM_FLAG_CONSTRUCTOR,                        \
+    {"buffer",     PARAM_TYPE_NODE, OFFSET(buffer), .flags=PARAM_FLAG_NON_NULL,                           \
                    .node_types=(const int[]){allowed_node, -1},                                           \
                    .desc=NGLI_DOCSTRING("buffer containing the data to stream")},                         \
     {"timebase",   PARAM_TYPE_RATIONAL, OFFSET(timebase), {.r={1, 1000000}},                              \

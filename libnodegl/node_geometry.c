@@ -81,7 +81,7 @@ static const struct param_choices topology_choices = {
 static const struct node_param geometry_params[] = {
     {"vertices",  PARAM_TYPE_NODE, OFFSET(vertices_buffer),
                   .node_types=(const int[]){NGL_NODE_BUFFERVEC3, NGL_NODE_ANIMATEDBUFFERVEC3, -1},
-                  .flags=PARAM_FLAG_CONSTRUCTOR | PARAM_FLAG_DOT_DISPLAY_FIELDNAME,
+                  .flags=PARAM_FLAG_NON_NULL | PARAM_FLAG_DOT_DISPLAY_FIELDNAME,
                   .desc=NGLI_DOCSTRING("vertice coordinates defining the geometry")},
     {"uvcoords",  PARAM_TYPE_NODE, OFFSET(uvcoords_buffer),
                   .node_types=TEXCOORDS_TYPES_LIST,

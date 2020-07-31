@@ -103,7 +103,7 @@ static int rotate_update(struct ngl_node *node, double t)
 #define OFFSET(x) offsetof(struct rotate_priv, x)
 static const struct node_param rotate_params[] = {
     {"child",  PARAM_TYPE_NODE, OFFSET(trf.child),
-               .flags=PARAM_FLAG_CONSTRUCTOR,
+               .flags=PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to rotate")},
     {"angle",  PARAM_TYPE_DBL,  OFFSET(angle),
                .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,

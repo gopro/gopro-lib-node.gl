@@ -101,6 +101,10 @@ static int compute_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct compute_priv *s = node->priv_data;
+    if (s->nb_group_x <= 0 || s->nb_group_y <= 0 || s->nb_group_z <= 0) {
+        LOG(ERROR, "number of group must be > 0 for x, y and z");
+        return NGL_ERROR_INVALID_ARG;
+    }
     const struct program_priv *program = s->program->priv_data;
     struct pass_params params = {
         .label = node->label,

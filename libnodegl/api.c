@@ -78,6 +78,9 @@ static int cmd_stop(struct ngl_ctx *s, void *arg)
 #if defined(HAVE_VAAPI)
     ngli_vaapi_reset(s);
 #endif
+#if defined(TARGET_ANDROID)
+    ngli_android_ctx_reset(&s->android_ctx);
+#endif
     ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_pgcache_reset(&s->pgcache);
     ngli_gctx_freep(&s->gctx);
@@ -129,6 +132,13 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     ret = ngli_vaapi_init(s);
     if (ret < 0)
         LOG(WARNING, "could not initialize vaapi");
+#endif
+
+#if defined(TARGET_ANDROID)
+    struct android_ctx *android_ctx = &s->android_ctx;
+    ret = ngli_android_ctx_init(s->gctx, android_ctx);
+    if (ret < 0)
+        LOG(WARNING, "could not initialize Android context");
 #endif
 
     NGLI_ALIGNED_MAT(matrix) = NGLI_MAT4_IDENTITY;

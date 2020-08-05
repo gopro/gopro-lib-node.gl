@@ -39,6 +39,7 @@
 #endif
 
 #if defined(TARGET_ANDROID)
+#include "android_ctx.h"
 #include "android_handlerthread.h"
 #include "android_surface.h"
 #endif
@@ -95,6 +96,9 @@ struct ngl_ctx {
 #if defined(HAVE_VAAPI)
     VADisplay va_display;
     int va_version;
+#endif
+#if defined(TARGET_ANDROID)
+    struct android_ctx android_ctx;
 #endif
 
     /* Shared fields */

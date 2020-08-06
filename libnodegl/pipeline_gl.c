@@ -429,23 +429,10 @@ static int pipeline_compute_init(struct pipeline *s)
 {
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
-    const struct limits *limits = &gl->limits;
 
     if ((gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
         LOG(ERROR, "context does not support compute shaders");
         return NGL_ERROR_UNSUPPORTED;
-    }
-
-    const struct pipeline_compute *compute = &s->compute;
-    const int *max_work_groups = limits->max_compute_work_group_counts;
-    if (compute->nb_group_x > max_work_groups[0] ||
-        compute->nb_group_y > max_work_groups[1] ||
-        compute->nb_group_z > max_work_groups[2]) {
-        LOG(ERROR,
-            "compute work group size (%d, %d, %d) exceeds driver limit (%d, %d, %d)",
-            compute->nb_group_x, compute->nb_group_y, compute->nb_group_z,
-            max_work_groups[0], max_work_groups[1], max_work_groups[2]);
-        return NGL_ERROR_LIMIT_EXCEEDED;
     }
 
     return 0;
@@ -464,7 +451,6 @@ int ngli_pipeline_gl_init(struct pipeline *s, const struct pipeline_params *para
 {
     s->type     = params->type;
     s->graphics = params->graphics;
-    s->compute  = params->compute;
     s->program  = params->program;
 
     ngli_darray_init(&s->uniform_descs, sizeof(struct uniform_desc), 0);

@@ -77,7 +77,6 @@ struct pass {
 
     int pipeline_type;
     struct pipeline_graphics pipeline_graphics;
-    struct pipeline_compute pipeline_compute;
     struct darray crafter_attributes;
     struct darray crafter_uniforms;
     struct darray crafter_textures;

@@ -69,12 +69,6 @@ struct pipeline_graphics {
     struct rendertarget_desc rt_desc;
 };
 
-struct pipeline_compute {
-    int nb_group_x;
-    int nb_group_y;
-    int nb_group_z;
-};
-
 enum {
     NGLI_PIPELINE_TYPE_GRAPHICS,
     NGLI_PIPELINE_TYPE_COMPUTE,
@@ -83,7 +77,6 @@ enum {
 struct pipeline_params {
     int type;
     const struct pipeline_graphics graphics;
-    const struct pipeline_compute compute;
     const struct program *program;
 
     const struct pipeline_texture *textures;
@@ -101,7 +94,6 @@ struct pipeline {
 
     int type;
     struct pipeline_graphics graphics;
-    struct pipeline_compute compute;
     const struct program *program;
 
     struct darray uniform_descs;

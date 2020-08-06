@@ -444,7 +444,6 @@ int ngli_pass_prepare(struct pass *s)
     struct pipeline_params pipeline_params = {
         .type          = s->pipeline_type,
         .graphics      = pipeline_graphics,
-        .compute       = s->pipeline_compute,
     };
 
     const struct pgcraft_params crafter_params = {

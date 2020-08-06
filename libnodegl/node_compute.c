@@ -24,7 +24,9 @@
 #include <string.h>
 #include <limits.h>
 
+#include "gctx.h"
 #include "hmap.h"
+#include "limits.h"
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
@@ -104,6 +106,21 @@ static int compute_init(struct ngl_node *node)
     if (s->nb_group_x <= 0 || s->nb_group_y <= 0 || s->nb_group_z <= 0) {
         LOG(ERROR, "number of group must be > 0 for x, y and z");
         return NGL_ERROR_INVALID_ARG;
+    }
+    struct gctx *gctx = ctx->gctx;
+    struct limits *limits = &gctx->limits;
+
+    if (s->nb_group_x > limits->max_compute_work_group_counts[0] ||
+        s->nb_group_y > limits->max_compute_work_group_counts[1] ||
+        s->nb_group_z > limits->max_compute_work_group_counts[2]) {
+        LOG(ERROR,
+            "compute work group counts (%d, %d, %d) exceed device limits (%d, %d, %d)",
+            s->nb_group_x, s->nb_group_y, s->nb_group_z,
+            limits->max_compute_work_group_counts[0],
+            limits->max_compute_work_group_counts[1],
+            limits->max_compute_work_group_counts[2]);
+
+        return NGL_ERROR_LIMIT_EXCEEDED;
     }
     const struct program_priv *program = s->program->priv_data;
     struct pass_params params = {

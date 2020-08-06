@@ -136,7 +136,7 @@ static const struct node_param render_params[] = {
     {"instance_attributes", PARAM_TYPE_NODEDICT, OFFSET(instance_attributes),
                  .node_types=ATTRIBUTES_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("per instance extra vertex attributes made accessible to the `program`")},
-    {"nb_instances", PARAM_TYPE_INT, OFFSET(nb_instances),
+    {"nb_instances", PARAM_TYPE_INT, OFFSET(nb_instances), {.i64 = 1},
                  .desc=NGLI_DOCSTRING("number of instances to draw")},
     {NULL}
 };
@@ -145,6 +145,11 @@ static int render_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct render_priv *s = node->priv_data;
+
+    if (s->nb_instances < 1) {
+        LOG(ERROR, "nb_instances must be > 0");
+        return NGL_ERROR_INVALID_ARG;
+    }
 
     if (!s->program) {
         LOG(ERROR, "program must be set");

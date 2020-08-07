@@ -175,7 +175,7 @@ def _shape_geometry_rtt(cfg, depth=False, samples=0):
 
     if depth:
         texture = ngl.Texture2D()
-        texture.set_format('d16_unorm')
+        texture.set_format('auto_depth')
         texture.set_width(w)
         texture.set_height(h)
         rtt.set_depth_texture(texture)

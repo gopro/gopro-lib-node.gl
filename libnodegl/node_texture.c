@@ -406,9 +406,9 @@ static int get_preferred_format(struct gctx *gctx, int format)
 {
     switch (format) {
     case NGLI_FORMAT_AUTO_DEPTH:
-        return ngli_gctx_get_prefered_depth_format(gctx);
+        return ngli_gctx_get_preferred_depth_format(gctx);
     case NGLI_FORMAT_AUTO_DEPTH_STENCIL:
-        return ngli_gctx_get_prefered_depth_stencil_format(gctx);
+        return ngli_gctx_get_preferred_depth_stencil_format(gctx);
     default:
         return format;
     }

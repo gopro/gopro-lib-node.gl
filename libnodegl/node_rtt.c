@@ -146,9 +146,9 @@ static int rtt_prepare(struct ngl_node *node)
     } else {
         int depth_format = NGLI_FORMAT_UNDEFINED;
         if (s->features & FEATURE_STENCIL)
-            depth_format = ngli_gctx_get_prefered_depth_stencil_format(gctx);
+            depth_format = ngli_gctx_get_preferred_depth_stencil_format(gctx);
         else if (s->features & FEATURE_DEPTH)
-            depth_format = ngli_gctx_get_prefered_depth_format(gctx);
+            depth_format = ngli_gctx_get_preferred_depth_format(gctx);
         desc.depth_stencil.format = depth_format;
         desc.depth_stencil.samples = s->samples;
     }
@@ -275,9 +275,9 @@ static int rtt_prefetch(struct ngl_node *node)
         }
     } else {
         if (s->features & FEATURE_STENCIL)
-            depth_format = ngli_gctx_get_prefered_depth_stencil_format(gctx);
+            depth_format = ngli_gctx_get_preferred_depth_stencil_format(gctx);
         else if (s->features & FEATURE_DEPTH)
-            depth_format = ngli_gctx_get_prefered_depth_format(gctx);
+            depth_format = ngli_gctx_get_preferred_depth_format(gctx);
 
         if (depth_format != NGLI_FORMAT_UNDEFINED) {
             struct texture *depth = ngli_texture_create(gctx);

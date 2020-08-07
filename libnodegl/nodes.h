@@ -282,6 +282,7 @@ extern const struct param_choices ngli_mipmap_filter_choices;
 extern const struct param_choices ngli_filter_choices;
 
 struct texture_priv {
+    int format;
     struct texture_params params;
     struct ngl_node *data_src;
     int direct_rendering;

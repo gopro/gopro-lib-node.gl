@@ -1516,6 +1516,8 @@ Constant | Description
 `d24_unorm_s8_uint` | 32-bit packed format that has 24-bit unsigned normalized depth component + 8-bit unsigned integer stencil component
 `d32_sfloat_s8_uint` | 64-bit packed format that has 32-bit signed float depth component + 8-bit unsigned integer stencil component + 24-bit of unused data
 `s8_uint` | 8-bit unsigned integer stencil component
+`auto_depth` | select automatically the preferred depth format
+`auto_depth_stencil` | select automatically the preferred depth + stencil format
 
 ## wrap choices
 

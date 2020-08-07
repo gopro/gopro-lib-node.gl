@@ -162,16 +162,10 @@ _rtt_tests = dict(
     feature_depth_msaa=dict(features='depth', samples=4),
     feature_depth_stencil_msaa=dict(features='depth+stencil', samples=4),
     mipmap=dict(features='depth', mipmap_filter='linear'),
-    texture_depth_d16_unorm=dict(texture_ds_format='d16_unorm'),
-    texture_depth_d24_unorm=dict(texture_ds_format='d24_unorm'),
-    texture_depth_d32_sfloat=dict(texture_ds_format='d32_sfloat'),
-    texture_depth_d24_unorm_s8_uint=dict(texture_ds_format='d24_unorm_s8_uint'),
-    texture_depth_d32_sfloat_s8_uint=dict(texture_ds_format='d32_sfloat_s8_uint'),
-    texture_depth_d16_unorm_msaa=dict(texture_ds_format='d16_unorm', samples=4),
-    texture_depth_d24_unorm_msaa=dict(texture_ds_format='d24_unorm', samples=4),
-    texture_depth_d32_sfloat_msaa=dict(texture_ds_format='d32_sfloat', samples=4),
-    texture_depth_d24_unorm_s8_uint_msaa=dict(texture_ds_format='d24_unorm_s8_uint', samples=4),
-    texture_depth_d32_sfloat_s8_uint_msaa=dict(texture_ds_format='d32_sfloat_s8_uint', samples=4),
+    texture_depth=dict(texture_ds_format='auto_depth'),
+    texture_depth_stencil=dict(texture_ds_format='auto_depth_stencil'),
+    texture_depth_msaa=dict(texture_ds_format='auto_depth', samples=4),
+    texture_depth_stencil_msaa=dict(texture_ds_format='auto_depth_stencil', samples=4),
 )
 
 

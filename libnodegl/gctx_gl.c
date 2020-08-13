@@ -39,6 +39,30 @@
 #include "rendertarget_gl.h"
 #include "texture_gl.h"
 
+#if defined(HAVE_VAAPI)
+#include "vaapi.h"
+#endif
+
+static void capture_default(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct ngl_config *config = &s->config;
+    struct rendertarget *rt = s_priv->rt;
+
+    ngli_rendertarget_resolve(rt);
+    ngli_rendertarget_read_pixels(rt, config->capture_buffer);
+}
+
+static void capture_ios(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+    struct rendertarget *rt = s_priv->rt;
+
+    ngli_rendertarget_resolve(rt);
+    ngli_glFinish(gl);
+}
+
 static int offscreen_rendertarget_init(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
@@ -51,24 +75,90 @@ static int offscreen_rendertarget_init(struct gctx *s)
         config->samples = 0;
     }
 
+    const int ios_capture = gl->platform == NGL_PLATFORM_IOS && config->window;
+    if (ios_capture) {
+#if defined(TARGET_IPHONE)
+        CVPixelBufferRef capture_cvbuffer = (CVPixelBufferRef)config->window;
+        s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain(capture_cvbuffer);
+        if (!s_priv->capture_cvbuffer)
+            return NGL_ERROR_MEMORY;
+
+        CVOpenGLESTextureCacheRef *cache = ngli_glcontext_get_texture_cache(gl);
+        int width = CVPixelBufferGetWidth(s_priv->capture_cvbuffer);
+        int height = CVPixelBufferGetHeight(s_priv->capture_cvbuffer);
+        CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                                    *cache,
+                                                                    s_priv->capture_cvbuffer,
+                                                                    NULL,
+                                                                    GL_TEXTURE_2D,
+                                                                    GL_RGBA,
+                                                                    width,
+                                                                    height,
+                                                                    GL_BGRA,
+                                                                    GL_UNSIGNED_BYTE,
+                                                                    0,
+                                                                    &s_priv->capture_cvtexture);
+        if (err != noErr) {
+            LOG(ERROR, "could not create CoreVideo texture from CVPixelBuffer: 0x%x", err);
+            return NGL_ERROR_EXTERNAL;
+        }
+
+        GLuint id = CVOpenGLESTextureGetName(s_priv->capture_cvtexture);
+        ngli_glBindTexture(gl, GL_TEXTURE_2D, id);
+        ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
+
+        struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
+        attachment_params.format = NGLI_FORMAT_B8G8R8A8_UNORM;
+        attachment_params.width = width;
+        attachment_params.height = height;
+        s_priv->rt_color = ngli_texture_create(s);
+        if (!s_priv->rt_color)
+            return NGL_ERROR_MEMORY;
+        int ret = ngli_texture_gl_wrap(s_priv->rt_color, &attachment_params, id);
+        if (ret < 0)
+            return ret;
+#endif
+    } else {
+        struct texture_params params = NGLI_TEXTURE_PARAM_DEFAULTS;
+        params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
+        params.width = config->width;
+        params.height = config->height;
+        params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+        s_priv->rt_color = ngli_texture_create(s);
+        if (!s_priv->rt_color)
+            return NGL_ERROR_MEMORY;
+        int ret = ngli_texture_init(s_priv->rt_color, &params);
+        if (ret < 0)
+            return ret;
+    }
+
+    if (config->samples) {
+        struct texture_params params = NGLI_TEXTURE_PARAM_DEFAULTS;
+        params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
+        params.width = config->width;
+        params.height = config->height;
+        params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+        params.samples = config->samples;
+        s_priv->rt_ms_color = ngli_texture_create(s);
+        if (!s_priv->rt_ms_color)
+            return NGL_ERROR_MEMORY;
+        int ret = ngli_texture_init(s_priv->rt_ms_color, &params);
+        if (ret < 0)
+            return ret;
+    }
+
     struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-    attachment_params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
+    attachment_params.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
     attachment_params.width = config->width;
     attachment_params.height = config->height;
     attachment_params.samples = config->samples;
     attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-    s_priv->rt_color = ngli_texture_create(s);
-    if (!s_priv->rt_color)
-        return NGL_ERROR_MEMORY;
-    int ret = ngli_texture_init(s_priv->rt_color, &attachment_params);
-    if (ret < 0)
-        return ret;
-
-    attachment_params.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
     s_priv->rt_depth = ngli_texture_create(s);
     if (!s_priv->rt_depth)
         return NGL_ERROR_MEMORY;
-    ret = ngli_texture_init(s_priv->rt_depth, &attachment_params);
+    int ret = ngli_texture_init(s_priv->rt_depth, &attachment_params);
     if (ret < 0)
         return ret;
 
@@ -77,18 +167,22 @@ static int offscreen_rendertarget_init(struct gctx *s)
         .height = config->height,
         .nb_colors = 1,
         .colors[0] = {
-            .attachment = s_priv->rt_color,
+            .attachment     = config->samples ? s_priv->rt_ms_color : s_priv->rt_color,
+            .resolve_target = config->samples ? s_priv->rt_color    : NULL,
         },
         .depth_stencil = {
-            .attachment = s_priv->rt_depth
+            .attachment = s_priv->rt_depth,
         },
     };
+
     s_priv->rt = ngli_rendertarget_create(s);
     if (!s_priv->rt)
         return NGL_ERROR_MEMORY;
     ret = ngli_rendertarget_init(s_priv->rt, &rt_params);
     if (ret < 0)
         return ret;
+
+    s_priv->capture_func = ios_capture ? capture_ios : capture_default;
 
     ngli_gctx_set_rendertarget(s, s_priv->rt);
     const int vp[4] = {0, 0, config->width, config->height};
@@ -102,218 +196,8 @@ static void offscreen_rendertarget_reset(struct gctx *s)
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     ngli_rendertarget_freep(&s_priv->rt);
     ngli_texture_freep(&s_priv->rt_color);
+    ngli_texture_freep(&s_priv->rt_ms_color);
     ngli_texture_freep(&s_priv->rt_depth);
-}
-
-static void capture_default(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct ngl_config *config = &s->config;
-    struct rendertarget *rt = s_priv->rt;
-    struct rendertarget *capture_rt = s_priv->capture_rt;
-
-    ngli_rendertarget_blit(rt, capture_rt, 0);
-    ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
-}
-
-static void capture_ios(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    struct rendertarget *rt = s_priv->rt;
-    struct rendertarget *capture_rt = s_priv->capture_rt;
-
-    ngli_rendertarget_blit(rt, capture_rt, 0);
-    ngli_glFinish(gl);
-}
-
-static void capture_gles_msaa(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct ngl_config *config = &s->config;
-    struct rendertarget *rt = s_priv->rt;
-    struct rendertarget *capture_rt = s_priv->capture_rt;
-    struct rendertarget *oes_resolve_rt = s_priv->oes_resolve_rt;
-
-    ngli_rendertarget_blit(rt, oes_resolve_rt, 0);
-    ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 0);
-    ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
-}
-
-static void capture_ios_msaa(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    struct rendertarget *rt = s_priv->rt;
-    struct rendertarget *capture_rt = s_priv->capture_rt;
-    struct rendertarget *oes_resolve_rt = s_priv->oes_resolve_rt;
-
-    ngli_rendertarget_blit(rt, oes_resolve_rt, 0);
-    ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 0);
-    ngli_glFinish(gl);
-}
-
-static void capture_cpu_fallback(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct ngl_config *config = &s->config;
-    struct rendertarget *rt = s_priv->rt;
-
-    ngli_rendertarget_read_pixels(rt, s_priv->capture_buffer);
-    const int step = config->width * 4;
-    const uint8_t *src = s_priv->capture_buffer + (config->height - 1) * step;
-    uint8_t *dst = config->capture_buffer;
-    for (int i = 0; i < config->height; i++) {
-        memcpy(dst, src, step);
-        dst += step;
-        src -= step;
-    }
-}
-
-static int capture_init(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    struct ngl_config *config = &s->config;
-    const int ios_capture = gl->platform == NGL_PLATFORM_IOS && config->window;
-
-    if (!config->capture_buffer && !ios_capture)
-        return 0;
-
-    if (gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) {
-        if (ios_capture) {
-#if defined(TARGET_IPHONE)
-            CVPixelBufferRef capture_cvbuffer = (CVPixelBufferRef)config->window;
-            s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain(capture_cvbuffer);
-            if (!s_priv->capture_cvbuffer)
-                return NGL_ERROR_MEMORY;
-
-            CVOpenGLESTextureCacheRef *cache = ngli_glcontext_get_texture_cache(gl);
-            int width = CVPixelBufferGetWidth(s_priv->capture_cvbuffer);
-            int height = CVPixelBufferGetHeight(s_priv->capture_cvbuffer);
-            CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                                                                        *cache,
-                                                                        s_priv->capture_cvbuffer,
-                                                                        NULL,
-                                                                        GL_TEXTURE_2D,
-                                                                        GL_RGBA,
-                                                                        width,
-                                                                        height,
-                                                                        GL_BGRA,
-                                                                        GL_UNSIGNED_BYTE,
-                                                                        0,
-                                                                        &s_priv->capture_cvtexture);
-            if (err != noErr) {
-                LOG(ERROR, "could not create CoreVideo texture from CVPixelBuffer: 0x%x", err);
-                return NGL_ERROR_EXTERNAL;
-            }
-
-            GLuint id = CVOpenGLESTextureGetName(s_priv->capture_cvtexture);
-            ngli_glBindTexture(gl, GL_TEXTURE_2D, id);
-            ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
-
-            struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-            attachment_params.format = NGLI_FORMAT_B8G8R8A8_UNORM;
-            attachment_params.width = width;
-            attachment_params.height = height;
-            s_priv->capture_rt_color = ngli_texture_create(s);
-            if (!s_priv->capture_rt_color)
-                return NGL_ERROR_MEMORY;
-            int ret = ngli_texture_gl_wrap(s_priv->capture_rt_color, &attachment_params, id);
-            if (ret < 0)
-                return ret;
-#endif
-        } else {
-            struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-            attachment_params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
-            attachment_params.width = config->width;
-            attachment_params.height = config->height;
-            attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-            s_priv->capture_rt_color = ngli_texture_create(s);
-            if (!s_priv->capture_rt_color)
-                return NGL_ERROR_MEMORY;
-            int ret = ngli_texture_init(s_priv->capture_rt_color, &attachment_params);
-            if (ret < 0)
-                return ret;
-        }
-
-        struct rendertarget_params rt_params = {
-            .width = config->width,
-            .height = config->height,
-            .nb_colors = 1,
-            .colors[0] = {
-                .attachment = s_priv->capture_rt_color,
-            },
-        };
-        s_priv->capture_rt = ngli_rendertarget_create(s);
-        if (!s_priv->capture_rt)
-            return NGL_ERROR_MEMORY;
-        int ret = ngli_rendertarget_init(s_priv->capture_rt, &rt_params);
-        if (ret < 0)
-            return ret;
-
-        if (gl->backend == NGL_BACKEND_OPENGLES && config->samples > 0) {
-            struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-            attachment_params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
-            attachment_params.width = config->width;
-            attachment_params.height = config->height;
-            attachment_params.samples = 0;
-            attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-            s_priv->oes_resolve_rt_color = ngli_texture_create(s);
-            if (!s_priv->oes_resolve_rt_color)
-                return NGL_ERROR_MEMORY;
-            int ret = ngli_texture_init(s_priv->oes_resolve_rt_color, &attachment_params);
-            if (ret < 0)
-                return ret;
-
-            struct rendertarget_params rt_params = {
-                .width = config->width,
-                .height = config->height,
-                .nb_colors = 1,
-                .colors[0] = {
-                    .attachment = s_priv->oes_resolve_rt_color,
-                }
-            };
-            s_priv->oes_resolve_rt = ngli_rendertarget_create(s);
-            if (!s_priv->oes_resolve_rt)
-                return NGL_ERROR_MEMORY;
-            ret = ngli_rendertarget_init(s_priv->oes_resolve_rt, &rt_params);
-            if (ret < 0)
-                return ret;
-
-            s_priv->capture_func = config->capture_buffer ? capture_gles_msaa : capture_ios_msaa;
-        } else {
-            s_priv->capture_func = config->capture_buffer ? capture_default : capture_ios;
-        }
-
-    } else {
-        if (ios_capture) {
-            LOG(WARNING, "context does not support the framebuffer object feature, "
-                "capturing to a CVPixelBuffer is not supported");
-            return NGL_ERROR_UNSUPPORTED;
-        }
-        s_priv->capture_buffer = ngli_calloc(config->width * config->height, 4 /* RGBA */);
-        if (!s_priv->capture_buffer)
-            return NGL_ERROR_MEMORY;
-
-        s_priv->capture_func = capture_cpu_fallback;
-    }
-
-    ngli_assert(s_priv->capture_func);
-
-    return 0;
-}
-
-static void capture_reset(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    ngli_rendertarget_freep(&s_priv->capture_rt);
-    ngli_texture_freep(&s_priv->capture_rt_color);
-    ngli_rendertarget_freep(&s_priv->oes_resolve_rt);
-    ngli_texture_freep(&s_priv->oes_resolve_rt_color);
-    ngli_freep(&s_priv->capture_buffer);
 #if defined(TARGET_IPHONE)
     if (s_priv->capture_cvbuffer) {
         CFRelease(s_priv->capture_cvbuffer);
@@ -350,10 +234,6 @@ static int gl_init(struct gctx *s)
 
     if (gl->offscreen) {
         ret = offscreen_rendertarget_init(s);
-        if (ret < 0)
-            return ret;
-
-        ret = capture_init(s);
         if (ret < 0)
             return ret;
     }
@@ -446,7 +326,6 @@ static int gl_post_draw(struct gctx *s, double t)
 static void gl_destroy(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    capture_reset(s);
     offscreen_rendertarget_reset(s);
     ngli_glcontext_freep(&s_priv->glcontext);
 }

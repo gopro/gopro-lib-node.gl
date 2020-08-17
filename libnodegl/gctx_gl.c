@@ -113,10 +113,10 @@ static int offscreen_rendertarget_init(struct gctx *s)
         attachment_params.format = NGLI_FORMAT_B8G8R8A8_UNORM;
         attachment_params.width = width;
         attachment_params.height = height;
-        s_priv->rt_color = ngli_texture_create(s);
-        if (!s_priv->rt_color)
+        s_priv->color = ngli_texture_create(s);
+        if (!s_priv->color)
             return NGL_ERROR_MEMORY;
-        int ret = ngli_texture_gl_wrap(s_priv->rt_color, &attachment_params, id);
+        int ret = ngli_texture_gl_wrap(s_priv->color, &attachment_params, id);
         if (ret < 0)
             return ret;
 #endif
@@ -126,10 +126,10 @@ static int offscreen_rendertarget_init(struct gctx *s)
         params.width = config->width;
         params.height = config->height;
         params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-        s_priv->rt_color = ngli_texture_create(s);
-        if (!s_priv->rt_color)
+        s_priv->color = ngli_texture_create(s);
+        if (!s_priv->color)
             return NGL_ERROR_MEMORY;
-        int ret = ngli_texture_init(s_priv->rt_color, &params);
+        int ret = ngli_texture_init(s_priv->color, &params);
         if (ret < 0)
             return ret;
     }
@@ -141,10 +141,10 @@ static int offscreen_rendertarget_init(struct gctx *s)
         params.height = config->height;
         params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
         params.samples = config->samples;
-        s_priv->rt_ms_color = ngli_texture_create(s);
-        if (!s_priv->rt_ms_color)
+        s_priv->ms_color = ngli_texture_create(s);
+        if (!s_priv->ms_color)
             return NGL_ERROR_MEMORY;
-        int ret = ngli_texture_init(s_priv->rt_ms_color, &params);
+        int ret = ngli_texture_init(s_priv->ms_color, &params);
         if (ret < 0)
             return ret;
     }
@@ -155,10 +155,10 @@ static int offscreen_rendertarget_init(struct gctx *s)
     attachment_params.height = config->height;
     attachment_params.samples = config->samples;
     attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-    s_priv->rt_depth = ngli_texture_create(s);
-    if (!s_priv->rt_depth)
+    s_priv->depth = ngli_texture_create(s);
+    if (!s_priv->depth)
         return NGL_ERROR_MEMORY;
-    int ret = ngli_texture_init(s_priv->rt_depth, &attachment_params);
+    int ret = ngli_texture_init(s_priv->depth, &attachment_params);
     if (ret < 0)
         return ret;
 
@@ -167,11 +167,11 @@ static int offscreen_rendertarget_init(struct gctx *s)
         .height = config->height,
         .nb_colors = 1,
         .colors[0] = {
-            .attachment     = config->samples ? s_priv->rt_ms_color : s_priv->rt_color,
-            .resolve_target = config->samples ? s_priv->rt_color    : NULL,
+            .attachment     = config->samples ? s_priv->ms_color : s_priv->color,
+            .resolve_target = config->samples ? s_priv->color    : NULL,
         },
         .depth_stencil = {
-            .attachment = s_priv->rt_depth,
+            .attachment = s_priv->depth,
         },
     };
 
@@ -195,9 +195,9 @@ static void offscreen_rendertarget_reset(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     ngli_rendertarget_freep(&s_priv->rt);
-    ngli_texture_freep(&s_priv->rt_color);
-    ngli_texture_freep(&s_priv->rt_ms_color);
-    ngli_texture_freep(&s_priv->rt_depth);
+    ngli_texture_freep(&s_priv->color);
+    ngli_texture_freep(&s_priv->ms_color);
+    ngli_texture_freep(&s_priv->depth);
 #if defined(TARGET_IPHONE)
     if (s_priv->capture_cvbuffer) {
         CFRelease(s_priv->capture_cvbuffer);

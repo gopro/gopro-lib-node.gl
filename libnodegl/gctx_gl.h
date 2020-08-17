@@ -53,9 +53,9 @@ struct gctx_gl {
     int timer_active;
     /* Offscreen render target */
     struct rendertarget *rt;
-    struct texture *rt_color;
-    struct texture *rt_ms_color;
-    struct texture *rt_depth;
+    struct texture *color;
+    struct texture *ms_color;
+    struct texture *depth;
     /* Capture offscreen render target */
     capture_func_type capture_func;
 #if defined(TARGET_IPHONE)

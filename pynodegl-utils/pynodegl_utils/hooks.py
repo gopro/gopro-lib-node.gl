@@ -30,7 +30,7 @@ import time
 from PySide2 import QtCore
 
 
-class HooksCaller:
+class _HooksCaller:
 
     _HOOKS = ('get_session_info', 'get_sessions', 'scene_change', 'sync_file')
 
@@ -113,6 +113,47 @@ class HooksCaller:
 
     def sync_file(self, session_id, localfile):
         return self._get_hook_output('sync_file', session_id, localfile, self._hash_filename(localfile))
+
+
+class HooksCaller:
+
+    def __init__(self, hooksdirs):
+        self._callers = [_HooksCaller(hooksdir) for hooksdir in hooksdirs]
+        self.hooks_available = any(c.hooks_available for c in self._callers)
+
+    def _get_caller_session_id(self, unique_session_id):
+        istr, session_id = unique_session_id.split(':', maxsplit=1)
+        return self._callers[int(istr)], session_id
+
+    def get_sessions(self):
+        '''
+        Session IDs may be identical accross hook systems. A pathological case
+        is with several instances of the same hook system, but it could
+        happen in other situations as well since hook systems don't know each
+        others and may pick common identifiers), so we need to make them
+        unique.
+
+        This methods makes these session IDs unique by adding the index of
+        the caller as prefix.
+        '''
+        sessions = []
+        for caller_id, caller in enumerate(self._callers):
+            caller_sessions = caller.get_sessions()
+            for (session_id, desc, backend, system) in caller_sessions:
+                sessions.append((f'{caller_id}:{session_id}', desc, backend, system))
+        return sessions
+
+    def get_session_info(self, session_id):
+        caller, session_id = self._get_caller_session_id(session_id)
+        return caller.get_session_info(session_id)
+
+    def scene_change(self, session_id, local_scene, cfg):
+        caller, session_id = self._get_caller_session_id(session_id)
+        return caller.scene_change(session_id, local_scene, cfg)
+
+    def sync_file(self, session_id, localfile):
+        caller, session_id = self._get_caller_session_id(session_id)
+        return caller.sync_file(session_id, localfile)
 
 
 class _HooksThread(QtCore.QThread):

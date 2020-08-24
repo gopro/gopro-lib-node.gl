@@ -34,6 +34,8 @@ def run():
     parser.add_argument('-m', dest='module', default='pynodegl_utils.examples',
                         help='set the module name containing the scene functions')
     parser.add_argument('--hooks-dir', dest='hooksdir',
+                        default=[],
+                        action='append',
                         help='set the directory path containing event hooks')
     pargs = parser.parse_args(sys.argv[1:])
 

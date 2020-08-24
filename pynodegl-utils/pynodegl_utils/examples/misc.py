@@ -453,7 +453,7 @@ def cube(cfg, display_depth_buffer=False):
         group = ngl.Group()
 
         depth_texture = ngl.Texture2D()
-        depth_texture.set_format('d16_unorm')
+        depth_texture.set_format('auto_depth')
         depth_texture.set_width(640)
         depth_texture.set_height(480)
 

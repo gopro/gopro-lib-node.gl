@@ -37,6 +37,8 @@ class HooksCaller:
     def __init__(self, hooksdir):
         self._hooksdir = hooksdir
         self.hooks_available = all(self._get_hook(h) is not None for h in self._HOOKS)
+        if not self.hooks_available:
+            print(f'hooks not available in {hooksdir}')
 
     def _get_hook(self, name):
         if not self._hooksdir:

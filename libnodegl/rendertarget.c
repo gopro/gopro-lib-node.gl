@@ -32,11 +32,6 @@ int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_par
     return s->gctx->class->rendertarget_init(s, params);
 }
 
-void ngli_rendertarget_blit(struct rendertarget *s, struct rendertarget *dst, int vflip)
-{
-    return s->gctx->class->rendertarget_blit(s, dst, vflip);
-}
-
 void ngli_rendertarget_resolve(struct rendertarget *s)
 {
     s->gctx->class->rendertarget_resolve(s);

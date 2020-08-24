@@ -63,36 +63,6 @@ static void blit(struct rendertarget *s, int width, int height, int vflip, int f
         ngli_glBlitFramebuffer(gl, 0, 0, s->width, s->height, 0, 0, width, height, flags, GL_NEAREST);
 }
 
-static void blit_no_draw_buffers(struct rendertarget *s, int nb_color_attachments, int width, int height, int vflip)
-{
-    blit(s, width, height, vflip, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-}
-
-static void blit_draw_buffers(struct rendertarget *s, int nb_color_attachments, int width, int height, int vflip)
-{
-    struct rendertarget_gl *s_priv = (struct rendertarget_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
-
-    const GLenum *draw_buffers = s_priv->blit_draw_buffers;
-    const int n = NGLI_MIN(s->nb_color_attachments, nb_color_attachments);
-    for (int i = 0; i < n; i++) {
-        GLbitfield flags = GL_COLOR_BUFFER_BIT;
-        if (i == 0)
-            flags |= GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-        ngli_glReadBuffer(gl, GL_COLOR_ATTACHMENT0 + i);
-#if defined(TARGET_DARWIN)
-        ngli_glDrawBuffer(gl, GL_COLOR_ATTACHMENT0 + i);
-#else
-        ngli_glDrawBuffers(gl, i + 1, draw_buffers);
-#endif
-        draw_buffers += i + 1;
-        blit(s, width, height, vflip, flags);
-    }
-    ngli_glReadBuffer(gl, GL_COLOR_ATTACHMENT0);
-    ngli_glDrawBuffers(gl, s->nb_color_attachments, s_priv->draw_buffers);
-}
-
 static void resolve_no_draw_buffers(struct rendertarget *s)
 {
     blit(s, s->width, s->height, 0, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -262,7 +232,6 @@ int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_
     if (ret < 0)
         goto done;
 
-    s_priv->blit = blit_no_draw_buffers;
     s_priv->resolve = resolve_no_draw_buffers;
     if (gl->features & NGLI_FEATURE_DRAW_BUFFERS) {
         if (s->nb_color_attachments > limits->max_draw_buffers) {
@@ -282,7 +251,6 @@ int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_
                 draw_buffers[-1] = GL_COLOR_ATTACHMENT0 + i;
             }
 
-            s_priv->blit = blit_draw_buffers;
             s_priv->resolve = resolve_draw_buffers;
         }
     }
@@ -294,26 +262,6 @@ done:;
     ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 
     return ret;
-}
-
-void ngli_rendertarget_gl_blit(struct rendertarget *s, struct rendertarget *dst, int vflip)
-{
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
-
-    if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT))
-        return;
-
-    struct rendertarget_gl *s_priv = (struct rendertarget_gl *)s;
-    struct rendertarget_gl *dst_gl = (struct rendertarget_gl *)dst;
-    ngli_glBindFramebuffer(gl, GL_READ_FRAMEBUFFER, s_priv->id);
-    ngli_glBindFramebuffer(gl, GL_DRAW_FRAMEBUFFER, dst_gl->id);
-    s_priv->blit(s, dst->nb_color_attachments, dst->width, dst->height, vflip);
-
-    struct rendertarget *rt = gctx_gl->rendertarget;
-    struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)rt;
-    const GLuint fbo_id = rt_gl ? rt_gl->id : ngli_glcontext_get_default_framebuffer(gl);
-    ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
 }
 
 void ngli_rendertarget_gl_resolve(struct rendertarget *s)

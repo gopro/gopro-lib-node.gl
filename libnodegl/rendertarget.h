@@ -65,7 +65,6 @@ struct rendertarget {
 
 struct rendertarget *ngli_rendertarget_create(struct gctx *gctx);
 int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params);
-void ngli_rendertarget_blit(struct rendertarget *s, struct rendertarget *dst, int vflip);
 void ngli_rendertarget_resolve(struct rendertarget *s);
 void ngli_rendertarget_read_pixels(struct rendertarget *s, uint8_t *data);
 void ngli_rendertarget_freep(struct rendertarget **sp);

@@ -87,7 +87,6 @@ struct gctx_class {
 
     struct rendertarget *(*rendertarget_create)(struct gctx *ctx);
     int (*rendertarget_init)(struct rendertarget *s, const struct rendertarget_params *params);
-    void (*rendertarget_blit)(struct rendertarget *s, struct rendertarget *dst, int vflip);
     void (*rendertarget_resolve)(struct rendertarget *s);
     void (*rendertarget_read_pixels)(struct rendertarget *s, uint8_t *data);
     void (*rendertarget_freep)(struct rendertarget **sp);

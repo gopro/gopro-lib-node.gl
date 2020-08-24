@@ -32,13 +32,11 @@ struct rendertarget_gl {
     GLuint prev_id;
     GLenum draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS];
     GLenum blit_draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS*(NGLI_MAX_COLOR_ATTACHMENTS+1)/2];
-    void (*blit)(struct rendertarget *s, int nb_color_attachments, int width, int height, int vflip);
     void (*resolve)(struct rendertarget *s);
 };
 
 struct rendertarget *ngli_rendertarget_gl_create(struct gctx *gctx);
 int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_params *params);
-void ngli_rendertarget_gl_blit(struct rendertarget *s, struct rendertarget *dst, int vflip);
 void ngli_rendertarget_gl_resolve(struct rendertarget *s);
 void ngli_rendertarget_gl_read_pixels(struct rendertarget *s, uint8_t *data);
 void ngli_rendertarget_gl_freep(struct rendertarget **sp);

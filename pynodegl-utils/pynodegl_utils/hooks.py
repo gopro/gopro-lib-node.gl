@@ -177,16 +177,18 @@ class _HooksThread(QtCore.QThread):
 
             # The serialized scene is then stored in a file which is then
             # communicated with additional parameters to the user
-            local_scene = op.join(tempfile.gettempdir(), 'ngl_scene.ngl')
-            with open(local_scene, 'w') as f:
+            # FIXME: this won't work on Windows, see
+            # https://docs.python.org/3/library/tempfile.html#tempfile.NamedTemporaryFile
+            with tempfile.NamedTemporaryFile('w', prefix='ngl_scene_', suffix='.ngl', delete=True) as f:
                 f.write(serialized_scene)
-            self.sendingScene.emit(session_id, self._scene_id)
-            try:
-                self._hooks_caller.scene_change(session_id, local_scene, cfg)
-            except subprocess.CalledProcessError as e:
-                self.error.emit(session_id, 'Error (%d) while sending scene' % e.returncode)
-                return
-            self.done.emit(session_id, self._scene_id, time.time() - start_time)
+                f.flush()
+                self.sendingScene.emit(session_id, self._scene_id)
+                try:
+                    self._hooks_caller.scene_change(session_id, f.name, cfg)
+                except subprocess.CalledProcessError as e:
+                    self.error.emit(session_id, 'Error (%d) while sending scene' % e.returncode)
+                    return
+                self.done.emit(session_id, self._scene_id, time.time() - start_time)
 
         except Exception as e:
             self.error.emit(session_id, 'Error: %s' % str(e))

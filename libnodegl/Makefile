@@ -73,7 +73,6 @@ LIB_OBJS = animation.o              \
            drawutils.o              \
            format.o                 \
            gctx.o                   \
-           graphicstate.o           \
            gtimer.o                 \
            hmap.o                   \
            hwconv.o                 \

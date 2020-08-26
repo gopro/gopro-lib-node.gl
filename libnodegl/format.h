@@ -92,4 +92,8 @@ int ngli_format_get_bytes_per_pixel(int format);
 
 int ngli_format_get_nb_comp(int format);
 
+int ngli_format_has_depth(int format);
+
+int ngli_format_has_stencil(int format);
+
 #endif

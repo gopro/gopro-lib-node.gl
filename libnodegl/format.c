@@ -97,3 +97,30 @@ int ngli_format_get_nb_comp(int format)
 {
     return format_comp_sizes[format].nb_comp;
 }
+
+int ngli_format_has_depth(int format)
+{
+    switch (format) {
+    case NGLI_FORMAT_D16_UNORM:
+    case NGLI_FORMAT_X8_D24_UNORM_PACK32:
+    case NGLI_FORMAT_D32_SFLOAT:
+    case NGLI_FORMAT_D24_UNORM_S8_UINT:
+    case NGLI_FORMAT_D32_SFLOAT_S8_UINT:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+int ngli_format_has_stencil(int format)
+{
+    switch (format) {
+    case NGLI_FORMAT_X8_D24_UNORM_PACK32:
+    case NGLI_FORMAT_D24_UNORM_S8_UINT:
+    case NGLI_FORMAT_D32_SFLOAT_S8_UINT:
+    case NGLI_FORMAT_S8_UINT:
+        return 1;
+    default:
+        return 0;
+    }
+}

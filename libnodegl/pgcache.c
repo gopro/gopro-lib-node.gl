@@ -38,9 +38,9 @@ static void reset_cached_frag_map(void *user_arg, void *data)
     ngli_hmap_freep(&p);
 }
 
-int ngli_pgcache_init(struct pgcache *s, struct ngl_ctx *ctx)
+int ngli_pgcache_init(struct pgcache *s, struct gctx *gctx)
 {
-    s->ctx = ctx;
+    s->gctx = gctx;
     s->graphics_cache = ngli_hmap_create();
     s->compute_cache = ngli_hmap_create();
     if (!s->graphics_cache || !s->compute_cache)
@@ -54,8 +54,7 @@ static int query_cache(struct pgcache *s, struct program **dstp,
                        struct hmap *cache, const char *cache_key,
                        const char *vert, const char *frag, const char *comp)
 {
-    struct ngl_ctx *ctx = s->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gctx *gctx = s->gctx;
 
     struct program *cached_program = ngli_hmap_get(cache, cache_key);
     if (cached_program) {
@@ -118,7 +117,7 @@ int ngli_pgcache_get_compute_program(struct pgcache *s, struct program **dstp, c
 
 void ngli_pgcache_reset(struct pgcache *s)
 {
-    if (!s->ctx)
+    if (!s->gctx)
         return;
     ngli_hmap_freep(&s->compute_cache);
     ngli_hmap_freep(&s->graphics_cache);

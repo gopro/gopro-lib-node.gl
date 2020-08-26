@@ -381,7 +381,7 @@ static int gl_init(struct gctx *s)
 
     ngli_glstate_probe(gl, &s_priv->glstate);
 
-    ret = ngli_pgcache_init(&s->pgcache, s->ctx);
+    ret = ngli_pgcache_init(&s->pgcache, s);
     if (ret < 0)
         return ret;
 

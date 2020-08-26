@@ -437,6 +437,17 @@ int ngli_pass_prepare(struct pass *s)
     struct ngl_ctx *ctx = s->ctx;
     struct gctx *gctx = ctx->gctx;
 
+    const int format = ctx->rendertarget_desc->depth_stencil.format;
+    if (ctx->graphicstate.depth_test && !ngli_format_has_depth(format)) {
+        LOG(ERROR, "depth testing is not support on rendertargets with no depth attachment");
+        return NGL_ERROR_INVALID_USAGE;
+    }
+
+    if (ctx->graphicstate.stencil_test && !ngli_format_has_stencil(format)) {
+        LOG(ERROR, "stencil operations are not support on rendertargets with no stencil attachment");
+        return NGL_ERROR_INVALID_USAGE;
+    }
+
     struct pipeline_graphics pipeline_graphics = s->pipeline_graphics;
     pipeline_graphics.state = ctx->graphicstate;
     pipeline_graphics.rt_desc = *ctx->rendertarget_desc;

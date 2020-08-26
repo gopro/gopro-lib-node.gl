@@ -296,10 +296,10 @@ static int graphicconfig_prepare(struct ngl_node *node)
     struct ngl_node *child = s->child;
 
     honor_config(node, 0);
-    ngli_node_prepare(child);
+    int ret = ngli_node_prepare(child);
     honor_config(node, 1);
 
-    return 0;
+    return ret;
 }
 
 static void graphicconfig_draw(struct ngl_node *node)

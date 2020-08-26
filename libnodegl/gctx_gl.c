@@ -484,6 +484,12 @@ static struct rendertarget *gl_get_rendertarget(struct gctx *s)
     return s_priv->rendertarget;
 }
 
+static struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    return &s_priv->default_rendertarget_desc;
+}
+
 static void gl_set_viewport(struct gctx *s, const int *viewport)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
@@ -589,6 +595,7 @@ const struct gctx_class ngli_gctx_gl = {
 
     .set_rendertarget         = gl_set_rendertarget,
     .get_rendertarget         = gl_get_rendertarget,
+    .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
     .set_viewport             = gl_set_viewport,
     .get_viewport             = gl_get_viewport,
     .set_scissor              = gl_set_scissor,
@@ -654,6 +661,7 @@ const struct gctx_class ngli_gctx_gles = {
 
     .set_rendertarget         = gl_set_rendertarget,
     .get_rendertarget         = gl_get_rendertarget,
+    .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
     .set_viewport             = gl_set_viewport,
     .get_viewport             = gl_get_viewport,
     .set_scissor              = gl_set_scissor,

@@ -44,6 +44,7 @@ struct gctx_class {
 
     void (*set_rendertarget)(struct gctx *s, struct rendertarget *rt);
     struct rendertarget *(*get_rendertarget)(struct gctx *s);
+    struct rendertarget_desc *(*get_default_rendertarget_desc)(struct gctx *s);
     void (*set_viewport)(struct gctx *s, const int *viewport);
     void (*get_viewport)(struct gctx *s, int *viewport);
     void (*set_scissor)(struct gctx *s, const int *scissor);
@@ -115,6 +116,7 @@ void ngli_gctx_freep(struct gctx **sp);
 
 void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt);
 struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s);
+struct rendertarget_desc *ngli_gctx_get_default_rendertarget_desc(struct gctx *s);
 
 void ngli_gctx_set_viewport(struct gctx *s, const int *viewport);
 void ngli_gctx_get_viewport(struct gctx *s, int *viewport);

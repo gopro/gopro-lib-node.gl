@@ -111,6 +111,11 @@ struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)
     return s->class->get_rendertarget(s);
 }
 
+struct rendertarget_desc *ngli_gctx_get_default_rendertarget_desc(struct gctx *s)
+{
+    return s->class->get_default_rendertarget_desc(s);
+}
+
 void ngli_gctx_set_viewport(struct gctx *s, const int *viewport)
 {
     s->class->set_viewport(s, viewport);

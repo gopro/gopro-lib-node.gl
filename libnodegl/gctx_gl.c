@@ -40,10 +40,9 @@
 
 static int offscreen_rendertarget_init(struct gctx *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
-    struct ngl_config *config = &ctx->config;
+    struct ngl_config *config = &s->config;
 
     if (!(gl->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && config->samples > 0) {
         LOG(WARNING, "context does not support the framebuffer object feature, "
@@ -107,9 +106,8 @@ static void offscreen_rendertarget_reset(struct gctx *s)
 
 static void capture_default(struct gctx *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct ngl_config *config = &ctx->config;
+    struct ngl_config *config = &s->config;
     struct rendertarget *rt = s_priv->rt;
     struct rendertarget *capture_rt = s_priv->capture_rt;
 
@@ -130,9 +128,8 @@ static void capture_ios(struct gctx *s)
 
 static void capture_gles_msaa(struct gctx *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct ngl_config *config = &ctx->config;
+    struct ngl_config *config = &s->config;
     struct rendertarget *rt = s_priv->rt;
     struct rendertarget *capture_rt = s_priv->capture_rt;
     struct rendertarget *oes_resolve_rt = s_priv->oes_resolve_rt;
@@ -157,9 +154,8 @@ static void capture_ios_msaa(struct gctx *s)
 
 static void capture_cpu_fallback(struct gctx *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct ngl_config *config = &ctx->config;
+    struct ngl_config *config = &s->config;
     struct rendertarget *rt = s_priv->rt;
 
     ngli_rendertarget_read_pixels(rt, s_priv->capture_buffer);
@@ -175,10 +171,9 @@ static void capture_cpu_fallback(struct gctx *s)
 
 static int capture_init(struct gctx *s)
 {
-    struct ngl_ctx *ctx = s->ctx;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
-    struct ngl_config *config = &ctx->config;
+    struct ngl_config *config = &s->config;
     const int ios_capture = gl->platform == NGL_PLATFORM_IOS && config->window;
 
     if (!config->capture_buffer && !ios_capture)
@@ -331,7 +326,7 @@ static void capture_reset(struct gctx *s)
     s_priv->capture_func = NULL;
 }
 
-static struct gctx *gl_create(struct ngl_ctx *ctx)
+static struct gctx *gl_create(const struct ngl_config *config)
 {
     struct gctx_gl *s = ngli_calloc(1, sizeof(*s));
     if (!s)
@@ -342,8 +337,7 @@ static struct gctx *gl_create(struct ngl_ctx *ctx)
 static int gl_init(struct gctx *s)
 {
     int ret;
-    struct ngl_ctx *ctx = s->ctx;
-    const struct ngl_config *config = &ctx->config;
+    const struct ngl_config *config = &s->config;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
 
     s_priv->glcontext = ngli_glcontext_new(config);
@@ -431,10 +425,9 @@ static int gl_pre_draw(struct gctx *s, double t)
 
 static int gl_post_draw(struct gctx *s, double t)
 {
-    struct ngl_ctx *ctx = s->ctx;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
-    struct ngl_config *config = &ctx->config;
+    struct ngl_config *config = &s->config;
 
     ngli_glstate_update(s, &s_priv->default_graphicstate);
 

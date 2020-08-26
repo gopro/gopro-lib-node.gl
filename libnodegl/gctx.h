@@ -35,7 +35,7 @@
 struct gctx_class {
     const char *name;
 
-    struct gctx *(*create)(struct ngl_ctx *ctx);
+    struct gctx *(*create)(const struct ngl_config *config);
     int (*init)(struct gctx *s);
     int (*resize)(struct gctx *s, int width, int height, const int *viewport);
     int (*pre_draw)(struct gctx *s, double t);
@@ -100,7 +100,7 @@ struct gctx_class {
 };
 
 struct gctx {
-    struct ngl_ctx *ctx;
+    struct ngl_config config;
     const struct gctx_class *class;
     int version;
     int features;
@@ -108,7 +108,7 @@ struct gctx {
     struct pgcache pgcache;
 };
 
-struct gctx *ngli_gctx_create(struct ngl_ctx *ctx);
+struct gctx *ngli_gctx_create(const struct ngl_config *config);
 int ngli_gctx_init(struct gctx *s);
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport);
 int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t);

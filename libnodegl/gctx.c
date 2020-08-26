@@ -37,10 +37,8 @@ static const struct gctx_class *backend_map[] = {
 #endif
 };
 
-struct gctx *ngli_gctx_create(struct ngl_ctx *ctx)
+struct gctx *ngli_gctx_create(const struct ngl_config *config)
 {
-    struct ngl_config *config = &ctx->config;
-
     if (config->backend < 0 ||
         config->backend >= NGLI_ARRAY_NB(backend_map) ||
         !backend_map[config->backend]) {
@@ -48,10 +46,10 @@ struct gctx *ngli_gctx_create(struct ngl_ctx *ctx)
         return NULL;
     }
     const struct gctx_class *class = backend_map[config->backend];
-    struct gctx *s = class->create(ctx);
+    struct gctx *s = class->create(config);
     if (!s)
         return NULL;
-    s->ctx = ctx;
+    s->config = *config;
     s->class = class;
     return s;
 }

@@ -106,7 +106,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     s->config = *config;
     s->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
 
-    s->gctx = ngli_gctx_create(s);
+    s->gctx = ngli_gctx_create(config);
     if (!s->gctx)
         return NGL_ERROR_MEMORY;
 

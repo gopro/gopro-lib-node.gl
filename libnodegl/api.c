@@ -39,6 +39,10 @@
 #include "nodes.h"
 #include "rnode.h"
 
+#if defined(HAVE_VAAPI)
+#include "vaapi.h"
+#endif
+
 #if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
 #if defined(BACKEND_GL)
 #include "gctx_gl.h"
@@ -70,6 +74,9 @@ static int get_default_platform(void)
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
+#if defined(HAVE_VAAPI)
+    ngli_vaapi_reset(s);
+#endif
     ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_gctx_freep(&s->gctx);
 
@@ -109,6 +116,12 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         cmd_stop(s, arg);
         return ret;
     }
+
+#if defined(HAVE_VAAPI)
+    ret = ngli_vaapi_init(s);
+    if (ret < 0)
+        LOG(WARNING, "could not initialize vaapi");
+#endif
 
     if (s->scene) {
         ret = ngli_node_attach_ctx(s->scene, s);

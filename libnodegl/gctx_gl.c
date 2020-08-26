@@ -38,10 +38,6 @@
 #include "rendertarget_gl.h"
 #include "texture_gl.h"
 
-#if defined(HAVE_VAAPI)
-#include "vaapi.h"
-#endif
-
 static int offscreen_rendertarget_init(struct gctx *s)
 {
     struct ngl_ctx *ctx = s->ctx;
@@ -399,12 +395,6 @@ static int gl_init(struct gctx *s)
 
     ngli_gctx_set_clear_color(s, config->clear_color);
 
-#if defined(HAVE_VAAPI)
-    ret = ngli_vaapi_init(s->ctx);
-    if (ret < 0)
-        LOG(WARNING, "could not initialize vaapi");
-#endif
-
     return 0;
 }
 
@@ -470,9 +460,6 @@ static void gl_destroy(struct gctx *s)
     ngli_pgcache_reset(&s->pgcache);
     capture_reset(s);
     offscreen_rendertarget_reset(s);
-#if defined(HAVE_VAAPI)
-    ngli_vaapi_reset(s->ctx);
-#endif
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 

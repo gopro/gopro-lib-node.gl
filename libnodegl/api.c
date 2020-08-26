@@ -31,6 +31,7 @@
 
 #include "darray.h"
 #include "gctx.h"
+#include "graphicstate.h"
 #include "log.h"
 #include "math_utils.h"
 #include "memory.h"
@@ -96,6 +97,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     }
 
     s->config = *config;
+    s->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
 
     s->gctx = ngli_gctx_create(s);
     if (!s->gctx)

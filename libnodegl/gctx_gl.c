@@ -371,10 +371,6 @@ static int gl_init(struct gctx *s)
     ngli_glstate_probe(gl, &s_priv->glstate);
     s_priv->default_graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
 
-    ret = ngli_pgcache_init(&s->pgcache, s);
-    if (ret < 0)
-        return ret;
-
     const int *viewport = config->viewport;
     if (viewport[2] > 0 && viewport[3] > 0) {
         ngli_gctx_set_viewport(s, viewport);
@@ -449,7 +445,6 @@ static int gl_post_draw(struct gctx *s, double t)
 static void gl_destroy(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    ngli_pgcache_reset(&s->pgcache);
     capture_reset(s);
     offscreen_rendertarget_reset(s);
     ngli_glcontext_freep(&s_priv->glcontext);

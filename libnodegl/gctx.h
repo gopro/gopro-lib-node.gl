@@ -27,7 +27,6 @@
 #include "gtimer.h"
 #include "limits.h"
 #include "nodegl.h"
-#include "pgcache.h"
 #include "pipeline.h"
 #include "rendertarget.h"
 #include "texture.h"
@@ -105,7 +104,6 @@ struct gctx {
     int version;
     int features;
     struct limits limits;
-    struct pgcache pgcache;
 };
 
 struct gctx *ngli_gctx_create(const struct ngl_config *config);

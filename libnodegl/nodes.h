@@ -87,6 +87,7 @@ struct ngl_ctx {
     struct darray projection_matrix_stack;
     struct darray activitycheck_nodes;
     struct texture *font_atlas;
+    struct pgcache pgcache;
 #if defined(HAVE_VAAPI_X11)
     Display *x11_display;
 #endif

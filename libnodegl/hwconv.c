@@ -129,7 +129,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
         .type          = NGLI_PIPELINE_TYPE_GRAPHICS,
         .graphics      = {
             .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
-            .state       = ctx->graphicstate,
+            .state       = NGLI_GRAPHICSTATE_DEFAULTS,
             .rt_desc     = rt_desc,
         },
     };

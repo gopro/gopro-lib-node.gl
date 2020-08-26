@@ -503,6 +503,7 @@ static int init_subdesc(struct ngl_node *node,
 static int bg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct rnode *rnode = ctx->rnode_pos;
     struct text_priv *s = node->priv_data;
 
     const struct pgcraft_uniform uniforms[] = {
@@ -525,8 +526,8 @@ static int bg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
         .type          = NGLI_PIPELINE_TYPE_GRAPHICS,
         .graphics      = {
             .topology       = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-            .state          = ctx->graphicstate,
-            .rt_desc        = *ctx->rendertarget_desc,
+            .state          = rnode->graphicstate,
+            .rt_desc        = rnode->rendertarget_desc,
         }
     };
 
@@ -545,6 +546,7 @@ static int bg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
 static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct rnode *rnode = ctx->rnode_pos;
     struct text_priv *s = node->priv_data;
 
     const struct pgcraft_uniform uniforms[] = {
@@ -580,7 +582,7 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
     };
 
     /* This controls how the characters blend onto the background */
-    struct graphicstate state = ctx->graphicstate;
+    struct graphicstate state = rnode->graphicstate;
     state.blend = 1;
     state.blend_src_factor   = NGLI_BLEND_FACTOR_SRC_ALPHA;
     state.blend_dst_factor   = NGLI_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -592,7 +594,7 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
         .graphics      = {
             .topology       = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             .state          = state,
-            .rt_desc        = *ctx->rendertarget_desc,
+            .rt_desc        = rnode->rendertarget_desc,
         }
     };
 

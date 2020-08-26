@@ -49,5 +49,7 @@ struct rnode *ngli_rnode_add_child(struct rnode *s)
 {
     struct rnode *child = ngli_darray_push(&s->children, NULL);
     ngli_rnode_init(child);
+    child->graphicstate = s->graphicstate;
+    child->rendertarget_desc = s->rendertarget_desc;
     return child;
 }

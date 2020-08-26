@@ -1321,7 +1321,8 @@ static int hud_init(struct ngl_node *node)
         },
     };
 
-    struct graphicstate graphicstate = ctx->graphicstate;
+    struct rnode *rnode = ctx->rnode_pos;
+    struct graphicstate graphicstate = rnode->graphicstate;
     graphicstate.blend = 1;
     graphicstate.blend_src_factor = NGLI_BLEND_FACTOR_SRC_ALPHA;
     graphicstate.blend_dst_factor = NGLI_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -1333,7 +1334,7 @@ static int hud_init(struct ngl_node *node)
         .graphics      = {
             .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
             .state       = graphicstate,
-            .rt_desc     = *ctx->rendertarget_desc,
+            .rt_desc     = rnode->rendertarget_desc,
         }
     };
 

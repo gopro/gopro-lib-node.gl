@@ -106,7 +106,6 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     }
 
     s->config = *config;
-    s->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
 
     s->gctx = ngli_gctx_create(config);
     if (!s->gctx)
@@ -119,7 +118,8 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         return ret;
     }
 
-    s->rendertarget_desc = ngli_gctx_get_default_rendertarget_desc(s->gctx);
+    s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
+    s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);
 
     ret = ngli_pgcache_init(&s->pgcache, s->gctx);
     if (ret < 0)
@@ -163,6 +163,9 @@ static int cmd_set_scene(struct ngl_ctx *s, void *arg)
         ngl_node_unrefp(&s->scene);
     }
     ngli_rnode_clear(&s->rnode);
+
+    s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
+    s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);
 
     struct ngl_node *scene = arg;
     if (!scene)

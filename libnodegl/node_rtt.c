@@ -123,6 +123,7 @@ static int rtt_prepare(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
+    struct rnode *rnode = ctx->rnode_pos;
     struct rtt_priv *s = node->priv_data;
 
     struct rendertarget_desc desc = {0};
@@ -152,15 +153,9 @@ static int rtt_prepare(struct ngl_node *node)
         desc.depth_stencil.format = depth_format;
         desc.depth_stencil.samples = s->samples;
     }
+    rnode->rendertarget_desc = desc;
 
-    struct rendertarget_desc *prev_desc = ctx->rendertarget_desc;
-    ctx->rendertarget_desc = &desc;
-
-    int ret = ngli_node_prepare(s->child);
-
-    ctx->rendertarget_desc = prev_desc;
-
-    return ret;
+    return ngli_node_prepare(s->child);
 }
 
 static int rtt_prefetch(struct ngl_node *node)

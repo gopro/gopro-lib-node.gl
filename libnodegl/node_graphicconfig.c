@@ -249,45 +249,42 @@ static int graphicconfig_update(struct ngl_node *node, double t)
     }                                \
 } while (0)                          \
 
-static void honor_config(struct ngl_node *node, int restore)
+static void honor_config(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct rnode *rnode = ctx->rnode_pos;
     struct graphicconfig_priv *s = node->priv_data;
+    struct graphicstate *pending = &rnode->graphicstate;
 
-    if (restore) {
-        ctx->graphicstate = s->graphicstate;
-    } else {
-        struct graphicstate *pending = &ctx->graphicstate;
-        s->graphicstate = *pending;
+    s->graphicstate = *pending;
 
-        COPY_PARAM(blend);
-        COPY_PARAM(blend_dst_factor);
-        COPY_PARAM(blend_src_factor);
-        COPY_PARAM(blend_dst_factor_a);
-        COPY_PARAM(blend_src_factor_a);
-        COPY_PARAM(blend_op);
-        COPY_PARAM(blend_op_a);
+    COPY_PARAM(blend);
+    COPY_PARAM(blend_dst_factor);
+    COPY_PARAM(blend_src_factor);
+    COPY_PARAM(blend_dst_factor_a);
+    COPY_PARAM(blend_src_factor_a);
+    COPY_PARAM(blend_op);
+    COPY_PARAM(blend_op_a);
 
-        COPY_PARAM(color_write_mask);
+    COPY_PARAM(color_write_mask);
 
-        COPY_PARAM(depth_test);
-        COPY_PARAM(depth_write_mask);
-        COPY_PARAM(depth_func);
+    COPY_PARAM(depth_test);
+    COPY_PARAM(depth_write_mask);
+    COPY_PARAM(depth_func);
 
-        COPY_PARAM(stencil_test);
-        COPY_PARAM(stencil_write_mask);
-        COPY_PARAM(stencil_func);
-        COPY_PARAM(stencil_ref);
-        COPY_PARAM(stencil_read_mask);
-        COPY_PARAM(stencil_fail);
-        COPY_PARAM(stencil_depth_fail);
-        COPY_PARAM(stencil_depth_pass);
+    COPY_PARAM(stencil_test);
+    COPY_PARAM(stencil_write_mask);
+    COPY_PARAM(stencil_func);
+    COPY_PARAM(stencil_ref);
+    COPY_PARAM(stencil_read_mask);
+    COPY_PARAM(stencil_fail);
+    COPY_PARAM(stencil_depth_fail);
+    COPY_PARAM(stencil_depth_pass);
 
-        COPY_PARAM(cull_face);
-        COPY_PARAM(cull_face_mode);
+    COPY_PARAM(cull_face);
+    COPY_PARAM(cull_face_mode);
 
-        COPY_PARAM(scissor_test);
-    }
+    COPY_PARAM(scissor_test);
 }
 
 static int graphicconfig_prepare(struct ngl_node *node)
@@ -295,11 +292,8 @@ static int graphicconfig_prepare(struct ngl_node *node)
     struct graphicconfig_priv *s = node->priv_data;
     struct ngl_node *child = s->child;
 
-    honor_config(node, 0);
-    int ret = ngli_node_prepare(child);
-    honor_config(node, 1);
-
-    return ret;
+    honor_config(node);
+    return ngli_node_prepare(child);
 }
 
 static void graphicconfig_draw(struct ngl_node *node)

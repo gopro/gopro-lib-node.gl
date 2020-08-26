@@ -79,8 +79,6 @@ struct ngl_ctx {
     struct gctx *gctx;
     struct rnode rnode;
     struct rnode *rnode_pos;
-    struct graphicstate graphicstate;
-    struct rendertarget_desc *rendertarget_desc;
     struct ngl_node *scene;
     struct ngl_config config;
     struct darray modelview_matrix_stack;

@@ -373,7 +373,6 @@ static int gl_init(struct gctx *s)
     s_priv->default_rendertarget_desc.depth_stencil.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
     s_priv->default_rendertarget_desc.depth_stencil.samples = gl->samples;
     s_priv->default_rendertarget_desc.depth_stencil.resolve = gl->samples > 1;
-    ctx->rendertarget_desc = &s_priv->default_rendertarget_desc;
 
     ngli_glstate_probe(gl, &s_priv->glstate);
     s_priv->default_graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;

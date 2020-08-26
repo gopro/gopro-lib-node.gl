@@ -117,6 +117,8 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         return ret;
     }
 
+    s->rendertarget_desc = ngli_gctx_get_default_rendertarget_desc(s->gctx);
+
 #if defined(HAVE_VAAPI)
     ret = ngli_vaapi_init(s);
     if (ret < 0)

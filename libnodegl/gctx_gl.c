@@ -380,6 +380,7 @@ static int gl_init(struct gctx *s)
     ctx->rendertarget_desc = &s_priv->default_rendertarget_desc;
 
     ngli_glstate_probe(gl, &s_priv->glstate);
+    s_priv->default_graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
 
     ret = ngli_pgcache_init(&s->pgcache, s);
     if (ret < 0)
@@ -448,7 +449,7 @@ static int gl_post_draw(struct gctx *s, double t)
     struct glcontext *gl = s_priv->glcontext;
     struct ngl_config *config = &ctx->config;
 
-    ngli_glstate_update(s, &ctx->graphicstate);
+    ngli_glstate_update(s, &s_priv->default_graphicstate);
 
     if (s_priv->capture_func)
         s_priv->capture_func(s);

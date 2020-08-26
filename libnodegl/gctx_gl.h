@@ -45,6 +45,7 @@ struct gctx_gl {
     struct glcontext *glcontext;
     struct glstate glstate;
     struct rendertarget *rendertarget;
+    struct graphicstate default_graphicstate;
     struct rendertarget_desc default_rendertarget_desc;
     int viewport[4];
     int scissor[4];

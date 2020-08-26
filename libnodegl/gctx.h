@@ -110,7 +110,7 @@ struct gctx {
 struct gctx *ngli_gctx_create(struct ngl_ctx *ctx);
 int ngli_gctx_init(struct gctx *s);
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport);
-int ngli_gctx_draw(struct gctx *s, double t);
+int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t);
 void ngli_gctx_freep(struct gctx **sp);
 
 void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt);

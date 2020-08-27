@@ -67,9 +67,9 @@ def api_reconfigure_clearcolor(width=16, height=16):
     assert viewer.draw(0) == 0
     assert zlib.crc32(capture_buffer) == 0xb4bd32fa
     assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer,
-                            clear_color=(0.3, 0.3, 0.3, 1.0)) == 0
+                            clear_color=(0.4, 0.4, 0.4, 1.0)) == 0
     assert viewer.draw(0) == 0
-    assert zlib.crc32(capture_buffer) == 0xfeb0bb01
+    assert zlib.crc32(capture_buffer) == 0x05c44869
     del capture_buffer
     del viewer
 

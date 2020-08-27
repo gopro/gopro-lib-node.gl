@@ -21,6 +21,7 @@
 
 API_TEST_NAMES =             \
     backend                  \
+    init_fail                \
     reconfigure              \
     reconfigure_clearcolor   \
     reconfigure_fail         \

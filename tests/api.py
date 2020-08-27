@@ -141,3 +141,26 @@ def api_hud(width=234, height=123):
     for i in range(60 * 3):
         assert viewer.draw(i / 60.) == 0
     del viewer
+
+
+def api_init_fail(width=320, height=240):
+    viewer = ngl.Context()
+    assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
+
+    program = ngl.Program(vertex=_vert, fragment=_frag + '<bug>')
+    geometry = ngl.Quad()
+    render = ngl.Render(geometry, program)
+    ucolor = ngl.UniformVec4(value=(1.0, 1.0, 1.0, 1.0))
+    render.update_frag_resources(color=ucolor)
+
+    assert viewer.set_scene(render) != 0
+    assert viewer.set_scene(render) != 0
+    assert viewer.draw(0) == 0  # XXX: drawing with no scene is allowed?
+
+    program = ngl.Program(vertex=_vert, fragment=_frag + '<bug>')
+    render.set_program(program)
+    assert viewer.set_scene(render) != 0
+
+    assert viewer.draw(1) == 0
+    ucolor.set_value(0.1, 0.2, 0.3, 0.4)
+    assert viewer.draw(2) == 0

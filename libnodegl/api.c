@@ -67,6 +67,13 @@ static int get_default_platform(void)
 #endif
 }
 
+static int cmd_stop(struct ngl_ctx *s, void *arg)
+{
+    ngli_gctx_freep(&s->gctx);
+
+    return 0;
+}
+
 static int cmd_configure(struct ngl_ctx *s, void *arg)
 {
     struct ngl_config *config = arg;
@@ -75,7 +82,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         ngli_node_detach_ctx(s->scene, s);
     ngli_rnode_clear(&s->rnode);
 
-    ngli_gctx_freep(&s->gctx);
+    cmd_stop(s, arg);
 
     if (config->backend == NGL_BACKEND_AUTO)
         config->backend = DEFAULT_BACKEND;
@@ -96,7 +103,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     int ret = ngli_gctx_init(s->gctx);
     if (ret < 0) {
         LOG(ERROR, "unable to initialize gpu context");
-        ngli_gctx_freep(&s->gctx);
+        cmd_stop(s, arg);
         return ret;
     }
 
@@ -105,7 +112,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         if (ret < 0) {
             ngli_node_detach_ctx(s->scene, s);
             ngl_node_unrefp(&s->scene);
-            ngli_gctx_freep(&s->gctx);
+            cmd_stop(s, arg);
             return ret;
         }
     }
@@ -183,13 +190,6 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
         return ret;
 
     return ngli_gctx_draw(s->gctx, t);
-}
-
-static int cmd_stop(struct ngl_ctx *s, void *arg)
-{
-    ngli_gctx_freep(&s->gctx);
-
-    return 0;
 }
 
 static int dispatch_cmd(struct ngl_ctx *s, cmd_func_type cmd_func, void *arg)

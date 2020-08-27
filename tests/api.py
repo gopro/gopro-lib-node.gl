@@ -167,3 +167,17 @@ def api_text_live_change(width=320, height=240):
         crc = zlib.crc32(capture_buffer)
         assert crc != last_crc
         last_crc = crc
+
+
+def api_reset_scene(width=320, height=240):
+    viewer = ngl.Context()
+    assert viewer.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
+    render = _get_scene()
+    assert viewer.set_scene(render) == 0
+    viewer.draw(0)
+    assert viewer.set_scene(None) == 0
+    viewer.draw(1)
+    assert viewer.set_scene(render) == 0
+    viewer.draw(2)
+    assert viewer.set_scene(None) == 0
+    viewer.draw(3)

@@ -33,13 +33,13 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', dest='module', default='pynodegl_utils.examples',
                         help='set the module name containing the scene functions')
-    parser.add_argument('--hooks-dir', dest='hooksdir',
+    parser.add_argument('--hooks-dir', dest='hooksdirs',
                         default=[],
                         action='append',
                         help='set the directory path containing event hooks')
     pargs = parser.parse_args(sys.argv[1:])
 
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow(pargs.module, pargs.hooksdir)
+    window = MainWindow(pargs.module, pargs.hooksdirs)
     window.show()
     app.exec_()

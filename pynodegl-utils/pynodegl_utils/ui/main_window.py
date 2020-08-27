@@ -42,14 +42,14 @@ class MainWindow(QtWidgets.QSplitter):
 
     error = QtCore.Signal(str)
 
-    def __init__(self, module_pkgname, hooksdir):
+    def __init__(self, module_pkgname, hooksdirs):
         super().__init__(QtCore.Qt.Horizontal)
         self._win_title_base = 'Node.gl viewer'
         self.setWindowTitle(self._win_title_base)
 
         self._module_pkgname = module_pkgname
         self._scripts_mgr = ScriptsManager(module_pkgname)
-        self._hooks_caller = HooksCaller(hooksdir)
+        self._hooks_caller = HooksCaller(hooksdirs)
 
         get_scene_func = self._get_scene
 

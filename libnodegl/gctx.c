@@ -109,7 +109,7 @@ struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)
     return s->class->get_rendertarget(s);
 }
 
-struct rendertarget_desc *ngli_gctx_get_default_rendertarget_desc(struct gctx *s)
+const struct rendertarget_desc *ngli_gctx_get_default_rendertarget_desc(struct gctx *s)
 {
     return s->class->get_default_rendertarget_desc(s);
 }

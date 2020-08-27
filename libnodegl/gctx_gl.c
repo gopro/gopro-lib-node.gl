@@ -471,7 +471,7 @@ static struct rendertarget *gl_get_rendertarget(struct gctx *s)
     return s_priv->rendertarget;
 }
 
-static struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
+static const struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     return &s_priv->default_rendertarget_desc;

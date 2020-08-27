@@ -261,8 +261,8 @@ static int check_params_sanity(struct ngl_node *node)
         return 0;
 
     while (par->key) {
-        const void *p = *(uint8_t **)(base_ptr + par->offset);
-        if ((par->flags & PARAM_FLAG_NON_NULL) && !p) {
+        const void *p = base_ptr + par->offset;
+        if ((par->flags & PARAM_FLAG_NON_NULL) && !*(uint8_t **)p) {
             LOG(ERROR, "%s: %s parameter can not be null", node->label, par->key);
             return NGL_ERROR_INVALID_ARG;
         }

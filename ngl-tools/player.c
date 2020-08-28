@@ -124,6 +124,16 @@ end:
     return ret;
 }
 
+static void kill_scene()
+{
+    struct player *p = g_player;
+
+    ngl_set_scene(p->ngl, NULL);
+    p->pgbar_opacity_node  = NULL;
+    p->pgbar_duration_node = NULL;
+    p->pgbar_text_node     = NULL;
+}
+
 static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
 {
     struct player *p = g_player;
@@ -143,6 +153,9 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
         break;
     case SDLK_s:
         screenshot();
+        break;
+    case SDLK_k:
+        kill_scene();
         break;
     default:
         break;

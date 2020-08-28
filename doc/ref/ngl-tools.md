@@ -90,3 +90,4 @@ Key           | Action
 `ESC` or `q`  | quit the application
 `SPACE`       | toggle the pause/playback
 `f`           | toggle windowed/fullscreen
+`k`           | kill the current scene

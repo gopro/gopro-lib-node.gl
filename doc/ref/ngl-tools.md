@@ -92,4 +92,5 @@ Key           | Action
 `LEFT`        | seek by -10 seconds
 `RIGHT`       | seek by +10 seconds
 `f`           | toggle windowed/fullscreen
+`s`           | take a screenshot
 `k`           | kill the current scene

@@ -450,6 +450,21 @@ static void gl_destroy(struct gctx *s)
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 
+static void gl_transform_projection_matrix(struct gctx *s, float *dst)
+{
+}
+
+static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
+{
+    static const NGLI_ALIGNED_MAT(matrix) = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f,-1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+    };
+    memcpy(dst, matrix, 4 * 4 * sizeof(float));
+}
+
 static void gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
@@ -578,6 +593,9 @@ const struct gctx_class ngli_gctx_gl = {
     .post_draw    = gl_post_draw,
     .destroy      = gl_destroy,
 
+    .transform_projection_matrix      = gl_transform_projection_matrix,
+    .get_rendertarget_uvcoord_matrix  = gl_get_rendertarget_uvcoord_matrix,
+
     .set_rendertarget         = gl_set_rendertarget,
     .get_rendertarget         = gl_get_rendertarget,
     .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
@@ -643,6 +661,9 @@ const struct gctx_class ngli_gctx_gles = {
     .pre_draw     = gl_pre_draw,
     .post_draw    = gl_post_draw,
     .destroy      = gl_destroy,
+
+    .transform_projection_matrix      = gl_transform_projection_matrix,
+    .get_rendertarget_uvcoord_matrix  = gl_get_rendertarget_uvcoord_matrix,
 
     .set_rendertarget         = gl_set_rendertarget,
     .get_rendertarget         = gl_get_rendertarget,

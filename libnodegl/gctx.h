@@ -41,6 +41,9 @@ struct gctx_class {
     int (*post_draw)(struct gctx *s, double t);
     void (*destroy)(struct gctx *s);
 
+    void (*transform_projection_matrix)(struct gctx *s, float *dst);
+    void (*get_rendertarget_uvcoord_matrix)(struct gctx *s, float *dst);
+
     void (*set_rendertarget)(struct gctx *s, struct rendertarget *rt);
     struct rendertarget *(*get_rendertarget)(struct gctx *s);
     const struct rendertarget_desc *(*get_default_rendertarget_desc)(struct gctx *s);
@@ -111,6 +114,9 @@ int ngli_gctx_init(struct gctx *s);
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport);
 int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t);
 void ngli_gctx_freep(struct gctx **sp);
+
+void ngli_gctx_transform_projection_matrix(struct gctx *s, float *dst);
+void ngli_gctx_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst);
 
 void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt);
 struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s);

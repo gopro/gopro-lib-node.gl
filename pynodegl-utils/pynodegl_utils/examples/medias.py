@@ -34,7 +34,7 @@ def playback_speed(cfg, speed=1.0):
     '''Adjust media playback speed using animation keyframes'''
     m0 = cfg.medias[0]
     media_duration = m0.duration
-    initial_seek = 5
+    initial_seek = min(media_duration, 5)
     rush_duration = media_duration - initial_seek
     cfg.duration = rush_duration / speed
     cfg.aspect_ratio = (m0.width, m0.height)

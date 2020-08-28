@@ -308,15 +308,13 @@ static int rtt_prefetch(struct ngl_node *node)
         for (int i = 0; i < s->nb_color_textures; i++) {
             struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
             struct image *image = &texture_priv->image;
-            image->coordinates_matrix[5] = -1.0f;
-            image->coordinates_matrix[13] = 1.0f;
+            ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, image->coordinates_matrix);
         }
 
         if (s->depth_texture) {
             struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
             struct image *depth_image = &depth_texture_priv->image;
-            depth_image->coordinates_matrix[5] = -1.0f;
-            depth_image->coordinates_matrix[13] = 1.0f;
+            ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, depth_image->coordinates_matrix);
         }
     }
 

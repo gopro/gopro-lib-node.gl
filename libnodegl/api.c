@@ -131,6 +131,12 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         LOG(WARNING, "could not initialize vaapi");
 #endif
 
+    NGLI_ALIGNED_MAT(matrix) = NGLI_MAT4_IDENTITY;
+    ngli_gctx_transform_projection_matrix(s->gctx, matrix);
+    ngli_darray_clear(&s->projection_matrix_stack);
+    if (!ngli_darray_push(&s->projection_matrix_stack, matrix))
+        return NGL_ERROR_MEMORY;
+
     if (s->scene) {
         ret = ngli_node_attach_ctx(s->scene, s);
         if (ret < 0) {

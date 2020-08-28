@@ -360,6 +360,11 @@ static int set_scene(struct ngl_node *scene)
     } else {
         ret = ngl_set_scene(p->ngl, scene);
     }
+    if (ret < 0) {
+        p->pgbar_opacity_node  = NULL;
+        p->pgbar_duration_node = NULL;
+        p->pgbar_text_node     = NULL;
+    }
     return ret;
 }
 

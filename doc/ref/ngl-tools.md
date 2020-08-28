@@ -89,5 +89,7 @@ Key           | Action
 ------------- | ------
 `ESC` or `q`  | quit the application
 `SPACE`       | toggle the pause/playback
+`LEFT`        | seek by -10 seconds
+`RIGHT`       | seek by +10 seconds
 `f`           | toggle windowed/fullscreen
 `k`           | kill the current scene

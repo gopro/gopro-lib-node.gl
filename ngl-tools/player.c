@@ -134,6 +134,8 @@ static void kill_scene()
     p->pgbar_text_node     = NULL;
 }
 
+static void update_time(int64_t seek_at);
+
 static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
 {
     struct player *p = g_player;
@@ -156,6 +158,12 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
         break;
     case SDLK_k:
         kill_scene();
+        break;
+    case SDLK_LEFT:
+        update_time(clipi64(p->frame_ts - 10 * 1000000, 0, p->duration));
+        break;
+    case SDLK_RIGHT:
+        update_time(clipi64(p->frame_ts + 10 * 1000000, 0, p->duration));
         break;
     default:
         break;

@@ -20,14 +20,92 @@
 # under the License.
 #
 
+import subprocess
 from PySide2 import QtCore, QtGui, QtWidgets
+
+
+class _SpawnView(QtWidgets.QGroupBox):
+
+    def __init__(self, config):
+
+        QtWidgets.QGroupBox.__init__(self, 'Local ngl-desktop')
+        self._config = config
+
+        all_loglevels = config.CHOICES['log_level']
+        default_loglevel = config.get('log_level')
+        self._loglevel_cbbox = QtWidgets.QComboBox()
+        for level in all_loglevels:
+            self._loglevel_cbbox.addItem(level.title())
+        log_level_idx = all_loglevels.index(default_loglevel)
+        self._loglevel_cbbox.setCurrentIndex(log_level_idx)
+        loglevel_lbl = QtWidgets.QLabel('Min log level:')
+        loglevel_hbox = QtWidgets.QHBoxLayout()
+        loglevel_hbox.addWidget(loglevel_lbl)
+        loglevel_hbox.addWidget(self._loglevel_cbbox)
+
+        backend_names = {
+            'gl': 'OpenGL',
+            'gles': 'OpenGL ES',
+        }
+        all_backends = config.CHOICES['backend']
+        default_backend = config.get('backend')
+        self._backend_cbbox = QtWidgets.QComboBox()
+        for backend in all_backends:
+            self._backend_cbbox.addItem(backend_names[backend])
+        backend_idx = all_backends.index(default_backend)
+        self._backend_cbbox.setCurrentIndex(backend_idx)
+        backend_lbl = QtWidgets.QLabel('Backend:')
+        backend_hbox = QtWidgets.QHBoxLayout()
+        backend_hbox.addWidget(backend_lbl)
+        backend_hbox.addWidget(self._backend_cbbox)
+
+        self._listen_text = QtWidgets.QLineEdit()
+        self._listen_text.setText('localhost')
+        listen_lbl = QtWidgets.QLabel('Listening on:')
+        listen_hbox = QtWidgets.QHBoxLayout()
+        listen_hbox.addWidget(listen_lbl)
+        listen_hbox.addWidget(self._listen_text)
+
+        self._port_spin = QtWidgets.QSpinBox()
+        self._port_spin.setMinimum(1)
+        self._port_spin.setMaximum(0xffff)
+        self._port_spin.setValue(2345)
+        port_lbl = QtWidgets.QLabel('Port:')
+        port_hbox = QtWidgets.QHBoxLayout()
+        port_hbox.addWidget(port_lbl)
+        port_hbox.addWidget(self._port_spin)
+
+        self._spawn_btn = QtWidgets.QPushButton('Spawn ngl-desktop')
+        btn_hbox = QtWidgets.QHBoxLayout()
+        btn_hbox.addStretch()
+        btn_hbox.addWidget(self._spawn_btn)
+
+        layout = QtWidgets.QFormLayout()
+        layout.addRow('Min log level:', self._loglevel_cbbox)
+        layout.addRow('Backend:', self._backend_cbbox)
+        layout.addRow('Listening on:', self._listen_text)
+        layout.addRow('Port:', self._port_spin)
+        layout.addRow(btn_hbox)
+
+        self.setLayout(layout)
+
+        self._spawn_btn.clicked.connect(self._spawn)
+
+    @QtCore.Slot()
+    def _spawn(self):
+        loglevel = self._config.CHOICES['log_level'][self._loglevel_cbbox.currentIndex()]
+        backend_remap = dict(gl='opengl', gles='opengles')
+        backend = backend_remap[self._config.CHOICES['backend'][self._backend_cbbox.currentIndex()]]
+        listen = self._listen_text.text()
+        port = self._port_spin.value()
+        subprocess.Popen(['ngl-desktop', '--host', listen, '--backend', backend, '--loglevel', loglevel, '--port', str(port)])
 
 
 class HooksView(QtWidgets.QWidget):
 
     _COLUMNS = ('Session', 'Description', 'Backend', 'System', 'Status')
 
-    def __init__(self, hooks_caller):
+    def __init__(self, hooks_caller, config):
         super().__init__()
 
         self._hooks_caller = hooks_caller
@@ -46,11 +124,14 @@ class HooksView(QtWidgets.QWidget):
 
         self._refresh_btn = QtWidgets.QPushButton('Refresh')
 
+        spawn_view = _SpawnView(config)
+
         hbox = QtWidgets.QHBoxLayout()
         hbox.addStretch()
         hbox.addWidget(self._refresh_btn)
 
         serial_layout = QtWidgets.QVBoxLayout(self)
+        serial_layout.addWidget(spawn_view)
         serial_layout.addLayout(hbox)
         serial_layout.addWidget(self._view)
 

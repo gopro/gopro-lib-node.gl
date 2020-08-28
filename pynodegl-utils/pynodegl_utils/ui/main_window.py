@@ -62,7 +62,7 @@ class MainWindow(QtWidgets.QSplitter):
 
         graph_view = GraphView(get_scene_func, self._config)
         export_view = ExportView(get_scene_func, self._config)
-        hooks_view = HooksView(self._hooks_caller)
+        hooks_view = HooksView(self._hooks_caller, self._config)
         self._medias_view = MediasView(self._config)
         serial_view = SerialView(get_scene_func)
 

@@ -192,7 +192,7 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
 
     LOG(DEBUG, "prepare scene %s @ t=%f", scene->label, t);
 
-    s->activitycheck_nodes.count = 0;
+    ngli_darray_clear(&s->activitycheck_nodes);
     int ret = ngli_node_visit(scene, 1, t);
     if (ret < 0)
         return ret;

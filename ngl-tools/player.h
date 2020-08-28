@@ -33,6 +33,7 @@ struct player {
 
     double duration_f;
     int64_t duration;
+    int enable_ui;
     int aspect[2];
 
     struct ngl_ctx *ngl;

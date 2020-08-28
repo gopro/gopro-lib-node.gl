@@ -346,6 +346,23 @@ end:
     return gcfg;
 }
 
+static int set_scene(struct ngl_node *scene)
+{
+    int ret;
+    struct player *p = g_player;
+
+    if (p->enable_ui) {
+        scene = add_progress_bar(scene);
+        if (!scene)
+            return NGL_ERROR_MEMORY;
+        ret = ngl_set_scene(p->ngl, scene);
+        ngl_node_unrefp(&scene);
+    } else {
+        ret = ngl_set_scene(p->ngl, scene);
+    }
+    return ret;
+}
+
 int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
                 const struct ngl_config *cfg, double duration, int enable_ui)
 {
@@ -366,6 +383,7 @@ int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
     p->lasthover = -1;
     p->duration_f = duration;
     p->duration = duration * 1000000;
+    p->enable_ui = enable_ui;
 
     p->ngl_config = *cfg;
 
@@ -393,19 +411,7 @@ int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
     if (ret < 0)
         return ret;
 
-    if (enable_ui) {
-        scene = add_progress_bar(scene);
-        if (!scene)
-            return NGL_ERROR_MEMORY;
-        ret = ngl_set_scene(p->ngl, scene);
-        ngl_node_unrefp(&scene);
-    } else {
-        ret = ngl_set_scene(p->ngl, scene);
-    }
-    if (ret < 0)
-        return ret;
-
-    return 0;
+    return set_scene(scene);
 }
 
 void player_uninit(void)

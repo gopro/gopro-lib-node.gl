@@ -134,54 +134,6 @@ static void kill_scene()
     p->pgbar_text_node     = NULL;
 }
 
-static void update_time(int64_t seek_at);
-
-static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
-{
-    struct player *p = g_player;
-
-    const SDL_Keycode key = event->keysym.sym;
-    switch (key) {
-    case SDLK_ESCAPE:
-    case SDLK_q:
-        return 1;
-    case SDLK_SPACE:
-        p->paused ^= 1;
-        p->clock_off = gettime() - p->frame_ts;
-        break;
-    case SDLK_f:
-        p->fullscreen ^= 1;
-        SDL_SetWindowFullscreen(window, p->fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
-        break;
-    case SDLK_s:
-        screenshot();
-        break;
-    case SDLK_k:
-        kill_scene();
-        break;
-    case SDLK_LEFT:
-        update_time(clipi64(p->frame_ts - 10 * 1000000, 0, p->duration));
-        break;
-    case SDLK_RIGHT:
-        update_time(clipi64(p->frame_ts + 10 * 1000000, 0, p->duration));
-        break;
-    default:
-        break;
-    }
-
-    return 0;
-}
-
-static void size_callback(SDL_Window *window, int width, int height)
-{
-    struct player *p = g_player;
-
-    get_viewport(width, height, p->aspect, p->ngl_config.viewport);
-    p->ngl_config.width = width;
-    p->ngl_config.height = height;
-    ngl_resize(p->ngl, width, height, p->ngl_config.viewport);
-}
-
 static void update_text(void)
 {
     struct player *p = g_player;
@@ -235,6 +187,52 @@ static void update_time(int64_t seek_at)
 
         update_text();
     }
+}
+
+static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
+{
+    struct player *p = g_player;
+
+    const SDL_Keycode key = event->keysym.sym;
+    switch (key) {
+    case SDLK_ESCAPE:
+    case SDLK_q:
+        return 1;
+    case SDLK_SPACE:
+        p->paused ^= 1;
+        p->clock_off = gettime() - p->frame_ts;
+        break;
+    case SDLK_f:
+        p->fullscreen ^= 1;
+        SDL_SetWindowFullscreen(window, p->fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+        break;
+    case SDLK_s:
+        screenshot();
+        break;
+    case SDLK_k:
+        kill_scene();
+        break;
+    case SDLK_LEFT:
+        update_time(clipi64(p->frame_ts - 10 * 1000000, 0, p->duration));
+        break;
+    case SDLK_RIGHT:
+        update_time(clipi64(p->frame_ts + 10 * 1000000, 0, p->duration));
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+static void size_callback(SDL_Window *window, int width, int height)
+{
+    struct player *p = g_player;
+
+    get_viewport(width, height, p->aspect, p->ngl_config.viewport);
+    p->ngl_config.width = width;
+    p->ngl_config.height = height;
+    ngl_resize(p->ngl, width, height, p->ngl_config.viewport);
 }
 
 static void seek_event(int x)

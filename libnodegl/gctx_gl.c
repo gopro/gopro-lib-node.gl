@@ -31,6 +31,7 @@
 #include "glcontext.h"
 #include "gtimer_gl.h"
 #include "log.h"
+#include "math_utils.h"
 #include "memory.h"
 #include "nodes.h"
 #include "pipeline_gl.h"
@@ -111,7 +112,7 @@ static void capture_default(struct gctx *s)
     struct rendertarget *rt = s_priv->rt;
     struct rendertarget *capture_rt = s_priv->capture_rt;
 
-    ngli_rendertarget_blit(rt, capture_rt, 1);
+    ngli_rendertarget_blit(rt, capture_rt, 0);
     ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
 }
 
@@ -122,7 +123,7 @@ static void capture_ios(struct gctx *s)
     struct rendertarget *rt = s_priv->rt;
     struct rendertarget *capture_rt = s_priv->capture_rt;
 
-    ngli_rendertarget_blit(rt, capture_rt, 1);
+    ngli_rendertarget_blit(rt, capture_rt, 0);
     ngli_glFinish(gl);
 }
 
@@ -135,7 +136,7 @@ static void capture_gles_msaa(struct gctx *s)
     struct rendertarget *oes_resolve_rt = s_priv->oes_resolve_rt;
 
     ngli_rendertarget_blit(rt, oes_resolve_rt, 0);
-    ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 1);
+    ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 0);
     ngli_rendertarget_read_pixels(capture_rt, config->capture_buffer);
 }
 
@@ -148,7 +149,7 @@ static void capture_ios_msaa(struct gctx *s)
     struct rendertarget *oes_resolve_rt = s_priv->oes_resolve_rt;
 
     ngli_rendertarget_blit(rt, oes_resolve_rt, 0);
-    ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 1);
+    ngli_rendertarget_blit(oes_resolve_rt, capture_rt, 0);
     ngli_glFinish(gl);
 }
 
@@ -452,10 +453,23 @@ static void gl_destroy(struct gctx *s)
 
 static void gl_transform_projection_matrix(struct gctx *s, float *dst)
 {
+    const struct ngl_config *config = &s->config;
+    if (!config->offscreen)
+        return;
+    static const NGLI_ALIGNED_MAT(matrix) = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f,-1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f,
+    };
+    ngli_mat4_mul(dst, matrix, dst);
 }
 
 static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
 {
+    const struct ngl_config *config = &s->config;
+    if (config->offscreen)
+        return;
     static const NGLI_ALIGNED_MAT(matrix) = {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f,-1.0f, 0.0f, 0.0f,

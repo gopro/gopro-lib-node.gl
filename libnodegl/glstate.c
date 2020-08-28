@@ -314,8 +314,17 @@ void ngli_glstate_update_scissor(struct gctx *gctx, const int *scissor)
     struct glcontext *gl = gctx_gl->glcontext;
     struct glstate *glstate = &gctx_gl->glstate;
 
-    if (!memcmp(glstate->scissor, scissor, sizeof(glstate->scissor)))
+    int tmp[4];
+    memcpy(tmp, scissor, sizeof(tmp));
+
+    struct ngl_config *config = &gctx->config;
+    if (config->offscreen) {
+        const int height = gctx_gl->rendertarget ? gctx_gl->rendertarget->height : gl->height;
+        tmp[1] = NGLI_MAX(height - tmp[1] - tmp[3], 0);
+    }
+
+    if (!memcmp(glstate->scissor, tmp, sizeof(glstate->scissor)))
         return;
-    memcpy(glstate->scissor, scissor, sizeof(glstate->scissor));
-    ngli_glScissor(gl, scissor[0], scissor[1], scissor[2], scissor[3]);
+    memcpy(glstate->scissor, tmp, sizeof(glstate->scissor));
+    ngli_glScissor(gl, tmp[0], tmp[1], tmp[2], tmp[3]);
 }

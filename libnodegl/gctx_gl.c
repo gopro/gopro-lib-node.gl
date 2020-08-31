@@ -494,8 +494,6 @@ static void gl_get_viewport(struct gctx *s, int *viewport)
 static void gl_set_scissor(struct gctx *s, const int *scissor)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    ngli_glScissor(gl, scissor[0], scissor[1], scissor[2], scissor[3]);
     memcpy(&s_priv->scissor, scissor, sizeof(s_priv->scissor));
 }
 

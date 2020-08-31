@@ -307,3 +307,15 @@ void ngli_glstate_use_program(struct gctx *gctx, GLuint program_id)
         glstate->program_id = program_id;
     }
 }
+
+void ngli_glstate_update_scissor(struct gctx *gctx, const int *scissor)
+{
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
+    struct glstate *glstate = &gctx_gl->glstate;
+
+    if (!memcmp(glstate->scissor, scissor, sizeof(glstate->scissor)))
+        return;
+    memcpy(glstate->scissor, scissor, sizeof(glstate->scissor));
+    ngli_glScissor(gl, scissor[0], scissor[1], scissor[2], scissor[3]);
+}

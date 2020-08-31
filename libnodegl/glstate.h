@@ -56,6 +56,7 @@ struct glstate {
     GLenum cull_face_mode;
 
     GLboolean scissor_test;
+    int scissor[4];
 
     GLuint program_id;
 };
@@ -68,5 +69,8 @@ void ngli_glstate_update(struct gctx *gctx,
 
 void ngli_glstate_use_program(struct gctx *gctx,
                               GLuint program_id);
+
+void ngli_glstate_update_scissor(struct gctx *gctx,
+                                 const int *scissor);
 
 #endif

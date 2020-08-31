@@ -563,6 +563,7 @@ void ngli_pipeline_gl_draw(struct pipeline *s, int nb_vertices, int nb_instances
     struct program_gl *program_gl = (struct program_gl *)s->program;
 
     ngli_glstate_update(gctx, &graphics->state);
+    ngli_glstate_update_scissor(gctx, gctx_gl->scissor);
     ngli_glstate_use_program(gctx, program_gl->id);
     set_uniforms(s, gl);
     set_buffers(s, gl);
@@ -597,6 +598,7 @@ void ngli_pipeline_gl_draw_indexed(struct pipeline *s, struct buffer *indices, i
     struct program_gl *program_gl = (struct program_gl *)s->program;
 
     ngli_glstate_update(gctx, &graphics->state);
+    ngli_glstate_update_scissor(gctx, gctx_gl->scissor);
     ngli_glstate_use_program(gctx, program_gl->id);
     set_uniforms(s, gl);
     set_buffers(s, gl);

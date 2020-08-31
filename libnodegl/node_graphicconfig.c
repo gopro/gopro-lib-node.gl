@@ -254,6 +254,7 @@ static int graphicconfig_update(struct ngl_node *node, double t)
 static void honor_config(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct rnode *rnode = ctx->rnode_pos;
     struct graphicconfig_priv *s = node->priv_data;
     struct graphicstate *pending = &rnode->graphicstate;
@@ -284,7 +285,8 @@ static void honor_config(struct ngl_node *node)
     COPY_PARAM(stencil_depth_pass);
 
     COPY_PARAM(cull_face);
-    COPY_PARAM(cull_face_mode);
+    if (s->cull_face_mode != -1)
+        pending->cull_face_mode = ngli_gctx_transform_cull_mode(gctx, s->cull_face_mode);
 
     COPY_PARAM(scissor_test);
 }

@@ -99,6 +99,11 @@ void ngli_gctx_freep(struct gctx **sp)
     ngli_freep(sp);
 }
 
+int ngli_gctx_transform_cull_mode(struct gctx *s, int cull_mode)
+{
+    return s->class->transform_cull_mode(s, cull_mode);
+}
+
 void ngli_gctx_transform_projection_matrix(struct gctx *s, float *dst)
 {
     s->class->transform_projection_matrix(s, dst);

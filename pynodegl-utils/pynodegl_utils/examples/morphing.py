@@ -28,19 +28,25 @@ def square2circle(cfg, square_color=(0.9, 0.1, 0.3, 1.0), circle_color=(1.0, 1.0
     s = 1.25  # shapes scale
     interp = 'exp_in_out'
 
-    square_vertices = array.array('f')
+    center_vertex = [0, 0, 0]
+    square_vertices = array.array('f', center_vertex)
     for i in range(n):
         x = (sqxf(i / float(n)) - .5) * s
         y = (sqyf(i / float(n)) - .5) * s
         square_vertices.extend([x, y, 0])
 
-    circle_vertices = array.array('f')
+    circle_vertices = array.array('f', center_vertex)
     step = 2 * math.pi / float(n)
     for i in range(n):
         angle = i * step - math.pi/4.
         x = math.sin(angle) * .5 * s
         y = math.cos(angle) * .5 * s
         circle_vertices.extend([x, y, 0])
+
+    indices = array.array('H')
+    for i in range(1, n + 1):
+        indices.extend([0, i, i + 1])
+    indices[-1] = 1
 
     vertices_animkf = [
             ngl.AnimKeyFrameBuffer(0,               square_vertices),
@@ -56,8 +62,7 @@ def square2circle(cfg, square_color=(0.9, 0.1, 0.3, 1.0), circle_color=(1.0, 1.0
     ]
     ucolor = ngl.AnimatedVec4(color_animkf)
 
-    geom = ngl.Geometry(vertices)
-    geom.set_topology('triangle_fan')
+    geom = ngl.Geometry(vertices, indices=ngl.BufferUShort(data=indices))
     p = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geom, p)
     render.update_frag_resources(color=ucolor)

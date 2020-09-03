@@ -97,8 +97,8 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     static const float vertices[] = {
         -1.0f, -1.0f, 0.0f, 0.0f,
          1.0f, -1.0f, 1.0f, 0.0f,
-         1.0f,  1.0f, 1.0f, 1.0f,
         -1.0f,  1.0f, 0.0f, 1.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
     };
     hwconv->vertices = ngli_buffer_create(gctx);
     if (!hwconv->vertices)
@@ -128,7 +128,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     struct pipeline_params pipeline_params = {
         .type          = NGLI_PIPELINE_TYPE_GRAPHICS,
         .graphics      = {
-            .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
+            .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
             .state       = NGLI_GRAPHICSTATE_DEFAULTS,
             .rt_desc     = rt_desc,
         },

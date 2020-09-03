@@ -1267,8 +1267,8 @@ static int hud_init(struct ngl_node *node)
     static const float coords[] = {
         -1.0f, -1.0f, 0.0f, 1.0f,
          1.0f, -1.0f, 1.0f, 1.0f,
-         1.0f,  1.0f, 1.0f, 0.0f,
         -1.0f,  1.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, 1.0f, 0.0f,
     };
 
     s->coords = ngli_buffer_create(gctx);
@@ -1332,7 +1332,7 @@ static int hud_init(struct ngl_node *node)
     struct pipeline_params pipeline_params = {
         .type          = NGLI_PIPELINE_TYPE_GRAPHICS,
         .graphics      = {
-            .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
+            .topology    = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
             .state       = graphicstate,
             .rt_desc     = rnode->rendertarget_desc,
         }

@@ -81,8 +81,7 @@ static int circle_init(struct ngl_node *node)
      * circle */
     indices[nb_indices - 1] = 1;
 
-    static const float center[3] = {0};
-    ngli_vec3_normalvec(normals, (float *)center, vertices, vertices + 3);
+    ngli_vec3_normalvec(normals, vertices, vertices + 3, vertices + 6);
     for (int i = 1; i < nb_vertices; i++)
         memcpy(normals + (i * 3), normals, 3 * sizeof(*normals));
 

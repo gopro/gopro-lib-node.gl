@@ -48,22 +48,24 @@ static int circle_init(struct ngl_node *node)
         LOG(ERROR, "invalid number of points (%d < 3)", s->npoints);
         return NGL_ERROR_INVALID_ARG;
     }
-    const int nb_vertices = s->npoints + 2;
+    const int nb_vertices = s->npoints + 1;
+    const int nb_indices  = s->npoints * 3;
 
     float *vertices  = ngli_calloc(nb_vertices, sizeof(*vertices)  * 3);
     float *uvcoords  = ngli_calloc(nb_vertices, sizeof(*uvcoords)  * 2);
     float *normals   = ngli_calloc(nb_vertices, sizeof(*normals)   * 3);
+    uint16_t *indices = ngli_calloc(nb_indices, sizeof(*indices));
 
-    if (!vertices || !uvcoords || !normals)
+    if (!vertices || !uvcoords || !normals || !indices)
         goto end;
 
-
-    int i;
     const double step = 2.0 * M_PI / s->npoints;
 
+    vertices[0] = 0.0;
+    vertices[1] = 0.0;
     uvcoords[0] = 0.5;
     uvcoords[1] = 0.5;
-    for (i = 1; i < (nb_vertices - 1); i++) {
+    for (int i = 1; i < nb_vertices; i++) {
         const double angle = (i - 1) * step;
         const double x = sin(angle) * s->radius;
         const double y = cos(angle) * s->radius;
@@ -71,11 +73,13 @@ static int circle_init(struct ngl_node *node)
         vertices[i*3 + 1] = y;
         uvcoords[i*2 + 0] = (x + 1.0) / 2.0;
         uvcoords[i*2 + 1] = (1.0 - y) / 2.0;
+        indices[(i - 1) * 3 + 0]  = 0; // point to center coordinate
+        indices[(i - 1) * 3 + 1]  = i;
+        indices[(i - 1) * 3 + 2]  = i + 1;
     }
-    vertices[i*3 + 0] = vertices[3 + 0];
-    vertices[i*3 + 1] = vertices[3 + 1];
-    uvcoords[i*2 + 0] = uvcoords[2 + 0];
-    uvcoords[i*2 + 1] = uvcoords[2 + 1];
+    /* Fix overflowing vertex reference back to the start for sealing the
+     * circle */
+    indices[nb_indices - 1] = 1;
 
     static const float center[3] = {0};
     ngli_vec3_normalvec(normals, (float *)center, vertices, vertices + 3);
@@ -100,10 +104,16 @@ static int circle_init(struct ngl_node *node)
                                                            nb_vertices * sizeof(*normals) * 3,
                                                            normals);
 
-    if (!s->vertices_buffer || !s->uvcoords_buffer || !s->normals_buffer)
+    s->indices_buffer = ngli_node_geometry_generate_buffer(node->ctx,
+                                                           NGL_NODE_BUFFERUSHORT,
+                                                           nb_indices,
+                                                           nb_indices * sizeof(*indices),
+                                                           (void *)indices);
+
+    if (!s->vertices_buffer || !s->uvcoords_buffer || !s->normals_buffer || !s->indices_buffer)
         goto end;
 
-    s->topology = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    s->topology = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
     ret = 0;
 
@@ -111,6 +121,7 @@ end:
     ngli_free(vertices);
     ngli_free(uvcoords);
     ngli_free(normals);
+    ngli_free(indices);
     return ret;
 }
 
@@ -128,6 +139,7 @@ static void circle_uninit(struct ngl_node *node)
     NODE_UNREFP(s->vertices_buffer);
     NODE_UNREFP(s->uvcoords_buffer);
     NODE_UNREFP(s->normals_buffer);
+    NODE_UNREFP(s->indices_buffer);
 }
 
 const struct node_class ngli_circle_class = {

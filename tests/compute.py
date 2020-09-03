@@ -272,8 +272,8 @@ def compute_animation(cfg):
     vertices_data = array.array('f', [
         -0.5, -0.5, 0.0,
          0.5, -0.5, 0.0,
-         0.5,  0.5, 0.0,
         -0.5,  0.5, 0.0,
+         0.5,  0.5, 0.0,
     ])
     nb_vertices = 4
 
@@ -292,7 +292,7 @@ def compute_animation(cfg):
     compute.update_resources(transform=transform, src=input_block, dst=output_block)
 
     quad_buffer = ngl.BufferVec3(block=output_block, block_field=0)
-    geometry = ngl.Geometry(quad_buffer, topology='triangle_fan')
+    geometry = ngl.Geometry(quad_buffer, topology='triangle_strip')
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, program)
     render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))

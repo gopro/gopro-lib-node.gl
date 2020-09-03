@@ -63,7 +63,6 @@ static const struct param_choices topology_choices = {
         {"line_strip",     NGLI_PRIMITIVE_TOPOLOGY_LINE_STRIP,     .desc=NGLI_DOCSTRING("line strip")},
         {"line_list",      NGLI_PRIMITIVE_TOPOLOGY_LINE_LIST,      .desc=NGLI_DOCSTRING("line list")},
         {"triangle_strip", NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, .desc=NGLI_DOCSTRING("triangle strip")},
-        {"triangle_fan",   NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,   .desc=NGLI_DOCSTRING("triangle fan")},
         {"triangle_list",  NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,  .desc=NGLI_DOCSTRING("triangle list")},
         {NULL}
     }

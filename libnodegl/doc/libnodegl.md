@@ -1329,7 +1329,6 @@ Constant | Description
 `line_strip` | line strip
 `line_list` | line list
 `triangle_strip` | triangle strip
-`triangle_fan` | triangle fan
 `triangle_list` | triangle list
 
 ## blend_factor choices

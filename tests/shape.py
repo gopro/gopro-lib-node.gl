@@ -366,3 +366,30 @@ def shape_triangles_mat4_attribute(cfg):
     render.update_instance_attributes(matrix=matrices)
     render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['orange']))
     return render
+
+
+def _get_shape_scene(cfg, shape, cull_face_mode):
+    cfg.aspect_ratio = (1, 1)
+
+    geometry_cls = dict(
+        triangle=ngl.Triangle,
+        quad=ngl.Quad,
+        circle=ngl.Circle,
+    )
+    geometry = geometry_cls[shape]()
+
+    node = _render_shape(cfg, geometry, COLORS['sgreen'])
+    return ngl.GraphicConfig(node, cull_face=True, cull_face_mode=cull_face_mode)
+
+
+def _get_shape_function(shape, cull_face_mode):
+    @test_fingerprint()
+    @scene()
+    def shape_function(cfg):
+        return _get_shape_scene(cfg, shape, cull_face_mode)
+    return shape_function
+
+
+for shape in ('triangle', 'quad', 'circle'):
+    for cull_face_mode in ('front', 'back'):
+        globals()['shape_' + shape + '_cull_' + cull_face_mode] = _get_shape_function(shape, cull_face_mode)

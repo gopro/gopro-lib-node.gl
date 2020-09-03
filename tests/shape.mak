@@ -21,9 +21,15 @@
 
 SHAPE_TEST_NAMES =              \
     triangle                    \
+    triangle_cull_back          \
+    triangle_cull_front         \
     triangles_mat4_attribute    \
     quad                        \
+    quad_cull_back              \
+    quad_cull_front             \
     circle                      \
+    circle_cull_back            \
+    circle_cull_front           \
     diamond_colormask           \
     geometry                    \
     geometry_normals            \

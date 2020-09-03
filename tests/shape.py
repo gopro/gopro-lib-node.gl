@@ -230,14 +230,14 @@ def shape_morphing(cfg, n=6):
     vertices_br = _get_morphing_coordinates(n,  0,-1)
 
     vertices_animkf = []
-    for i, coords in enumerate(zip(vertices_tl, vertices_tr, vertices_br, vertices_bl)):
+    for i, coords in enumerate(zip(vertices_tl, vertices_tr, vertices_bl, vertices_br)):
         flat_coords = list(itertools.chain(*coords))
         coords_array = array.array('f', flat_coords)
         vertices_animkf.append(ngl.AnimKeyFrameBuffer(i * cfg.duration / (n - 1), coords_array))
     vertices = ngl.AnimatedBufferVec3(vertices_animkf)
 
     geom = ngl.Geometry(vertices)
-    geom.set_topology('triangle_fan')
+    geom.set_topology('triangle_strip')
     p = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geom, p)
     render.update_frag_resources(color=ngl.UniformVec4(COLORS['cyan']))
@@ -273,7 +273,7 @@ def _get_cropboard_function(set_indices=False):
         translate_b_buffer = array.array('f')
 
         if set_indices:
-            indices = array.array('H', [0, 2, 1, 3])
+            indices = array.array('H', [0, 2, 1, 1, 3, 0])
             indices_buffer = ngl.BufferUShort(data=indices)
 
             vertices = array.array('f', [
@@ -293,8 +293,7 @@ def _get_cropboard_function(set_indices=False):
             vertices_buffer = ngl.BufferVec3(data=vertices)
             uvcoords_buffer = ngl.BufferVec2(data=uvcoords)
 
-            q = ngl.Geometry(topology='triangle_fan',
-                             vertices=vertices_buffer,
+            q = ngl.Geometry(vertices=vertices_buffer,
                              uvcoords=uvcoords_buffer,
                              indices=indices_buffer)
         else:

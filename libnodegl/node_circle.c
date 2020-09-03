@@ -41,7 +41,7 @@ static const struct node_param circle_params[] = {
 
 static int circle_init(struct ngl_node *node)
 {
-    int ret = -1;
+    int ret = 0;
     struct geometry_priv *s = node->priv_data;
 
     if (s->npoints < 3) {
@@ -56,8 +56,10 @@ static int circle_init(struct ngl_node *node)
     float *normals   = ngli_calloc(nb_vertices, sizeof(*normals)   * 3);
     uint16_t *indices = ngli_calloc(nb_indices, sizeof(*indices));
 
-    if (!vertices || !uvcoords || !normals || !indices)
+    if (!vertices || !uvcoords || !normals || !indices) {
+        ret = NGL_ERROR_MEMORY;
         goto end;
+    }
 
     const double step = 2.0 * M_PI / s->npoints;
 
@@ -109,12 +111,12 @@ static int circle_init(struct ngl_node *node)
                                                            nb_indices * sizeof(*indices),
                                                            (void *)indices);
 
-    if (!s->vertices_buffer || !s->uvcoords_buffer || !s->normals_buffer || !s->indices_buffer)
+    if (!s->vertices_buffer || !s->uvcoords_buffer || !s->normals_buffer || !s->indices_buffer) {
+        ret = NGL_ERROR_MEMORY;
         goto end;
+    }
 
     s->topology = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-
-    ret = 0;
 
 end:
     ngli_free(vertices);

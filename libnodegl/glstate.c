@@ -94,7 +94,6 @@ static GLenum get_gl_stencil_op(int stencil_op)
 static const GLenum gl_cull_mode_map[NGLI_CULL_MODE_NB] = {
     [NGLI_CULL_MODE_FRONT_BIT]      = GL_FRONT,
     [NGLI_CULL_MODE_BACK_BIT]       = GL_BACK,
-    [NGLI_CULL_MODE_FRONT_AND_BACK] = GL_FRONT_AND_BACK,
 };
 
 static GLenum get_gl_cull_mode(int cull_mode)

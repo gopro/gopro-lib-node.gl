@@ -145,6 +145,8 @@ static const struct param_choices stencil_op_choices = {
 static const struct param_choices cull_face_choices = {
     .name = "cull_face",
     .consts = {
+        {"unset", -1,                       .desc=NGLI_DOCSTRING("unset")},
+        {"none",  NGLI_CULL_MODE_NONE,      .desc=NGLI_DOCSTRING("no facets are discarded")},
         {"front", NGLI_CULL_MODE_FRONT_BIT, .desc=NGLI_DOCSTRING("cull front-facing facets")},
         {"back",  NGLI_CULL_MODE_BACK_BIT,  .desc=NGLI_DOCSTRING("cull back-facing facets")},
         {NULL}
@@ -207,7 +209,7 @@ static const struct node_param graphicconfig_params[] = {
                            .desc=NGLI_DOCSTRING("operation to execute if stencil and depth test pass")},
     {"cull_face",          PARAM_TYPE_BOOL,   OFFSET(cull_face),          {.i64=-1},
                            .desc=NGLI_DOCSTRING("enable face culling")},
-    {"cull_face_mode",     PARAM_TYPE_FLAGS,  OFFSET(cull_face_mode),     {.i64=-1},
+    {"cull_face_mode",     PARAM_TYPE_SELECT, OFFSET(cull_face_mode),     {.i64=-1},
                            .choices=&cull_face_choices,
                            .desc=NGLI_DOCSTRING("face culling mode")},
     {"scissor_test",       PARAM_TYPE_BOOL,   OFFSET(scissor_test),       {.i64=-1},

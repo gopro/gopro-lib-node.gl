@@ -1399,6 +1399,8 @@ Constant | Description
 
 Constant | Description
 -------- | -----------
+`unset` | unset
+`none` | no facets are discarded
 `front` | cull front-facing facets
 `back` | cull back-facing facets
 

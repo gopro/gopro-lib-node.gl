@@ -63,15 +63,15 @@ static int quad_init(struct ngl_node *node)
     const float vertices[] = {
         C(0),               C(1),               C(2),
         C(0) + W(0),        C(1) + W(1),        C(2) + W(2),
-        C(0) + H(0) + W(0), C(1) + H(1) + W(1), C(2) + H(2) + W(2),
         C(0) + H(0),        C(1) + H(1),        C(2) + H(2),
+        C(0) + H(0) + W(0), C(1) + H(1) + W(1), C(2) + H(2) + W(2),
     };
 
     const float uvs[] = {
         UV_C(0),                     1.0f - UV_C(1),
         UV_C(0) + UV_W(0),           1.0f - UV_C(1) - UV_W(1),
-        UV_C(0) + UV_H(0) + UV_W(0), 1.0f - UV_C(1) - UV_H(1) - UV_W(1),
         UV_C(0) + UV_H(0),           1.0f - UV_C(1) - UV_H(1),
+        UV_C(0) + UV_H(0) + UV_W(0), 1.0f - UV_C(1) - UV_H(1) - UV_W(1),
     };
 
     s->vertices_buffer = ngli_node_geometry_generate_buffer(node->ctx,
@@ -104,7 +104,7 @@ static int quad_init(struct ngl_node *node)
     if (!s->normals_buffer)
         return NGL_ERROR_MEMORY;
 
-    s->topology = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    s->topology = NGLI_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 
     return 0;
 }

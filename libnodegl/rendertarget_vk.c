@@ -356,19 +356,42 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
         return -1;
 
     if (params->readable) {
-        struct texture_params texture_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-        texture_params.width = s->width;
-        texture_params.height = s->height;
-        texture_params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
-        texture_params.staging = 1;
+        // XXX: proper size
+        const int size = s->width * s->height * 4;
+        VkBufferCreateInfo buffer_create_info = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = size,
+            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        };
+        VkResult res = vkCreateBuffer(vk->device, &buffer_create_info, NULL, &s_priv->staging_buffer);
+        if (res != VK_SUCCESS)
+            return -1;
 
-        s_priv->staging_texture = ngli_texture_create(s->gctx);
-        if (!s_priv->staging_texture)
+        VkMemoryRequirements requirements;
+        vkGetBufferMemoryRequirements(vk->device, s_priv->staging_buffer, &requirements);
+
+        VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        int32_t memory_type_index = ngli_vkcontext_find_memory_type(vk, requirements.memoryTypeBits, props);
+        if (memory_type_index < 0)
+            return NGL_ERROR_EXTERNAL;
+
+        VkMemoryAllocateInfo memory_allocate_info = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = requirements.size,
+            .memoryTypeIndex = memory_type_index,
+        };
+        res = vkAllocateMemory(vk->device, &memory_allocate_info, NULL, &s_priv->staging_memory);
+        if (res != VK_SUCCESS) {
+            LOG(ERROR, "can not allocate memory");
             return NGL_ERROR_MEMORY;
+        }
 
-        int ret = ngli_texture_init(s_priv->staging_texture, &texture_params);
-        if (ret < 0)
-            return ret;
+        res = vkBindBufferMemory(vk->device, s_priv->staging_buffer, s_priv->staging_memory, 0);
+        if (res != VK_SUCCESS) {
+            LOG(ERROR, "can not bind memory");
+            return NGL_ERROR_MEMORY;
+        }
     }
 
     return 0;
@@ -404,30 +427,22 @@ void ngli_rendertarget_vk_read_pixels(struct rendertarget *s, uint8_t *data)
     if (ret < 0)
         return;
 
-    struct texture *dst = s_priv->staging_texture;
-    struct texture_vk *dst_vk = (struct texture_vk *)s_priv->staging_texture;
-    ret = ngli_texture_vk_transition_layout(dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    if (ret < 0)
-        return;
-
     VkCommandBuffer command_buffer = gctx_vk->cur_command_buffer;
 
-    const VkImageCopy imageCopyRegion = {
-        .srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .srcSubresource.layerCount = 1,
-        .dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .dstSubresource.layerCount = 1,
-        .extent.width = s->width,
-        .extent.height = s->height,
-        .extent.depth = 1,
+    const VkBufferImageCopy region = {
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .imageSubresource.mipLevel = 0,
+        .imageSubresource.baseArrayLayer = 0,
+        .imageSubresource.layerCount = 1,
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {s->width, s->height, 1},
     };
 
-    vkCmdCopyImage(command_buffer, src_vk->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                   dst_vk->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopyRegion);
-
-    ret = ngli_texture_vk_transition_layout(dst, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    if (ret < 0)
-        return;
+    vkCmdCopyImageToBuffer(command_buffer, src_vk->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                           s_priv->staging_buffer, 1, &region);
 
     VkResult res = vkEndCommandBuffer(command_buffer);
     if (res != VK_SUCCESS)
@@ -461,11 +476,12 @@ void ngli_rendertarget_vk_read_pixels(struct rendertarget *s, uint8_t *data)
         return;
 
     uint8_t *mapped_data = NULL;
-    res = vkMapMemory(vk->device, dst_vk->image_memory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped_data);
+    res = vkMapMemory(vk->device, s_priv->staging_memory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped_data);
     if (res != VK_SUCCESS)
         return;
+    // XXX: proper size
     memcpy(data, mapped_data, s->width * s->height * 4);
-    vkUnmapMemory(vk->device, dst_vk->image_memory);
+    vkUnmapMemory(vk->device, s_priv->staging_memory);
 
     VkCommandBufferBeginInfo command_buffer_begin_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -494,7 +510,8 @@ void ngli_rendertarget_vk_freep(struct rendertarget **sp)
     for (int i = 0; i < s_priv->nb_attachments; i++)
         vkDestroyImageView(vk->device, s_priv->attachments[i], NULL);
 
-    ngli_texture_freep(&s_priv->staging_texture);
+    vkDestroyBuffer(vk->device, s_priv->staging_buffer, NULL);
+    vkFreeMemory(vk->device, s_priv->staging_memory, NULL);
 
     memset(s, 0, sizeof(*s));
 }

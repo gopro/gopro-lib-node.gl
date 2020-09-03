@@ -32,7 +32,8 @@ struct rendertarget_vk {
     VkFramebuffer framebuffer;
     VkRenderPass render_pass;
     VkRenderPass conservative_render_pass;
-    struct texture *staging_texture;
+    VkBuffer staging_buffer;
+    VkDeviceMemory staging_memory;
 };
 
 struct rendertarget *ngli_rendertarget_vk_create(struct gctx *gctx);

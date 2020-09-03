@@ -230,7 +230,7 @@ def shape_morphing(cfg, n=6):
     vertices_br = _get_morphing_coordinates(n,  0,-1)
 
     vertices_animkf = []
-    for i, coords in enumerate(zip(vertices_tl, vertices_tr, vertices_bl, vertices_br)):
+    for i, coords in enumerate(zip(vertices_tl, vertices_tr, vertices_br, vertices_bl)):
         flat_coords = list(itertools.chain(*coords))
         coords_array = array.array('f', flat_coords)
         vertices_animkf.append(ngl.AnimKeyFrameBuffer(i * cfg.duration / (n - 1), coords_array))

@@ -109,8 +109,7 @@ struct graphicstate {
     int stencil_depth_fail;
     int stencil_depth_pass;
 
-    int cull_face;
-    int cull_face_mode;
+    int cull_mode;
 
     int scissor_test;
 };
@@ -138,8 +137,7 @@ struct graphicstate {
     .stencil_fail       = NGLI_STENCIL_OP_KEEP,            \
     .stencil_depth_fail = NGLI_STENCIL_OP_KEEP,            \
     .stencil_depth_pass = NGLI_STENCIL_OP_KEEP,            \
-    .cull_face          = 0,                               \
-    .cull_face_mode     = NGLI_CULL_MODE_BACK_BIT,         \
+    .cull_mode          = NGLI_CULL_MODE_NONE,             \
 }                                                          \
 
 #endif

@@ -92,6 +92,7 @@ static GLenum get_gl_stencil_op(int stencil_op)
 }
 
 static const GLenum gl_cull_mode_map[NGLI_CULL_MODE_NB] = {
+    [NGLI_CULL_MODE_NONE]           = GL_BACK,
     [NGLI_CULL_MODE_FRONT_BIT]      = GL_FRONT,
     [NGLI_CULL_MODE_BACK_BIT]       = GL_BACK,
 };
@@ -166,8 +167,8 @@ static void init_state(struct glstate *s, const struct graphicstate *gc)
     s->stencil_depth_fail = get_gl_stencil_op(gc->stencil_depth_fail);
     s->stencil_depth_pass = get_gl_stencil_op(gc->stencil_depth_pass);
 
-    s->cull_face      = gc->cull_face;
-    s->cull_face_mode = get_gl_cull_mode(gc->cull_face_mode);
+    s->cull_face      = gc->cull_mode != NGLI_CULL_MODE_NONE;
+    s->cull_face_mode = get_gl_cull_mode(gc->cull_mode);
 
     s->scissor_test = gc->scissor_test;
 }

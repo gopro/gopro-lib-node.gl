@@ -210,8 +210,7 @@
     - [stencil_fail, select]
     - [stencil_depth_fail, select]
     - [stencil_depth_pass, select]
-    - [cull_face, bool]
-    - [cull_face_mode, select]
+    - [cull_mode, select]
     - [scissor_test, bool]
     - [scissor, vec4]
 

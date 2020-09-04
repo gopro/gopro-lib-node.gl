@@ -55,8 +55,7 @@ struct graphicconfig_priv {
     int stencil_depth_fail;
     int stencil_depth_pass;
 
-    int cull_face;
-    int cull_face_mode;
+    int cull_mode;
 
     int scissor_test;
     float scissor_f[4];
@@ -142,8 +141,8 @@ static const struct param_choices stencil_op_choices = {
     }
 };
 
-static const struct param_choices cull_face_choices = {
-    .name = "cull_face",
+static const struct param_choices cull_mode_choices = {
+    .name = "cull_mode",
     .consts = {
         {"unset", -1,                       .desc=NGLI_DOCSTRING("unset")},
         {"none",  NGLI_CULL_MODE_NONE,      .desc=NGLI_DOCSTRING("no facets are discarded")},
@@ -207,10 +206,8 @@ static const struct node_param graphicconfig_params[] = {
     {"stencil_depth_pass", PARAM_TYPE_SELECT, OFFSET(stencil_depth_pass), {.i64=-1},
                            .choices=&stencil_op_choices,
                            .desc=NGLI_DOCSTRING("operation to execute if stencil and depth test pass")},
-    {"cull_face",          PARAM_TYPE_BOOL,   OFFSET(cull_face),          {.i64=-1},
-                           .desc=NGLI_DOCSTRING("enable face culling")},
-    {"cull_face_mode",     PARAM_TYPE_SELECT, OFFSET(cull_face_mode),     {.i64=-1},
-                           .choices=&cull_face_choices,
+    {"cull_mode",          PARAM_TYPE_SELECT, OFFSET(cull_mode),          {.i64=-1},
+                           .choices=&cull_mode_choices,
                            .desc=NGLI_DOCSTRING("face culling mode")},
     {"scissor_test",       PARAM_TYPE_BOOL,   OFFSET(scissor_test),       {.i64=-1},
                            .desc=NGLI_DOCSTRING("enable scissor testing")},
@@ -228,11 +225,6 @@ static int graphicconfig_init(struct ngl_node *node)
     const float *sf = s->scissor_f;
     const int scissor[4] = {sf[0], sf[1], sf[2], sf[3]};
     memcpy(s->scissor, scissor, sizeof(s->scissor));
-
-    if (!s->cull_face_mode) {
-        LOG(ERROR, "cull face mode cannot be null");
-        return NGL_ERROR_INVALID_ARG;
-    }
 
     return 0;
 }
@@ -284,9 +276,8 @@ static void honor_config(struct ngl_node *node)
     COPY_PARAM(stencil_depth_fail);
     COPY_PARAM(stencil_depth_pass);
 
-    COPY_PARAM(cull_face);
-    if (s->cull_face_mode != -1)
-        pending->cull_face_mode = ngli_gctx_transform_cull_mode(gctx, s->cull_face_mode);
+    if (s->cull_mode != -1)
+        pending->cull_mode = ngli_gctx_transform_cull_mode(gctx, s->cull_mode);
 
     COPY_PARAM(scissor_test);
 }

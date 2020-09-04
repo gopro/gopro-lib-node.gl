@@ -319,8 +319,7 @@ Parameter | Live-chg. | Type | Description | Default
 `stencil_fail` |  | [`stencil_operation`](#stencil_operation-choices) | operation to execute if stencil test fails | `unset`
 `stencil_depth_fail` |  | [`stencil_operation`](#stencil_operation-choices) | operation to execute if depth test fails | `unset`
 `stencil_depth_pass` |  | [`stencil_operation`](#stencil_operation-choices) | operation to execute if stencil and depth test pass | `unset`
-`cull_face` |  | [`bool`](#parameter-types) | enable face culling | `unset`
-`cull_face_mode` |  | [`cull_face`](#cull_face-choices) | face culling mode | `unset`
+`cull_mode` |  | [`cull_mode`](#cull_mode-choices) | face culling mode | `unset`
 `scissor_test` |  | [`bool`](#parameter-types) | enable scissor testing | `unset`
 `scissor` |  | [`vec4`](#parameter-types) | define an area where all pixels outside are discarded | (`-1`,`-1`,`-1`,`-1`)
 
@@ -1395,7 +1394,7 @@ Constant | Description
 `decr_wrap` | decrements the current stencil buffer value and wraps it
 `decr_invert` | bitwise inverts the current stencil buffer value
 
-## cull_face choices
+## cull_mode choices
 
 Constant | Description
 -------- | -----------

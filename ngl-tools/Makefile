@@ -27,7 +27,7 @@ SDL_LDLIBS := $(shell $(PKG_CONFIG) --libs   sdl2)
 SXPLAYER_CFLAGS := $(shell $(PKG_CONFIG) --cflags libsxplayer)
 SXPLAYER_LDLIBS := $(shell $(PKG_CONFIG) --libs   libsxplayer)
 
-TOOLS_CFLAGS := $(shell $(PKG_CONFIG) --cflags libnodegl)
+TOOLS_CFLAGS := $(shell $(PKG_CONFIG) --cflags libnodegl) -fPIC
 TOOLS_LDLIBS := $(shell $(PKG_CONFIG) --libs   libnodegl)
 
 ifeq ($(TARGET_OS),Darwin)

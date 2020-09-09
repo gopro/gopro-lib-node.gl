@@ -83,11 +83,13 @@ EGLBoolean ngli_eglDestroyImageKHR(struct glcontext *gl, EGLImageKHR image)
     return egl->DestroyImageKHR(egl->display, image);
 }
 
+#if defined(TARGET_ANDROID)
 EGLClientBuffer ngli_eglGetNativeClientBufferANDROID(struct glcontext *gl, const struct AHardwareBuffer *buffer)
 {
     struct egl_priv *egl = gl->priv_data;
     return egl->GetNativeClientBufferANDROID(buffer);
 }
+#endif
 
 static int egl_probe_extensions(struct glcontext *ctx)
 {

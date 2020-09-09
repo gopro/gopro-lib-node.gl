@@ -891,6 +891,10 @@ const struct gctx_class ngli_gctx_gl = {
     .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
     .rendertarget_freep       = ngli_rendertarget_gl_freep,
 
+    .swapchain_create         = NULL,
+    .swapchain_destroy        = NULL,
+    .swapchain_acquire_image  = NULL,
+
     .texture_create           = ngli_texture_gl_create,
     .texture_init             = ngli_texture_gl_init,
     .texture_has_mipmap       = ngli_texture_gl_has_mipmap,

@@ -112,6 +112,7 @@ struct glfunctions {
     NGLI_GL_APIENTRY void (*GetUniformiv)(GLuint program, GLint location, GLint * params);
     NGLI_GL_APIENTRY void (*InvalidateFramebuffer)(GLenum target, GLsizei numAttachments, const GLenum * attachments);
     NGLI_GL_APIENTRY void (*LinkProgram)(GLuint program);
+    NGLI_GL_APIENTRY void * (*MapBufferRange)(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
     NGLI_GL_APIENTRY void (*MemoryBarrier)(GLbitfield barriers);
     NGLI_GL_APIENTRY void (*PixelStorei)(GLenum pname, GLint param);
     NGLI_GL_APIENTRY void (*PolygonMode)(GLenum face, GLenum mode);
@@ -153,6 +154,7 @@ struct glfunctions {
     NGLI_GL_APIENTRY void (*UniformMatrix2fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
     NGLI_GL_APIENTRY void (*UniformMatrix3fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
     NGLI_GL_APIENTRY void (*UniformMatrix4fv)(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
+    NGLI_GL_APIENTRY GLboolean (*UnmapBuffer)(GLenum target);
     NGLI_GL_APIENTRY void (*UseProgram)(GLuint program);
     NGLI_GL_APIENTRY void (*VertexAttribDivisor)(GLuint index, GLuint divisor);
     NGLI_GL_APIENTRY void (*VertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer);

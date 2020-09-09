@@ -348,7 +348,7 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
         .pAttachments    = s_priv->attachments,
         .width           = s->width,
         .height          = s->height,
-        .layers          = 1
+        .layers          = 1,
     };
 
     VkResult res = vkCreateFramebuffer(vk->device, &framebuffer_create_info, NULL, &s_priv->framebuffer);
@@ -356,11 +356,14 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
         return -1;
 
     if (params->readable) {
-        // XXX: proper size
-        const int size = s->width * s->height * 4;
+        const struct attachment *attachment = &params->colors[0];
+        const struct texture *texture = attachment->attachment;
+        const struct texture_params *params = &texture->params;
+
+        s_priv->staging_buffer_size = s->width * s->height * ngli_format_get_bytes_per_pixel(params->format);
         VkBufferCreateInfo buffer_create_info = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = size,
+            .size = s_priv->staging_buffer_size,
             .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
@@ -382,23 +385,15 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
             .memoryTypeIndex = memory_type_index,
         };
         res = vkAllocateMemory(vk->device, &memory_allocate_info, NULL, &s_priv->staging_memory);
-        if (res != VK_SUCCESS) {
-            LOG(ERROR, "can not allocate memory");
+        if (res != VK_SUCCESS)
             return NGL_ERROR_MEMORY;
-        }
 
         res = vkBindBufferMemory(vk->device, s_priv->staging_buffer, s_priv->staging_memory, 0);
-        if (res != VK_SUCCESS) {
-            LOG(ERROR, "can not bind memory");
+        if (res != VK_SUCCESS)
             return NGL_ERROR_MEMORY;
-        }
     }
 
     return 0;
-}
-
-void ngli_rendertarget_vk_blit(struct rendertarget *s, struct rendertarget *dst, int vflip)
-{
 }
 
 void ngli_rendertarget_vk_resolve(struct rendertarget *s)
@@ -479,8 +474,7 @@ void ngli_rendertarget_vk_read_pixels(struct rendertarget *s, uint8_t *data)
     res = vkMapMemory(vk->device, s_priv->staging_memory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped_data);
     if (res != VK_SUCCESS)
         return;
-    // XXX: proper size
-    memcpy(data, mapped_data, s->width * s->height * 4);
+    memcpy(data, mapped_data, s_priv->staging_buffer_size);
     vkUnmapMemory(vk->device, s_priv->staging_memory);
 
     VkCommandBufferBeginInfo command_buffer_begin_info = {

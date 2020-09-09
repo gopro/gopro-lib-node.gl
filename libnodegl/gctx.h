@@ -93,6 +93,10 @@ struct gctx_class {
     void (*rendertarget_read_pixels)(struct rendertarget *s, uint8_t *data);
     void (*rendertarget_freep)(struct rendertarget **sp);
 
+    int (*swapchain_create)(struct gctx *gctx);
+    void (*swapchain_destroy)(struct gctx *gctx);
+    int (*swapchain_acquire_image)(struct gctx *gctx, uint32_t *image_index);
+
     struct texture *(*texture_create)(struct gctx *ctx);
     int (*texture_init)(struct texture *s, const struct texture_params *params);
     int (*texture_has_mipmap)(const struct texture *s);

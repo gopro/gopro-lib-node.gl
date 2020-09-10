@@ -22,6 +22,8 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+#include <stdint.h>
+
 struct gctx;
 
 enum {
@@ -44,6 +46,9 @@ struct buffer {
 struct buffer *ngli_buffer_create(struct gctx *gctx);
 int ngli_buffer_init(struct buffer *s, int size, int usage);
 int ngli_buffer_upload(struct buffer *s, const void *data, int size, int offset);
+int ngli_buffer_download(struct buffer *s, void *data, int size, int offset);
+int ngli_buffer_map(struct buffer *s, int size, int offset, void **data);
+void ngli_buffer_unmap(struct buffer* s);
 void ngli_buffer_freep(struct buffer **sp);
 
 #endif

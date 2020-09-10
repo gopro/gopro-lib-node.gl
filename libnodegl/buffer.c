@@ -39,6 +39,21 @@ int ngli_buffer_upload(struct buffer *s, const void *data, int size, int offset)
     return s->gctx->cls->buffer_upload(s, data, size, offset);
 }
 
+int ngli_buffer_download(struct buffer *s, void *data, int size, int offset)
+{
+    return s->gctx->cls->buffer_download(s, data, size, offset);
+}
+
+int ngli_buffer_map(struct buffer *s, int size, int offset, void **data)
+{
+    return s->gctx->cls->buffer_map(s, size, offset, data);
+}
+
+void ngli_buffer_unmap(struct buffer *s)
+{
+    s->gctx->cls->buffer_unmap(s);
+}
+
 void ngli_buffer_freep(struct buffer **sp)
 {
     if (!*sp)

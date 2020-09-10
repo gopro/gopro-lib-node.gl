@@ -865,6 +865,9 @@ const struct gctx_class ngli_gctx_gl = {
     .buffer_create = ngli_buffer_gl_create,
     .buffer_init   = ngli_buffer_gl_init,
     .buffer_upload = ngli_buffer_gl_upload,
+    .buffer_download = ngli_buffer_gl_download,
+    .buffer_map      = ngli_buffer_gl_map,
+    .buffer_unmap    = ngli_buffer_gl_unmap,
     .buffer_freep  = ngli_buffer_gl_freep,
 
     .pipeline_create         = ngli_pipeline_gl_create,

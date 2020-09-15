@@ -30,6 +30,7 @@
 #define DEFAULT_HEIGHT 360
 
 int64_t gettime(void);
+int64_t gettime_relative(void);
 double clipd(double v, double min, double max);
 int clipi(int v, int min, int max);
 int64_t clipi64(int64_t v, int64_t min, int64_t max);

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -34,6 +35,13 @@ int64_t gettime(void)
 
     gettimeofday(&tv, NULL);
     return 1000000 * (int64_t)tv.tv_sec + tv.tv_usec;
+}
+
+int64_t gettime_relative(void)
+{
+    struct timespec ts;
+    int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ret != 0 ? 0 : ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
 }
 
 double clipd(double v, double min, double max)

@@ -178,9 +178,9 @@ cdef class Context:
         if self.ctx is NULL:
             raise MemoryError()
 
-    def configure(self, **kwargs):
-        cdef ngl_config config
-        memset(&config, 0, sizeof(config));
+    @staticmethod
+    cdef void _init_ngl_config_from_dict(ngl_config *config, kwargs):
+        memset(config, 0, sizeof(ngl_config));
         config.platform = kwargs.get('platform', PLATFORM_AUTO)
         config.backend = kwargs.get('backend', BACKEND_AUTO)
         config.display = kwargs.get('display', 0)
@@ -198,9 +198,14 @@ cdef class Context:
         clear_color = kwargs.get('clear_color', (0.0, 0.0, 0.0, 1.0))
         for i in range(4):
             config.clear_color[i] = clear_color[i]
+        capture_buffer = kwargs.get('capture_buffer')
+        if capture_buffer is not None:
+            config.capture_buffer = capture_buffer
+
+    def configure(self, **kwargs):
         self.capture_buffer = kwargs.get('capture_buffer')
-        if self.capture_buffer is not None:
-            config.capture_buffer = self.capture_buffer
+        cdef ngl_config config
+        Context._init_ngl_config_from_dict(&config, kwargs)
         return ngl_configure(self.ctx, &config)
 
     def resize(self, width, height, viewport=None):

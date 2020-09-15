@@ -324,6 +324,77 @@ static void stop_thread(struct ngl_ctx *s)
     pthread_mutex_destroy(&s->lock);
 }
 
+static int backend_probe(struct ngl_backend *backend, const struct ngl_config *config)
+{
+    struct gctx *gctx = ngli_gctx_create(config);
+    if (!gctx)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_gctx_init(gctx);
+    if (ret < 0)
+        goto end;
+
+    backend->id         = config->backend;
+    backend->name       = gctx->class->name;
+
+end:
+    ngli_gctx_freep(&gctx);
+    return ret;
+}
+
+static const int backend_ids[] = {
+#ifdef BACKEND_GL
+    NGL_BACKEND_OPENGL,
+    NGL_BACKEND_OPENGLES,
+#endif
+};
+
+int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, struct ngl_backend **backendsp)
+{
+    static const struct ngl_config default_config = {
+        .width     = 1,
+        .height    = 1,
+        .offscreen = 1,
+    };
+
+    if (!user_config)
+        user_config = &default_config;
+
+    const int platform = user_config->platform == NGL_PLATFORM_AUTO ? get_default_platform() : user_config->platform;
+
+    struct ngl_backend *backends = ngli_calloc(NGLI_ARRAY_NB(backend_ids), sizeof(*backends));
+    if (!backends)
+        return NGL_ERROR_MEMORY;
+    int nb_backends = 0;
+
+    for (int i = 0; i < NGLI_ARRAY_NB(backend_ids); i++) {
+        if (user_config->backend != NGL_BACKEND_AUTO && user_config->backend != backend_ids[i])
+            continue;
+        struct ngl_config config = *user_config;
+        config.backend = backend_ids[i];
+        config.platform = platform;
+
+        int ret = backend_probe(&backends[nb_backends], &config);
+        if (ret < 0)
+            continue;
+        backends[nb_backends].is_default = backend_ids[i] == DEFAULT_BACKEND;
+
+        nb_backends++;
+    }
+
+    if (!nb_backends)
+        ngl_backends_freep(&backends);
+
+    *backendsp = backends;
+    *nb_backendsp = nb_backends;
+    return 0;
+}
+
+void ngl_backends_freep(struct ngl_backend **backendsp)
+{
+    ngli_freep(backendsp);
+}
+
 struct ngl_ctx *ngl_create(void)
 {
     struct ngl_ctx *s = ngli_calloc(1, sizeof(*s));

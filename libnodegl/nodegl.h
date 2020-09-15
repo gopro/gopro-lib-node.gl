@@ -404,6 +404,33 @@ struct ngl_config {
                                 bytes. */
 };
 
+struct ngl_backend {
+    int id;                 /* any of NGL_BACKEND_* */
+    const char *name;
+    int is_default;
+};
+
+/**
+ * Returns the available backends for a given configuration
+ *
+ * @param user_config a ngl_config structure used to intialize the different
+ * backends. If ngl_config.backend is set to NGL_BACKEND_AUTO,
+ * ngl_backends_probe() will probe every supported backends, otherwise, it will
+ * only probe the specified backend
+ *
+ * @param nb_backends a pointer to an integer set to the number of backends
+ * available
+ *
+ * @param backends a pointer to an array of ngl_backend structures. The array
+ * is allocated by ngl_backends_probe() and has a size of nb_backends. Must be
+ * freed by the user using ngl_backends_freep()
+ *
+ * @return 0 on success, NGL_ERROR_* (< 0) on error
+ */
+int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, struct ngl_backend **backendsp);
+
+void ngl_backends_freep(struct ngl_backend **backendsp);
+
 /**
  * Opaque structure identifying a node.gl context
  */

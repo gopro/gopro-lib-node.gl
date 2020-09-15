@@ -118,7 +118,7 @@ end:
     ret = ngl_configure(p->ngl, config);
     if (ret < 0)
         fprintf(stderr, "Could not configure node.gl for onscreen rendering\n");
-    p->clock_off = gettime() - p->frame_ts;
+    p->clock_off = gettime_relative() - p->frame_ts;
 
     free(capture_buffer);
     return ret;
@@ -162,13 +162,13 @@ static void update_time(int64_t seek_at)
     struct player *p = g_player;
 
     if (seek_at >= 0) {
-        p->clock_off = gettime() - seek_at;
+        p->clock_off = gettime_relative() - seek_at;
         p->frame_ts = seek_at;
         return;
     }
 
     if (!p->paused && !p->mouse_down) {
-        const int64_t now = gettime();
+        const int64_t now = gettime_relative();
         if (p->clock_off < 0 || now - p->clock_off > p->duration)
             p->clock_off = now;
 
@@ -176,7 +176,7 @@ static void update_time(int64_t seek_at)
     }
 
     if (p->pgbar_opacity_node && p->lasthover >= 0) {
-        const int64_t t64_diff = gettime() - p->lasthover;
+        const int64_t t64_diff = gettime_relative() - p->lasthover;
         const double opacity = clipd(1.5 - t64_diff / 1000000.0, 0, 1);
         ngl_node_param_set(p->pgbar_opacity_node, "value", opacity);
 
@@ -200,7 +200,7 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
         return 1;
     case SDLK_SPACE:
         p->paused ^= 1;
-        p->clock_off = gettime() - p->frame_ts;
+        p->clock_off = gettime_relative() - p->frame_ts;
         break;
     case SDLK_f:
         p->fullscreen ^= 1;
@@ -241,7 +241,7 @@ static void seek_event(int x)
     const int *vp = p->ngl_config.viewport;
     const int pos = clipi(x - vp[0], 0, vp[2]) * 3/2;
     const int64_t seek_at64 = p->duration * pos / vp[2];
-    p->lasthover = gettime();
+    p->lasthover = gettime_relative();
     update_time(seek_at64);
 }
 
@@ -256,13 +256,13 @@ static void mouse_buttonup_callback(SDL_Window *window, SDL_MouseButtonEvent *ev
 {
     struct player *p = g_player;
     p->mouse_down = 0;
-    p->clock_off = gettime() - p->frame_ts;
+    p->clock_off = gettime_relative() - p->frame_ts;
 }
 
 static void mouse_pos_callback(SDL_Window *window, SDL_MouseMotionEvent *event)
 {
     struct player *p = g_player;
-    p->lasthover = gettime();
+    p->lasthover = gettime_relative();
     if (p->mouse_down)
         seek_event(event->x);
 }

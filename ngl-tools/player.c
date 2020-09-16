@@ -213,9 +213,11 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
         kill_scene();
         break;
     case SDLK_LEFT:
+        p->lasthover = gettime_relative();
         update_time(clipi64(p->frame_ts - 10 * 1000000, 0, p->duration));
         break;
     case SDLK_RIGHT:
+        p->lasthover = gettime_relative();
         update_time(clipi64(p->frame_ts + 10 * 1000000, 0, p->duration));
         break;
     default:

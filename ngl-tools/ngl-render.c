@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
         const float t0 = r->start;
         const float t1 = r->start + r->duration;
 
-        const int64_t start = gettime();
+        const int64_t start = gettime_relative();
 
         for (;;) {
             const float t = t0 + k*1./r->freq;
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
             k++;
         }
 
-        const double tdiff = (gettime() - start) / 1000000.;
+        const double tdiff = (gettime_relative() - start) / 1000000.;
         printf("Rendered %d frames in %g (FPS=%g)\n", k, tdiff, k / tdiff);
     }
 

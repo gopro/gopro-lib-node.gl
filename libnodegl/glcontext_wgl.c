@@ -49,6 +49,11 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
 {
     struct wgl_priv *wgl = ctx->priv_data;
 
+    if (ctx->backend != NGL_BACKEND_OPENGL) {
+        LOG(ERROR, "unsupported backend: %d, only OpenGL is currently supported", ctx->backend);
+        return -1;
+    }
+
     wgl->module = LoadLibrary("opengl32.dll");
     if (!wgl->module) {
         LOG(ERROR, "could not load opengl32.dll (%lu)", GetLastError());

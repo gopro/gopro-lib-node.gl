@@ -28,7 +28,7 @@ SXPLAYER_CFLAGS := $(shell $(PKG_CONFIG) --cflags libsxplayer)
 SXPLAYER_LDLIBS := $(shell $(PKG_CONFIG) --libs   libsxplayer)
 
 TOOLS_CFLAGS := $(shell $(PKG_CONFIG) --cflags libnodegl)
-TOOLS_LDLIBS := $(shell $(PKG_CONFIG) --libs   libnodegl)
+TOOLS_LDLIBS := $(shell $(PKG_CONFIG) --libs   libnodegl) -lm
 
 ifeq ($(TARGET_OS),Darwin)
 TOOLS_LDLIBS += -framework AppKit

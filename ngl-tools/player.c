@@ -20,6 +20,7 @@
  */
 
 #include <inttypes.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -103,7 +104,7 @@ static int screenshot(void)
         fprintf(stderr, "Could not configure node.gl for offscreen capture\n");
         goto end;
     }
-    ngl_draw(p->ngl, p->frame_ts / 1000000.0);
+    ngl_draw(p->ngl, p->frame_time);
 
     char filename[32];
     snprintf(filename, sizeof(filename), "ngl-%" PRId64 ".ppm", gettime());
@@ -141,7 +142,7 @@ static void update_text(void)
     if (!p->pgbar_text_node)
         return;
 
-    const int frame_ts = p->frame_ts / 1000000;
+    const int frame_ts = p->frame_time;
     const int duration = p->duration / 1000000;
     if (frame_ts == p->text_last_frame_ts && duration == p->text_last_duration)
         return;
@@ -175,13 +176,29 @@ static void update_pgbar(void)
     }
 }
 
+static void set_frame_ts(int64_t frame_ts)
+{
+    struct player *p = g_player;
+    p->frame_ts = frame_ts;
+    p->frame_index = llrint((p->frame_ts * p->framerate[0]) / (double)(p->framerate[1] * 1000000));
+    p->frame_time = (p->frame_index * p->framerate[1]) / (double)p->framerate[0];
+}
+
+static void set_frame_index(int64_t frame_index)
+{
+    struct player *p = g_player;
+    p->frame_index = frame_index;
+    p->frame_time = (p->frame_index * p->framerate[1]) / (double)p->framerate[0];
+    p->frame_ts = llrint(p->frame_index * p->framerate[1] * 1000000 / (double)p->framerate[0]);
+}
+
 static void update_time(int64_t seek_at)
 {
     struct player *p = g_player;
 
     if (seek_at >= 0) {
         p->clock_off = gettime_relative() - seek_at;
-        p->frame_ts = seek_at;
+        set_frame_ts(seek_at);
         return;
     }
 
@@ -190,7 +207,7 @@ static void update_time(int64_t seek_at)
         if (p->clock_off < 0 || now - p->clock_off > p->duration)
             p->clock_off = now;
 
-        p->frame_ts = now - p->clock_off;
+        set_frame_ts(now - p->clock_off);
     }
 }
 
@@ -224,6 +241,16 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
     case SDLK_RIGHT:
         p->lasthover = gettime_relative();
         update_time(clipi64(p->frame_ts + 10 * 1000000, 0, p->duration));
+        break;
+    case SDLK_o:
+        p->paused = 1;
+        p->lasthover = gettime_relative();
+        set_frame_index(clipi64(p->frame_index - 1, 0, p->duration_i));
+        break;
+    case SDLK_p:
+        p->paused = 1;
+        p->lasthover = gettime_relative();
+        set_frame_index(clipi64(p->frame_index + 1, 0, p->duration_i));
         break;
     default:
         break;
@@ -395,7 +422,7 @@ static int set_scene(struct ngl_node *scene)
 }
 
 int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
-                const struct ngl_config *cfg, double duration, int enable_ui)
+                const struct ngl_config *cfg, double duration, int *framerate, int enable_ui)
 {
     memset(p, 0, sizeof(*p));
 
@@ -415,6 +442,15 @@ int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
     p->duration_f = duration;
     p->duration = duration * 1000000;
     p->enable_ui = enable_ui;
+    p->framerate[0] = 60;
+    p->framerate[1] = 1;
+
+    if (!framerate[0] || !framerate[1]) {
+        fprintf(stderr, "Invalid framerate %d/%d\n", framerate[0], framerate[1]);
+        return -1;
+    }
+    memcpy(p->framerate, framerate, sizeof(p->framerate));
+    p->duration_i = llrint(p->duration_f * framerate[0] / (double)framerate[1]);
 
     p->ngl_config = *cfg;
 
@@ -477,6 +513,7 @@ static int handle_duration(const void *data)
     struct player *p = g_player;
     memcpy(&p->duration_f, data, sizeof(p->duration_f));
     p->duration = p->duration_f * 1000000;
+    p->duration_i = llrint(p->duration_f * p->framerate[0] / (double)p->framerate[1]);
     if (p->pgbar_duration_node)
         ngl_node_param_set(p->pgbar_duration_node, "value", p->duration_f);
     update_text();
@@ -514,7 +551,14 @@ static int handle_aspect_ratio(const void *data)
 static int handle_framerate(const void *data)
 {
     const int *rate = data;
-    fprintf(stderr, "WARNING: unhandled framerate %d/%d\n", rate[0], rate[1]);
+    struct player *p = g_player;
+    if (!rate[0] || !rate[1]) {
+        fprintf(stderr, "Invalid framerate %d/%d\n", rate[0], rate[1]);
+        return -1;
+    }
+    memcpy(p->framerate, rate, sizeof(p->framerate));
+    p->duration_i = llrint(p->duration_f * rate[0] / (double)rate[1]);
+    set_frame_ts(p->frame_ts);
     return 0;
 }
 
@@ -544,7 +588,7 @@ void player_main_loop(void)
     while (run) {
         update_time(-1);
         update_pgbar();
-        ngl_draw(p->ngl, p->frame_ts / 1000000.0);
+        ngl_draw(p->ngl, p->frame_time);
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {

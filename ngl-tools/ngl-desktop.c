@@ -54,6 +54,7 @@ struct ctx {
     struct ngl_config cfg;
     int aspect[2];
     int player_ui;
+    int framerate[2];
 
     int sock_fd;
     struct addrinfo *addr_info;
@@ -86,6 +87,7 @@ static const struct opt options[] = {
     {"-c", "--clear_color",   OPT_TYPE_COLOR,    .offset=OFFSET(cfg.clear_color)},
     {"-m", "--samples",       OPT_TYPE_INT,      .offset=OFFSET(cfg.samples)},
     {"-u", "--disable-ui",    OPT_TYPE_TOGGLE,   .offset=OFFSET(player_ui)},
+    {"-r", "--framerate",     OPT_TYPE_RATIONAL, .offset=OFFSET(framerate)},
 };
 
 static int create_session_file(struct ctx *s)
@@ -539,6 +541,8 @@ int main(int argc, char *argv[])
         .lock               = PTHREAD_MUTEX_INITIALIZER,
         .sock_fd            = -1,
         .player_ui          = 1,
+        .framerate[0]       = 60,
+        .framerate[1]       = 1,
     };
 
     int ret = opts_parse(argc, argc, argv, options, ARRAY_NB(options), &s);
@@ -565,7 +569,7 @@ int main(int argc, char *argv[])
     s.thread_started = 1;
 
     struct ngl_node *scene = get_default_scene(s.host, s.port);
-    ret = player_init(&s.p, "ngl-desktop", scene, &s.cfg, 0, s.player_ui);
+    ret = player_init(&s.p, "ngl-desktop", scene, &s.cfg, 0, s.framerate, s.player_ui);
     ngl_node_unrefp(&scene);
     if (ret < 0)
         goto end;

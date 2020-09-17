@@ -48,13 +48,17 @@ struct player {
 
     double duration_f;
     int64_t duration;
+    int64_t duration_i;
     int enable_ui;
     int aspect[2];
+    int framerate[2];
 
     struct ngl_ctx *ngl;
     struct ngl_config ngl_config;
     int64_t clock_off;
     int64_t frame_ts;
+    int64_t frame_index;
+    double  frame_time;
     int paused;
     int64_t lasthover;
     int mouse_down;
@@ -67,7 +71,7 @@ struct player {
 };
 
 int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
-                const struct ngl_config *cfg, double duration, int enable_ui);
+                const struct ngl_config *cfg, double duration, int *framerate, int enable_ui);
 
 void player_uninit(void);
 

@@ -34,6 +34,7 @@ struct ctx {
     struct ngl_config cfg;
     int direct_rendering;
     int player_ui;
+    int framerate[2];
 
     struct sxplayer_info media_info;
 };
@@ -47,6 +48,7 @@ static const struct opt options[] = {
     {"-c", "--clear_color",      OPT_TYPE_COLOR,    .offset=OFFSET(cfg.clear_color)},
     {"-m", "--samples",          OPT_TYPE_INT,      .offset=OFFSET(cfg.samples)},
     {"-u", "--disable-ui",       OPT_TYPE_TOGGLE,   .offset=OFFSET(player_ui)},
+    {"-r", "--framerate",        OPT_TYPE_RATIONAL, .offset=OFFSET(framerate)},
 };
 
 static const char *media_vertex =
@@ -126,6 +128,8 @@ int main(int argc, char *argv[])
         .cfg.swap_interval  = -1,
         .cfg.clear_color[3] = 1.f,
         .player_ui          = 1,
+        .framerate[0]       = 60,
+        .framerate[1]       = 1,
     };
 
     int ret = opts_parse(argc, argc - 1, argv, options, ARRAY_NB(options), &s);
@@ -148,7 +152,7 @@ int main(int argc, char *argv[])
     struct player p;
     s.cfg.width  = s.media_info.width;
     s.cfg.height = s.media_info.height;
-    ret = player_init(&p, "ngl-player", scene, &s.cfg, s.media_info.duration, s.player_ui);
+    ret = player_init(&p, "ngl-player", scene, &s.cfg, s.media_info.duration, s.framerate, s.player_ui);
     if (ret < 0)
         goto end;
     ngl_node_unrefp(&scene);

@@ -60,6 +60,7 @@ struct player {
     int64_t frame_index;
     double  frame_time;
     int paused;
+    int seeking;
     int64_t lasthover;
     int mouse_down;
     int fullscreen;

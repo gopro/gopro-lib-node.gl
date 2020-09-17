@@ -197,6 +197,7 @@ static void update_time(int64_t seek_at)
     struct player *p = g_player;
 
     if (seek_at >= 0) {
+        p->seeking = 1;
         p->clock_off = gettime_relative() - seek_at;
         set_frame_ts(seek_at);
         return;
@@ -204,11 +205,19 @@ static void update_time(int64_t seek_at)
 
     if (!p->paused && !p->mouse_down) {
         const int64_t now = gettime_relative();
-        if (p->clock_off < 0 || now - p->clock_off > p->duration)
+        if (p->clock_off < 0 || now - p->clock_off > p->duration) {
+            p->seeking = 1;
             p->clock_off = now;
+        }
 
         set_frame_ts(now - p->clock_off);
     }
+}
+
+static void reset_running_time(void)
+{
+    struct player *p = g_player;
+    p->clock_off = gettime_relative() - p->frame_ts;
 }
 
 static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
@@ -222,7 +231,7 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
         return 1;
     case SDLK_SPACE:
         p->paused ^= 1;
-        p->clock_off = gettime_relative() - p->frame_ts;
+        reset_running_time();
         break;
     case SDLK_f:
         p->fullscreen ^= 1;
@@ -589,6 +598,10 @@ void player_main_loop(void)
         update_time(-1);
         update_pgbar();
         ngl_draw(p->ngl, p->frame_time);
+        if (p->seeking) {
+            reset_running_time();
+            p->seeking = 0;
+        }
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {

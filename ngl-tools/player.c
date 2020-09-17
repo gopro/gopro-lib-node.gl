@@ -157,6 +157,24 @@ static void update_text(void)
     p->text_last_duration = duration;
 }
 
+static void update_pgbar(void)
+{
+    struct player *p = g_player;
+
+    if (p->pgbar_opacity_node && p->lasthover >= 0) {
+        const int64_t t64_diff = gettime_relative() - p->lasthover;
+        const double opacity = clipd(1.5 - t64_diff / 1000000.0, 0, 1);
+        ngl_node_param_set(p->pgbar_opacity_node, "value", opacity);
+
+        const float text_bg[4] = {1.0, 1.0, 1.0, opacity};
+        const float text_fg[4] = {0.0, 0.0, 0.0, opacity};
+        ngl_node_param_set(p->pgbar_text_node, "bg_color", text_bg);
+        ngl_node_param_set(p->pgbar_text_node, "fg_color", text_fg);
+
+        update_text();
+    }
+}
+
 static void update_time(int64_t seek_at)
 {
     struct player *p = g_player;
@@ -173,19 +191,6 @@ static void update_time(int64_t seek_at)
             p->clock_off = now;
 
         p->frame_ts = now - p->clock_off;
-    }
-
-    if (p->pgbar_opacity_node && p->lasthover >= 0) {
-        const int64_t t64_diff = gettime_relative() - p->lasthover;
-        const double opacity = clipd(1.5 - t64_diff / 1000000.0, 0, 1);
-        ngl_node_param_set(p->pgbar_opacity_node, "value", opacity);
-
-        const float text_bg[4] = {1.0, 1.0, 1.0, opacity};
-        const float text_fg[4] = {0.0, 0.0, 0.0, opacity};
-        ngl_node_param_set(p->pgbar_text_node, "bg_color", text_bg);
-        ngl_node_param_set(p->pgbar_text_node, "fg_color", text_fg);
-
-        update_text();
     }
 }
 
@@ -538,6 +543,7 @@ void player_main_loop(void)
     int run = 1;
     while (run) {
         update_time(-1);
+        update_pgbar();
         ngl_draw(p->ngl, p->frame_ts / 1000000.0);
         SDL_Event event;
         while (SDL_PollEvent(&event)) {

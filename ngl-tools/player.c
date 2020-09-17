@@ -285,7 +285,7 @@ static void seek_event(int x)
     const int pos = clipi(x - vp[0], 0, vp[2]) * 3/2;
     const int64_t seek_at64 = p->duration * pos / vp[2];
     p->lasthover = gettime_relative();
-    update_time(seek_at64);
+    update_time(clipi64(seek_at64, 0, p->duration));
 }
 
 static void mouse_buttondown_callback(SDL_Window *window, SDL_MouseButtonEvent *event)

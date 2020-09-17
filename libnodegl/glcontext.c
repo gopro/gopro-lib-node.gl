@@ -113,8 +113,8 @@ static int glcontext_load_functions(struct glcontext *glcontext)
 
 static int glcontext_probe_version(struct glcontext *glcontext)
 {
-    GLint major_version;
-    GLint minor_version;
+    GLint major_version = 0;
+    GLint minor_version = 0;
 
     if (glcontext->backend == NGL_BACKEND_OPENGL) {
         ngli_glGetIntegerv(glcontext, GL_MAJOR_VERSION, &major_version);

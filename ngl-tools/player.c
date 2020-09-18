@@ -526,7 +526,6 @@ static int handle_duration(const void *data)
     p->duration_i = llrint(p->duration_f * p->framerate[0] / (double)p->framerate[1]);
     if (p->pgbar_duration_node)
         ngl_node_param_set(p->pgbar_duration_node, "value", p->duration_f);
-    update_text();
     return 0;
 }
 

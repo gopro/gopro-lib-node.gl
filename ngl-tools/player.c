@@ -626,6 +626,7 @@ void player_main_loop(void)
             case SDL_USEREVENT:
                 run = handle_map[event.user.code](event.user.data1) == 0;
                 free(event.user.data1);
+                p->lasthover = gettime_relative();
                 break;
             }
         }

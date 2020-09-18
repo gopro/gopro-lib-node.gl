@@ -42,17 +42,13 @@ struct wgl_priv {
     PFNWGLRELEASEPBUFFERDCARBPROC ReleasePbufferDCARB;
     PFNWGLDESTROYPBUFFERARBPROC DestroyPbufferARB;
     PFNWGLGETPBUFFERDCARBPROC GetPbufferDCARB;
+    PFNWGLGETEXTENSIONSSTRINGARBPROC GetExtensionsStringARB;
     PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT;
 };
 
 static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, uintptr_t other)
 {
     struct wgl_priv *wgl = ctx->priv_data;
-
-    if (ctx->backend != NGL_BACKEND_OPENGL) {
-        LOG(ERROR, "unsupported backend: %d, only OpenGL is currently supported", ctx->backend);
-        return -1;
-    }
 
     wgl->module = LoadLibrary("opengl32.dll");
     if (!wgl->module) {
@@ -123,6 +119,7 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
         {"wglReleasePbufferDCARB", offsetof(struct wgl_priv, ReleasePbufferDCARB)},
         {"wglDestroyPbufferARB", offsetof(struct wgl_priv, DestroyPbufferARB)},
         {"wglGetPbufferDCARB", offsetof(struct wgl_priv, GetPbufferDCARB)},
+        {"wglGetExtensionsStringARB", offsetof(struct wgl_priv, GetExtensionsStringARB)},
     };
 
     for (int i = 0; i < NGLI_ARRAY_NB(extensions); i++) {
@@ -184,15 +181,33 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
     if (wglDeleteContext(wgl->rendering_context) == FALSE)
         LOG(WARNING, "failed to delete dummy rendering context (%lu)", GetLastError());
 
-    const int context_attributes[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 1,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 0,
-        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0
-    };
-
     HGLRC shared_context = (HGLRC)other;
-    wgl->rendering_context = wgl->CreateContextAttribsARB(wgl->device_context, shared_context, context_attributes);
+
+    if (ctx->backend == NGL_BACKEND_OPENGL) {
+        static const int context_attributes[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 1,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            0
+        };
+        wgl->rendering_context = wgl->CreateContextAttribsARB(wgl->device_context, shared_context, context_attributes);
+    } else if (ctx->backend == NGL_BACKEND_OPENGLES) {
+        const char *extensions = wgl->GetExtensionsStringARB(wgl->device_context);
+        if (!ngli_glcontext_check_extension("WGL_EXT_create_context_es2_profile", extensions) &&
+            !ngli_glcontext_check_extension("WGL_EXT_create_context_es_profile", extensions)) {
+            LOG(ERROR, "OpenGLES is not supported by this device");
+            return -1;
+        }
+        static const int context_attributes[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 2,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_ES2_PROFILE_BIT_EXT,
+            0
+        };
+        wgl->rendering_context = wgl->CreateContextAttribsARB(wgl->device_context, shared_context, context_attributes);
+    } else {
+        ngli_assert(0);
+    }
 
     if (!wgl->rendering_context) {
         LOG(ERROR, "failed to create rendering context (%lu)", GetLastError());

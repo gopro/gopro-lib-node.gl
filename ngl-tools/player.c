@@ -449,6 +449,7 @@ int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
 
     p->clock_off = -1;
     p->lasthover = -1;
+    p->text_last_frame_index = -1;
     p->duration_f = duration;
     p->duration = duration * 1000000;
     p->enable_ui = enable_ui;

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
 
 #include <nodegl.h>
 
@@ -171,9 +172,9 @@ void ipc_pkt_freep(struct ipc_pkt **pktp)
 
 int ipc_send(int fd, const struct ipc_pkt *pkt)
 {
-    const ssize_t n = write(fd, pkt->data, pkt->size);
+    const ssize_t n = send(fd, pkt->data, pkt->size, 0);
     if (n < 0) {
-        perror("write");
+        perror("send");
         return NGL_ERROR_IO;
     }
     // XXX: should we loop instead?
@@ -188,11 +189,11 @@ static int readbuf(int fd, uint8_t *buf, ssize_t size)
 {
     ssize_t nr = 0;
     while (nr != size) {
-        const ssize_t n = read(fd, buf + nr, size - nr);
+        const ssize_t n = recv(fd, buf + nr, size - nr, 0);
         if (n == 0)
             return 0;
         if (n < 0) {
-            perror("read");
+            perror("recv");
             return NGL_ERROR_IO;
         }
         nr += n;

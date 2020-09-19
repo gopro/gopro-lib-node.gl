@@ -27,6 +27,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 import pynodegl as ngl
 
 from pynodegl_utils.config import Config
+from pynodegl_utils.control_widgets import control_to_widget
 
 
 class Toolbar(QtWidgets.QWidget):
@@ -182,8 +183,9 @@ class Toolbar(QtWidgets.QWidget):
 
     def _get_opts_widget_from_specs(self, widgets_specs):
         widgets = []
-        for name, controller in widgets_specs:
-            widget = controller.get_widget(name)
+        for key, default, ctl_id, ctl_data in widgets_specs:
+            widget_cls = control_to_widget[ctl_id]
+            widget = widget_cls(key, default, **ctl_data)
             widget.needSceneReload.connect(self._widget_scene_reload)
             widgets.append(widget)
         if not widgets:

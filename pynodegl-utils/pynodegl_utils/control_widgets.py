@@ -188,3 +188,14 @@ class TextInput(_ControlWidget):
     @QtCore.Slot()
     def _submit_text(self):
         self.signal_change(self._text.toPlainText())
+
+
+control_to_widget = dict(
+    Range=Slider,
+    Vector=VectorWidget,
+    Color=ColorPicker,
+    Bool=Checkbox,
+    File=FilePicker,
+    List=ComboBox,
+    Text=TextInput,
+)

@@ -25,8 +25,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -274,6 +279,15 @@ int main(int argc, char *argv[])
         opts_print_usage(argv[0], options, ARRAY_NB(options), NULL);
         return ret == OPT_HELP ? 0 : EXIT_FAILURE;
     }
+
+#if _WIN32
+    WSADATA wsa_data;
+    int sret = WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    if (sret != 0) {
+        fprintf(stderr, "WSAStartup: failed with %d\n", sret);
+        return NGL_ERROR_IO;
+    }
+#endif
 
     struct addrinfo *addr_info = NULL;
     int fd = -1;

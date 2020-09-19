@@ -26,12 +26,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <sys/utsname.h>
+#include <netdb.h>
+#endif
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <netdb.h>
 #include <pthread.h>
 #include <signal.h>
 
@@ -429,6 +434,15 @@ end:
 
 static int setup_network(struct ctx *s)
 {
+#if _WIN32
+    WSADATA wsa_data;
+    int sret = WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    if (sret != 0) {
+        fprintf(stderr, "WSAStartup: failed with %d\n", sret);
+        return NGL_ERROR_IO;
+    }
+#endif
+
     struct addrinfo hints = {
         .ai_family   = AF_UNSPEC,
         .ai_socktype = SOCK_STREAM,
@@ -593,11 +607,18 @@ end:
          * of behaviour is to prevent a possible race scenario where the same
          * FD would be re-used between a close() and an accept().
          *
+         * On Windows, both shutdown() and close() won't work, we have to use a
+         * Windows specific one: closesocket().
+         *
          * See https://bugzilla.kernel.org/show_bug.cgi?id=106241 for more
          * information.
          */
+#if _WIN32
+        closesocket(s.sock_fd);
+#else
         if (shutdown(s.sock_fd, SHUT_RDWR) < 0)
             perror("shutdown");
+#endif
         close(s.sock_fd);
     }
 

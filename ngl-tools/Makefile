@@ -21,6 +21,9 @@
 
 include ../common.mak
 
+NETWORK_CFLAGS :=
+NETWORK_LDLIBS :=
+
 SDL_CFLAGS := $(shell $(PKG_CONFIG) --cflags sdl2)
 SDL_LDLIBS := $(shell $(PKG_CONFIG) --libs   sdl2)
 
@@ -32,6 +35,10 @@ TOOLS_LDLIBS := $(shell $(PKG_CONFIG) --libs   libnodegl) -lm
 
 ifeq ($(TARGET_OS),Darwin)
 TOOLS_LDLIBS += -framework AppKit
+endif
+
+ifeq ($(TARGET_OS),MinGW-w64)
+NETWORK_LDLIBS += -lws2_32
 endif
 
 # Warning: while all 3 "python{,2,3}-config" should work as expected,
@@ -78,12 +85,12 @@ WSI_OBJS_Darwin = wsi_cocoa.o
 WSI_OBJS_MinGW-w64 = wsi_windows.o
 WSI_OBJS = wsi.o $(WSI_OBJS_$(TARGET_OS))
 
-ngl-desktop$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(SDL_CFLAGS) $(TOOLS_CFLAGS)
-ngl-desktop$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(SDL_LDLIBS) $(TOOLS_LDLIBS) -lpthread
+ngl-desktop$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(SDL_CFLAGS) $(TOOLS_CFLAGS) $(NETWORK_CFLAGS)
+ngl-desktop$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(SDL_LDLIBS) $(TOOLS_LDLIBS) $(NETWORK_LDLIBS) -lpthread
 ngl-desktop$(EXESUF): ngl-desktop.o ipc.o player.o opts.o $(WSI_OBJS)
 
-ngl-ipc$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS)
-ngl-ipc$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS)
+ngl-ipc$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS) $(NETWORK_CFLAGS)
+ngl-ipc$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS) $(NETWORK_LDLIBS)
 ngl-ipc$(EXESUF): ngl-ipc.o ipc.o opts.o
 
 ngl-serialize$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS) $(PYTHON_CFLAGS)

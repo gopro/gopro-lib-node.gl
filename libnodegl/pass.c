@@ -718,6 +718,10 @@ int ngli_pass_exec(struct pass *s)
         default:
             break;
         }
+        if (ret < 0) {
+            LOG(ERROR, "no image available for texture at index=%d, pipeline cannot be executed, due to unbound resources", i);
+            return NGL_ERROR_EXTERNAL;
+        }
         const int layout = ret < 0 ? NGLI_IMAGE_LAYOUT_NONE : image->params.layout;
         ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_SAMPLING_MODE].index, &layout);
     }

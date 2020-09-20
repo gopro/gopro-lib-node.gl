@@ -468,7 +468,7 @@ static int setup_network(struct ctx *s)
             continue;
 
         int yes = 1;
-        ret = setsockopt(s->sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+        ret = setsockopt(s->sock_fd, SOL_SOCKET, SO_REUSEADDR, (void *)&yes, sizeof(yes));
         if (ret == -1) {
             perror("setsockopt");
             break;

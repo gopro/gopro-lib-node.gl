@@ -14,7 +14,7 @@ for building and running the complete **node.gl** stack:
 - **Graphviz**
 - **SDL2**
 
-## Quick user installation
+## Quick user installation on Linux and MacOS
 
 The following steps describe how to install `node.gl` and its dependencies in
 your home user directory, without polluting your system (aside from the system
@@ -37,6 +37,22 @@ Jobbed `make` calls are supported, so you can use `make -jN` where `N` is the
 number of parallel processes.
 
 **Note**: to leave the environment, you can use `deactivate`.
+
+## Quick user installation on Windows
+
+On Windows, the bootstrap is slightly more complex:
+
+- install [MSYS2](https://www.msys2.org/)
+- run MinGW64 shell (*NOT* MSYS2, "MINGW64" should be visible in the prompt)
+- run the following in the shell:
+```shell
+pacman -Syuu  # and restart the shell
+pacman -S git make
+pacman -S mingw-w64-x86_64-{toolchain,ffmpeg,python}
+make TARGET_OS=MinGW-w64
+```
+
+Then you should be able to enter the environment and run the tools.
 
 ## Installation of `libnodegl` (the core library)
 

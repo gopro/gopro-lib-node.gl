@@ -29,6 +29,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <direct.h>
 #else
 #include <sys/socket.h>
 #include <sys/utsname.h>
@@ -511,7 +512,11 @@ static int makedirs(const char *path, int mode)
             continue;
         }
         *next = 0;
+#ifdef _WIN32
+        const int r = _mkdir(cur_path);
+#else
         const int r = mkdir(cur_path, mode);
+#endif
         *next = '/';
         if (r < 0 && errno != EEXIST) {
             perror(cur_path);

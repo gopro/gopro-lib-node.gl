@@ -286,13 +286,18 @@ static int handle_tag_info(const uint8_t *data, int size, int fd, struct ctx *s)
     if (!backend_str)
         return NGL_ERROR_BUG;
 
+#ifdef _WIN32
+    const char *sysname = "Windows";
+#else
     struct utsname name;
     int ret = uname(&name);
     if (ret < 0)
         return NGL_ERROR_GENERIC;
+    const char *sysname = name.sysname;
+#endif
 
     char info[256];
-    snprintf(info, sizeof(info), "backend=%s\nsystem=%s\n", backend_str, name.sysname);
+    snprintf(info, sizeof(info), "backend=%s\nsystem=%s\n", backend_str, sysname);
     return ipc_pkt_add_rtag_info(s->send_pkt, info);
 }
 

@@ -3,8 +3,8 @@
 set -e
 
 session=$1
-host=${session%%:*}
-port=${session##*:}
+host=${session%%-*}
+port=${session##*-}
 
 set -x
 ngl-ipc -x "$host" -p "$port" -?

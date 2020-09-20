@@ -7,8 +7,8 @@ scenefile=$2
 shift 2
 eval $@
 
-host=${session%%:*}
-port=${session##*:}
+host=${session%%-*}
+port=${session##*-}
 
 set -x
 

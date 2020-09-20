@@ -511,7 +511,7 @@ static int makedirs(const char *path, int mode)
 
 static int setup_paths(struct ctx *s)
 {
-    int ret = snprintf(s->root_dir, sizeof(s->root_dir), "/tmp/ngl-desktop/%s:%s/", s->host, s->port);
+    int ret = snprintf(s->root_dir, sizeof(s->root_dir), "/tmp/ngl-desktop/%s-%s/", s->host, s->port);
     if (ret < 0 || ret >= sizeof(s->root_dir))
         return ret;
     ret = snprintf(s->files_dir, sizeof(s->files_dir), "%sfiles/", s->root_dir);

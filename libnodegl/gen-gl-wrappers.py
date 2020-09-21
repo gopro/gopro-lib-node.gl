@@ -118,6 +118,10 @@ cmds_optional = [
     'glUniform2uiv',
     'glUniform3uiv',
     'glUniform4uiv',
+
+    # Map/Unmap
+    'glMapBufferRange',
+    'glUnmapBuffer'
 ]
 
 cmds = [

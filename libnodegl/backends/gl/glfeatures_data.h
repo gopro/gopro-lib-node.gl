@@ -287,5 +287,13 @@ static const struct glfeature {
         .version        = 300,
         .es_version     = 300,
         .es_extensions  = (const char*[]){"GL_EXT_shader_texture_lod", NULL},
+    }, {
+        .name           = "map_buffer",
+        .flag           = NGLI_FEATURE_MAP_BUFFER,
+        .version        = 300,
+        .es_version     = 300,
+        .funcs_offsets  = (const size_t[]){OFFSET(MapBufferRange),
+                                           OFFSET(UnmapBuffer),
+                                           -1}
     }
 };

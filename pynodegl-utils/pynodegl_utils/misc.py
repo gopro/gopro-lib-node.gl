@@ -80,7 +80,7 @@ scene.Range = namedtuple('Range',  'range unit_base', defaults=([0, 1], 1))
 scene.Vector = namedtuple('Vector', 'n minv maxv', defaults=(None, None))
 scene.Color = namedtuple('Color',  '')
 scene.Bool = namedtuple('Bool', '')
-scene.File = namedtuple('File', 'filter', defaults=(None,))
+scene.File = namedtuple('File', 'filter', defaults=('',))
 scene.List = namedtuple('List', 'choices')
 scene.Text = namedtuple('Text', '')
 

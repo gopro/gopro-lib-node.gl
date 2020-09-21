@@ -43,13 +43,11 @@ class _ControlWidget(QtWidgets.QWidget):
 
 class Slider(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value, range, unit_base):
         super().__init__(name)
         slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self._unit_base = kwargs.get('unit_base', 1)
-        if 'range' in kwargs:
-            srange = kwargs['range']
-            slider.setRange(srange[0] * self._unit_base, srange[1] * self._unit_base)
+        self._unit_base = unit_base
+        slider.setRange(range[0] * self._unit_base, range[1] * self._unit_base)
         slider.setValue(value * self._unit_base)
         self._label = QtWidgets.QLabel(self.get_label_text(value))
         slider.valueChanged.connect(self._slider_value_changed)
@@ -65,13 +63,12 @@ class Slider(_ControlWidget):
 
 class VectorWidget(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value, n, minv, maxv):
         super().__init__(name)
-        n = kwargs.get("n", 3)
         hlayout = QtWidgets.QHBoxLayout()
         self._spinboxes = []
-        elems_min = kwargs.get("minv", [0] * n)
-        elems_max = kwargs.get("maxv", [1] * n)
+        elems_min = minv if minv is not None else [0] * n
+        elems_max = maxv if maxv is not None else [1] * n
         assert 2 <= n <= 4
         assert len(elems_min) == len(elems_max) == len(value) == n
         for elem_value, elem_min, elem_max in zip(value, elems_min, elems_max):
@@ -94,7 +91,7 @@ class VectorWidget(_ControlWidget):
 
 class ColorPicker(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value):
         super().__init__(name)
         self._color_btn = QtWidgets.QPushButton()
         color = QtGui.QColor()
@@ -120,7 +117,7 @@ class ColorPicker(_ControlWidget):
 
 class Checkbox(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value):
         super().__init__(name)
         self._chkbox = QtWidgets.QCheckBox(name)
         self._chkbox.setChecked(value)
@@ -134,9 +131,9 @@ class Checkbox(_ControlWidget):
 
 class FilePicker(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value, filter):
         super().__init__(name)
-        self._filter = kwargs.get('filter', '')
+        self._filter = filter
         dialog_btn = QtWidgets.QPushButton('Open file')
         self._label = QtWidgets.QLabel(self.get_label_text(value))
         dialog_btn.pressed.connect(self._choose_filename)
@@ -154,11 +151,10 @@ class FilePicker(_ControlWidget):
 
 class ComboBox(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value, choices):
         super().__init__(name)
         combobox = QtWidgets.QComboBox()
         label = QtWidgets.QLabel(self.get_label_text())
-        choices = kwargs['choices']
         combobox.addItems(choices)
         combobox.setCurrentIndex(choices.index(value))
         combobox.currentTextChanged.connect(self._combobox_select)
@@ -172,7 +168,7 @@ class ComboBox(_ControlWidget):
 
 class TextInput(_ControlWidget):
 
-    def __init__(self, name, value, **kwargs):
+    def __init__(self, name, value):
         super().__init__(name)
         self._text = QtWidgets.QPlainTextEdit()
         self._text.setPlainText(value)

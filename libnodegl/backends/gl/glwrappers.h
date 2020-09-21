@@ -639,6 +639,13 @@ static inline void ngli_glLinkProgram(const struct glcontext *gl, GLuint program
     check_error_code(gl, "glLinkProgram");
 }
 
+static inline void * ngli_glMapBufferRange(const struct glcontext *gl, GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+{
+    void * ret = gl->funcs.MapBufferRange(target, offset, length, access);
+    check_error_code(gl, "glMapBufferRange");
+    return ret;
+}
+
 static inline void ngli_glMemoryBarrier(const struct glcontext *gl, GLbitfield barriers)
 {
     gl->funcs.MemoryBarrier(barriers);
@@ -895,6 +902,13 @@ static inline void ngli_glUniformMatrix4fv(const struct glcontext *gl, GLint loc
 {
     gl->funcs.UniformMatrix4fv(location, count, transpose, value);
     check_error_code(gl, "glUniformMatrix4fv");
+}
+
+static inline GLboolean ngli_glUnmapBuffer(const struct glcontext *gl, GLenum target)
+{
+    GLboolean ret = gl->funcs.UnmapBuffer(target);
+    check_error_code(gl, "glUnmapBuffer");
+    return ret;
 }
 
 static inline void ngli_glUseProgram(const struct glcontext *gl, GLuint program)

@@ -258,5 +258,13 @@ static const struct glfeature {
     .es_version     = 320,
     .funcs_offsets  = (const size_t[]){OFFSET(DebugMessageCallback),
                                        -1}
+    }, {
+        .name           = "map_buffer",
+        .flag           = NGLI_FEATURE_MAP_BUFFER,
+        .version        = 300,
+        .es_version     = 300,
+        .funcs_offsets  = (const size_t[]){OFFSET(MapBufferRange),
+                                           OFFSET(UnmapBuffer),
+                                           -1}
     }
 };

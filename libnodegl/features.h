@@ -54,6 +54,7 @@
 #define NGLI_FEATURE_UINT_UNIFORMS                (1 << 29)
 #define NGLI_FEATURE_EGL_ANDROID_GET_IMAGE_NATIVE_CLIENT_BUFFER (1 << 30)
 #define NGLI_FEATURE_KHR_DEBUG                    (1ULL << 31)
+#define NGLI_FEATURE_MAP_BUFFER                   (1ULL << 32)
 
 #define NGLI_FEATURE_COMPUTE_SHADER_ALL (NGLI_FEATURE_COMPUTE_SHADER           | \
                                          NGLI_FEATURE_PROGRAM_INTERFACE_QUERY  | \

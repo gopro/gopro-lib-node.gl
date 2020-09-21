@@ -32,16 +32,11 @@
 
 struct wgl_priv {
     HWND window;
-    HPBUFFERARB pixel_buffer;
     HDC device_context;
     HGLRC rendering_context;
     HMODULE module;
     PFNWGLCHOOSEPIXELFORMATARBPROC ChoosePixelFormatARB;
     PFNWGLCREATECONTEXTATTRIBSARBPROC CreateContextAttribsARB;
-    PFNWGLCREATEPBUFFERARBPROC CreatePbufferARB;
-    PFNWGLRELEASEPBUFFERDCARBPROC ReleasePbufferDCARB;
-    PFNWGLDESTROYPBUFFERARBPROC DestroyPbufferARB;
-    PFNWGLGETPBUFFERDCARBPROC GetPbufferDCARB;
     PFNWGLGETEXTENSIONSSTRINGARBPROC GetExtensionsStringARB;
     PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT;
 };
@@ -115,10 +110,6 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
     } extensions[] = {
         {"wglChoosePixelFormatARB", offsetof(struct wgl_priv, ChoosePixelFormatARB)},
         {"wglCreateContextAttribsARB", offsetof(struct wgl_priv, CreateContextAttribsARB)},
-        {"wglCreatePbufferARB", offsetof(struct wgl_priv, CreatePbufferARB)},
-        {"wglReleasePbufferDCARB", offsetof(struct wgl_priv, ReleasePbufferDCARB)},
-        {"wglDestroyPbufferARB", offsetof(struct wgl_priv, DestroyPbufferARB)},
-        {"wglGetPbufferDCARB", offsetof(struct wgl_priv, GetPbufferDCARB)},
         {"wglGetExtensionsStringARB", offsetof(struct wgl_priv, GetExtensionsStringARB)},
     };
 
@@ -140,7 +131,6 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
 
     const int pixel_format_attributes[] = {
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-        WGL_DRAW_TO_PBUFFER_ARB, GL_TRUE,
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
         WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
@@ -167,15 +157,6 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
     if (SetPixelFormat(wgl->device_context, pixel_format, &pixel_format_descriptor) == FALSE) {
         LOG(ERROR, "could not apply pixel format (%lu)", GetLastError());
         return -1;
-    }
-
-    if (ctx->offscreen) {
-        wgl->pixel_buffer = wgl->CreatePbufferARB(wgl->device_context, pixel_format, ctx->width, ctx->height, NULL);
-        if (!wgl->pixel_buffer) {
-            LOG(ERROR, "could not create pixel buffer");
-            return -1;
-        }
-        wgl->device_context = wgl->GetPbufferDCARB(wgl->pixel_buffer);
     }
 
     if (wglDeleteContext(wgl->rendering_context) == FALSE)
@@ -225,14 +206,6 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
 static void wgl_uninit(struct glcontext *ctx)
 {
     struct wgl_priv *wgl = ctx->priv_data;
-
-    if (wgl->pixel_buffer && wgl->device_context) {
-        if (wgl->ReleasePbufferDCARB)
-            wgl->ReleasePbufferDCARB(wgl->pixel_buffer, wgl->device_context);
-
-        if (wgl->DestroyPbufferARB)
-            wgl->DestroyPbufferARB(wgl->pixel_buffer);
-    }
 
     if (wgl->rendering_context)
         wglDeleteContext(wgl->rendering_context);

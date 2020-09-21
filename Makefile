@@ -51,13 +51,25 @@ ngl-tools-install: nodegl-install
 pynodegl-utils-install: pynodegl-utils-deps-install
 	(. $(ACTIVATE) && pip -v install -e ./pynodegl-utils)
 
+#
 # pynodegl-install is in dependency to prevent from trying to install pynodegl
 # from its requirements. Pulling pynodegl from requirements has two main issue:
 # it tries to get it from PyPi (and we want to install the local pynodegl
 # version), and it would fail anyway because pynodegl is currently not
 # available on PyPi.
+#
+# We do not pull the requirements on Windows because of various issues:
+# - PySide2 can't be pulled
+# - Pillow fails to find zlib
+# - ngl-viewer can not currently work because of temporary files handling
+#
+# Still, we want the module to be installed so we can access the scene()
+# decorator and other related utils.
+#
 pynodegl-utils-deps-install: pynodegl-install
+ifneq ($(TARGET_OS),MinGW-w64)
 	(. $(ACTIVATE) && pip install -r ./pynodegl-utils/requirements.txt)
+endif
 
 pynodegl-install: pynodegl-deps-install
 	(. $(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)

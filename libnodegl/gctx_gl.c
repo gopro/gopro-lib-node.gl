@@ -50,7 +50,8 @@ static void capture_default(struct gctx *s)
     struct rendertarget *rt = s_priv->rt;
 
     ngli_rendertarget_resolve(rt);
-    ngli_rendertarget_read_pixels(rt, config->capture_buffer);
+    if (config->capture_buffer)
+        ngli_rendertarget_read_pixels(rt, config->capture_buffer);
 }
 
 static void capture_ios(struct gctx *s)

@@ -27,7 +27,7 @@ from PySide2 import QtCore, QtGui, QtWidgets, QtSvg
 
 from .seekbar import Seekbar
 
-from pynodegl_utils import player
+from pynodegl_utils import clock
 from pynodegl_utils import misc
 
 import pynodegl as ngl
@@ -91,7 +91,7 @@ class GraphView(QtWidgets.QWidget):
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self._update)
 
-        self._clock = player.Clock(self._framerate, 0.0)
+        self._clock = clock.Clock(self._framerate, 0.0)
 
     @QtCore.Slot()
     def _play(self):

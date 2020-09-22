@@ -21,15 +21,53 @@ see something like this:
 
 ![ngl-control](img/ngl-control.png)
 
+`ngl-control` doesn't render scenes directly, it's a controller which builds
+scenes from Python sources, then communicates the result to `ngl-desktop` for
+rendering. `ngl-desktop` is the native rendering player on desktop.
+
+So to be of any use, you will need one or more instances of `ngl-desktop`
+running on your machine first. You can either spawn them manually, or use the
+"Spawn ngl-desktop" button. The widgets above that button translates directly
+to the command-line options of `ngl-desktop`. You can not spawn several
+instances of `ngl-desktop` on the same port, but you are free to pick another
+port to spawn another instance, typically with a different configuration
+(such as another rendering backend).
+
+When `ngl-desktop` instances are running, you can press the "Refresh" button
+below, and you should see them appear in the list. This list is where you
+control which instance(s) you want to communicate with.
+
+Now on the bottom-left, you should see a bunch of scene examples. After
+selecting one, the `ngl-desktop` instances should update shortly after. Each
+`ngl-desktop` instance is independant, and you can control the playback by
+toggling pause (space) or seeking (arrows, mouse clicking, ...).
+
 All the scenes listed on the left tree view can be found in the
 [pynodegl_utils.examples][demo-tree] Python module. If you are curious on how
 each demo scene operates, look into this place.
 
+Also note that `ngl-control` supports live code editing by monitoring the files
+associated with the available scenes. The current scene will be reconstructed
+after every change in the sources.
+
+On the top-left part of the controller, you can control the generic parameters
+sent to each scene when they are constructed. Try to play with them and see how
+it affects the running `ngl-desktop` instances. Some scenes may decide to
+override these parameters (it's usually the aspect ratio). A red message will
+appear in the interface close to the affected settings to notify when this
+happens.
+
+Some scenes also have specific custom settings that will appear as widgets
+below the scene list.
+
+You may also notice the tabs, which offers different features and controls. One
+of them is the *Medias* tab, where you control the assets provided to the
+scenes for their composition.
+
 The default video being an overly saturated mire generated with FFmpeg, it is
 not a very interesting asset for most demos. It is suggested to select your own
-assets using the "Medias" tab, and then play around with the controller and its
-default demos. Some demo scenes also offer customization widgets (look at the
-bottom left of the UI), check them out!
+assets using this tab, and then play around with the controller and its
+default demos.
 
 [demo-tree]: /pynodegl-utils/pynodegl_utils/examples
 

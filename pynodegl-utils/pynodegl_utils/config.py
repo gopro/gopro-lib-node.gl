@@ -101,7 +101,7 @@ class Config(QtCore.QObject):
     def _get_config_filepath(self):
         config_basedir = os.environ.get('XDG_DATA_HOME', op.expanduser('~/.local/share'))
         config_dir = op.join(config_basedir, 'node.gl')
-        return op.join(config_dir, 'viewer.json')
+        return op.join(config_dir, 'controller.json')
 
     @QtCore.Slot()
     def _check_config(self):

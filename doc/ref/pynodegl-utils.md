@@ -2,17 +2,17 @@ pynodegl-utils
 ==============
 
 [pynodegl-utils][pynodegl-utils] provides various utilities around `node.gl`
-and its Python binding. Its core tool is the Qt viewer with all its
+and its Python binding. Its core tool is the Qt controller with all its
 peripheral features such as the exporter or the tooling for easing the
 creation of `node.gl` scene graphs.
 
 [pynodegl-utils]: /pynodegl-utils
 
 
-## Viewer scenes
+## Controller scenes
 
 Each scene needs to be decorated with the `misc.scene` decorator to be
-recognized by the `ngl-viewer`.
+recognized by the `ngl-control`.
 
 **Example**:
 
@@ -31,7 +31,7 @@ Extra optional arguments to the scene function are allowed.
 Every scene must return a valid `pynodegl` node object.
 
 
-## Viewer widgets
+## Controller widgets
 
 Widgets are specified as named object arguments to the `@misc.scene` decorator.
 The `@misc.scene()` arguments must match the name of the corresponding argument
@@ -190,9 +190,9 @@ def demo(cfg, intro='Hello World!'):
 
 ![text widget](img/widget-text.png)
 
-## Viewer hooks
+## Controller hooks
 
-When using the `--hooks-dir` option, `ngl-viewer` will execute various hook
+When using the `--hooks-dir` option, `ngl-control` will execute various hook
 according to various events. These hooks are typically used for triggering a
 synchronization with external devices.
 
@@ -274,7 +274,7 @@ $ ./hook.sync_file Y5fd953df /tmp/ngl-media.mp4 media-001.mp4
 
 **Example**:
 
-A call from `ngl-viewer` to this hook will look like this:
+A call from `ngl-control` to this hook will look like this:
 
 ```shell
 $ ./hook.scene_change X2fca1f2c /tmp/ngl_scene.ngl duration=5 framerate=60000/1001 aspect_ratio=16/9 clear_color=4A646BFF samples=4

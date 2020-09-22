@@ -61,7 +61,7 @@ pynodegl-utils-install: pynodegl-utils-deps-install
 # We do not pull the requirements on Windows because of various issues:
 # - PySide2 can't be pulled
 # - Pillow fails to find zlib
-# - ngl-viewer can not currently work because of temporary files handling
+# - ngl-control can not currently work because of temporary files handling
 #
 # Still, we want the module to be installed so we can access the scene()
 # decorator and other related utils.

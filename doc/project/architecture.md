@@ -9,7 +9,7 @@ The `node.gl` project is split in several parts:
 - `pynodegl`: a Python binding for `libnodegl` (with the help of `Cython`) to
   create graph scenes in the most simple way.
 - `pynodegl-utils`: various Python utilities and examples such as an advanced
-  Qt5 viewer with many features such as live editing.
+  Qt5 controller with many features such as live editing.
 
 ## Dependencies
 
@@ -20,10 +20,10 @@ The `node.gl` project is split in several parts:
 - `ngl-tools` needs [SDL2][sdl2] and `libnodegl` installed.
 - `pynodegl` needs [Python][python] and [Cython][cython], and `libnodegl`
   installed.
-- `pynodegl-utils` needs [Python][python] and `pynodegl`. The viewer depends on
+- `pynodegl-utils` needs [Python][python] and `pynodegl`. The controller depends on
   `PySide2` (which is the main reason why this package is separated from the
   `pynodegl` package). It is also recommended to install [Graphviz][graphviz]
-  in order to render graph in the viewer.
+  in order to render graph in the controller.
 
 ![Dependencies](dependencies.png)
 

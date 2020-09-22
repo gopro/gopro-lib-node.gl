@@ -14,12 +14,12 @@ in that environment.
 
 [install]: /doc/howto/installation.md
 
-## 👁️ Running the demo viewer
+## 👁️ Running the controller
 
-When running `ngl-viewer` for the first time and selecting a scene, you should
+When running `ngl-control` for the first time and selecting a scene, you should
 see something like this:
 
-![ngl-viewer](img/ngl-viewer.png)
+![ngl-control](img/ngl-control.png)
 
 All the scenes listed on the left tree view can be found in the
 [pynodegl_utils.examples][demo-tree] Python module. If you are curious on how
@@ -27,7 +27,7 @@ each demo scene operates, look into this place.
 
 The default video being an overly saturated mire generated with FFmpeg, it is
 not a very interesting asset for most demos. It is suggested to select your own
-assets using the "Medias" tab, and then play around with the viewer and its
+assets using the "Medias" tab, and then play around with the controller and its
 default demos. Some demo scenes also offer customization widgets (look at the
 bottom left of the UI), check them out!
 
@@ -38,8 +38,8 @@ bottom left of the UI), check them out!
 
 ### My first demo scene
 
-Now that you are familiar with the viewer, we are going to write our own first
-demo.
+Now that you are familiar with the controller, we are going to write our own
+first demo.
 
 Edit a script such as `~/mydemo.py` and add the following:
 
@@ -77,10 +77,10 @@ def test_demo(cfg):
     return render
 ```
 
-You should be able to preview your scene with `ngl-viewer -m ~/mydemo.py` and
+You should be able to preview your scene with `ngl-control -m ~/mydemo.py` and
 observe a centered quadrilateral geometry with the video playing in it. But
-first, let's look at the `Graph view` tab in the viewer to understand the scene
-we just crafted:
+first, let's look at the `Graph view` tab in the controller to understand the
+scene we just crafted:
 
 ![my-demo](img/graph-simple-render.png)
 
@@ -112,7 +112,7 @@ void main()
 
 ```
 
-![my reddish demo](img/ngl-viewer-reddish-scene.png)
+![my reddish demo](img/ngl-control-reddish-scene.png)
 
 [book-of-shaders]: http://thebookofshaders.com/
 [expl-shaders]: /doc/expl/shaders.md
@@ -146,7 +146,7 @@ like this:
 ### Scene widgets
 
 One way to adjust the red color is to edit the code and observe the result
-in the `ngl-viewer` immediately. Another way is to integrate a widget directly
+in the `ngl-control` immediately. Another way is to integrate a widget directly
 in the UI. For that, we can adjust the `@scene()` decorator and the
 `test_demo()` prototype like the following:
 
@@ -158,12 +158,12 @@ def test_demo(cfg, color=(1,0,0,1)):
     ...
 ```
 
-![color widget](img/ngl-viewer-color-widget.png)
+![color widget](img/ngl-control-color-widget.png)
 
-All the other widgets are documented in the [Viewer widgets
-documentation][viewer-widgets].
+All the other widgets are documented in the [Controller widgets
+documentation][controller-widgets].
 
-[viewer-widgets]: /doc/ref/pynodegl-utils.md#viewer-widgets
+[controller-widgets]: /doc/ref/pynodegl-utils.md#controller-widgets
 
 ### Animations
 
@@ -365,7 +365,7 @@ with `get_frag('color')`, grabbing the content of [color.frag][color-frag].
 
 [color-frag]: /pynodegl-utils/pynodegl_utils/examples/shaders/color.frag
 
-![3 basic shapes](img/ngl-viewer-3-basic-shapes.png)
+![3 basic shapes](img/ngl-control-3-basic-shapes.png)
 
 Now back on the original topic: how are we going to *make each shape appear and
 disappear according to time?*

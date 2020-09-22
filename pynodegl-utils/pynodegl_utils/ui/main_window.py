@@ -43,7 +43,7 @@ class MainWindow(QtWidgets.QSplitter):
 
     def __init__(self, module_pkgname, hooksdirs):
         super().__init__(QtCore.Qt.Horizontal)
-        self._win_title_base = 'Node.gl viewer'
+        self._win_title_base = 'Node.gl controller'
         self.setWindowTitle(self._win_title_base)
 
         self._module_pkgname = module_pkgname

@@ -58,7 +58,7 @@ class GraphView(QtWidgets.QWidget):
         self._framerate = config.get('framerate')
         self._duration = 0.0
         self._samples = config.get('samples')
-        self._viewer = None
+        self._ctx = None
 
         self._save_btn = QtWidgets.QPushButton('Save image')
 
@@ -118,10 +118,10 @@ class GraphView(QtWidgets.QWidget):
 
     @QtCore.Slot()
     def _update(self):
-        if not self._viewer:
+        if not self._ctx:
             return
         frame_index, frame_time = self._clock.get_playback_time_info()
-        dot_scene = self._viewer.dot(frame_time)
+        dot_scene = self._ctx.dot(frame_time)
         if dot_scene:
             self._update_graph(dot_scene)
             self._seekbar.set_frame_time(frame_index, frame_time)
@@ -151,32 +151,32 @@ class GraphView(QtWidgets.QWidget):
         self._seekbar.set_scene_metadata(cfg)
 
         if self._seek_chkbox.isChecked():
-            self._init_viewer(cfg['backend'])
+            self._init_ctx(cfg['backend'])
             self._framerate = cfg['framerate']
             self._duration = cfg['duration']
-            self._viewer.set_scene_from_string(cfg['scene'])
+            self._ctx.set_scene_from_string(cfg['scene'])
             self._clock.configure(self._framerate, self._duration)
             self._timer.setInterval(self._framerate[1] * 1000 / self._framerate[0])  # in milliseconds
             self._update()
         else:
-            self._reset_viewer()
+            self._reset_ctx()
             dot_scene = cfg['scene']
             self._update_graph(dot_scene)
 
     def leave(self):
         self._pause()
 
-    def _reset_viewer(self):
-        if not self._viewer:
+    def _reset_ctx(self):
+        if not self._ctx:
             return
-        del self._viewer
-        self._viewer = None
+        del self._ctx
+        self._ctx = None
 
-    def _init_viewer(self, rendering_backend):
-        if self._viewer:
+    def _init_ctx(self, rendering_backend):
+        if self._ctx:
             return
-        self._viewer = ngl.Context()
-        self._viewer.configure(
+        self._ctx = ngl.Context()
+        self._ctx.configure(
             backend=misc.get_backend(rendering_backend),
             offscreen=1,
             width=16,

@@ -345,7 +345,7 @@ Parameter | Live-chg. | Type | Description | Default
 `measure_window` |  | [`int`](#parameter-types) | window size for latency measures | `60`
 `refresh_rate` |  | [`rational`](#parameter-types) | refresh data buffer every `update_rate` second | 
 `export_filename` |  | [`string`](#parameter-types) | path to export file (CSV), disable display if enabled | 
-`aspect_ratio` |  | [`rational`](#parameter-types) | buffer aspect ratio | 
+`scale` |  | [`int`](#parameter-types) | scaling applied to the HUD, useful for high DPI displays | `0`
 
 
 **Source**: [node_hud.c](/libnodegl/node_hud.c)

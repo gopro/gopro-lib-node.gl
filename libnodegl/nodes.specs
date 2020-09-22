@@ -222,7 +222,7 @@
     - [measure_window, int]
     - [refresh_rate, rational]
     - [export_filename, string]
-    - [aspect_ratio, rational]
+    - [scale, int]
 
 - Identity:
 

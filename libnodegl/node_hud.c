@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "gctx.h"
 #include "hmap.h"
 #include "memory.h"
 #include "nodegl.h"
@@ -48,7 +49,7 @@ struct hud_priv {
     int measure_window;
     int refresh_rate[2];
     char *export_filename;
-    int aspect_ratio[2];
+    int scale;
 
     struct darray widgets;
     uint32_t bg_color_u32;
@@ -79,8 +80,8 @@ static const struct node_param hud_params[] = {
                        .desc=NGLI_DOCSTRING("refresh data buffer every `update_rate` second")},
     {"export_filename", PARAM_TYPE_STR, OFFSET(export_filename),
                         .desc=NGLI_DOCSTRING("path to export file (CSV), disable display if enabled")},
-    {"aspect_ratio", PARAM_TYPE_RATIONAL, OFFSET(aspect_ratio),
-                     .desc=NGLI_DOCSTRING("buffer aspect ratio")},
+    {"scale",           PARAM_TYPE_INT, OFFSET(scale),
+                        .desc=NGLI_DOCSTRING("scaling applied to the HUD, useful for high DPI displays")},
     {NULL}
 };
 
@@ -900,7 +901,7 @@ static const struct widget_spec widget_specs[] = {
     [WIDGET_MEMORY] = {
         .text_cols     = MEMORY_WIDGET_TEXT_LEN,
         .text_rows     = NB_MEMORY,
-        .graph_h       = 50,
+        .graph_w       = 285,
         .nb_data_graph = NB_MEMORY,
         .priv_size     = sizeof(struct widget_memory),
         .init          = widget_memory_init,
@@ -1022,31 +1023,19 @@ static int widgets_init(struct ngl_node *node)
     ngli_darray_init(&s->widgets, sizeof(struct widget), 0);
 
     /* Smallest dimensions possible (in pixels) */
-    const int top_width    = WIDGET_MARGIN * 3
-                           + get_widget_width(WIDGET_LATENCY)
-                           + get_widget_width(WIDGET_MEMORY);
-    const int bot_width    = WIDGET_MARGIN * 3
-                           + get_widget_width(WIDGET_ACTIVITY) * NB_ACTIVITY + WIDGET_MARGIN * (NB_ACTIVITY - 1)
-                           + get_widget_width(WIDGET_DRAWCALL) * NB_DRAWCALL + WIDGET_MARGIN * (NB_DRAWCALL - 1);
-    const int left_height  = WIDGET_MARGIN * 3
-                           + get_widget_height(WIDGET_LATENCY)
-                           + get_widget_height(WIDGET_ACTIVITY);
-    const int right_height = WIDGET_MARGIN * 3
-                           + get_widget_height(WIDGET_MEMORY)
-                           + get_widget_height(WIDGET_DRAWCALL);
-    const int min_width    = NGLI_MAX(top_width, bot_width);
-    const int min_height   = NGLI_MAX(left_height, right_height);
+    const int latency_width  = get_widget_width(WIDGET_LATENCY);
+    const int memory_width   = get_widget_width(WIDGET_MEMORY);
+    const int activity_width = get_widget_width(WIDGET_ACTIVITY) * NB_ACTIVITY + WIDGET_MARGIN * (NB_ACTIVITY - 1);
+    const int drawcall_width = get_widget_width(WIDGET_DRAWCALL) * NB_DRAWCALL + WIDGET_MARGIN * (NB_DRAWCALL - 1);
 
-    /* Compute buffer dimensions according to user specified aspect ratio and
-     * minimal dimensions */
-    static const int default_ar[] = {1, 1};
-    const int *ar = s->aspect_ratio[0] && s->aspect_ratio[1] ? s->aspect_ratio : default_ar;
-    s->canvas.w = min_width;
-    s->canvas.h = min_width * ar[1] / ar[0];
-    if (s->canvas.h < min_height) {
-        s->canvas.w = min_height * ar[0] / ar[1];
-        s->canvas.h = min_height;
-    }
+    s->canvas.w = WIDGET_MARGIN * 2
+                + NGLI_MAX(NGLI_MAX(NGLI_MAX(latency_width, memory_width), activity_width), drawcall_width);
+
+    s->canvas.h = WIDGET_MARGIN * 4
+                + get_widget_height(WIDGET_LATENCY)
+                + get_widget_height(WIDGET_MEMORY)
+                + get_widget_height(WIDGET_ACTIVITY)
+                + get_widget_height(WIDGET_DRAWCALL);
 
     /* Latency widget in the top-left */
     const int x_latency = WIDGET_MARGIN;
@@ -1056,15 +1045,15 @@ static int widgets_init(struct ngl_node *node)
         return ret;
 
     /* Memory widget in the top-right */
-    const int x_memory = -get_widget_width(WIDGET_MEMORY) - WIDGET_MARGIN;
-    const int y_memory = WIDGET_MARGIN;
+    const int x_memory = WIDGET_MARGIN;
+    const int y_memory = WIDGET_MARGIN + y_latency + get_widget_height(WIDGET_LATENCY);
     ret = create_widget(s, WIDGET_MEMORY, NULL, x_memory, y_memory);
     if (ret < 0)
         return ret;
 
     /* Activity nodes counter widgets in the bottom-left */
     int x_activity = WIDGET_MARGIN;
-    const int y_activity = -get_widget_height(WIDGET_ACTIVITY) - WIDGET_MARGIN;
+    const int y_activity = WIDGET_MARGIN + y_memory + get_widget_height(WIDGET_MEMORY);
     const int x_activity_step = get_widget_width(WIDGET_ACTIVITY) + WIDGET_MARGIN;
     for (int i = 0; i < NB_ACTIVITY; i++) {
         ret = create_widget(s, WIDGET_ACTIVITY, &activity_specs[i], x_activity, y_activity);
@@ -1074,8 +1063,8 @@ static int widgets_init(struct ngl_node *node)
     }
 
     /* Draw-calls widgets in the bottom-right */
-    int x_drawcall =  -get_widget_width(WIDGET_DRAWCALL) * NB_DRAWCALL - WIDGET_MARGIN * NB_DRAWCALL;
-    const int y_drawcall = -get_widget_height(WIDGET_DRAWCALL) - WIDGET_MARGIN;
+    int x_drawcall = WIDGET_MARGIN;
+    const int y_drawcall = WIDGET_MARGIN + y_activity + get_widget_height(WIDGET_ACTIVITY);
     const int x_drawcall_step = get_widget_width(WIDGET_DRAWCALL) + WIDGET_MARGIN;
     for (int i = 0; i < NB_DRAWCALL; i++) {
         ret = create_widget(s, WIDGET_DRAWCALL, &drawcall_specs[i], x_drawcall, y_drawcall);
@@ -1387,6 +1376,7 @@ static int hud_update(struct ngl_node *node, double t)
 static void hud_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
+    struct gctx *gctx = ctx->gctx;
     struct hud_priv *s = node->priv_data;
 
     widgets_make_stats(node);
@@ -1402,7 +1392,25 @@ static void hud_draw(struct ngl_node *node)
     if (s->export_filename)
         return;
 
-    int ret = ngli_texture_upload(s->texture, s->canvas.buf, 0);
+    int viewport[4];
+    ngli_gctx_get_viewport(gctx, viewport);
+    const int scale = s->scale > 0 ? s->scale : 1;
+    const float ratio_w = scale * s->canvas.w / (double)viewport[2];
+    const float ratio_h = scale * s->canvas.h / (double)viewport[3];
+    const float x =-1.0f + 2 * ratio_w;
+    const float y = 1.0f - 2 * ratio_h;
+    const float coords[] = {
+        -1.0f,  y,    0.0f, 1.0f,
+         x,     y,    1.0f, 1.0f,
+        -1.0f,  1.0f, 0.0f, 0.0f,
+         x,     1.0f, 1.0f, 0.0f,
+    };
+
+    int ret = ngli_buffer_upload(s->coords, coords, sizeof(coords));
+    if (ret < 0)
+        return;
+
+    ret = ngli_texture_upload(s->texture, s->canvas.buf, 0);
     if (ret < 0)
         return;
 

@@ -126,8 +126,7 @@ def query_inplace(**idict):
                 fr = odict['framerate']
                 measure_window = fr[0] / (4 * fr[1])  # 1/4-second measurement window
                 scene = ngl.HUD(scene,
-                                measure_window=measure_window,
-                                aspect_ratio=odict['aspect_ratio'])
+                                measure_window=measure_window)
 
             # Prepare output data
             odict['scene'] = scene.dot() if idict.get('fmt') == 'dot' else scene.serialize()

@@ -1,6 +1,4 @@
 pillow
 pynodegl
-# Workaround a regression introduced by pyside2 5.14.2 which makes the node.gl
-# viewer deadlock in various place.
-pyside2==5.14.1
+pyside2
 watchdog

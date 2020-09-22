@@ -91,8 +91,8 @@ class Exporter(QtCore.QThread):
         capture_buffer = bytearray(width * height * 4)
 
         # node.gl context
-        ngl_viewer = ngl.Context()
-        ngl_viewer.configure(
+        ctx = ngl.Context()
+        ctx.configure(
             platform=ngl.PLATFORM_AUTO,
             backend=get_backend(cfg['backend']),
             offscreen=1,
@@ -103,10 +103,10 @@ class Exporter(QtCore.QThread):
             clear_color=cfg['clear_color'],
             capture_buffer=capture_buffer,
         )
-        ngl_viewer.set_scene_from_string(cfg['scene'])
+        ctx.set_scene_from_string(cfg['scene'])
 
         if self._time is not None:
-            ngl_viewer.draw(self._time)
+            ctx.draw(self._time)
             os.write(fd_w, capture_buffer)
             self.progressed.emit(100)
         else:
@@ -116,7 +116,7 @@ class Exporter(QtCore.QThread):
                 if self._cancelled:
                     break
                 time = i * fps[1] / float(fps[0])
-                ngl_viewer.draw(time)
+                ctx.draw(time)
                 os.write(fd_w, capture_buffer)
                 self.progressed.emit(i*100 / nb_frame)
             self.progressed.emit(100)

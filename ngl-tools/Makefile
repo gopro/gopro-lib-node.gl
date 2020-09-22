@@ -74,6 +74,32 @@ PYTHON_LDLIBS_EMBED-yes = $(shell python$(PYTHON_MAJOR)-config --ldflags --embed
 PYTHON_HAS_EMBED := $(shell python$(PYTHON_MAJOR)-config --embed >/dev/null && echo yes || echo no)
 PYTHON_LDLIBS := $(PYTHON_LDLIBS_EMBED-$(PYTHON_HAS_EMBED))
 TOOLS += python serialize
+
+#
+# This is a workaround for the following link issue:
+#     relocation R_X86_64_32 against `.rodata.str1.8' can not be used
+#     when making a PIE object; recompile with -fPIE
+#
+# To summarize the issue:
+#
+# - On Python side, `python3-config` is a script generated from a
+#   template using a global CFLAGS. But at the same time, the script
+#   uses LIBS and SYSLIBS to construct the LDFLAGS (and not LDFLAGS for
+#   some moronic reason).
+# - On Debian/Ubuntu side, they decided to have the following injected:
+#   CFLAGS="-specs=/usr/share/dpkg/no-pie-compile.specs"
+#   LDFLAGS="-specs=/usr/share/dpkg/no-pie-link.specs"
+#   And unfortunately, the former can not go without the latter
+#   (otherwise there is a link error).
+#
+# As a result, `python3-config --cflags` will return the `-specs=...`
+# flags, but `python3-config --ldflags` will not return the
+# complementary `-specs=...`.
+#
+DISTRIB_ID := $(or $(shell lsb_release -si 2>/dev/null),none)
+ifeq ($(DISTRIB_ID),$(filter $(DISTRIB_ID),Ubuntu Debian))
+PYTHON_LDLIBS += -specs=/usr/share/dpkg/no-pie-link.specs
+endif
 endif
 
 TOOLS_BINS = $(addprefix ngl-, $(addsuffix $(EXESUF), $(TOOLS)))

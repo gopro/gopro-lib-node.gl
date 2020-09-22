@@ -94,12 +94,12 @@ class CompareSceneBase(CompareBase):
         scene = ret['scene']
 
         capture_buffer = bytearray(width * height * 4)
-        viewer = ngl.Context()
-        assert viewer.configure(offscreen=1, width=width, height=height,
-                                backend=get_backend(backend) if backend else ngl.BACKEND_AUTO,
-                                samples=self._samples,
-                                clear_color=self._clear_color,
-                                capture_buffer=capture_buffer) == 0
+        ctx = ngl.Context()
+        assert ctx.configure(offscreen=1, width=width, height=height,
+                             backend=get_backend(backend) if backend else ngl.BACKEND_AUTO,
+                             samples=self._samples,
+                             clear_color=self._clear_color,
+                             capture_buffer=capture_buffer) == 0
         timescale = duration / float(self._nb_keyframes)
 
         if self._scene_wrap:
@@ -110,14 +110,14 @@ class CompareSceneBase(CompareBase):
 
         if self._exercise_serialization:
             scene_str = scene.serialize()
-            viewer.set_scene_from_string(scene_str)
+            ctx.set_scene_from_string(scene_str)
         else:
-            viewer.set_scene(scene)
+            ctx.set_scene(scene)
 
         for t_id in range(self._nb_keyframes):
             if self._keyframes_callback:
                 self._keyframes_callback(t_id)
-            viewer.draw(t_id * timescale)
+            ctx.draw(t_id * timescale)
 
             yield (width, height, capture_buffer)
 

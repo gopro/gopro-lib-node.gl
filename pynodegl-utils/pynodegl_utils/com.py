@@ -127,7 +127,6 @@ def query_inplace(**idict):
                 measure_window = fr[0] / (4 * fr[1])  # 1/4-second measurement window
                 scene = ngl.HUD(scene,
                                 measure_window=measure_window,
-                                bg_color=(0.0, 0.0, 0.0, 0.8),
                                 aspect_ratio=odict['aspect_ratio'])
 
             # Prepare output data

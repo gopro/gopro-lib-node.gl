@@ -345,7 +345,6 @@ Parameter | Live-chg. | Type | Description | Default
 `measure_window` |  | [`int`](#parameter-types) | window size for latency measures | `60`
 `refresh_rate` |  | [`rational`](#parameter-types) | refresh data buffer every `update_rate` second | 
 `export_filename` |  | [`string`](#parameter-types) | path to export file (CSV), disable display if enabled | 
-`bg_color` |  | [`vec4`](#parameter-types) | background buffer color | (`0`,`0`,`0`,`1`)
 `aspect_ratio` |  | [`rational`](#parameter-types) | buffer aspect ratio | 
 
 

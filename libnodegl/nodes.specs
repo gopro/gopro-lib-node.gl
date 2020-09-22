@@ -222,7 +222,6 @@
     - [measure_window, int]
     - [refresh_rate, rational]
     - [export_filename, string]
-    - [bg_color, vec4]
     - [aspect_ratio, rational]
 
 - Identity:

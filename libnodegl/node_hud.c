@@ -48,7 +48,6 @@ struct hud_priv {
     int measure_window;
     int refresh_rate[2];
     char *export_filename;
-    float bg_color[4];
     int aspect_ratio[2];
 
     struct darray widgets;
@@ -80,8 +79,6 @@ static const struct node_param hud_params[] = {
                        .desc=NGLI_DOCSTRING("refresh data buffer every `update_rate` second")},
     {"export_filename", PARAM_TYPE_STR, OFFSET(export_filename),
                         .desc=NGLI_DOCSTRING("path to export file (CSV), disable display if enabled")},
-    {"bg_color", PARAM_TYPE_VEC4, OFFSET(bg_color), {.vec={0.0, 0.0, 0.0, 1.0}},
-                 .desc=NGLI_DOCSTRING("background buffer color")},
     {"aspect_ratio", PARAM_TYPE_RATIONAL, OFFSET(aspect_ratio),
                      .desc=NGLI_DOCSTRING("buffer aspect ratio")},
     {NULL}
@@ -1261,7 +1258,8 @@ static int hud_init(struct ngl_node *node)
     if (!s->canvas.buf)
         return NGL_ERROR_MEMORY;
 
-    s->bg_color_u32 = NGLI_COLOR_VEC4_TO_U32(s->bg_color);
+    static const float bg_color[] = {0.0f, 0.0f, 0.0f, 0.8f};
+    s->bg_color_u32 = NGLI_COLOR_VEC4_TO_U32(bg_color);
     widgets_clear(s);
 
     static const float coords[] = {

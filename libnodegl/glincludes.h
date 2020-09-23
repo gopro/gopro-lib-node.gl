@@ -59,6 +59,12 @@
 # define NGL_OGL3_COMPAT_INCLUDES 1
 #endif
 
+#ifdef _WIN32
+#define NGLI_GL_APIENTRY WINAPI
+#else
+#define NGLI_GL_APIENTRY
+#endif
+
 #ifndef GL_OES_EGL_image
 typedef void* GLeglImageOES;
 #endif

@@ -277,12 +277,6 @@ def gen(gl_xml):
 
 #include "glincludes.h"
 
-#ifdef _WIN32
-#define NGLI_GL_APIENTRY WINAPI
-#else
-#define NGLI_GL_APIENTRY
-#endif
-
 struct glfunctions {
 '''
 

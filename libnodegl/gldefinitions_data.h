@@ -43,6 +43,7 @@ static const struct gldefinition {
     {"glCreateProgram", offsetof(struct glfunctions, CreateProgram), M},
     {"glCreateShader", offsetof(struct glfunctions, CreateShader), M},
     {"glCullFace", offsetof(struct glfunctions, CullFace), M},
+    {"glDebugMessageCallback", offsetof(struct glfunctions, DebugMessageCallback), 0},
     {"glDeleteBuffers", offsetof(struct glfunctions, DeleteBuffers), M},
     {"glDeleteFramebuffers", offsetof(struct glfunctions, DeleteFramebuffers), M},
     {"glDeleteProgram", offsetof(struct glfunctions, DeleteProgram), M},

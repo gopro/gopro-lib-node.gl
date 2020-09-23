@@ -36,6 +36,7 @@ struct glfunctions {
     NGLI_GL_APIENTRY GLuint (*CreateProgram)();
     NGLI_GL_APIENTRY GLuint (*CreateShader)(GLenum type);
     NGLI_GL_APIENTRY void (*CullFace)(GLenum mode);
+    NGLI_GL_APIENTRY void (*DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
     NGLI_GL_APIENTRY void (*DeleteBuffers)(GLsizei n, const GLuint * buffers);
     NGLI_GL_APIENTRY void (*DeleteFramebuffers)(GLsizei n, const GLuint * framebuffers);
     NGLI_GL_APIENTRY void (*DeleteProgram)(GLuint program);

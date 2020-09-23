@@ -251,5 +251,12 @@ static const struct glfeature {
                                            OFFSET(Uniform3uiv),
                                            OFFSET(Uniform4uiv),
                                            -1}
+    }, {
+    .name           = "khr_debug",
+    .flag           = NGLI_FEATURE_KHR_DEBUG,
+    .version        = 430,
+    .es_version     = 320,
+    .funcs_offsets  = (const size_t[]){OFFSET(DebugMessageCallback),
+                                       -1}
     }
 };

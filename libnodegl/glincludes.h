@@ -35,6 +35,7 @@
 #  define NGL_CS_COMPAT_INCLUDES 1
 #  define NGL_OGL3_COMPAT_INCLUDES 1
 # endif
+# define NGL_KHR_DEBUG_COMPAT_INCLUDES 1
 #endif
 
 #if __ANDROID__
@@ -42,6 +43,7 @@
 # include <GLES2/gl2ext.h>
 # define NGL_GLES2_COMPAT_INCLUDES 1
 # define NGL_CS_COMPAT_INCLUDES 1
+# define NGL_KHR_DEBUG_COMPAT_INCLUDES 1
 # define GL_BGRA GL_BGRA_EXT
 #endif
 
@@ -67,6 +69,34 @@
 
 #ifndef GL_OES_EGL_image
 typedef void* GLeglImageOES;
+#endif
+
+#if !defined(GL_VERSION_4_3) && !defined(GL_ES_VERSION_3_2)
+typedef void (NGLI_GL_APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *user_param);
+#endif
+
+#if NGL_KHR_DEBUG_COMPAT_INCLUDES
+# define GL_DEBUG_OUTPUT                       0x92E0
+# define GL_DEBUG_OUTPUT_SYNCHRONOUS           0x8242
+# define GL_DEBUG_SOURCE_API                   0x8246
+# define GL_DEBUG_SOURCE_WINDOW_SYSTEM         0x8247
+# define GL_DEBUG_SOURCE_SHADER_COMPILER       0x8248
+# define GL_DEBUG_SOURCE_THIRD_PARTY           0x8249
+# define GL_DEBUG_SOURCE_APPLICATION           0x824A
+# define GL_DEBUG_SOURCE_OTHER                 0x824B
+# define GL_DEBUG_TYPE_ERROR                   0x824C
+# define GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR     0x824D
+# define GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR      0x824E
+# define GL_DEBUG_TYPE_PORTABILITY             0x824F
+# define GL_DEBUG_TYPE_PERFORMANCE             0x8250
+# define GL_DEBUG_TYPE_OTHER                   0x8251
+# define GL_DEBUG_TYPE_MARKER                  0x8268
+# define GL_DEBUG_TYPE_PUSH_GROUP              0x8269
+# define GL_DEBUG_TYPE_POP_GROUP               0x826A
+# define GL_DEBUG_SEVERITY_HIGH                0x9146
+# define GL_DEBUG_SEVERITY_MEDIUM              0x9147
+# define GL_DEBUG_SEVERITY_LOW                 0x9148
+# define GL_DEBUG_SEVERITY_NOTIFICATION        0x826B
 #endif
 
 #if NGL_OGL3_COMPAT_INCLUDES

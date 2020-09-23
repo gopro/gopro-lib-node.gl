@@ -192,6 +192,12 @@ static inline void ngli_glCullFace(const struct glcontext *gl, GLenum mode)
     check_error_code(gl, "glCullFace");
 }
 
+static inline void ngli_glDebugMessageCallback(const struct glcontext *gl, GLDEBUGPROC callback, const void * userParam)
+{
+    gl->funcs.DebugMessageCallback(callback, userParam);
+    check_error_code(gl, "glDebugMessageCallback");
+}
+
 static inline void ngli_glDeleteBuffers(const struct glcontext *gl, GLsizei n, const GLuint * buffers)
 {
     gl->funcs.DeleteBuffers(n, buffers);

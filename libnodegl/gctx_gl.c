@@ -220,6 +220,23 @@ static struct gctx *gl_create(const struct ngl_config *config)
     return (struct gctx *)s;
 }
 
+#ifdef DEBUG_GL
+#define GL_DEBUG_LOG(log_level, ...) ngli_log_print(log_level, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+
+static void NGLI_GL_APIENTRY gl_debug_message_callback(GLenum source,
+                                                       GLenum type,
+                                                       GLuint id,
+                                                       GLenum severity,
+                                                       GLsizei length,
+                                                       const GLchar *message,
+                                                       const void *user_param)
+{
+    const int log_level = type == GL_DEBUG_TYPE_ERROR ? NGL_LOG_ERROR : NGL_LOG_DEBUG;
+    const char *msg_type = type == GL_DEBUG_TYPE_ERROR ? "ERROR" : "GENERAL";
+    GL_DEBUG_LOG(log_level, "%s: %s", msg_type, message);
+}
+#endif
+
 static int gl_init(struct gctx *s)
 {
     int ret;
@@ -232,6 +249,13 @@ static int gl_init(struct gctx *s)
 
     struct glcontext *gl = s_priv->glcontext;
     s->features = gl->features;
+
+#ifdef DEBUG_GL
+    if ((gl->features & NGLI_FEATURE_KHR_DEBUG)) {
+        ngli_glEnable(gl, GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        ngli_glDebugMessageCallback(gl, gl_debug_message_callback, NULL);
+    }
+#endif
 
     if (gl->offscreen) {
         ret = offscreen_rendertarget_init(s);

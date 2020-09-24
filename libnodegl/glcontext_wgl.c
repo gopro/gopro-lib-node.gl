@@ -188,6 +188,9 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
             WGL_CONTEXT_MAJOR_VERSION_ARB, 1,
             WGL_CONTEXT_MINOR_VERSION_ARB, 0,
             WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+#if DEBUG_GL
+            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+#endif
             0
         };
         wgl->rendering_context = wgl->CreateContextAttribsARB(wgl->device_context, shared_context, context_attributes);

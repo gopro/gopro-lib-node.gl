@@ -1171,7 +1171,7 @@ static void widgets_csv_report(struct ngl_node *node)
 
     ngli_bstr_clear(s->csv_line);
     /* Quoting to prevent locale issues with float printing */
-    ngli_bstr_printf(s->csv_line, "\"%f\"", s->last_refresh_time);
+    ngli_bstr_printf(s->csv_line, "\"%f\"", node->last_update_time);
 
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
@@ -1380,17 +1380,15 @@ static void hud_draw(struct ngl_node *node)
     struct hud_priv *s = node->priv_data;
 
     widgets_make_stats(node);
-    if (s->need_refresh) {
-        if (s->export_filename) {
-            widgets_csv_report(node);
-        } else {
-            widgets_clear(s);
-            widgets_draw(node);
-        }
+    if (s->export_filename) {
+        widgets_csv_report(node);
+        return;
     }
 
-    if (s->export_filename)
-        return;
+    if (s->need_refresh) {
+        widgets_clear(s);
+        widgets_draw(node);
+    }
 
     int viewport[4];
     ngli_gctx_get_viewport(gctx, viewport);

@@ -58,7 +58,6 @@ struct hud_priv {
     struct canvas canvas;
     double refresh_rate_interval;
     double last_refresh_time;
-    int need_refresh;
 
     struct pgcraft *crafter;
     struct texture *texture;
@@ -1363,11 +1362,6 @@ static int hud_init(struct ngl_node *node)
 static int hud_update(struct ngl_node *node, double t)
 {
     struct hud_priv *s = node->priv_data;
-
-    s->need_refresh = fabs(t - s->last_refresh_time) >= s->refresh_rate_interval;
-    if (s->need_refresh)
-        s->last_refresh_time = t;
-
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
     return widget_latency_update(node, &widgets[0], t);
@@ -1385,7 +1379,10 @@ static void hud_draw(struct ngl_node *node)
         return;
     }
 
-    if (s->need_refresh) {
+    const double t = ngli_gettime_relative() / 1000000.;
+    const int need_refresh = fabs(t - s->last_refresh_time) >= s->refresh_rate_interval;
+    if (need_refresh) {
+        s->last_refresh_time = t;
         widgets_clear(s);
         widgets_draw(node);
     }

@@ -207,6 +207,7 @@ class Toolbar(QtWidgets.QWidget):
                 'samples': choices['samples'][self._samples_cbbox.currentIndex()],
                 'extra_args': self._scene_extra_args,
                 'enable_hud': self._hud_chkbox.isChecked(),
+                'hud_scale': round(self.devicePixelRatioF()),
                 'clear_color': self._clear_color,
                 'backend': choices['backend'][self._backend_cbbox.currentIndex()],
         }

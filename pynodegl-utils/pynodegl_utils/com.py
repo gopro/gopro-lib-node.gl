@@ -123,9 +123,11 @@ def query_inplace(**idict):
 
             # Make extra adjustments to the scene according to user options
             if idict.get('enable_hud'):
+                scale = idict['hud_scale']
                 fr = odict['framerate']
                 measure_window = fr[0] / (4 * fr[1])  # 1/4-second measurement window
                 scene = ngl.HUD(scene,
+                                scale=scale,
                                 measure_window=measure_window)
 
             # Prepare output data

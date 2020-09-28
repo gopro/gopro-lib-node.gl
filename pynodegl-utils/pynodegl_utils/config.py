@@ -69,6 +69,7 @@ class Config(QtCore.QObject):
             'log_level': 'info',
             'clear_color': (0.0, 0.0, 0.0, 1.0),
             'enable_hud': False,
+            'hud_scale': 1,
             'backend': 'gl',
 
             # Export

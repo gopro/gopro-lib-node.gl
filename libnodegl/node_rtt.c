@@ -148,14 +148,15 @@ static int rtt_prepare(struct ngl_node *node)
         s->use_rt_resume = 1;
     }
 
-    struct rendertarget_desc desc = {0};
+    struct rendertarget_desc desc = {
+        .samples = s->samples,
+    };
     for (int i = 0; i < s->nb_color_textures; i++) {
         const struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
         const struct texture_params *params = &texture_priv->params;
         const int faces = params->type == NGLI_TEXTURE_TYPE_CUBE ? 6 : 1;
         for (int j = 0; j < faces; j++) {
             desc.colors[desc.nb_colors].format = params->format;
-            desc.colors[desc.nb_colors].samples = s->samples;
             desc.colors[desc.nb_colors].resolve = s->samples > 1;
             desc.nb_colors++;
         }
@@ -164,7 +165,6 @@ static int rtt_prepare(struct ngl_node *node)
         const struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
         const struct texture_params *depth_texture_params = &depth_texture_priv->params;
         desc.depth_stencil.format = depth_texture_params->format;
-        desc.depth_stencil.samples = s->samples;
         desc.depth_stencil.resolve = s->samples > 1;
     } else {
         int depth_format = NGLI_FORMAT_UNDEFINED;
@@ -173,7 +173,6 @@ static int rtt_prepare(struct ngl_node *node)
         else if (s->features & FEATURE_DEPTH)
             depth_format = ngli_gctx_get_preferred_depth_format(gctx);
         desc.depth_stencil.format = depth_format;
-        desc.depth_stencil.samples = s->samples;
     }
     rnode->rendertarget_desc = desc;
 

@@ -270,12 +270,11 @@ static int gl_init(struct gctx *s)
     s->version = gl->version;
     s->features = gl->features;
     s->limits = gl->limits;
+    s_priv->default_rendertarget_desc.samples = gl->samples;
     s_priv->default_rendertarget_desc.nb_colors = 1;
     s_priv->default_rendertarget_desc.colors[0].format = NGLI_FORMAT_R8G8B8A8_UNORM;
-    s_priv->default_rendertarget_desc.colors[0].samples = gl->samples;
     s_priv->default_rendertarget_desc.colors[0].resolve = gl->samples > 1;
     s_priv->default_rendertarget_desc.depth_stencil.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
-    s_priv->default_rendertarget_desc.depth_stencil.samples = gl->samples;
     s_priv->default_rendertarget_desc.depth_stencil.resolve = gl->samples > 1;
 
     ngli_glstate_probe(gl, &s_priv->glstate);

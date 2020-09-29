@@ -40,11 +40,11 @@ enum {
 
 struct attachment_desc {
     int format;
-    int samples;
     int resolve;
 };
 
 struct rendertarget_desc {
+    int samples;
     int nb_colors;
     struct attachment_desc colors[NGLI_MAX_COLOR_ATTACHMENTS];
     struct attachment_desc depth_stencil;

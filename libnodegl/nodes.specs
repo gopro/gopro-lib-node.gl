@@ -226,35 +226,39 @@
 
 - Identity:
 
-- IOInt:
+- _IOVar:
+    - [precision_out, select]
+    - [precision_in, select]
 
-- IOIVec2:
+- IOInt: _IOVar
 
-- IOIVec3:
+- IOIVec2: _IOVar
 
-- IOIVec4:
+- IOIVec3: _IOVar
 
-- IOUInt:
+- IOIVec4: _IOVar
 
-- IOUIvec2:
+- IOUInt: _IOVar
 
-- IOUIvec3:
+- IOUIvec2: _IOVar
 
-- IOUIvec4:
+- IOUIvec3: _IOVar
 
-- IOFloat:
+- IOUIvec4: _IOVar
 
-- IOVec2:
+- IOFloat: _IOVar
 
-- IOVec3:
+- IOVec2: _IOVar
 
-- IOVec4:
+- IOVec3: _IOVar
 
-- IOMat3:
+- IOVec4: _IOVar
 
-- IOMat4:
+- IOMat3: _IOVar
 
-- IOBool:
+- IOMat4: _IOVar
+
+- IOBool: _IOVar
 
 - Media:
     - [filename, string]

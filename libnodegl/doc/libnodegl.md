@@ -356,80 +356,33 @@ Parameter | Live-chg. | Type | Description | Default
 **Source**: [node_identity.c](/libnodegl/node_identity.c)
 
 
-## IOInt
+## IOVar*
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`precision_out` |  | [`precision`](#precision-choices) | precision qualifier for the output side (vertex) | `auto`
+`precision_in` |  | [`precision`](#precision-choices) | precision qualifier for the input side (fragment) | `auto`
+
 
 **Source**: [node_io.c](/libnodegl/node_io.c)
 
+List of `IOVar*` nodes:
 
-## IOIVec2
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOIVec3
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOIVec4
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOUInt
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOUIvec2
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOUIvec3
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOUIvec4
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOFloat
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOVec2
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOVec3
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOVec4
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOMat3
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOMat4
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
-
-## IOBool
-
-**Source**: [node_io.c](/libnodegl/node_io.c)
-
+- `IOInt`
+- `IOIVec2`
+- `IOIVec3`
+- `IOIVec4`
+- `IOUInt`
+- `IOUIvec2`
+- `IOUIvec3`
+- `IOUIvec4`
+- `IOFloat`
+- `IOVec2`
+- `IOVec3`
+- `IOVec4`
+- `IOMat3`
+- `IOMat4`
+- `IOBool`
 
 ## Media
 
@@ -456,7 +409,7 @@ Parameter | Live-chg. | Type | Description | Default
 `vertex` |  | [`string`](#parameter-types) | vertex shader | 
 `fragment` |  | [`string`](#parameter-types) | fragment shader | 
 `properties` |  | [`NodeDict`](#parameter-types) ([ResourceProps](#resourceprops)) | resource properties | 
-`vert_out_vars` |  | [`NodeDict`](#parameter-types) ([IOInt](#ioint), [IOIVec2](#ioivec2), [IOIVec3](#ioivec3), [IOIVec4](#ioivec4), [IOUInt](#iouint), [IOUIvec2](#iouivec2), [IOUIvec3](#iouivec3), [IOUIvec4](#iouivec4), [IOFloat](#iofloat), [IOVec2](#iovec2), [IOVec3](#iovec3), [IOVec4](#iovec4), [IOMat3](#iomat3), [IOMat4](#iomat4), [IOBool](#iobool)) | in/out communication variables shared between vertex and fragment stages | 
+`vert_out_vars` |  | [`NodeDict`](#parameter-types) ([IOInt](#iovar), [IOIVec2](#iovar), [IOIVec3](#iovar), [IOIVec4](#iovar), [IOUInt](#iovar), [IOUIvec2](#iovar), [IOUIvec3](#iovar), [IOUIvec4](#iovar), [IOFloat](#iovar), [IOVec2](#iovar), [IOVec3](#iovar), [IOVec4](#iovar), [IOMat3](#iovar), [IOMat4](#iovar), [IOBool](#iovar)) | in/out communication variables shared between vertex and fragment stages | 
 `nb_frag_output` |  | [`int`](#parameter-types) | number of color outputs in the fragment shader | `0`
 
 
@@ -1402,6 +1355,15 @@ Constant | Description
 `front` | cull front-facing facets
 `back` | cull back-facing facets
 
+## precision choices
+
+Constant | Description
+-------- | -----------
+`auto` | automatic
+`high` | high
+`medium` | medium
+`low` | low
+
 ## sxplayer_log_level choices
 
 Constant | Description
@@ -1419,15 +1381,6 @@ Constant | Description
 `depth` | add depth buffer
 `stencil` | add stencil buffer
 `no_clear` | not cleared between draws (non-deterministic)
-
-## precision choices
-
-Constant | Description
--------- | -----------
-`auto` | automatic
-`high` | high
-`medium` | medium
-`low` | low
 
 ## valign choices
 

@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "nodes.h"
 #include "pgcraft.h"
+#include "precision.h"
 #include "type.h"
 
 /*
@@ -697,8 +698,11 @@ static int inject_iovars(struct pgcraft *s, struct bstr *b, int stage)
         if (s->has_in_out_layout_qualifiers)
             ngli_bstr_printf(b, "layout(location=%d) ", i);
         const struct pgcraft_iovar *iovar = &iovars[i];
+        const char *precision = stage == NGLI_PROGRAM_SHADER_VERT
+                              ? get_precision_qualifier(s, iovar->precision_out, "highp")
+                              : get_precision_qualifier(s, iovar->precision_in, "highp");
         const char *type = get_glsl_type(iovar->type);
-        ngli_bstr_printf(b, "%s %s %s;\n", qualifier, type, iovar->name);
+        ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, iovar->name);
     }
     return 0;
 }

@@ -328,6 +328,8 @@ struct identity_priv {
 };
 
 struct io_priv {
+    int precision_out;
+    int precision_in;
     int type;
 };
 

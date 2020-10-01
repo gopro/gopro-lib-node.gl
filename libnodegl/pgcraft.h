@@ -82,6 +82,8 @@ struct pgcraft_attribute {
 
 struct pgcraft_iovar {
     char name[MAX_ID_LEN];
+    int precision_out;
+    int precision_in;
     int type;
 };
 

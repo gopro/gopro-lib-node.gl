@@ -98,7 +98,7 @@ struct pipeline_params {
 struct pipeline_resource_params {
     const struct texture **textures;
     int nb_textures;
-    const struct uniform **uniforms;
+    const void **uniforms;
     int nb_uniforms;
     const struct buffer **buffers;
     int nb_buffers;
@@ -113,17 +113,11 @@ struct pipeline {
     struct pipeline_graphics graphics;
     const struct program *program;
 
-    //resource descriptions
+    //resource state
     struct darray uniform_descs;
     struct darray texture_descs;
     struct darray buffer_descs;
     struct darray attribute_descs;
-
-    //currently bound resources
-    struct darray uniforms;
-    struct darray textures;
-    struct darray buffers;
-    struct darray attributes;
 
     int nb_unbound_attributes;
 

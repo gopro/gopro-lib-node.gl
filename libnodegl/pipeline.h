@@ -32,38 +32,34 @@
 
 struct gctx;
 
-struct pipeline_uniform {
+struct pipeline_uniform_desc {
     char name[MAX_ID_LEN];
     int type;
     int count;
-    const void *data;
 };
 
-struct pipeline_texture {
+struct pipeline_texture_desc {
     char name[MAX_ID_LEN];
     int type;
     int location;
     int binding;
     int stage;
-    struct texture *texture;
 };
 
-struct pipeline_buffer {
+struct pipeline_buffer_desc {
     char name[MAX_ID_LEN];
     int type;
     int binding;
     int stage;
-    struct buffer *buffer;
 };
 
-struct pipeline_attribute {
+struct pipeline_attribute_desc {
     char name[MAX_ID_LEN];
     int location;
     int format;
     int stride;
     int offset;
     int rate;
-    struct buffer *buffer;
 };
 
 struct pipeline_graphics {
@@ -82,21 +78,32 @@ struct pipeline_params {
     const struct pipeline_graphics graphics;
     const struct program *program;
 
-    const struct pipeline_texture *textures;
+    const struct pipeline_texture_desc *textures_desc;
     int nb_textures;
-    const struct pipeline_uniform *uniforms;
+    const struct pipeline_uniform_desc *uniforms_desc;
     int nb_uniforms;
-    const struct pipeline_buffer *buffers;
+    const struct pipeline_buffer_desc *buffers_desc;
     int nb_buffers;
-    const struct pipeline_attribute *attributes;
+    const struct pipeline_attribute_desc *attributes_desc;
     int nb_attributes;
 
     /*
      * Uniform block info per stage; required if the pipeline doesn't support
      * uniforms.
      */
-    const struct block *ublock[NGLI_PROGRAM_SHADER_NB];
-    struct buffer *ubuffer[NGLI_PROGRAM_SHADER_NB];
+    const struct block *ublock[NGLI_PROGRAM_SHADER_NB]; //TODO: move to resource_params
+    struct buffer *ubuffer[NGLI_PROGRAM_SHADER_NB];     //TODO: move to resource_params
+};
+
+struct pipeline_resource_params {
+    const struct texture **textures;
+    int nb_textures;
+    const struct uniform **uniforms;
+    int nb_uniforms;
+    const struct buffer **buffers;
+    int nb_buffers;
+    const struct buffer **attributes;
+    int nb_attributes;
 };
 
 struct pipeline {
@@ -106,10 +113,18 @@ struct pipeline {
     struct pipeline_graphics graphics;
     const struct program *program;
 
+    //resource descriptions
     struct darray uniform_descs;
     struct darray texture_descs;
     struct darray buffer_descs;
     struct darray attribute_descs;
+
+    //currently bound resources
+    struct darray uniforms;
+    struct darray textures;
+    struct darray buffers;
+    struct darray attributes;
+
     int nb_unbound_attributes;
 
     const struct block *ublock[NGLI_PROGRAM_SHADER_NB];
@@ -119,6 +134,8 @@ struct pipeline {
 
 struct pipeline *ngli_pipeline_create(struct gctx *gctx);
 int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params);
+int ngli_pipeline_bind_resources(struct pipeline *s, const struct pipeline_params *desc_params,
+                                 const struct pipeline_resource_params *data_params);
 int ngli_pipeline_update_attribute(struct pipeline *s, int index, struct buffer *buffer);
 int ngli_pipeline_update_uniform(struct pipeline *s, int index, const void *value);
 int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *texture);

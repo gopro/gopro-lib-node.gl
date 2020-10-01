@@ -158,15 +158,10 @@ struct pgcraft {
     struct ngl_ctx *ctx;
     struct bstr *shaders[NGLI_PROGRAM_SHADER_NB];
 
-    struct darray pipeline_uniforms;
-    struct darray pipeline_textures;
-    struct darray pipeline_buffers;
-    struct darray pipeline_attributes;
-
-    struct darray filtered_pipeline_uniforms;
-    struct darray filtered_pipeline_textures;
-    struct darray filtered_pipeline_buffers;
-    struct darray filtered_pipeline_attributes;
+    struct { struct darray uniforms, textures, buffers, attributes; } pipeline_desc;
+    struct { struct darray uniforms, textures, buffers, attributes; } filtered_pipeline_desc;
+    struct { struct darray uniforms, textures, buffers, attributes; } pipeline_data;
+    struct { struct darray uniforms, textures, buffers, attributes; } filtered_pipeline_data;
 
     struct darray vert_out_vars; // pgcraft_iovar
 
@@ -195,7 +190,8 @@ struct pgcraft {
 struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx);
 
 int ngli_pgcraft_craft(struct pgcraft *s,
-                       struct pipeline_params *dst,
+                       struct pipeline_params *dst_desc_params,
+                       struct pipeline_resource_params *dst_data_params,
                        const struct pgcraft_params *params);
 
 int ngli_pgcraft_get_uniform_index(const struct pgcraft *s, const char *name, int stage);

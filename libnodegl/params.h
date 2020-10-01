@@ -71,6 +71,8 @@ struct param_choices {
     const struct param_const consts[];
 };
 
+struct ngl_node;
+
 #define PARAM_FLAG_NON_NULL (1<<0)
 #define PARAM_FLAG_DOT_DISPLAY_PACKED (1<<1)
 #define PARAM_FLAG_DOT_DISPLAY_FIELDNAME (1<<2)

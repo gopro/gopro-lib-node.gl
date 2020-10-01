@@ -483,7 +483,8 @@ static int init_subdesc(struct ngl_node *node,
     if (!desc->crafter)
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_pgcraft_craft(desc->crafter, pipeline_params, crafter_params);
+    struct pipeline_resource_params pipeline_resource_params = {0};
+    int ret = ngli_pgcraft_craft(desc->crafter, pipeline_params, &pipeline_resource_params, crafter_params);
     if (ret < 0)
         return ret;
 
@@ -492,6 +493,10 @@ static int init_subdesc(struct ngl_node *node,
         return NGL_ERROR_MEMORY;
 
     ret = ngli_pipeline_init(desc->pipeline, pipeline_params);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_pipeline_set_resources(desc->pipeline, &pipeline_resource_params);
     if (ret < 0)
         return ret;
 
@@ -617,8 +622,8 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
     if (ret < 0)
         return ret;
 
-    ngli_assert(!strcmp("position", pipeline_params.attributes[0].name));
-    ngli_assert(!strcmp("uvcoord", pipeline_params.attributes[1].name));
+    ngli_assert(!strcmp("position", pipeline_params.attributes_desc[0].name));
+    ngli_assert(!strcmp("uvcoord", pipeline_params.attributes_desc[1].name));
 
     return 0;
 }

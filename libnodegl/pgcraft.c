@@ -170,12 +170,11 @@ static int inject_uniform(struct pgcraft *s, struct bstr *b,
     if (uniform->stage != stage)
         return 0;
 
-    struct pipeline_uniform pl_uniform = {
+    struct pipeline_uniform_desc pl_uniform_desc = {
         .type  = uniform->type,
         .count = NGLI_MAX(uniform->count, 1),
-        .data  = uniform->data,
     };
-    snprintf(pl_uniform.name, sizeof(pl_uniform.name), "%s", uniform->name);
+    snprintf(pl_uniform_desc.name, sizeof(pl_uniform_desc.name), "%s", uniform->name);
 
     const char *type = get_glsl_type(uniform->type);
     const char *precision = get_precision_qualifier(s, uniform->type, uniform->precision, "highp");
@@ -184,7 +183,9 @@ static int inject_uniform(struct pgcraft *s, struct bstr *b,
     else
         ngli_bstr_printf(b, "uniform %s %s %s;\n", precision, type, uniform->name);
 
-    if (!ngli_darray_push(&s->pipeline_uniforms, &pl_uniform))
+    if (!ngli_darray_push(&s->pipeline_info.desc.uniforms, &pl_uniform_desc))
+        return NGL_ERROR_MEMORY;
+    if (!ngli_darray_push(&s->pipeline_info.data.uniforms, &uniform->data))
         return NGL_ERROR_MEMORY;
     return 0;
 }
@@ -305,17 +306,16 @@ static int inject_texture_info(struct pgcraft *s, struct pgcraft_texture_info *i
         struct bstr *b = s->shaders[stage];
 
         if (is_sampler_or_image(field->type)) {
-            struct pipeline_texture pl_texture = {
+            struct pipeline_texture_desc pl_texture_desc = {
                 .type     = field->type,
                 .location = -1,
                 .binding  = -1,
-                .texture  = info->texture,
             };
-            snprintf(pl_texture.name, sizeof(pl_texture.name), "%s", field->name);
+            snprintf(pl_texture_desc.name, sizeof(pl_texture_desc.name), "%s", field->name);
 
             int *next_bind = s->next_bindings[BIND_ID(stage, NGLI_BINDING_TYPE_TEXTURE)];
             if (next_bind)
-                pl_texture.binding = (*next_bind)++;
+                pl_texture_desc.binding = (*next_bind)++;
 
             if (field->type == NGLI_TYPE_IMAGE_2D) {
                 if (info->format == NGLI_TYPE_NONE) {
@@ -329,18 +329,20 @@ static int inject_texture_info(struct pgcraft *s, struct pgcraft_texture_info *i
                 }
 
                 ngli_bstr_printf(b, "layout(%s", format);
-                if (pl_texture.binding != -1)
-                    ngli_bstr_printf(b, ", binding=%d", pl_texture.binding);
+                if (pl_texture_desc.binding != -1)
+                    ngli_bstr_printf(b, ", binding=%d", pl_texture_desc.binding);
                 ngli_bstr_printf(b, ") %s ", info->writable ? "writeonly" : "readonly");
-            } else if (pl_texture.binding != -1) {
-                ngli_bstr_printf(b, "layout(binding=%d) ", pl_texture.binding);
+            } else if (pl_texture_desc.binding != -1) {
+                ngli_bstr_printf(b, "layout(binding=%d) ", pl_texture_desc.binding);
             }
 
             const char *type = get_glsl_type(field->type);
             const char *precision = get_precision_qualifier(s, field->type, info->precision, "lowp");
             ngli_bstr_printf(b, "uniform %s %s %s;\n", precision, type, field->name);
 
-            if (!ngli_darray_push(&s->pipeline_textures, &pl_texture))
+            if (!ngli_darray_push(&s->pipeline_info.desc.textures, &pl_texture_desc))
+                return NGL_ERROR_MEMORY;
+            if (!ngli_darray_push(&s->pipeline_info.data.textures, &info->texture))
                 return NGL_ERROR_MEMORY;
         } else {
             struct pgcraft_uniform uniform = {
@@ -382,13 +384,12 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
 
     const struct block *block = named_block->block;
 
-    struct pipeline_buffer pl_buffer = {
+    struct pipeline_buffer_desc pl_buffer_desc = {
         .type    = block->type,
         .binding = -1,
-        .buffer  = named_block->buffer,
     };
-    int len = snprintf(pl_buffer.name, sizeof(pl_buffer.name), "%s_block", named_block->name);
-    if (len >= sizeof(pl_buffer.name)) {
+    int len = snprintf(pl_buffer_desc.name, sizeof(pl_buffer_desc.name), "%s_block", named_block->name);
+    if (len >= sizeof(pl_buffer_desc.name)) {
         LOG(ERROR, "block name \"%s\" is too long", named_block->name);
         return NGL_ERROR_MEMORY;
     }
@@ -397,8 +398,8 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
     const int bind_type = block->type == NGLI_TYPE_UNIFORM_BUFFER ? NGLI_BINDING_TYPE_UBO : NGLI_BINDING_TYPE_SSBO;
     int *next_bind = s->next_bindings[BIND_ID(stage, bind_type)];
     if (next_bind) {
-        pl_buffer.binding = (*next_bind)++;
-        ngli_bstr_printf(b, "layout(%s,binding=%d)", layout, pl_buffer.binding);
+        pl_buffer_desc.binding = (*next_bind)++;
+        ngli_bstr_printf(b, "layout(%s,binding=%d)", layout, pl_buffer_desc.binding);
     } else {
         ngli_bstr_printf(b, "layout(%s)", layout);
     }
@@ -419,7 +420,9 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
     const char *instance_name = named_block->instance_name ? named_block->instance_name : named_block->name;
     ngli_bstr_printf(b, "} %s;\n", instance_name);
 
-    if (!ngli_darray_push(&s->pipeline_buffers, &pl_buffer))
+    if (!ngli_darray_push(&s->pipeline_info.desc.buffers, &pl_buffer_desc))
+        return NGL_ERROR_MEMORY;
+    if (!ngli_darray_push(&s->pipeline_info.data.buffers, &named_block->buffer))
         return NGL_ERROR_MEMORY;
     return 0;
 }
@@ -441,17 +444,18 @@ static int inject_attribute(struct pgcraft *s, struct bstr *b,
     for (int i = 0; i < attribute_count; i++) {
         /* negative location offset trick is for probe_pipeline_attribute() */
         const int loc = base_location != -1 ? base_location + i : -1 - i;
-        struct pipeline_attribute pl_attribute = {
+        struct pipeline_attribute_desc pl_attribute_desc = {
             .location = loc,
             .format   = attribute->format,
             .stride   = attribute->stride,
             .offset   = attribute->offset + i * attribute_offset,
             .rate     = attribute->rate,
-            .buffer   = attribute->buffer,
         };
-        snprintf(pl_attribute.name, sizeof(pl_attribute.name), "%s", attribute->name);
+        snprintf(pl_attribute_desc.name, sizeof(pl_attribute_desc.name), "%s", attribute->name);
 
-        if (!ngli_darray_push(&s->pipeline_attributes, &pl_attribute))
+        if (!ngli_darray_push(&s->pipeline_info.desc.attributes, &pl_attribute_desc))
+            return NGL_ERROR_MEMORY;
+        if (!ngli_darray_push(&s->pipeline_info.data.attributes, &attribute->buffer))
             return NGL_ERROR_MEMORY;
     }
 
@@ -803,8 +807,8 @@ static int craft_comp(struct pgcraft *s, const struct pgcraft_params *params)
 
 static int probe_pipeline_uniform(const struct hmap *info_map, void *arg)
 {
-    struct pipeline_uniform *elem = arg;
-    const struct program_variable_info *info = ngli_hmap_get(info_map, elem->name);
+    struct pipeline_uniform_desc *elem_desc = arg;
+    const struct program_variable_info *info = ngli_hmap_get(info_map, elem_desc->name);
     if (!info)
         return NGL_ERROR_NOT_FOUND;
     return 0;
@@ -812,40 +816,40 @@ static int probe_pipeline_uniform(const struct hmap *info_map, void *arg)
 
 static int probe_pipeline_buffer(const struct hmap *info_map, void *arg)
 {
-    struct pipeline_buffer *elem = arg;
-    if (elem->binding != -1)
+    struct pipeline_buffer_desc *elem_desc = arg;
+    if (elem_desc->binding != -1)
         return 0;
-    const struct program_variable_info *info = ngli_hmap_get(info_map, elem->name);
+    const struct program_variable_info *info = ngli_hmap_get(info_map, elem_desc->name);
     if (!info)
         return NGL_ERROR_NOT_FOUND;
-    elem->binding = info->binding;
-    return elem->binding != -1 ? 0 : NGL_ERROR_NOT_FOUND;
+    elem_desc->binding = info->binding;
+    return elem_desc->binding != -1 ? 0 : NGL_ERROR_NOT_FOUND;
 }
 
 static int probe_pipeline_texture(const struct hmap *info_map, void *arg)
 {
-    struct pipeline_texture *elem = arg;
-    if (elem->location != -1)
+    struct pipeline_texture_desc *elem_desc = arg;
+    if (elem_desc->location != -1)
         return 0;
-    const struct program_variable_info *info = ngli_hmap_get(info_map, elem->name);
+    const struct program_variable_info *info = ngli_hmap_get(info_map, elem_desc->name);
     if (!info)
         return NGL_ERROR_NOT_FOUND;
-    elem->location = info->location;
-    if (elem->binding == -1)
-        elem->binding = info->binding;
-    return elem->location != -1 ? 0 : NGL_ERROR_NOT_FOUND;
+    elem_desc->location = info->location;
+    if (elem_desc->binding == -1)
+        elem_desc->binding = info->binding;
+    return elem_desc->location != -1 ? 0 : NGL_ERROR_NOT_FOUND;
 }
 
 static int probe_pipeline_attribute(const struct hmap *info_map, void *arg)
 {
-    struct pipeline_attribute *elem = arg;
-    if (elem->location >= 0) // can be ≤ -1 if there is a location offset so we don't check ≠ -1 here
+    struct pipeline_attribute_desc *elem_desc = arg;
+    if (elem_desc->location >= 0) // can be ≤ -1 if there is a location offset so we don't check ≠ -1 here
         return 0;
-    const struct program_variable_info *info = ngli_hmap_get(info_map, elem->name);
+    const struct program_variable_info *info = ngli_hmap_get(info_map, elem_desc->name);
     if (!info || info->location == -1)
         return NGL_ERROR_NOT_FOUND;
-    const int loc_offset = -elem->location - 1; // reverse location offset trick from inject_attribute()
-    elem->location = info->location + loc_offset;
+    const int loc_offset = -elem_desc->location - 1; // reverse location offset trick from inject_attribute()
+    elem_desc->location = info->location + loc_offset;
     return 0;
 }
 
@@ -853,26 +857,33 @@ typedef int (*probe_func_type)(const struct hmap *info_map, void *arg);
 
 static int filter_pipeline_elems(struct pgcraft *s, probe_func_type probe_func,
                                  const struct hmap *info_map,
-                                 struct darray *src, struct darray *dst)
+                                 struct darray *src_desc, struct darray *src_data,
+                                 struct darray *dst_desc, struct darray *dst_data)
 {
-    uint8_t *elems = ngli_darray_data(src);
-    for (int i = 0; i < ngli_darray_count(src); i++) {
-        void *elem = elems + i * src->element_size;
-        if (info_map && probe_func(info_map, elem) < 0)
+    uint8_t *desc_elems = ngli_darray_data(src_desc);
+    uint8_t *data_elems = ngli_darray_data(src_data);
+    int num_elems = ngli_darray_count(src_desc);
+    for (int i = 0; i < num_elems; i++) {
+        void *desc_elem = desc_elems + i * src_desc->element_size;
+        void *data_elem = data_elems + i * src_data->element_size;
+        if (info_map && probe_func(info_map, desc_elem) < 0)
             continue;
-        if (!ngli_darray_push(dst, elem))
+        if (!ngli_darray_push(dst_desc, desc_elem))
+            return NGL_ERROR_MEMORY;
+        if (!ngli_darray_push(dst_data, data_elem))
             return NGL_ERROR_MEMORY;
     }
-    ngli_darray_reset(src);
+    ngli_darray_reset(src_desc);
+    ngli_darray_reset(src_data);
     return 0;
 }
 
 static int get_uniform_index(const struct pgcraft *s, const char *name)
 {
-    const struct pipeline_uniform *pipeline_uniforms = ngli_darray_data(&s->filtered_pipeline_uniforms);
-    for (int i = 0; i < ngli_darray_count(&s->filtered_pipeline_uniforms); i++) {
-        const struct pipeline_uniform *pipeline_uniform = &pipeline_uniforms[i];
-        if (!strcmp(pipeline_uniform->name, name))
+    const struct pipeline_uniform_desc *pipeline_uniform_descs = ngli_darray_data(&s->filtered_pipeline_info.desc.uniforms);
+    for (int i = 0; i < ngli_darray_count(&s->filtered_pipeline_info.desc.uniforms); i++) {
+        const struct pipeline_uniform_desc *pipeline_uniform_desc = &pipeline_uniform_descs[i];
+        if (!strcmp(pipeline_uniform_desc->name, name))
             return i;
     }
     return -1;
@@ -880,10 +891,10 @@ static int get_uniform_index(const struct pgcraft *s, const char *name)
 
 static int get_texture_index(const struct pgcraft *s, const char *name)
 {
-    const struct pipeline_texture *pipeline_textures = ngli_darray_data(&s->filtered_pipeline_textures);
-    for (int i = 0; i < ngli_darray_count(&s->filtered_pipeline_textures); i++) {
-        const struct pipeline_texture *pipeline_texture = &pipeline_textures[i];
-        if (!strcmp(pipeline_texture->name, name))
+    const struct pipeline_texture_desc *pipeline_texture_descs = ngli_darray_data(&s->filtered_pipeline_info.desc.textures);
+    for (int i = 0; i < ngli_darray_count(&s->filtered_pipeline_info.desc.textures); i++) {
+        const struct pipeline_texture_desc *pipeline_texture_desc = &pipeline_texture_descs[i];
+        if (!strcmp(pipeline_texture_desc->name, name))
             return i;
     }
     return -1;
@@ -924,10 +935,12 @@ static int probe_pipeline_elems(struct pgcraft *s)
     const struct hmap *buffers_info    = s->program->buffer_blocks;
     const struct hmap *attributes_info = s->program->attributes;
 
-    if ((ret = filter_pipeline_elems(s, probe_pipeline_uniform,   uniforms_info,   &s->pipeline_uniforms,   &s->filtered_pipeline_uniforms))   < 0 ||
-        (ret = filter_pipeline_elems(s, probe_pipeline_buffer,    buffers_info,    &s->pipeline_buffers,    &s->filtered_pipeline_buffers))    < 0 ||
-        (ret = filter_pipeline_elems(s, probe_pipeline_texture,   uniforms_info,   &s->pipeline_textures,   &s->filtered_pipeline_textures))   < 0 ||
-        (ret = filter_pipeline_elems(s, probe_pipeline_attribute, attributes_info, &s->pipeline_attributes, &s->filtered_pipeline_attributes)) < 0)
+    struct pgcraft_pipeline_info *info  = &s->pipeline_info;
+    struct pgcraft_pipeline_info *finfo = &s->filtered_pipeline_info;
+    if ((ret = filter_pipeline_elems(s, probe_pipeline_uniform,   uniforms_info,   &info->desc.uniforms,   &info->data.uniforms,   &finfo->desc.uniforms,   &finfo->data.uniforms))   < 0 ||
+        (ret = filter_pipeline_elems(s, probe_pipeline_buffer,    buffers_info,    &info->desc.buffers,    &info->data.buffers,    &finfo->desc.buffers,    &finfo->data.buffers))    < 0 ||
+        (ret = filter_pipeline_elems(s, probe_pipeline_texture,   uniforms_info,   &info->desc.textures,   &info->data.textures,   &finfo->desc.textures,   &finfo->data.textures))   < 0 ||
+        (ret = filter_pipeline_elems(s, probe_pipeline_attribute, attributes_info, &info->desc.attributes, &info->data.attributes, &finfo->desc.attributes, &finfo->data.attributes)) < 0)
         return ret;
 
     probe_texture_infos(s);
@@ -1025,15 +1038,25 @@ struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx)
 
     ngli_darray_init(&s->texture_infos, sizeof(struct pgcraft_texture_info), 0);
 
-    ngli_darray_init(&s->pipeline_uniforms,   sizeof(struct pipeline_uniform),   0);
-    ngli_darray_init(&s->pipeline_textures,   sizeof(struct pipeline_texture),   0);
-    ngli_darray_init(&s->pipeline_buffers,    sizeof(struct pipeline_buffer),    0);
-    ngli_darray_init(&s->pipeline_attributes, sizeof(struct pipeline_attribute), 0);
+    ngli_darray_init(&s->pipeline_info.desc.uniforms,   sizeof(struct pipeline_uniform_desc),   0);
+    ngli_darray_init(&s->pipeline_info.desc.textures,   sizeof(struct pipeline_texture_desc),   0);
+    ngli_darray_init(&s->pipeline_info.desc.buffers,    sizeof(struct pipeline_buffer_desc),    0);
+    ngli_darray_init(&s->pipeline_info.desc.attributes, sizeof(struct pipeline_attribute_desc), 0);
 
-    ngli_darray_init(&s->filtered_pipeline_uniforms,   sizeof(struct pipeline_uniform),   0);
-    ngli_darray_init(&s->filtered_pipeline_textures,   sizeof(struct pipeline_texture),   0);
-    ngli_darray_init(&s->filtered_pipeline_buffers,    sizeof(struct pipeline_buffer),    0);
-    ngli_darray_init(&s->filtered_pipeline_attributes, sizeof(struct pipeline_attribute), 0);
+    ngli_darray_init(&s->filtered_pipeline_info.desc.uniforms,   sizeof(struct pipeline_uniform_desc),   0);
+    ngli_darray_init(&s->filtered_pipeline_info.desc.textures,   sizeof(struct pipeline_texture_desc),   0);
+    ngli_darray_init(&s->filtered_pipeline_info.desc.buffers,    sizeof(struct pipeline_buffer_desc),    0);
+    ngli_darray_init(&s->filtered_pipeline_info.desc.attributes, sizeof(struct pipeline_attribute_desc), 0);
+
+    ngli_darray_init(&s->pipeline_info.data.uniforms,   sizeof(void *),           0);
+    ngli_darray_init(&s->pipeline_info.data.textures,   sizeof(struct texture *), 0);
+    ngli_darray_init(&s->pipeline_info.data.buffers,    sizeof(struct buffer *),  0);
+    ngli_darray_init(&s->pipeline_info.data.attributes, sizeof(struct buffer *),  0);
+
+    ngli_darray_init(&s->filtered_pipeline_info.data.uniforms,   sizeof(void *),           0);
+    ngli_darray_init(&s->filtered_pipeline_info.data.textures,   sizeof(struct texture *), 0);
+    ngli_darray_init(&s->filtered_pipeline_info.data.buffers,    sizeof(struct buffer *),  0);
+    ngli_darray_init(&s->filtered_pipeline_info.data.attributes, sizeof(struct buffer *),  0);
 
     return s;
 }
@@ -1090,7 +1113,8 @@ static int get_program_graphics(struct pgcraft *s, const struct pgcraft_params *
 }
 
 int ngli_pgcraft_craft(struct pgcraft *s,
-                       struct pipeline_params *dst_params,
+                       struct pipeline_params *dst_desc_params,
+                       struct pipeline_resource_params *dst_data_params,
                        const struct pgcraft_params *params)
 {
     int ret = params->comp_base ? get_program_compute(s, params)
@@ -1102,15 +1126,24 @@ int ngli_pgcraft_craft(struct pgcraft *s,
     if (ret < 0)
         return ret;
 
-    dst_params->program       = s->program;
-    dst_params->uniforms      = ngli_darray_data(&s->filtered_pipeline_uniforms);
-    dst_params->nb_uniforms   = ngli_darray_count(&s->filtered_pipeline_uniforms);
-    dst_params->textures      = ngli_darray_data(&s->filtered_pipeline_textures);
-    dst_params->nb_textures   = ngli_darray_count(&s->filtered_pipeline_textures);
-    dst_params->attributes    = ngli_darray_data(&s->filtered_pipeline_attributes);
-    dst_params->nb_attributes = ngli_darray_count(&s->filtered_pipeline_attributes);
-    dst_params->buffers       = ngli_darray_data(&s->filtered_pipeline_buffers);
-    dst_params->nb_buffers    = ngli_darray_count(&s->filtered_pipeline_buffers);
+    dst_desc_params->program            = s->program;
+    dst_desc_params->uniforms_desc      = ngli_darray_data(&s->filtered_pipeline_info.desc.uniforms);
+    dst_desc_params->nb_uniforms        = ngli_darray_count(&s->filtered_pipeline_info.desc.uniforms);
+    dst_desc_params->textures_desc      = ngli_darray_data(&s->filtered_pipeline_info.desc.textures);
+    dst_desc_params->nb_textures        = ngli_darray_count(&s->filtered_pipeline_info.desc.textures);
+    dst_desc_params->attributes_desc    = ngli_darray_data(&s->filtered_pipeline_info.desc.attributes);
+    dst_desc_params->nb_attributes      = ngli_darray_count(&s->filtered_pipeline_info.desc.attributes);
+    dst_desc_params->buffers_desc       = ngli_darray_data(&s->filtered_pipeline_info.desc.buffers);
+    dst_desc_params->nb_buffers         = ngli_darray_count(&s->filtered_pipeline_info.desc.buffers);
+
+    dst_data_params->uniforms           = ngli_darray_data(&s->filtered_pipeline_info.data.uniforms);
+    dst_data_params->nb_uniforms        = ngli_darray_count(&s->filtered_pipeline_info.data.uniforms);
+    dst_data_params->textures           = ngli_darray_data(&s->filtered_pipeline_info.data.textures);
+    dst_data_params->nb_textures        = ngli_darray_count(&s->filtered_pipeline_info.data.textures);
+    dst_data_params->attributes         = ngli_darray_data(&s->filtered_pipeline_info.data.attributes);
+    dst_data_params->nb_attributes      = ngli_darray_count(&s->filtered_pipeline_info.data.attributes);
+    dst_data_params->buffers            = ngli_darray_data(&s->filtered_pipeline_info.data.buffers);
+    dst_data_params->nb_buffers         = ngli_darray_count(&s->filtered_pipeline_info.data.buffers);
 
     return 0;
 }
@@ -1132,15 +1165,15 @@ void ngli_pgcraft_freep(struct pgcraft **sp)
     for (int i = 0; i < NGLI_ARRAY_NB(s->shaders); i++)
         ngli_bstr_freep(&s->shaders[i]);
 
-    ngli_darray_reset(&s->pipeline_uniforms);
-    ngli_darray_reset(&s->pipeline_textures);
-    ngli_darray_reset(&s->pipeline_buffers);
-    ngli_darray_reset(&s->pipeline_attributes);
+    ngli_darray_reset(&s->pipeline_info.desc.uniforms);
+    ngli_darray_reset(&s->pipeline_info.desc.textures);
+    ngli_darray_reset(&s->pipeline_info.desc.buffers);
+    ngli_darray_reset(&s->pipeline_info.desc.attributes);
 
-    ngli_darray_reset(&s->filtered_pipeline_uniforms);
-    ngli_darray_reset(&s->filtered_pipeline_textures);
-    ngli_darray_reset(&s->filtered_pipeline_buffers);
-    ngli_darray_reset(&s->filtered_pipeline_attributes);
+    ngli_darray_reset(&s->filtered_pipeline_info.desc.uniforms);
+    ngli_darray_reset(&s->filtered_pipeline_info.desc.textures);
+    ngli_darray_reset(&s->filtered_pipeline_info.desc.buffers);
+    ngli_darray_reset(&s->filtered_pipeline_info.desc.attributes);
 
     ngli_freep(sp);
 }

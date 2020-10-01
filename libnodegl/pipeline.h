@@ -31,36 +31,32 @@
 
 struct gctx;
 
-struct pipeline_uniform {
+struct pipeline_uniform_desc {
     char name[MAX_ID_LEN];
     int type;
     int count;
-    const void *data;
 };
 
-struct pipeline_texture {
+struct pipeline_texture_desc {
     char name[MAX_ID_LEN];
     int type;
     int location;
     int binding;
-    struct texture *texture;
 };
 
-struct pipeline_buffer {
+struct pipeline_buffer_desc {
     char name[MAX_ID_LEN];
     int type;
     int binding;
-    struct buffer *buffer;
 };
 
-struct pipeline_attribute {
+struct pipeline_attribute_desc {
     char name[MAX_ID_LEN];
     int location;
     int format;
     int stride;
     int offset;
     int rate;
-    struct buffer *buffer;
 };
 
 struct pipeline_graphics {
@@ -79,13 +75,24 @@ struct pipeline_params {
     const struct pipeline_graphics graphics;
     const struct program *program;
 
-    const struct pipeline_texture *textures;
+    const struct pipeline_texture_desc *textures_desc;
     int nb_textures;
-    const struct pipeline_uniform *uniforms;
+    const struct pipeline_uniform_desc *uniforms_desc;
     int nb_uniforms;
-    const struct pipeline_buffer *buffers;
+    const struct pipeline_buffer_desc *buffers_desc;
     int nb_buffers;
-    const struct pipeline_attribute *attributes;
+    const struct pipeline_attribute_desc *attributes_desc;
+    int nb_attributes;
+};
+
+struct pipeline_resource_params {
+    struct texture **textures;
+    int nb_textures;
+    void **uniforms;
+    int nb_uniforms;
+    struct buffer **buffers;
+    int nb_buffers;
+    struct buffer **attributes;
     int nb_attributes;
 };
 
@@ -105,6 +112,7 @@ struct pipeline {
 
 struct pipeline *ngli_pipeline_create(struct gctx *gctx);
 int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params);
+int ngli_pipeline_set_resources(struct pipeline *s, const struct pipeline_resource_params *data_params);
 int ngli_pipeline_update_attribute(struct pipeline *s, int index, struct buffer *buffer);
 int ngli_pipeline_update_uniform(struct pipeline *s, int index, const void *value);
 int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *texture);

@@ -486,7 +486,8 @@ int ngli_pass_prepare(struct pass *s)
     if (!desc->crafter)
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_pgcraft_craft(desc->crafter, &pipeline_params, &crafter_params);
+    struct pipeline_resource_params pipeline_resource_params = {0};
+    int ret = ngli_pgcraft_craft(desc->crafter, &pipeline_params, &pipeline_resource_params, &crafter_params);
     if (ret < 0)
         return ret;
 
@@ -495,6 +496,10 @@ int ngli_pass_prepare(struct pass *s)
         return NGL_ERROR_MEMORY;
 
     ret = ngli_pipeline_init(desc->pipeline, &pipeline_params);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_pipeline_set_resources(desc->pipeline, &pipeline_resource_params);
     if (ret < 0)
         return ret;
 

@@ -37,6 +37,7 @@ struct pipeline_gl {
 
 struct pipeline *ngli_pipeline_gl_create(struct gctx *gctx);
 int ngli_pipeline_gl_init(struct pipeline *s, const struct pipeline_params *params);
+int ngli_pipeline_gl_set_resources(struct pipeline *s, const struct pipeline_resource_params *data_params);
 int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buffer *buffer);
 int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *value);
 int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct texture *texture);

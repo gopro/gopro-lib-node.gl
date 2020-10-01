@@ -33,6 +33,11 @@ int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params)
     return s->gctx->class->pipeline_init(s, params);
 }
 
+int ngli_pipeline_set_resources(struct pipeline *s, const struct pipeline_resource_params *data_params)
+{
+    return s->gctx->class->pipeline_set_resources(s, data_params);
+}
+
 int ngli_pipeline_update_attribute(struct pipeline *s, int index, struct buffer *buffer)
 {
     return s->gctx->class->pipeline_update_attribute(s, index, buffer);

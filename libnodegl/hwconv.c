@@ -149,7 +149,8 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     if (!hwconv->crafter)
         return NGL_ERROR_MEMORY;
 
-    ret = ngli_pgcraft_craft(hwconv->crafter, &pipeline_params, &crafter_params);
+    struct pipeline_resource_params pipeline_resource_params = {0};
+    ret = ngli_pgcraft_craft(hwconv->crafter, &pipeline_params, &pipeline_resource_params, &crafter_params);
     if (ret < 0)
         return ret;
 
@@ -158,6 +159,10 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
         return NGL_ERROR_MEMORY;
 
     ret = ngli_pipeline_init(hwconv->pipeline, &pipeline_params);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_pipeline_set_resources(hwconv->pipeline, &pipeline_resource_params);
     if (ret < 0)
         return ret;
 

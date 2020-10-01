@@ -1341,7 +1341,8 @@ static int hud_init(struct ngl_node *node)
     if (!s->crafter)
         return NGL_ERROR_MEMORY;
 
-    ret = ngli_pgcraft_craft(s->crafter, &pipeline_params, &crafter_params);
+    struct pipeline_resource_params pipeline_resource_params = {0};
+    ret = ngli_pgcraft_craft(s->crafter, &pipeline_params, &pipeline_resource_params, &crafter_params);
     if (ret < 0)
         return ret;
 
@@ -1350,6 +1351,10 @@ static int hud_init(struct ngl_node *node)
         return NGL_ERROR_MEMORY;
 
     ret = ngli_pipeline_init(s->pipeline, &pipeline_params);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_pipeline_set_resources(s->pipeline, &pipeline_resource_params);
     if (ret < 0)
         return ret;
 

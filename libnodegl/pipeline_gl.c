@@ -491,10 +491,10 @@ int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buff
 
     ngli_assert(s->type == NGLI_PIPELINE_TYPE_GRAPHICS);
 
-    struct attribute_desc *desc = ngli_darray_get(&s->attribute_descs, index);
-    ngli_assert(desc);
+    struct attribute_desc *attr_desc = ngli_darray_get(&s->attribute_descs, index);
+    ngli_assert(attr_desc);
 
-    struct pipeline_attribute *attribute = &desc->attribute;
+    struct pipeline_attribute *attribute = &attr_desc->attribute;
 
     if (!attribute->buffer && buffer)
         s->nb_unbound_attributes--;
@@ -524,17 +524,17 @@ int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *d
     if (index == -1)
         return NGL_ERROR_NOT_FOUND;
 
-    struct uniform_desc *desc = ngli_darray_get(&s->uniform_descs, index);
-    ngli_assert(desc);
+    struct uniform_desc *uniform_desc = ngli_darray_get(&s->uniform_descs, index);
+    ngli_assert(uniform_desc);
 
-    struct pipeline_uniform *pipeline_uniform = &desc->uniform;
+    struct pipeline_uniform *pipeline_uniform = &uniform_desc->uniform;
     if (data) {
         struct gctx *gctx = s->gctx;
         struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
         struct glcontext *gl = gctx_gl->glcontext;
         struct program_gl *program_gl = (struct program_gl *)s->program;
         ngli_glstate_use_program(gctx, program_gl->id);
-        desc->set(gl, desc->location, pipeline_uniform->count, data);
+        uniform_desc->set(gl, uniform_desc->location, pipeline_uniform->count, data);
     }
     pipeline_uniform->data = NULL;
 
@@ -546,10 +546,10 @@ int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct textur
     if (index == -1)
         return NGL_ERROR_NOT_FOUND;
 
-    struct texture_desc *desc = ngli_darray_get(&s->texture_descs, index);
-    ngli_assert(desc);
+    struct texture_desc *texture_desc = ngli_darray_get(&s->texture_descs, index);
+    ngli_assert(texture_desc);
 
-    struct pipeline_texture *pipeline_texture = &desc->texture;
+    struct pipeline_texture *pipeline_texture = &texture_desc->texture;
     pipeline_texture->texture = texture;
 
     return 0;

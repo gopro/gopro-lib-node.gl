@@ -27,6 +27,7 @@
 #include "buffer.h"
 #include "image.h"
 #include "pipeline.h"
+#include "precision.h"
 #include "texture.h"
 
 struct ngl_ctx;

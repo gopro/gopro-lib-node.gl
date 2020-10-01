@@ -124,6 +124,7 @@ LIB_OBJS = animation.o              \
            pgcache.o                \
            pgcraft.o                \
            pipeline.o               \
+           precision.o              \
            program.o                \
            rendertarget.o           \
            rnode.o                  \

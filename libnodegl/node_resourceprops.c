@@ -23,22 +23,12 @@
 
 #include "nodegl.h"
 #include "nodes.h"
-
-static const struct param_choices precision_choices = {
-    .name = "precision",
-    .consts = {
-        {"auto",   NGLI_PRECISION_AUTO,   .desc=NGLI_DOCSTRING("automatic")},
-        {"high",   NGLI_PRECISION_HIGH,   .desc=NGLI_DOCSTRING("high")},
-        {"medium", NGLI_PRECISION_MEDIUM, .desc=NGLI_DOCSTRING("medium")},
-        {"low",    NGLI_PRECISION_LOW,    .desc=NGLI_DOCSTRING("low")},
-        {NULL}
-    }
-};
+#include "precision.h"
 
 #define OFFSET(x) offsetof(struct resourceprops_priv, x)
 static const struct node_param resourceprops_params[] = {
     {"precision", PARAM_TYPE_SELECT, OFFSET(precision), {.i64=NGLI_PRECISION_AUTO},
-                  .choices=&precision_choices,
+                  .choices=&ngli_precision_choices,
                   .desc=NGLI_DOCSTRING("precision qualifier for the shader")},
     {"as_image", PARAM_TYPE_BOOL, OFFSET(as_image),
                  .desc=NGLI_DOCSTRING("flag this resource for image accessing (only applies to texture nodes)")},

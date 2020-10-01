@@ -209,14 +209,6 @@ int ngli_node_buffer_ref(struct ngl_node *node);
 void ngli_node_buffer_unref(struct ngl_node *node);
 int ngli_node_buffer_upload(struct ngl_node *node);
 
-enum {
-    NGLI_PRECISION_AUTO,
-    NGLI_PRECISION_HIGH,
-    NGLI_PRECISION_MEDIUM,
-    NGLI_PRECISION_LOW,
-    NGLI_PRECISION_NB
-};
-
 struct variable_priv {
     union {
         double dbl;

@@ -48,61 +48,62 @@
 #include "program_vk.h"
 #include "rendertarget_vk.h"
 
-struct attribute_desc {
-    struct pipeline_attribute attribute;
-};
-
-struct buffer_desc {
-    struct pipeline_buffer buffer;
-};
-
-struct texture_desc {
-    struct pipeline_texture texture;
-};
-
 static int build_attribute_descs(struct pipeline *s, const struct pipeline_params *params)
 {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     struct vkcontext *vk = gctx_vk->vkcontext;
     struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
 
+    ngli_darray_reset(&s_priv->vertex_attribute_descs);
+    ngli_darray_reset(&s_priv->vertex_binding_descs);
     ngli_darray_init(&s_priv->vertex_attribute_descs, sizeof(VkVertexInputAttributeDescription), 0);
     ngli_darray_init(&s_priv->vertex_binding_descs,   sizeof(VkVertexInputBindingDescription), 0);
-    ngli_darray_init(&s_priv->vertex_buffers, sizeof(VkBuffer), 0);
-    ngli_darray_init(&s_priv->vertex_offsets, sizeof(VkDeviceSize), 0);
 
     for (int i = 0; i < params->nb_attributes; i++) {
-        const struct pipeline_attribute *attribute = &params->attributes[i];
+        const struct pipeline_attribute_desc *pipeline_attribute_desc = &params->attributes_desc[i];
 
-        struct attribute_desc pair = {
-            .attribute = *attribute,
-        };
-        if (!ngli_darray_push(&s->attribute_descs, &pair))
+        if (!ngli_darray_push(&s->attribute_descs, pipeline_attribute_desc))
             return NGL_ERROR_MEMORY;
 
         VkVertexInputBindingDescription binding_desc = {
-            .binding   = ngli_darray_count(&s_priv->vertex_buffers),
-            .stride    = attribute->stride,
-            .inputRate = attribute->rate ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX,
+            .binding   = i,
+            .stride    = pipeline_attribute_desc->stride,
+            .inputRate = pipeline_attribute_desc->rate ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX,
         };
         if (!ngli_darray_push(&s_priv->vertex_binding_descs, &binding_desc))
             return NGL_ERROR_MEMORY;
 
         VkFormat format = VK_FORMAT_UNDEFINED;
-        int ret = ngli_format_get_vk_format(vk, attribute->format, &format);
+        int ret = ngli_format_get_vk_format(vk, pipeline_attribute_desc->format, &format);
         if (ret < 0)
             return ret;
 
         VkVertexInputAttributeDescription attr_desc = {
-            .binding  = ngli_darray_count(&s_priv->vertex_buffers),
-            .location = attribute->location,
+            .binding  = i,
+            .location = pipeline_attribute_desc->location,
             .format   = format,
-            .offset   = attribute->offset,
+            .offset   = pipeline_attribute_desc->offset,
         };
         if (!ngli_darray_push(&s_priv->vertex_attribute_descs, &attr_desc))
             return NGL_ERROR_MEMORY;
+    }
 
-        struct buffer_vk *buffer_vk = (struct buffer_vk *)attribute->buffer;
+    return 0;
+}
+
+static int build_attributes(struct pipeline *s, const struct pipeline_params *desc_params, const struct pipeline_resource_params *data_params)
+{
+    struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
+
+    ngli_darray_reset(&s_priv->vertex_buffers);
+    ngli_darray_reset(&s_priv->vertex_offsets);
+    ngli_darray_init(&s_priv->vertex_buffers, sizeof(VkBuffer), 0);
+    ngli_darray_init(&s_priv->vertex_offsets, sizeof(VkDeviceSize), 0);
+
+    for (int i = 0; i < data_params->nb_attributes; i++) {
+        const struct buffer *attribute = data_params->attributes[i];
+
+        struct buffer_vk *buffer_vk = (struct buffer_vk *)attribute;
         VkBuffer buffer = buffer_vk ? buffer_vk->buffer : VK_NULL_HANDLE;
         if (!buffer)
             s->nb_unbound_attributes++;
@@ -425,13 +426,10 @@ static VkDescriptorType get_descriptor_type(int type)
     return descriptor_type;
 }
 
-static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipeline_params *params)
-{
+static int create_desc_pool(struct pipeline *s, const struct pipeline_params *params) {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     struct vkcontext *vk = gctx_vk->vkcontext;
     struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
-
-    ngli_darray_init(&s_priv->desc_set_layout_bindings, sizeof(VkDescriptorSetLayoutBinding), 0);
 
     VkDescriptorPoolSize desc_pool_size_map[NGLI_TYPE_NB] = {
         [NGLI_TYPE_UNIFORM_BUFFER] = {.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER},
@@ -443,48 +441,15 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
     };
     /* FIXME: Check access of size_map */
 
+    //Calculate size of descriptor pool
     for (int i = 0; i < params->nb_buffers; i++) {
-        const struct pipeline_buffer *pipeline_buffer = &params->buffers[i];
-
-        const VkDescriptorType type = get_descriptor_type(pipeline_buffer->type);
-        const VkDescriptorSetLayoutBinding binding = {
-            .binding         = pipeline_buffer->binding,
-            .descriptorType  = type,
-            .descriptorCount = 1,
-            .stageFlags      = stage_flag_map[pipeline_buffer->stage],
-        };
-        if (!ngli_darray_push(&s_priv->desc_set_layout_bindings, &binding))
-            return NGL_ERROR_MEMORY;
-
-        struct buffer_desc pair = {
-            .buffer = *pipeline_buffer,
-        };
-        if (!ngli_darray_push(&s->buffer_descs, &pair))
-            return NGL_ERROR_MEMORY;
-
-        desc_pool_size_map[pipeline_buffer->type].descriptorCount += gctx_vk->nb_in_flight_frames;
+        const struct pipeline_buffer_desc *pipeline_buffer_desc = &params->buffers_desc[i];
+        desc_pool_size_map[pipeline_buffer_desc->type].descriptorCount += gctx_vk->nb_in_flight_frames;
     }
 
     for (int i = 0; i < params->nb_textures; i++) {
-        const struct pipeline_texture *pipeline_texture = &params->textures[i];
-
-        const VkDescriptorType type = get_descriptor_type(pipeline_texture->type);
-        const VkDescriptorSetLayoutBinding binding = {
-            .binding         = pipeline_texture->binding,
-            .descriptorType  = type,
-            .descriptorCount = 1,
-            .stageFlags      = stage_flag_map[pipeline_texture->stage],
-        };
-        if (!ngli_darray_push(&s_priv->desc_set_layout_bindings, &binding))
-            return NGL_ERROR_MEMORY;
-
-        struct texture_desc pair = {
-            .texture = *pipeline_texture,
-        };
-        if (!ngli_darray_push(&s->texture_descs, &pair))
-            return NGL_ERROR_MEMORY;
-
-        desc_pool_size_map[pipeline_texture->type].descriptorCount += gctx_vk->nb_in_flight_frames;
+        const struct pipeline_texture_desc *pipeline_texture_desc = &params->textures_desc[i];
+        desc_pool_size_map[pipeline_texture_desc->type].descriptorCount += gctx_vk->nb_in_flight_frames;
     }
 
     struct VkDescriptorPoolSize desc_pool_sizes[NGLI_ARRAY_NB(desc_pool_size_map)];
@@ -505,19 +470,74 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
         .maxSets = gctx_vk->nb_in_flight_frames,
     };
 
+    //Create descriptor pool
     VkResult vkret = vkCreateDescriptorPool(vk->device, &descriptor_pool_create_info, NULL, &s_priv->desc_pool);
     if (vkret != VK_SUCCESS)
         return NGL_ERROR_EXTERNAL;
+    return 0;
+}
 
+static int create_desc_set_layout(struct pipeline *s, const struct pipeline_params *params)
+{
+    struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
+    struct vkcontext *vk = gctx_vk->vkcontext;
+    struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
+
+    ngli_darray_init(&s_priv->desc_set_layout_bindings, sizeof(VkDescriptorSetLayoutBinding), 0);
+
+    //Initialize descriptor set layout bindings
+    for (int i = 0; i < params->nb_buffers; i++) {
+        const struct pipeline_buffer_desc *pipeline_buffer_desc = &params->buffers_desc[i];
+
+        const VkDescriptorType type = get_descriptor_type(pipeline_buffer_desc->type);
+        const VkDescriptorSetLayoutBinding binding = {
+            .binding         = pipeline_buffer_desc->binding,
+            .descriptorType  = type,
+            .descriptorCount = 1,
+            .stageFlags      = stage_flag_map[pipeline_buffer_desc->stage],
+        };
+        if (!ngli_darray_push(&s_priv->desc_set_layout_bindings, &binding))
+            return NGL_ERROR_MEMORY;
+
+        if (!ngli_darray_push(&s->buffer_descs, pipeline_buffer_desc))
+            return NGL_ERROR_MEMORY;
+    }
+
+    for (int i = 0; i < params->nb_textures; i++) {
+        const struct pipeline_texture_desc *pipeline_texture_desc = &params->textures_desc[i];
+
+        const VkDescriptorType type = get_descriptor_type(pipeline_texture_desc->type);
+        const VkDescriptorSetLayoutBinding binding = {
+            .binding         = pipeline_texture_desc->binding,
+            .descriptorType  = type,
+            .descriptorCount = 1,
+            .stageFlags      = stage_flag_map[pipeline_texture_desc->stage],
+        };
+        if (!ngli_darray_push(&s_priv->desc_set_layout_bindings, &binding))
+            return NGL_ERROR_MEMORY;
+
+        if (!ngli_darray_push(&s->texture_descs, pipeline_texture_desc))
+            return NGL_ERROR_MEMORY;
+    }
+
+    //Create descriptor set layout
     VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
         .bindingCount = ngli_darray_count(&s_priv->desc_set_layout_bindings),
         .pBindings = (const VkDescriptorSetLayoutBinding *)ngli_darray_data(&s_priv->desc_set_layout_bindings),
     };
 
-    vkret = vkCreateDescriptorSetLayout(vk->device, &descriptor_set_layout_create_info, NULL, &s_priv->desc_set_layout);
+    VkResult vkret = vkCreateDescriptorSetLayout(vk->device, &descriptor_set_layout_create_info, NULL, &s_priv->desc_set_layout);
     if (vkret != VK_SUCCESS)
         return NGL_ERROR_EXTERNAL;
+
+    return 0;
+}
+
+static int create_desc_sets(struct pipeline *s, const struct pipeline_params *pipeline_params) {
+    struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
+    struct vkcontext *vk = gctx_vk->vkcontext;
+    struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
 
     VkDescriptorSetLayout *desc_set_layouts = ngli_calloc(gctx_vk->nb_in_flight_frames, sizeof(*desc_set_layouts));
     if (!desc_set_layouts)
@@ -532,35 +552,60 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
         .descriptorSetCount = gctx_vk->nb_in_flight_frames,
         .pSetLayouts = desc_set_layouts
     };
-
     s_priv->desc_sets = ngli_calloc(gctx_vk->nb_in_flight_frames, sizeof(*s_priv->desc_sets));
     if (!s_priv->desc_sets) {
-        ngli_free(desc_set_layouts);
         return NGL_ERROR_MEMORY;
     }
-
-    vkret = vkAllocateDescriptorSets(vk->device, &descriptor_set_allocate_info, s_priv->desc_sets);
+    VkResult vkret = vkAllocateDescriptorSets(vk->device, &descriptor_set_allocate_info, s_priv->desc_sets);
     if (vkret != VK_SUCCESS) {
-        ngli_free(desc_set_layouts);
         return NGL_ERROR_EXTERNAL;
     }
 
-    for (int i = 0; i < params->nb_buffers; i++) {
-        const struct pipeline_buffer *pipeline_buffer = &params->buffers[i];
-        struct buffer *buffer = pipeline_buffer->buffer;
-        struct buffer_vk *buffer_vk = (struct buffer_vk *)pipeline_buffer->buffer;
+    ngli_free(desc_set_layouts);
 
-        for (int i = 0; i < gctx_vk->nb_in_flight_frames; i++) {
+    return 0;
+}
+
+static int update_blocks(struct pipeline *s,  const struct pipeline_params *pipeline_params) {
+    /* Uniform blocks */
+    memcpy(s->ublock, pipeline_params->ublock, sizeof(s->ublock));
+    memcpy(s->ubuffer, pipeline_params->ubuffer, sizeof(s->ubuffer));
+    for (int i = 0; i < NGLI_PROGRAM_SHADER_NB; i++) {
+        const struct buffer *ubuffer = pipeline_params->ubuffer[i];
+        if (!ubuffer)
+            continue;
+        const struct block *ublock = pipeline_params->ublock[i];
+        s->udata[i] = ngli_calloc(1, ublock->size);
+        if (!s->udata[i])
+            return NGL_ERROR_MEMORY;
+    }
+    return 0;
+}
+
+static int update_desc_sets(struct pipeline *s, const struct pipeline_params *pipeline_params,
+                            const struct pipeline_resource_params *pipeline_resource_params) {
+    struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
+    struct vkcontext *vk = gctx_vk->vkcontext;
+    struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
+
+    //Update buffer descriptor sets
+    for (int i = 0; i < pipeline_params->nb_buffers; i++) {
+        const struct pipeline_buffer_desc *pipeline_buffer_desc = &pipeline_params->buffers_desc[i];
+        const struct buffer *buffer = pipeline_resource_params->buffers[i];
+
+        struct buffer_vk *buffer_vk = (struct buffer_vk *)buffer;
+
+        for (int j = 0; j < gctx_vk->nb_in_flight_frames; j++) {
             const VkDescriptorBufferInfo descriptor_buffer_info = {
                 .buffer = buffer_vk->buffer,
                 .offset = 0,
                 .range  = buffer->size,
             };
-            const VkDescriptorType type = get_descriptor_type(pipeline_buffer->type);
+            const VkDescriptorType type = get_descriptor_type(pipeline_buffer_desc->type);
             const VkWriteDescriptorSet write_descriptor_set = {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet = s_priv->desc_sets[i],
-                .dstBinding = pipeline_buffer->binding,
+                .dstSet = s_priv->desc_sets[j],
+                .dstBinding = pipeline_buffer_desc->binding,
                 .dstArrayElement = 0,
                 .descriptorType = type,
                 .descriptorCount = 1,
@@ -572,26 +617,16 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
         }
     }
 
-    /* Uniform blocks */
-    memcpy(s->ublock, params->ublock, sizeof(s->ublock));
-    memcpy(s->ubuffer, params->ubuffer, sizeof(s->ubuffer));
-    for (int i = 0; i < NGLI_PROGRAM_SHADER_NB; i++) {
-        const struct buffer *ubuffer = params->ubuffer[i];
-        if (!ubuffer)
-            continue;
-        const struct block *ublock = params->ublock[i];
-        s->udata[i] = ngli_calloc(1, ublock->size);
-        if (!s->udata[i])
-            return NGL_ERROR_MEMORY;
-    }
+    if (!(pipeline_resource_params->textures)) return 0;
 
-    for (int i = 0; i < params->nb_textures; i++) {
-        const struct pipeline_texture *pipeline_texture = &params->textures[i];
-        struct texture_vk *texture_vk = (struct texture_vk *)pipeline_texture->texture;
+    //Update texture descriptor sets
+    for (int i = 0; i < pipeline_params->nb_textures; i++) {
+        const struct pipeline_texture_desc *pipeline_texture_desc = &pipeline_params->textures_desc[i];
+        struct texture_vk *texture_vk = (struct texture_vk *)pipeline_resource_params->textures[i];
         if (!texture_vk)
             continue;
 
-        for (int i = 0; i < gctx_vk->nb_in_flight_frames; i++) {
+        for (int j = 0; j < gctx_vk->nb_in_flight_frames; j++) {
             VkDescriptorImageInfo image_info = {
                 .imageLayout = texture_vk->image_layout,
                 .imageView   = texture_vk->image_view,
@@ -599,20 +634,19 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
             };
             VkWriteDescriptorSet write_descriptor_set = {
                 .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .dstSet           = s_priv->desc_sets[i],
-                .dstBinding       = pipeline_texture->binding,
+                .dstSet           = s_priv->desc_sets[j],
+                .dstBinding       = pipeline_texture_desc->binding,
                 .dstArrayElement  = 0,
-                .descriptorType   = get_descriptor_type(pipeline_texture->type),
+                .descriptorType   = get_descriptor_type(pipeline_texture_desc->type),
                 .descriptorCount  = 1,
                 .pImageInfo       = &image_info,
             };
             vkUpdateDescriptorSets(vk->device, 1, &write_descriptor_set, 0, NULL);
         }
     }
-
-    ngli_free(desc_set_layouts);
     return 0;
 }
+
 
 static int create_pipeline_layout(struct pipeline *s)
 {
@@ -665,15 +699,23 @@ int ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *para
     s->program  = params->program;
 
     ngli_assert(ngli_darray_count(&s->uniform_descs) == 0);
-    ngli_darray_init(&s->texture_descs, sizeof(struct texture_desc), 0);
-    ngli_darray_init(&s->buffer_descs,  sizeof(struct buffer_desc), 0);
-    ngli_darray_init(&s->attribute_descs, sizeof(struct attribute_desc), 0);
+    ngli_darray_init(&s->texture_descs, sizeof(struct pipeline_texture_desc), 0);
+    ngli_darray_init(&s->buffer_descs,  sizeof(struct pipeline_buffer_desc), 0);
+    ngli_darray_init(&s->attribute_descs, sizeof(struct pipeline_attribute_desc), 0);
+
+    ngli_assert(ngli_darray_count(&s->uniforms) == 0);
+    ngli_darray_init(&s->textures, sizeof(struct texture *), 0);
+    ngli_darray_init(&s->buffers,  sizeof(struct buffer *), 0);
+    ngli_darray_init(&s->attributes, sizeof(struct buffer *), 0);
 
     int ret;
-    if ((ret = create_desc_set_layout_bindings(s, params)) < 0)
+    if ((ret = create_desc_pool(s, params)) < 0)
         return ret;
-
+    if ((ret = create_desc_set_layout(s, params)) < 0)
+        return ret;
     if ((ret = create_pipeline_layout(s)) < 0)
+        return ret;
+    if ((ret = create_desc_sets(s, params)) < 0) //TODO: move
         return ret;
 
     if (params->type == NGLI_PIPELINE_TYPE_GRAPHICS) {
@@ -691,6 +733,38 @@ int ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *para
     return 0;
 }
 
+int ngli_pipeline_vk_bind_resources(struct pipeline *s, const struct pipeline_params *desc_params,
+                                    const struct pipeline_resource_params *data_params)
+{
+    int ret;
+    if ((ret = update_desc_sets(s, desc_params, data_params)) < 0)
+        return ret;
+    if ((ret = update_blocks(s, desc_params)) < 0)
+        return ret;
+    if ((ret = build_attributes(s, desc_params, data_params)) < 0)
+        return ret;
+    ngli_darray_clear(&s->attributes);
+    ngli_darray_clear(&s->buffers);
+    ngli_darray_clear(&s->textures);
+    for (int i = 0; i<data_params->nb_attributes; i++) {
+        const struct buffer **attribute = &data_params->attributes[i];
+        if (!ngli_darray_push(&s->attributes, attribute))
+                    return NGL_ERROR_MEMORY;
+    }
+    for (int i = 0; i<data_params->nb_buffers; i++) {
+        const struct buffer **buffer = &data_params->buffers[i];
+        if (!ngli_darray_push(&s->buffers, buffer))
+                    return NGL_ERROR_MEMORY;
+    }
+    for (int i = 0; i<data_params->nb_textures; i++) {
+        const struct texture **texture= &data_params->textures[i];
+        if (!ngli_darray_push(&s->textures, texture))
+                    return NGL_ERROR_MEMORY;
+    }
+    return 0;
+}
+
+
 int ngli_pipeline_vk_update_attribute(struct pipeline *s, int index, struct buffer *buffer)
 {
     struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
@@ -702,17 +776,6 @@ int ngli_pipeline_vk_update_attribute(struct pipeline *s, int index, struct buff
     ngli_assert(index >= 0 && index < ngli_darray_count(&s->attribute_descs));
     ngli_assert(index >= 0 && ngli_darray_count(&s_priv->vertex_buffers));
 
-    struct attribute_desc *descs = ngli_darray_data(&s->attribute_descs);
-    struct attribute_desc *desc = &descs[index];
-    struct pipeline_attribute *attribute = &desc->attribute;
-
-    if (!attribute->buffer && buffer)
-        s->nb_unbound_attributes--;
-    else if (attribute->buffer && !buffer)
-        s->nb_unbound_attributes++;
-
-    attribute->buffer = buffer;
-
     VkBuffer *vertex_buffers = ngli_darray_data(&s_priv->vertex_buffers);
     if (buffer) {
         struct buffer_vk *buffer_vk = (struct buffer_vk *)buffer;
@@ -720,7 +783,6 @@ int ngli_pipeline_vk_update_attribute(struct pipeline *s, int index, struct buff
     } else {
         vertex_buffers[index] = VK_NULL_HANDLE;
     }
-
     return 0;
 }
 
@@ -746,9 +808,7 @@ int ngli_pipeline_vk_update_texture(struct pipeline *s, int index, struct textur
     struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
 
     ngli_assert(index < ngli_darray_count(&s->texture_descs));
-    struct pipeline_texture *pairs = ngli_darray_data(&s->texture_descs);
-    struct pipeline_texture *pipeline_texture = &pairs[index];
-    pipeline_texture->texture = texture;
+    struct pipeline_texture_desc *pipeline_texture_desc = (struct pipeline_texture_desc *)ngli_darray_get(&s->texture_descs, index);
 
     ngli_texture_vk_transition_layout(texture, VK_IMAGE_LAYOUT_GENERAL);
 
@@ -761,14 +821,13 @@ int ngli_pipeline_vk_update_texture(struct pipeline *s, int index, struct textur
     VkWriteDescriptorSet write_descriptor_set = {
         .sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
         .dstSet           = s_priv->desc_sets[gctx_vk->frame_index],
-        .dstBinding       = pipeline_texture->binding,
+        .dstBinding       = pipeline_texture_desc->binding,
         .dstArrayElement  = 0,
-        .descriptorType   = get_descriptor_type(pipeline_texture->type),
+        .descriptorType   = get_descriptor_type(pipeline_texture_desc->type),
         .descriptorCount  = 1,
         .pImageInfo       = &image_info,
     };
     vkUpdateDescriptorSets(vk->device, 1, &write_descriptor_set, 0, NULL);
-
     return 0;
 }
 
@@ -800,12 +859,12 @@ void ngli_pipeline_vk_draw(struct pipeline *s, int nb_vertices, int nb_instances
 
     vkCmdBindPipeline(cmd_buf, s_priv->bind_point, s_priv->pipeline);
 
-    struct texture_desc *pairs = ngli_darray_data(&s->texture_descs);
-    for (int i = 0; i < ngli_darray_count(&s->texture_descs); i++) {
-        struct pipeline_texture *texture = &pairs[i].texture;
-        if (!texture->texture)
+    struct texture **textures= ngli_darray_data(&s->textures);
+    for (int i = 0; i < ngli_darray_count(&s->textures); i++) {
+        struct texture *texture = textures[i];
+        if (!texture)
             continue;
-        ngli_texture_vk_transition_layout(texture->texture, VK_IMAGE_LAYOUT_GENERAL);
+        ngli_texture_vk_transition_layout(texture, VK_IMAGE_LAYOUT_GENERAL);
     }
 
     if (s_priv->desc_sets)
@@ -868,12 +927,12 @@ void ngli_pipeline_vk_draw_indexed(struct pipeline *s, struct buffer *indices, i
 
     vkCmdBindPipeline(cmd_buf, s_priv->bind_point, s_priv->pipeline);
 
-    struct texture_desc *pairs = ngli_darray_data(&s->texture_descs);
-    for (int i = 0; i < ngli_darray_count(&s->texture_descs); i++) {
-        struct pipeline_texture *texture = &pairs[i].texture;
-        if (!texture->texture)
+    struct texture **textures= ngli_darray_data(&s->textures);
+    for (int i = 0; i < ngli_darray_count(&s->textures); i++) {
+        struct texture *texture = textures[i];
+        if (!texture)
             continue;
-        ngli_texture_vk_transition_layout(texture->texture, VK_IMAGE_LAYOUT_GENERAL);
+        ngli_texture_vk_transition_layout(texture, VK_IMAGE_LAYOUT_GENERAL); //TODO: use SHADER_READ_ONLY_OPTIMAL
     }
 
     if (s_priv->desc_sets)
@@ -910,7 +969,7 @@ void ngli_pipeline_vk_draw_indexed(struct pipeline *s, struct buffer *indices, i
 
     vkCmdSetScissor(cmd_buf, 0, 1, &scissor);
 
-    const int nb_vertex_buffers = ngli_darray_count(&s_priv->vertex_buffers);
+    const int nb_vertex_buffers = ngli_darray_count(&s_priv->vertex_buffers); //TODO: vertex_buffers is null
     VkBuffer *vertex_buffers = ngli_darray_data(&s_priv->vertex_buffers);
     VkDeviceSize *vertex_offsets = ngli_darray_data(&s_priv->vertex_offsets);
     vkCmdBindVertexBuffers(cmd_buf, 0, nb_vertex_buffers, vertex_buffers, vertex_offsets);
@@ -935,12 +994,12 @@ void ngli_pipeline_vk_dispatch(struct pipeline *s, int nb_group_x, int nb_group_
 
     vkCmdBindPipeline(cmd_buf, s_priv->bind_point, s_priv->pipeline);
 
-    struct texture_desc *pairs = ngli_darray_data(&s->texture_descs);
-    for (int i = 0; i < ngli_darray_count(&s->texture_descs); i++) {
-        struct pipeline_texture *texture = &pairs[i].texture;
-        if (!texture->texture)
+    struct texture **textures = ngli_darray_data(&s->textures);
+    for (int i = 0; i < ngli_darray_count(&s->textures); i++) {
+        struct texture *texture = textures[i];
+        if (!texture)
             continue;
-        ngli_texture_vk_transition_layout(texture->texture, VK_IMAGE_LAYOUT_GENERAL);
+        ngli_texture_vk_transition_layout(texture, VK_IMAGE_LAYOUT_GENERAL);
     }
 
     if (s_priv->desc_sets)
@@ -961,6 +1020,11 @@ void ngli_pipeline_vk_freep(struct pipeline **sp)
     ngli_darray_reset(&s->texture_descs);
     ngli_darray_reset(&s->buffer_descs);
     ngli_darray_reset(&s->attribute_descs);
+
+    ngli_darray_reset(&s->uniforms);
+    ngli_darray_reset(&s->textures);
+    ngli_darray_reset(&s->buffers);
+    ngli_darray_reset(&s->attributes);
 
     struct gctx *gctx = s->gctx;
     struct gctx_vk *gctx_vk = (struct gctx_vk *)gctx;

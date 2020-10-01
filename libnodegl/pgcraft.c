@@ -1188,15 +1188,15 @@ struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx)
     ngli_darray_init(&s->filtered_pipeline_desc.buffers,    sizeof(struct pipeline_buffer_desc),    0);
     ngli_darray_init(&s->filtered_pipeline_desc.attributes, sizeof(struct pipeline_attribute_desc), 0);
 
-    ngli_darray_init(&s->pipeline_data.uniforms,   sizeof(void*),   0);
-    ngli_darray_init(&s->pipeline_data.textures,   sizeof(struct texture*),   0);
-    ngli_darray_init(&s->pipeline_data.buffers,    sizeof(struct buffer*),    0);
-    ngli_darray_init(&s->pipeline_data.attributes, sizeof(struct buffer*), 0);
+    ngli_darray_init(&s->pipeline_data.uniforms,   sizeof(void*),           0);
+    ngli_darray_init(&s->pipeline_data.textures,   sizeof(struct texture*), 0);
+    ngli_darray_init(&s->pipeline_data.buffers,    sizeof(struct buffer*),  0);
+    ngli_darray_init(&s->pipeline_data.attributes, sizeof(struct buffer*),  0);
 
-    ngli_darray_init(&s->filtered_pipeline_data.uniforms,   sizeof(void*),   0);
-    ngli_darray_init(&s->filtered_pipeline_data.textures,   sizeof(struct texture*),   0);
-    ngli_darray_init(&s->filtered_pipeline_data.buffers,    sizeof(struct buffer*),    0);
-    ngli_darray_init(&s->filtered_pipeline_data.attributes, sizeof(struct buffer*), 0);
+    ngli_darray_init(&s->filtered_pipeline_data.uniforms,   sizeof(void*),           0);
+    ngli_darray_init(&s->filtered_pipeline_data.textures,   sizeof(struct texture*), 0);
+    ngli_darray_init(&s->filtered_pipeline_data.buffers,    sizeof(struct buffer*),  0);
+    ngli_darray_init(&s->filtered_pipeline_data.attributes, sizeof(struct buffer*),  0);
 
     return s;
 }

@@ -1014,7 +1014,7 @@ static void vk_set_rendertarget(struct gctx *s, struct rendertarget *rt)
 
     s_priv->rendertarget = rt;
     if (rt) {
-        struct rendertarget_vk *rt_vk = (struct rendertarget_vk*)rt;
+        struct rendertarget_vk *rt_vk = (struct rendertarget_vk *)rt;
         s_priv->render_pass = conservative ? rt_vk->conservative_render_pass : rt_vk->render_pass;
     } else {
         s_priv->render_pass = NULL;
@@ -1245,6 +1245,7 @@ const struct gctx_class ngli_gctx_vk = {
 
     .pipeline_create         = ngli_pipeline_vk_create,
     .pipeline_init           = ngli_pipeline_vk_init,
+    .pipeline_bind_resources = ngli_pipeline_vk_bind_resources,
     .pipeline_update_attribute = ngli_pipeline_vk_update_attribute,
     .pipeline_update_uniform = ngli_pipeline_vk_update_uniform,
     .pipeline_update_texture = ngli_pipeline_vk_update_texture,

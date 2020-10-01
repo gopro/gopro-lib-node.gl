@@ -20,6 +20,7 @@
 #
 
 SHAPE_TEST_NAMES =              \
+    precision_iovar             \
     triangle                    \
     triangle_cull_back          \
     triangle_cull_front         \

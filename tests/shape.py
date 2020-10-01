@@ -27,9 +27,34 @@ import pynodegl as ngl
 from pynodegl_utils.misc import scene
 from pynodegl_utils.toolbox.colors import COLORS
 from pynodegl_utils.toolbox.colors import get_random_color_buffer
+from pynodegl_utils.tests.cmp_cuepoints import test_cuepoints
 from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 from pynodegl_utils.toolbox.shapes import equilateral_triangle_coords
 from pynodegl_utils.toolbox.grid import autogrid_simple
+
+
+@test_cuepoints(points=dict(bl=(-1, -1), br=(1, -1), tr=(1, 1), tl=(-1, 1), c=(0, 0)), tolerance=5)
+@scene()
+def shape_precision_iovar(cfg):
+    cfg.aspect_ratio = (1, 1)
+    vert = '''
+void main()
+{
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    color = vec4((ngl_out_pos.xy + 1.0) * .5, 1.0 - (ngl_out_pos.x + 1.0) * .5 - (ngl_out_pos.y + 1.0) * .5, 1.0);
+}
+'''
+    frag = '''
+void main()
+{
+    ngl_out_color = color;
+}
+'''
+    program = ngl.Program(vertex=vert, fragment=frag)
+    program.update_vert_out_vars(color=ngl.IOVec4(precision_out='high', precision_in='low'))
+    geometry = ngl.Quad(corner=(-1, -1, 0), width=(2, 0, 0), height=(0, 2, 0))
+    scene = ngl.Render(geometry, program)
+    return scene
 
 
 def _render_shape(cfg, geometry, color):

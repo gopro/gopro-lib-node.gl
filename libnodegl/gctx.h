@@ -101,7 +101,7 @@ struct gctx_class {
     void (*swapchain_destroy)(struct gctx *gctx);
     int (*swapchain_acquire_image)(struct gctx *gctx, uint32_t *image_index);
 
-    struct texture *(*texture_create)(struct gctx* ctx);
+    struct texture *(*texture_create)(struct gctx *ctx);
     int (*texture_init)(struct texture *s, const struct texture_params *params);
     int (*texture_has_mipmap)(const struct texture *s);
     int (*texture_match_dimensions)(const struct texture *s, int width, int height, int depth);

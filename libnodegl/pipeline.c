@@ -48,6 +48,11 @@ int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *
     return s->gctx->class->pipeline_update_texture(s, index, texture);
 }
 
+int ngli_pipeline_update_buffer(struct pipeline *s, int index, struct buffer *buffer)
+{
+    return s->gctx->class->pipeline_update_buffer(s, index, buffer);
+}
+
 void ngli_pipeline_draw(struct pipeline *s, int nb_vertices, int nb_instances)
 {
     return s->gctx->class->pipeline_draw(s, nb_vertices, nb_instances);

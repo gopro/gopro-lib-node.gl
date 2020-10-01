@@ -77,6 +77,7 @@ struct gctx_class {
     int (*pipeline_update_attribute)(struct pipeline *s, int index, struct buffer *buffer);
     int (*pipeline_update_uniform)(struct pipeline *s, int index, const void *value);
     int (*pipeline_update_texture)(struct pipeline *s, int index, struct texture *texture);
+    int (*pipeline_update_buffer)(struct pipeline *s, int index, struct buffer *buffer);
     void (*pipeline_draw)(struct pipeline *s, int nb_vertices, int nb_instances);
     void (*pipeline_draw_indexed)(struct pipeline *s, struct buffer *indices, int indices_format, int nb_indices, int nb_instances);
     void (*pipeline_dispatch)(struct pipeline *s, int nb_group_x, int nb_group_y, int nb_group_z);

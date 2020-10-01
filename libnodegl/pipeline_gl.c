@@ -555,6 +555,33 @@ int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct textur
     return 0;
 }
 
+int ngli_pipeline_gl_update_buffer(struct pipeline *s, int index, struct buffer *buffer)
+{
+    if (index == -1)
+        return NGL_ERROR_NOT_FOUND;
+
+    struct buffer_desc *buffer_desc = ngli_darray_get(&s->buffer_descs, index);
+    ngli_assert(buffer_desc);
+
+    struct pipeline_buffer *pipeline_buffer = &buffer_desc->buffer;
+
+    if (buffer) {
+        struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+        struct glcontext *gl = gctx_gl->glcontext;
+        const struct limits *limits = &gl->limits;
+        if (buffer_desc->type == NGLI_TYPE_UNIFORM_BUFFER &&
+            buffer->size > limits->max_uniform_block_size) {
+            LOG(ERROR, "buffer %s size (%d) exceeds max uniform block size (%d)",
+                pipeline_buffer->name, buffer->size, limits->max_uniform_block_size);
+            return NGL_ERROR_LIMIT_EXCEEDED;
+        }
+    }
+
+    pipeline_buffer->buffer = buffer;
+
+    return 0;
+}
+
 void ngli_pipeline_gl_draw(struct pipeline *s, int nb_vertices, int nb_instances)
 {
     struct gctx *gctx = s->gctx;

@@ -490,10 +490,10 @@ int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buff
         return NGL_ERROR_NOT_FOUND;
 
     ngli_assert(s->type == NGLI_PIPELINE_TYPE_GRAPHICS);
-    ngli_assert(index >= 0 && index < ngli_darray_count(&s->attribute_descs));
 
-    struct attribute_desc *descs = ngli_darray_data(&s->attribute_descs);
-    struct attribute_desc *desc = &descs[index];
+    struct attribute_desc *desc = ngli_darray_get(&s->attribute_descs, index);
+    ngli_assert(desc);
+
     struct pipeline_attribute *attribute = &desc->attribute;
 
     if (!attribute->buffer && buffer)
@@ -524,9 +524,9 @@ int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *d
     if (index == -1)
         return NGL_ERROR_NOT_FOUND;
 
-    ngli_assert(index >= 0 && index < ngli_darray_count(&s->uniform_descs));
-    struct uniform_desc *descs = ngli_darray_data(&s->uniform_descs);
-    struct uniform_desc *desc = &descs[index];
+    struct uniform_desc *desc = ngli_darray_get(&s->uniform_descs, index);
+    ngli_assert(desc);
+
     struct pipeline_uniform *pipeline_uniform = &desc->uniform;
     if (data) {
         struct gctx *gctx = s->gctx;
@@ -546,9 +546,10 @@ int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct textur
     if (index == -1)
         return NGL_ERROR_NOT_FOUND;
 
-    ngli_assert(index >= 0 && index < ngli_darray_count(&s->texture_descs));
-    struct texture_desc *descs = ngli_darray_data(&s->texture_descs);
-    struct pipeline_texture *pipeline_texture = &descs[index].texture;
+    struct texture_desc *desc = ngli_darray_get(&s->texture_descs, index);
+    ngli_assert(desc);
+
+    struct pipeline_texture *pipeline_texture = &desc->texture;
     pipeline_texture->texture = texture;
 
     return 0;

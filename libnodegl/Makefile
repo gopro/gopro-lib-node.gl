@@ -25,7 +25,8 @@ DEBUG_GL ?= no
 LOGTRACE ?= no
 
 BACKEND_GL ?= yes
-BACKEND_VK ?= yes
+ #yes
+BACKEND_VK ?= no
 
 ifeq ($(DEBUG_GL),yes)
 	PROJECT_CFLAGS += -DDEBUG_GL

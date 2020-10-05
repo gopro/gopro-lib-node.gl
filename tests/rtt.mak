@@ -20,6 +20,7 @@
 #
 
 RTT_TEST_NAMES =                         \
+    load_attachment                      \
     feature_depth                        \
     feature_depth_stencil                \
     mipmap                               \

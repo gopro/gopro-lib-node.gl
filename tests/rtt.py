@@ -23,7 +23,9 @@
 import array
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
+from pynodegl_utils.tests.cmp_cuepoints import test_cuepoints
 from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
+from pynodegl_utils.toolbox.colors import COLORS
 
 
 def _get_cube():
@@ -171,3 +173,29 @@ _rtt_tests = dict(
 
 for name, params in _rtt_tests.items():
     globals()['rtt_' + name] = _get_rtt_function(**params)
+
+
+@test_cuepoints(width=32, height=32, points={'bottom-left': (-0.5, -0.5), 'top-right': (0.5, 0.5)}, tolerance=1)
+@scene()
+def rtt_load_attachment(cfg):
+    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
+    program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    background = ngl.Render(quad, program)
+    background.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
+
+    program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    render = ngl.Render(quad, program)
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['orange']))
+
+    texture = ngl.Texture2D(width=16, height=16)
+    rtt = ngl.RenderToTexture(render, [texture])
+
+    quad = ngl.Quad((0, 0, 0), (1, 0, 0), (0, 1, 0))
+    program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    foreground = ngl.Render(quad, program)
+    foreground.update_frag_resources(tex0=texture)
+
+    return ngl.Group(children=(background, rtt, foreground))

@@ -119,12 +119,42 @@ static int rtt_init(struct ngl_node *node)
     return 0;
 }
 
+#ifdef DEBUG_SCENE
+struct renderpass_children_info {
+    int has_rtt_or_compute;
+    int render_counts[2]; // number of render nodes before and after the first rtt or compute node (renderpass interruption)
+};
+
+static void get_renderpass_children_info(const struct ngl_node *node, struct renderpass_children_info *info)
+{
+    const struct ngl_node **children = ngli_darray_data(&node->children);
+    for (int i = 0; i < ngli_darray_count(&node->children); i++) {
+        const struct ngl_node *child = children[i];
+        if (child->class->id == NGL_NODE_RENDERTOTEXTURE ||
+            child->class->id == NGL_NODE_COMPUTE) {
+            info->has_rtt_or_compute = 1;
+        } else if (child->class->id == NGL_NODE_RENDER) {
+            info->render_counts[info->has_rtt_or_compute ? 1 : 0] += 1;
+        } else {
+            get_renderpass_children_info(child, info);
+        }
+    }
+}
+#endif
+
 static int rtt_prepare(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
     struct rnode *rnode = ctx->rnode_pos;
     struct rtt_priv *s = node->priv_data;
+
+#ifdef DEBUG_SCENE
+    struct renderpass_children_info info = {0};
+    get_renderpass_children_info(s->child, &info);
+    if (info.render_counts[0] && info.render_counts[1])
+        LOG(WARNING, "the underlying render pass might not be optimal as it contains a rtt or compute node in the middle of it");
+#endif
 
     struct rendertarget_desc desc = {0};
     for (int i = 0; i < s->nb_color_textures; i++) {

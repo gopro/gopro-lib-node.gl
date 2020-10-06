@@ -83,27 +83,10 @@ class GraphView(QtWidgets.QWidget):
         self._save_btn.clicked.connect(self._save_to_file)
         self._seek_chkbox.stateChanged.connect(self._seek_check_changed)
 
-        self._seekbar.play.connect(self._play)
-        self._seekbar.pause.connect(self._pause)
         self._seekbar.seek.connect(self._seek)
         self._seekbar.step.connect(self._step)
 
-        self._timer = QtCore.QTimer()
-        self._timer.timeout.connect(self._update)
-
         self._clock = clock.Clock(self._framerate, 0.0)
-
-    @QtCore.Slot()
-    def _play(self):
-        self._timer.start()
-        self._clock.start()
-        self._seekbar.set_play_state()
-
-    @QtCore.Slot()
-    def _pause(self):
-        self._timer.stop()
-        self._clock.stop()
-        self._seekbar.set_pause_state()
 
     @QtCore.Slot(float)
     def _seek(self, time):
@@ -113,7 +96,6 @@ class GraphView(QtWidgets.QWidget):
     @QtCore.Slot(int)
     def _step(self, step):
         self._clock.step_playback_index(step)
-        self._pause()
         self._update()
 
     @QtCore.Slot()
@@ -156,15 +138,11 @@ class GraphView(QtWidgets.QWidget):
             self._duration = cfg['duration']
             self._ctx.set_scene_from_string(cfg['scene'])
             self._clock.configure(self._framerate, self._duration)
-            self._timer.setInterval(self._framerate[1] * 1000 / self._framerate[0])  # in milliseconds
             self._update()
         else:
             self._reset_ctx()
             dot_scene = cfg['scene']
             self._update_graph(dot_scene)
-
-    def leave(self):
-        self._pause()
 
     def _reset_ctx(self):
         if not self._ctx:

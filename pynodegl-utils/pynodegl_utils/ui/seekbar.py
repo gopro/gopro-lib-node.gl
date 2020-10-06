@@ -27,8 +27,6 @@ from PySide2 import QtCore, QtGui, QtWidgets
 
 class Seekbar(QtWidgets.QWidget):
 
-    play = QtCore.Signal()
-    pause = QtCore.Signal()
     seek = QtCore.Signal(float)
     step = QtCore.Signal(int)
 
@@ -42,10 +40,6 @@ class Seekbar(QtWidgets.QWidget):
         self._time_lbl = QtWidgets.QLabel()
         self._time_lbl.setFont(QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont))
 
-        self._action_btn = QtWidgets.QToolButton()
-        self._action_btn.setText(u'▶')
-        self._action_btn.setCheckable(True)
-
         fw_btn = QtWidgets.QToolButton()
         fw_btn.setText('>')
         bw_btn = QtWidgets.QToolButton()
@@ -54,7 +48,6 @@ class Seekbar(QtWidgets.QWidget):
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(bw_btn)
-        layout.addWidget(self._action_btn)
         layout.addWidget(fw_btn)
         layout.addWidget(self._slider)
         layout.addWidget(self._time_lbl)
@@ -62,23 +55,14 @@ class Seekbar(QtWidgets.QWidget):
         self._frame_index = 0
         self._scene_duration = 0
         self._framerate = Fraction(*config.get('framerate'))
-        self._set_action('pause')
 
         self._slider.sliderMoved.connect(self._slider_moved)
         self._slider.sliderPressed.connect(self._slider_pressed)
         self._slider.sliderReleased.connect(self._slider_released)
         self._slider_dragged = False
 
-        self._action_btn.clicked.connect(self._toggle_playback)
         fw_btn.clicked.connect(self._step_fw)
         bw_btn.clicked.connect(self._step_bw)
-
-    def _set_action(self, action):
-        if action == 'play':
-            self._action_btn.setChecked(True)
-        elif action == 'pause':
-            self._action_btn.setChecked(False)
-        self._current_state = action
 
     @QtCore.Slot(int)
     def _slider_moved(self, value):  # only user move
@@ -94,13 +78,6 @@ class Seekbar(QtWidgets.QWidget):
     def _slider_released(self):
         self._slider_dragged = False
         self._refresh()
-
-    @QtCore.Slot()
-    def _toggle_playback(self):
-        if self._current_state == 'play':
-            self.pause.emit()
-        else:
-            self.play.emit()
 
     @QtCore.Slot()
     def _step_fw(self):
@@ -141,14 +118,6 @@ class Seekbar(QtWidgets.QWidget):
     def set_frame_time(self, frame_index, frame_time):
         self._frame_index = frame_index
         self._refresh()
-
-    @QtCore.Slot()
-    def set_play_state(self):
-        self._set_action('play')
-
-    @QtCore.Slot()
-    def set_pause_state(self):
-        self._set_action('pause')
 
     def _refresh(self):
         t = self._frame_index / self._framerate

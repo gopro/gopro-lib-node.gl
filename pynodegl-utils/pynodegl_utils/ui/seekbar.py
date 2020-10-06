@@ -31,20 +31,17 @@ class Seekbar(QtWidgets.QWidget):
     pause = QtCore.Signal()
     seek = QtCore.Signal(float)
     step = QtCore.Signal(int)
-    stop = QtCore.Signal()
 
     SLIDER_TIMEBASE = 1000
     SLIDER_TIMESCALE = 1. / SLIDER_TIMEBASE
 
-    def __init__(self, config, stop_button=True):
+    def __init__(self, config):
         super().__init__()
 
         self._slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self._time_lbl = QtWidgets.QLabel()
         self._time_lbl.setFont(QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont))
 
-        stop_btn = QtWidgets.QToolButton()
-        stop_btn.setText(u'■')
         self._action_btn = QtWidgets.QToolButton()
         self._action_btn.setText(u'▶')
         self._action_btn.setCheckable(True)
@@ -56,8 +53,6 @@ class Seekbar(QtWidgets.QWidget):
 
         layout = QtWidgets.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        if stop_button:
-            layout.addWidget(stop_btn)
         layout.addWidget(bw_btn)
         layout.addWidget(self._action_btn)
         layout.addWidget(fw_btn)
@@ -74,7 +69,6 @@ class Seekbar(QtWidgets.QWidget):
         self._slider.sliderReleased.connect(self._slider_released)
         self._slider_dragged = False
 
-        stop_btn.clicked.connect(self._stop)
         self._action_btn.clicked.connect(self._toggle_playback)
         fw_btn.clicked.connect(self._step_fw)
         bw_btn.clicked.connect(self._step_bw)
@@ -107,11 +101,6 @@ class Seekbar(QtWidgets.QWidget):
             self.pause.emit()
         else:
             self.play.emit()
-
-    @QtCore.Slot()
-    def _stop(self):
-        self._set_action('pause')
-        self.stop.emit()
 
     @QtCore.Slot()
     def _step_fw(self):

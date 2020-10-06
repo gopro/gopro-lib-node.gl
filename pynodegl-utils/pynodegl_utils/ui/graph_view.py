@@ -67,7 +67,7 @@ class GraphView(QtWidgets.QWidget):
         self._view.setScene(self._scene)
 
         self._seek_chkbox = QtWidgets.QCheckBox('Show graph at a given time')
-        self._seekbar = Seekbar(config, stop_button=False)
+        self._seekbar = Seekbar(config)
         self._seekbar.setEnabled(False)
 
         hbox = QtWidgets.QHBoxLayout()

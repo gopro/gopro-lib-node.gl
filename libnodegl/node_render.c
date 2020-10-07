@@ -68,6 +68,7 @@ struct render_priv {
                                           NGL_NODE_STREAMEDBUFFERVEC2,  \
                                           NGL_NODE_STREAMEDBUFFERVEC3,  \
                                           NGL_NODE_STREAMEDBUFFERVEC4,  \
+                                          NGL_NODE_UNIFORMBOOL,     \
                                           NGL_NODE_UNIFORMFLOAT,    \
                                           NGL_NODE_UNIFORMVEC2,     \
                                           NGL_NODE_UNIFORMVEC3,     \

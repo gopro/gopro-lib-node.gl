@@ -38,6 +38,10 @@ ifeq ($(DEBUG_MEM),yes)
 	PROJECT_CFLAGS += -DDEBUG_MEM
 endif
 
+ifeq ($(DEBUG_SCENE),yes)
+	PROJECT_CFLAGS += -DDEBUG_SCENE
+endif
+
 LD_SYM_FILE   = $(LIB_BASENAME).symexport
 LD_SYM_OPTION = --version-script
 LD_SYM_DATA   = "{\n\tglobal: ngl_*;\n\tlocal: *;\n};\n"

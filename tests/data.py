@@ -54,6 +54,7 @@ def _get_data_spec(layout, i_count=6, f_count=7, v2_count=5, v3_count=9, v4_coun
     one_v3     = gen_floats(3)
     one_v4     = gen_floats(4)
     one_i      = gen_ints(1)[0]
+    one_b      = True
     one_iv2    = gen_ints(2)
     one_iv3    = gen_ints(3)
     one_iv4    = gen_ints(4)
@@ -76,6 +77,7 @@ def _get_data_spec(layout, i_count=6, f_count=7, v2_count=5, v3_count=9, v4_coun
 
     spec = []
 
+    spec += [dict(name=f'b_{i}',    type='bool',      category='single', data=one_b)    for i in range(i_count)]
     spec += [dict(name=f'f_{i}',    type='float',     category='single', data=one_f)    for i in range(f_count)]
     spec += [dict(name=f'v2_{i}',   type='vec2',      category='single', data=one_v2)   for i in range(v2_count)]
     spec += [dict(name=f'v3_{i}',   type='vec3',      category='single', data=one_v3)   for i in range(v3_count)]

@@ -20,6 +20,7 @@
 #
 
 LIVE_TEST_BASE_NAMES =     \
+    single_bool            \
     single_float           \
     single_int             \
     single_mat4            \

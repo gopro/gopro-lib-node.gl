@@ -38,6 +38,7 @@ from pynodegl_utils.tests.data import (
 
 
 def _get_live_spec(layout):
+    livechange_b      = [[True], [False]]
     livechange_f      = [[v] for v in gen_floats(4)[1:3]]
     livechange_v2     = gen_floats(2), gen_floats(2)[::-1]
     livechange_v3     = gen_floats(3), gen_floats(3)[::-1]
@@ -47,6 +48,7 @@ def _get_live_spec(layout):
     livechange_quat   = livechange_v4
 
     spec = [
+        dict(name='b',  type='bool',      category='single', livechange=livechange_b),
         dict(name='f',  type='float',     category='single', livechange=livechange_f),
         dict(name='v2', type='vec2',      category='single', livechange=livechange_v2),
         dict(name='v3', type='vec3',      category='single', livechange=livechange_v3),

@@ -73,7 +73,7 @@ vec3 get_color_%(field_name)s(float w, float h, float x, float y)
 }
 '''
 
-_COMMON_INT_TPL = 'amount += float(%(fields_prefix)s%(field_name)s%(vec_field)s) / 255. * in_rect(rect_%(comp_id)d, var_uvcoord);'
+_COMMON_INT_TPL = 'amount += float(%(fields_prefix)s%(field_name)s%(vec_field)s) * %(scale)f * in_rect(rect_%(comp_id)d, var_uvcoord);'
 _COMMON_FLT_TPL = 'amount += %(fields_prefix)s%(field_name)s%(vec_field)s * in_rect(rect_%(comp_id)d, var_uvcoord);'
 
 _RECT_ARRAY_TPL = 'vec4 rect_%(comp_id)d = vec4(x + %(row)f * w / (%(nb_rows)f * float(len)) + float(i) * w / float(len), y + %(col)f * h / %(nb_cols)f, w / %(nb_rows)f / float(len), h / %(nb_cols)f);'
@@ -82,33 +82,34 @@ _RECT_SINGLE_TPL = 'vec4 rect_%(comp_id)d = vec4(x + %(col)f * w / %(nb_cols)f, 
 ANIM_DURATION = 5.0
 LAYOUTS = ('std140', 'std430', 'uniform')
 
-# row, col, is_int
+# row, col, scale
 _TYPE_SPEC = dict(
-    float=    (1, 1, False),
-    vec2=     (1, 2, False),
-    vec3=     (1, 3, False),
-    vec4=     (1, 4, False),
-    mat4=     (4, 4, False),
-    int=      (1, 1, True),
-    ivec2=    (1, 2, True),
-    ivec3=    (1, 3, True),
-    ivec4=    (1, 4, True),
-    uint=     (1, 1, True),
-    uvec2=    (1, 2, True),
-    uvec3=    (1, 3, True),
-    uvec4=    (1, 4, True),
-    quat_mat4=(4, 4, False),
-    quat_vec4=(1, 4, False),
+    bool=     (1, 1, 1.0),
+    float=    (1, 1, None),
+    vec2=     (1, 2, None),
+    vec3=     (1, 3, None),
+    vec4=     (1, 4, None),
+    mat4=     (4, 4, None),
+    int=      (1, 1, 1. / 255.),
+    ivec2=    (1, 2, 1. / 255.),
+    ivec3=    (1, 3, 1. / 255.),
+    ivec4=    (1, 4, 1. / 255.),
+    uint=     (1, 1, 1. / 255.),
+    uvec2=    (1, 2, 1. / 255.),
+    uvec3=    (1, 3, 1. / 255.),
+    uvec4=    (1, 4, 1. / 255.),
+    quat_mat4=(4, 4, None),
+    quat_vec4=(1, 4, None),
 )
 
 
 def _get_display_glsl_func(layout, field_name, field_type, is_array=False):
-    rows, cols, is_int = _TYPE_SPEC[field_type]
+    rows, cols, scale = _TYPE_SPEC[field_type]
     nb_comp = rows * cols
 
     tpl = _ARRAY_TPL if is_array else _SINGLE_TPL
     rect_tpl = _RECT_ARRAY_TPL if is_array else _RECT_SINGLE_TPL
-    amount_tpl = _COMMON_INT_TPL if is_int else _COMMON_FLT_TPL
+    amount_tpl = _COMMON_INT_TPL if scale is not None else _COMMON_FLT_TPL
 
     tpl_data = dict(
         colors_prefix='color_' if layout == 'uniform' else 'colors.',
@@ -137,6 +138,9 @@ def _get_display_glsl_func(layout, field_name, field_type, is_array=False):
 
             if is_array:
                 tpl_data['vec_field'] = '[i]' + tpl_data['vec_field']
+
+            if scale:
+                tpl_data['scale'] = scale
 
             tpl_data['comp_id'] = comp_id
             rect_lines.append(rect_tpl % tpl_data)
@@ -289,6 +293,7 @@ FUNCS = dict(
     array_vec2=           lambda data: ngl.BufferVec2(data=data),
     array_vec3=           lambda data: ngl.BufferVec3(data=data),
     array_vec4=           lambda data: ngl.BufferVec4(data=data),
+    single_bool=          lambda data: ngl.UniformBool(data),
     single_float=         lambda data: ngl.UniformFloat(data),
     single_int=           lambda data: ngl.UniformInt(data),
     single_ivec2=         lambda data: ngl.UniformIVec2(data),

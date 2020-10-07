@@ -20,6 +20,7 @@
 #
 
 DATA_TEST_UNIFORM_NAMES =           \
+    single_bool                     \
     single_float                    \
     single_int                      \
     single_ivec2                    \

@@ -98,39 +98,49 @@ static const char *image_glsl_format_map[NGLI_FORMAT_NB] = {
     [NGLI_FORMAT_S8_UINT]              = NULL,
 };
 
+enum {
+    TYPE_FLAG_IS_SAMPLER_OR_IMAGE = 1 << 0,
+    TYPE_FLAG_HAS_PRECISION       = 1 << 1,
+};
+
 static const struct {
-    int is_sampler_or_image;
+    int flags;
     const char *glsl_type;
 } type_info_map[NGLI_TYPE_NB] = {
-    [NGLI_TYPE_INT]                         = {0, "int"},
-    [NGLI_TYPE_IVEC2]                       = {0, "ivec2"},
-    [NGLI_TYPE_IVEC3]                       = {0, "ivec3"},
-    [NGLI_TYPE_IVEC4]                       = {0, "ivec4"},
-    [NGLI_TYPE_UINT]                        = {0, "uint"},
-    [NGLI_TYPE_UIVEC2]                      = {0, "uvec2"},
-    [NGLI_TYPE_UIVEC3]                      = {0, "uvec3"},
-    [NGLI_TYPE_UIVEC4]                      = {0, "uvec4"},
-    [NGLI_TYPE_FLOAT]                       = {0, "float"},
-    [NGLI_TYPE_VEC2]                        = {0, "vec2"},
-    [NGLI_TYPE_VEC3]                        = {0, "vec3"},
-    [NGLI_TYPE_VEC4]                        = {0, "vec4"},
-    [NGLI_TYPE_MAT3]                        = {0, "mat3"},
-    [NGLI_TYPE_MAT4]                        = {0, "mat4"},
+    [NGLI_TYPE_INT]                         = {TYPE_FLAG_HAS_PRECISION, "int"},
+    [NGLI_TYPE_IVEC2]                       = {TYPE_FLAG_HAS_PRECISION, "ivec2"},
+    [NGLI_TYPE_IVEC3]                       = {TYPE_FLAG_HAS_PRECISION, "ivec3"},
+    [NGLI_TYPE_IVEC4]                       = {TYPE_FLAG_HAS_PRECISION, "ivec4"},
+    [NGLI_TYPE_UINT]                        = {TYPE_FLAG_HAS_PRECISION, "uint"},
+    [NGLI_TYPE_UIVEC2]                      = {TYPE_FLAG_HAS_PRECISION, "uvec2"},
+    [NGLI_TYPE_UIVEC3]                      = {TYPE_FLAG_HAS_PRECISION, "uvec3"},
+    [NGLI_TYPE_UIVEC4]                      = {TYPE_FLAG_HAS_PRECISION, "uvec4"},
+    [NGLI_TYPE_FLOAT]                       = {TYPE_FLAG_HAS_PRECISION, "float"},
+    [NGLI_TYPE_VEC2]                        = {TYPE_FLAG_HAS_PRECISION, "vec2"},
+    [NGLI_TYPE_VEC3]                        = {TYPE_FLAG_HAS_PRECISION, "vec3"},
+    [NGLI_TYPE_VEC4]                        = {TYPE_FLAG_HAS_PRECISION, "vec4"},
+    [NGLI_TYPE_MAT3]                        = {TYPE_FLAG_HAS_PRECISION, "mat3"},
+    [NGLI_TYPE_MAT4]                        = {TYPE_FLAG_HAS_PRECISION, "mat4"},
     [NGLI_TYPE_BOOL]                        = {0, "bool"},
-    [NGLI_TYPE_SAMPLER_2D]                  = {1, "sampler2D"},
-    [NGLI_TYPE_SAMPLER_2D_RECT]             = {1, "sampler2DRect"},
-    [NGLI_TYPE_SAMPLER_3D]                  = {1, "sampler3D"},
-    [NGLI_TYPE_SAMPLER_CUBE]                = {1, "samplerCube"},
-    [NGLI_TYPE_SAMPLER_EXTERNAL_OES]        = {1, "samplerExternalOES"},
-    [NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT] = {1, "__samplerExternal2DY2YEXT"},
-    [NGLI_TYPE_IMAGE_2D]                    = {1, "image2D"},
+    [NGLI_TYPE_SAMPLER_2D]                  = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "sampler2D"},
+    [NGLI_TYPE_SAMPLER_2D_RECT]             = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "sampler2DRect"},
+    [NGLI_TYPE_SAMPLER_3D]                  = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "sampler3D"},
+    [NGLI_TYPE_SAMPLER_CUBE]                = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "samplerCube"},
+    [NGLI_TYPE_SAMPLER_EXTERNAL_OES]        = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "samplerExternalOES"},
+    [NGLI_TYPE_SAMPLER_EXTERNAL_2D_Y2Y_EXT] = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "__samplerExternal2DY2YEXT"},
+    [NGLI_TYPE_IMAGE_2D]                    = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_SAMPLER_OR_IMAGE, "image2D"},
     [NGLI_TYPE_UNIFORM_BUFFER]              = {0, "uniform"},
     [NGLI_TYPE_STORAGE_BUFFER]              = {0, "buffer"},
 };
 
 static int is_sampler_or_image(int type)
 {
-    return type_info_map[type].is_sampler_or_image;
+    return type_info_map[type].flags & TYPE_FLAG_IS_SAMPLER_OR_IMAGE;
+}
+
+static int type_has_precision(int type)
+{
+    return type_info_map[type].flags & TYPE_FLAG_HAS_PRECISION;
 }
 
 static const char *get_glsl_type(int type)
@@ -140,9 +150,9 @@ static const char *get_glsl_type(int type)
     return ret;
 }
 
-static const char *get_precision_qualifier(const struct pgcraft *s, int precision, const char *defaultp)
+static const char *get_precision_qualifier(const struct pgcraft *s, int type, int precision, const char *defaultp)
 {
-    if (!s->has_precision_qualifiers)
+    if (!s->has_precision_qualifiers || !type_has_precision(type))
         return "";
     static const char *precision_qualifiers[NGLI_PRECISION_NB] = {
         [NGLI_PRECISION_AUTO]   = NULL,
@@ -168,7 +178,7 @@ static int inject_uniform(struct pgcraft *s, struct bstr *b,
     snprintf(pl_uniform.name, sizeof(pl_uniform.name), "%s", uniform->name);
 
     const char *type = get_glsl_type(uniform->type);
-    const char *precision = get_precision_qualifier(s, uniform->precision, "highp");
+    const char *precision = get_precision_qualifier(s, uniform->type, uniform->precision, "highp");
     if (uniform->count)
         ngli_bstr_printf(b, "uniform %s %s %s[%d];\n", precision, type, uniform->name, uniform->count);
     else
@@ -327,7 +337,7 @@ static int inject_texture_info(struct pgcraft *s, struct pgcraft_texture_info *i
             }
 
             const char *type = get_glsl_type(field->type);
-            const char *precision = get_precision_qualifier(s, info->precision, "lowp");
+            const char *precision = get_precision_qualifier(s, field->type, info->precision, "lowp");
             ngli_bstr_printf(b, "uniform %s %s %s;\n", precision, type, field->name);
 
             if (!ngli_darray_push(&s->pipeline_textures, &pl_texture))
@@ -424,7 +434,7 @@ static int inject_attribute(struct pgcraft *s, struct bstr *b,
     int base_location = -1;
     const int attribute_count = attribute->type == NGLI_TYPE_MAT4 ? 4 : 1;
     const char *qualifier = s->has_in_out_qualifiers ? "in" : "attribute";
-    const char *precision = get_precision_qualifier(s, attribute->precision, "highp");
+    const char *precision = get_precision_qualifier(s, attribute->type, attribute->precision, "highp");
     ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, attribute->name);
 
     const int attribute_offset = ngli_format_get_bytes_per_pixel(attribute->format);
@@ -699,8 +709,8 @@ static int inject_iovars(struct pgcraft *s, struct bstr *b, int stage)
             ngli_bstr_printf(b, "layout(location=%d) ", i);
         const struct pgcraft_iovar *iovar = &iovars[i];
         const char *precision = stage == NGLI_PROGRAM_SHADER_VERT
-                              ? get_precision_qualifier(s, iovar->precision_out, "highp")
-                              : get_precision_qualifier(s, iovar->precision_in, "highp");
+                              ? get_precision_qualifier(s, iovar->type, iovar->precision_out, "highp")
+                              : get_precision_qualifier(s, iovar->type, iovar->precision_in, "highp");
         const char *type = get_glsl_type(iovar->type);
         ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, iovar->name);
     }

@@ -694,6 +694,17 @@ int ngli_pass_exec(struct pass *s)
     }
 
     if (s->pipeline_type == NGLI_PIPELINE_TYPE_GRAPHICS) {
+        if (ctx->bind_current_rendertarget) {
+            struct gctx *gctx = ctx->gctx;
+            ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
+            if (ctx->clear_current_rendertarget) {
+                ngli_gctx_clear_color(gctx);
+                ngli_gctx_clear_depth_stencil(gctx);
+            }
+            ctx->bind_current_rendertarget = 0;
+            ctx->clear_current_rendertarget = 0;
+        }
+
         if (s->indices_buffer)
             ngli_pipeline_draw_indexed(pipeline, s->indices_buffer, s->indices_format, s->nb_indices, s->nb_instances);
         else

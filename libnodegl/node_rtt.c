@@ -349,10 +349,6 @@ static void rtt_draw(struct ngl_node *node)
     struct gctx *gctx = ctx->gctx;
     struct rtt_priv *s = node->priv_data;
 
-    struct rendertarget *rt = s->rt;
-    struct rendertarget *prev_rt = ngli_gctx_get_rendertarget(gctx);
-    ngli_gctx_set_rendertarget(gctx, rt);
-
     int prev_vp[4] = {0};
     ngli_gctx_get_viewport(gctx, prev_vp);
 
@@ -365,20 +361,35 @@ static void rtt_draw(struct ngl_node *node)
         ngli_gctx_set_clear_color(gctx, s->clear_color);
     }
 
-    if (!(s->features & FEATURE_NO_CLEAR)) {
-        ngli_gctx_clear_color(gctx);
-        ngli_gctx_clear_depth_stencil(gctx);
-    }
+    struct rendertarget *prev_rendertarget = ctx->current_rendertarget;
+    int prev_clear = ctx->clear_current_rendertarget;
+
+    ctx->current_rendertarget = s->rt;
+    ctx->bind_current_rendertarget = 1;
+    ctx->clear_current_rendertarget = !(s->features & FEATURE_NO_CLEAR);
 
     ngli_node_draw(s->child);
 
+    if (ctx->bind_current_rendertarget) {
+        ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
+        if (ctx->clear_current_rendertarget) {
+            ngli_gctx_clear_color(gctx);
+            ngli_gctx_clear_depth_stencil(gctx);
+        }
+        ctx->bind_current_rendertarget = 0;
+        ctx->clear_current_rendertarget = 0;
+    }
+
     if (s->samples > 0)
-        ngli_rendertarget_resolve(rt);
+        ngli_rendertarget_resolve(ctx->current_rendertarget);
 
     if (s->invalidate_depth_stencil)
         ngli_gctx_invalidate_depth_stencil(gctx);
 
-    ngli_gctx_set_rendertarget(gctx, prev_rt);
+    ctx->current_rendertarget = prev_rendertarget;
+    ctx->bind_current_rendertarget = 1;
+    ctx->clear_current_rendertarget = prev_clear;
+
     ngli_gctx_set_viewport(gctx, prev_vp);
 
     if (s->use_clear_color)

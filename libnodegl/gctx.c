@@ -74,6 +74,10 @@ int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t)
         goto end;
 
     if (scene) {
+        struct ngl_ctx *ctx = scene->ctx;
+        ctx->current_rendertarget = ngli_gctx_get_rendertarget(s);
+        ctx->bind_current_rendertarget = 0;
+        ctx->clear_current_rendertarget = 0;
         LOG(DEBUG, "draw scene %s @ t=%f", scene->label, t);
         ngli_node_draw(scene);
     }

@@ -68,6 +68,7 @@ static const struct param_choices layout_choices = {
                                        NGL_NODE_BUFFERUIVEC3,           \
                                        NGL_NODE_BUFFERUIVEC4,           \
                                        NGL_NODE_BUFFERMAT4,             \
+                                       NGL_NODE_UNIFORMBOOL,            \
                                        NGL_NODE_UNIFORMFLOAT,           \
                                        NGL_NODE_UNIFORMVEC2,            \
                                        NGL_NODE_UNIFORMVEC3,            \

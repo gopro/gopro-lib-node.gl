@@ -35,6 +35,7 @@ void ngli_block_init(struct block *s, enum block_layout layout)
 
 static const int strides_map[NGLI_BLOCK_NB_LAYOUTS][NGLI_TYPE_NB] = {
     [NGLI_BLOCK_LAYOUT_STD140] = {
+        [NGLI_TYPE_BOOL]   = sizeof(int)   * 4,
         [NGLI_TYPE_INT]    = sizeof(int)   * 4,
         [NGLI_TYPE_IVEC2]  = sizeof(int)   * 4,
         [NGLI_TYPE_IVEC3]  = sizeof(int)   * 4,
@@ -50,6 +51,7 @@ static const int strides_map[NGLI_BLOCK_NB_LAYOUTS][NGLI_TYPE_NB] = {
         [NGLI_TYPE_MAT4]   = sizeof(float) * 4 * 4,
     },
     [NGLI_BLOCK_LAYOUT_STD430] = {
+        [NGLI_TYPE_BOOL]   = sizeof(int)   * 1,
         [NGLI_TYPE_INT]    = sizeof(int)   * 1,
         [NGLI_TYPE_IVEC2]  = sizeof(int)   * 2,
         [NGLI_TYPE_IVEC3]  = sizeof(int)   * 4,
@@ -67,6 +69,7 @@ static const int strides_map[NGLI_BLOCK_NB_LAYOUTS][NGLI_TYPE_NB] = {
 };
 
 static const int sizes_map[NGLI_TYPE_NB] = {
+    [NGLI_TYPE_BOOL]   = sizeof(int)   * 1,
     [NGLI_TYPE_INT]    = sizeof(int)   * 1,
     [NGLI_TYPE_IVEC2]  = sizeof(int)   * 2,
     [NGLI_TYPE_IVEC3]  = sizeof(int)   * 3,
@@ -83,6 +86,7 @@ static const int sizes_map[NGLI_TYPE_NB] = {
 };
 
 static const int aligns_map[NGLI_TYPE_NB] = {
+    [NGLI_TYPE_BOOL]   = sizeof(int)   * 1,
     [NGLI_TYPE_INT]    = sizeof(int)   * 1,
     [NGLI_TYPE_IVEC2]  = sizeof(int)   * 2,
     [NGLI_TYPE_IVEC3]  = sizeof(int)   * 4,

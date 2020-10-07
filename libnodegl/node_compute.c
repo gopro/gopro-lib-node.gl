@@ -53,6 +53,7 @@ struct compute_priv {
                                           NGL_NODE_UNIFORMVEC3,     \
                                           NGL_NODE_UNIFORMVEC4,     \
                                           NGL_NODE_UNIFORMQUAT,     \
+                                          NGL_NODE_UNIFORMBOOL,     \
                                           NGL_NODE_UNIFORMINT,      \
                                           NGL_NODE_UNIFORMIVEC2,    \
                                           NGL_NODE_UNIFORMIVEC3,    \

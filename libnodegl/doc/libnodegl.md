@@ -1034,6 +1034,16 @@ Parameter | Live-chg. | Type | Description | Default
 **Source**: [node_streamedbuffer.c](/libnodegl/node_streamedbuffer.c)
 
 
+## UniformBool
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`value` | ✓ | [`bool`](#parameter-types) | value exposed to the shader | `0`
+
+
+**Source**: [node_uniform.c](/libnodegl/node_uniform.c)
+
+
 ## UniformInt
 
 Parameter | Live-chg. | Type | Description | Default

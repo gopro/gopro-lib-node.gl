@@ -585,6 +585,9 @@
     - [timebase, rational]
     - [time_anim, Node]
 
+- UniformBool:
+    - [value, bool]
+
 - UniformInt:
     - [value, int]
 

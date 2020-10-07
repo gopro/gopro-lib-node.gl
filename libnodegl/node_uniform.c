@@ -93,6 +93,7 @@ static const struct node_param uniform##type##_params[] = {             \
     {NULL}                                                              \
 }
 
+DECLARE_PARAMS(bool,   PARAM_TYPE_BOOL,   opt.ivec, uniformivec_update_func);
 DECLARE_PARAMS(float,  PARAM_TYPE_DBL,    opt.dbl,  uniformfloat_update_func);
 DECLARE_PARAMS(vec2,   PARAM_TYPE_VEC2,   opt.vec,  uniformvec_update_func);
 DECLARE_PARAMS(vec3,   PARAM_TYPE_VEC3,   opt.vec,  uniformvec_update_func);
@@ -133,6 +134,7 @@ static int uniform_update(struct ngl_node *node, double t)
     return 0;
 }
 
+#define uniformbool_update   uniform_update
 #define uniformfloat_update  uniform_update
 #define uniformvec2_update   uniform_update
 #define uniformvec3_update   uniform_update
@@ -185,6 +187,7 @@ static int uniform##type##_init(struct ngl_node *node)      \
     return 0;                                               \
 }
 
+DECLARE_INIT_FUNC(bool,   NGLI_TYPE_BOOL,   1, s->ivector, s->opt.ivec)
 DECLARE_INIT_FUNC(int,    NGLI_TYPE_INT,    1, s->ivector, s->opt.ivec)
 DECLARE_INIT_FUNC(ivec2,  NGLI_TYPE_IVEC2,  2, s->ivector, s->opt.ivec)
 DECLARE_INIT_FUNC(ivec3,  NGLI_TYPE_IVEC3,  3, s->ivector, s->opt.ivec)
@@ -253,6 +256,7 @@ const struct node_class ngli_uniform##type##_class = {          \
     .file      = __FILE__,                                      \
 };
 
+DEFINE_UNIFORM_CLASS(NGL_NODE_UNIFORMBOOL,   "UniformBool",   bool)
 DEFINE_UNIFORM_CLASS(NGL_NODE_UNIFORMFLOAT,  "UniformFloat",  float)
 DEFINE_UNIFORM_CLASS(NGL_NODE_UNIFORMVEC2,   "UniformVec2",   vec2)
 DEFINE_UNIFORM_CLASS(NGL_NODE_UNIFORMVEC3,   "UniformVec3",   vec3)

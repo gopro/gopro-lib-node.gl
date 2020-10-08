@@ -20,9 +20,12 @@
  */
 
 #include <stddef.h>
+
+#include "darray.h"
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "pgcraft.h"
 
 #define IO_NODES (const int[]){NGL_NODE_IOINT,        \
                                NGL_NODE_IOIVEC2,      \
@@ -67,13 +70,37 @@ static int program_init(struct ngl_node *node)
         return NGL_ERROR_INVALID_USAGE;
     }
 
+    ngli_darray_init(&s->vert_out_vars_array, sizeof(struct pgcraft_iovar), 0);
+    if (s->vert_out_vars) {
+        const struct hmap_entry *e = NULL;
+        while ((e = ngli_hmap_next(s->vert_out_vars, e))) {
+            const struct ngl_node *iovar_node = e->data;
+            const struct io_priv *iovar_priv = iovar_node->priv_data;
+            struct pgcraft_iovar iovar = {
+                .type = iovar_priv->type,
+                .precision_in = iovar_priv->precision_in,
+                .precision_out = iovar_priv->precision_out,
+            };
+            snprintf(iovar.name, sizeof(iovar.name), "%s", e->key);
+            if (!ngli_darray_push(&s->vert_out_vars_array, &iovar))
+                return NGL_ERROR_MEMORY;
+        }
+    }
+
     return 0;
+}
+
+static void program_uninit(struct ngl_node *node)
+{
+    struct program_priv *s = node->priv_data;
+    ngli_darray_reset(&s->vert_out_vars_array);
 }
 
 const struct node_class ngli_program_class = {
     .id        = NGL_NODE_PROGRAM,
     .name      = "Program",
     .init      = program_init,
+    .uninit    = program_uninit,
     .priv_size = sizeof(struct program_priv),
     .params    = program_params,
     .file      = __FILE__,

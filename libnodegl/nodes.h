@@ -276,6 +276,8 @@ struct program_priv {
     struct hmap *properties;
     struct hmap *vert_out_vars;
     int nb_frag_output;
+
+    struct darray vert_out_vars_array; // pgcraft_iovar
 };
 
 extern const struct param_choices ngli_mipmap_filter_choices;

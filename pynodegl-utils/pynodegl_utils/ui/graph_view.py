@@ -27,7 +27,6 @@ from PySide2 import QtCore, QtGui, QtWidgets, QtSvg
 
 from .seekbar import Seekbar
 
-from pynodegl_utils import clock
 from pynodegl_utils import misc
 
 import pynodegl as ngl
@@ -47,6 +46,34 @@ class _SVGGraphView(QtWidgets.QGraphicsView):
         factor = 1.25 ** self._zoom_level
         m.scale(factor, factor)
         self.setTransform(m)
+
+
+class _Clock:
+
+    TIMEBASE = 1000000000  # nanoseconds
+
+    def __init__(self, framerate, duration):
+        self._playback_index = 0
+        self.configure(framerate, duration)
+
+    def configure(self, framerate, duration):
+        self._framerate = framerate
+        self._duration = duration * self.TIMEBASE
+
+    def get_playback_time_info(self):
+        playback_time = self._playback_index * self._framerate[1] / float(self._framerate[0])
+        return (self._playback_index, playback_time)
+
+    def set_playback_time(self, time):
+        self._playback_index = int(round(
+            time * self._framerate[0] / self._framerate[1]
+        ))
+
+    def step_playback_index(self, step):
+        max_duration_index = int(round(
+            self._duration * self._framerate[0] / float(self._framerate[1] * self.TIMEBASE)
+        ))
+        self._playback_index = min(max(self._playback_index + step, 0), max_duration_index)
 
 
 class GraphView(QtWidgets.QWidget):
@@ -86,7 +113,7 @@ class GraphView(QtWidgets.QWidget):
         self._seekbar.seek.connect(self._seek)
         self._seekbar.step.connect(self._step)
 
-        self._clock = clock.Clock(self._framerate, 0.0)
+        self._clock = _Clock(self._framerate, 0.0)
 
     @QtCore.Slot(float)
     def _seek(self, time):

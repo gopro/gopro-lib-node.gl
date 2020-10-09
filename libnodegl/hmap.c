@@ -191,8 +191,8 @@ int ngli_hmap_set(struct hmap *hm, const char *key, void *data)
     return 0;
 }
 
-static const struct hmap_entry *get_first_entry(const struct hmap *hm,
-                                                int bucket_start)
+static struct hmap_entry *get_first_entry(const struct hmap *hm,
+                                          int bucket_start)
 {
     for (int i = bucket_start; i < hm->size; i++) {
         const struct bucket *b = &hm->buckets[i];
@@ -202,8 +202,8 @@ static const struct hmap_entry *get_first_entry(const struct hmap *hm,
     return NULL;
 }
 
-const struct hmap_entry *ngli_hmap_next(const struct hmap *hm,
-                                        const struct hmap_entry *prev)
+struct hmap_entry *ngli_hmap_next(const struct hmap *hm,
+                                  const struct hmap_entry *prev)
 {
     if (!hm->count)
         return NULL;

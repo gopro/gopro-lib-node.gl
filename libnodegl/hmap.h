@@ -41,8 +41,7 @@ void ngli_hmap_set_free(struct hmap *hm, user_free_func_type user_free_func, voi
 int ngli_hmap_count(const struct hmap *hm);
 int ngli_hmap_set(struct hmap *hm, const char *key, void *data);
 void *ngli_hmap_get(const struct hmap *hm, const char *key);
-const struct hmap_entry *ngli_hmap_next(const struct hmap *hm,
-                                        const struct hmap_entry *prev);
+struct hmap_entry *ngli_hmap_next(const struct hmap *hm, const struct hmap_entry *prev);
 void ngli_hmap_freep(struct hmap **hmp);
 
 #endif

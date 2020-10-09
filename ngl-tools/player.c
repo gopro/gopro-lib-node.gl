@@ -348,16 +348,18 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     struct ngl_node *v_duration = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *v_opacity  = ngl_node_create(NGL_NODE_UNIFORMFLOAT);
     struct ngl_node *coord      = ngl_node_create(NGL_NODE_IOVEC2);
-    struct ngl_node *group      = ngl_node_create(NGL_NODE_GROUP);
+    struct ngl_node *ui_group   = ngl_node_create(NGL_NODE_GROUP);
     struct ngl_node *gcfg       = ngl_node_create(NGL_NODE_GRAPHICCONFIG);
+    struct ngl_node *group      = ngl_node_create(NGL_NODE_GROUP);
 
     if (!text || !quad || !program || !render || !time || !v_duration || !v_opacity ||
         !coord || !group || !gcfg) {
-        ngl_node_unrefp(&gcfg);
+        ngl_node_unrefp(&group);
         goto end;
     }
 
-    struct ngl_node *children[] = {scene, render, text};
+    struct ngl_node *ui_children[] = {render, text};
+    struct ngl_node *children[] = {scene, gcfg};
 
     ngl_node_param_set(quad, "corner", bar_corner);
     ngl_node_param_set(quad, "width",  bar_width);
@@ -376,14 +378,16 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     ngl_node_param_set(render, "frag_resources", "duration", v_duration);
     ngl_node_param_set(render, "frag_resources", "opacity",  v_opacity);
 
-    ngl_node_param_add(group, "children", ARRAY_NB(children), children);
+    ngl_node_param_add(ui_group, "children", ARRAY_NB(ui_children), ui_children);
 
-    ngl_node_param_set(gcfg, "child", group);
+    ngl_node_param_set(gcfg, "child", ui_group);
     ngl_node_param_set(gcfg, "blend", 1);
     ngl_node_param_set(gcfg, "blend_src_factor",   "src_alpha");
     ngl_node_param_set(gcfg, "blend_dst_factor",   "one_minus_src_alpha");
     ngl_node_param_set(gcfg, "blend_src_factor_a", "zero");
     ngl_node_param_set(gcfg, "blend_dst_factor_a", "one");
+
+    ngl_node_param_add(group, "children", ARRAY_NB(children), children);
 
     ngl_node_param_set(text, "box_corner", text_corner);
     ngl_node_param_set(text, "box_width", text_width);
@@ -404,9 +408,9 @@ end:
     ngl_node_unrefp(&v_duration);
     ngl_node_unrefp(&v_opacity);
     ngl_node_unrefp(&coord);
-    ngl_node_unrefp(&group);
+    ngl_node_unrefp(&gcfg);
 
-    return gcfg;
+    return group;
 }
 
 static int set_scene(struct ngl_node *scene)

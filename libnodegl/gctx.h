@@ -52,10 +52,6 @@ struct gctx_class {
     void (*get_viewport)(struct gctx *s, int *viewport);
     void (*set_scissor)(struct gctx *s, const int *scissor);
     void (*get_scissor)(struct gctx *s, int *scissor);
-    void (*set_clear_color)(struct gctx *s, const float *color);
-    void (*get_clear_color)(struct gctx *s, float *color);
-    void (*clear_color)(struct gctx *s);
-    void (*clear_depth_stencil)(struct gctx *s);
     int (*get_preferred_depth_format)(struct gctx *s);
     int (*get_preferred_depth_stencil_format)(struct gctx *s);
 
@@ -126,12 +122,6 @@ void ngli_gctx_set_viewport(struct gctx *s, const int *viewport);
 void ngli_gctx_get_viewport(struct gctx *s, int *viewport);
 void ngli_gctx_set_scissor(struct gctx *s, const int *scissor);
 void ngli_gctx_get_scissor(struct gctx *s, int *scissor);
-
-void ngli_gctx_set_clear_color(struct gctx *s, const float *color);
-void ngli_gctx_get_clear_color(struct gctx *s, float *color);
-
-void ngli_gctx_clear_color(struct gctx *s);
-void ngli_gctx_clear_depth_stencil(struct gctx *s);
 
 int ngli_gctx_get_preferred_depth_format(struct gctx *s);
 int ngli_gctx_get_preferred_depth_stencil_format(struct gctx *s);

@@ -296,8 +296,6 @@ static int gl_init(struct gctx *s)
     const GLint scissor[] = {0, 0, gl->width, gl->height};
     ngli_gctx_set_scissor(s, scissor);
 
-    ngli_gctx_set_clear_color(s, config->clear_color);
-
     return 0;
 }
 
@@ -472,50 +470,6 @@ static void gl_get_scissor(struct gctx *s, int *scissor)
     memcpy(scissor, &s_priv->scissor, sizeof(s_priv->scissor));
 }
 
-static void gl_set_clear_color(struct gctx *s, const float *color)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    memcpy(s_priv->clear_color, color, sizeof(s_priv->clear_color));
-    ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
-}
-
-static void gl_get_clear_color(struct gctx *s, float *color)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    memcpy(color, &s_priv->clear_color, sizeof(s_priv->clear_color));
-}
-
-static void gl_clear_color(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    struct glstate *glstate = &s_priv->glstate;
-
-    const int scissor_test = glstate->scissor_test;
-    ngli_glDisable(gl, GL_SCISSOR_TEST);
-
-    ngli_glClear(gl, GL_COLOR_BUFFER_BIT);
-
-    if (scissor_test)
-        ngli_glEnable(gl, GL_SCISSOR_TEST);
-}
-
-static void gl_clear_depth_stencil(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-    struct glstate *glstate = &s_priv->glstate;
-
-    const int scissor_test = glstate->scissor_test;
-    ngli_glDisable(gl, GL_SCISSOR_TEST);
-
-    ngli_glClear(gl, GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    if (scissor_test)
-        ngli_glEnable(gl, GL_SCISSOR_TEST);
-}
-
 static int gl_get_preferred_depth_format(struct gctx *s)
 {
     return NGLI_FORMAT_D16_UNORM;
@@ -546,10 +500,6 @@ const struct gctx_class ngli_gctx_gl = {
     .get_viewport             = gl_get_viewport,
     .set_scissor              = gl_set_scissor,
     .get_scissor              = gl_get_scissor,
-    .set_clear_color          = gl_set_clear_color,
-    .get_clear_color          = gl_get_clear_color,
-    .clear_color              = gl_clear_color,
-    .clear_depth_stencil      = gl_clear_depth_stencil,
     .get_preferred_depth_format = gl_get_preferred_depth_format,
     .get_preferred_depth_stencil_format = gl_get_preferred_depth_stencil_format,
 
@@ -614,10 +564,6 @@ const struct gctx_class ngli_gctx_gles = {
     .get_viewport             = gl_get_viewport,
     .set_scissor              = gl_set_scissor,
     .get_scissor              = gl_get_scissor,
-    .set_clear_color          = gl_set_clear_color,
-    .get_clear_color          = gl_get_clear_color,
-    .clear_color              = gl_clear_color,
-    .clear_depth_stencil      = gl_clear_depth_stencil,
     .get_preferred_depth_format = gl_get_preferred_depth_format,
     .get_preferred_depth_stencil_format = gl_get_preferred_depth_stencil_format,
 

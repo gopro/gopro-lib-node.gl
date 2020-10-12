@@ -155,26 +155,6 @@ void ngli_gctx_get_scissor(struct gctx *s, int *scissor)
     s->class->get_scissor(s, scissor);
 }
 
-void ngli_gctx_set_clear_color(struct gctx *s, const float *color)
-{
-    s->class->set_clear_color(s, color);
-}
-
-void ngli_gctx_get_clear_color(struct gctx *s, float *color)
-{
-    s->class->get_clear_color(s, color);
-}
-
-void ngli_gctx_clear_color(struct gctx *s)
-{
-    s->class->clear_color(s);
-}
-
-void ngli_gctx_clear_depth_stencil(struct gctx *s)
-{
-    s->class->clear_depth_stencil(s);
-}
-
 int ngli_gctx_get_preferred_depth_format(struct gctx *s)
 {
     return s->class->get_preferred_depth_format(s);

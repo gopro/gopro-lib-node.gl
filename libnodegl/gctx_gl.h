@@ -49,7 +49,6 @@ struct gctx_gl {
     struct rendertarget *rendertarget;
     int viewport[4];
     int scissor[4];
-    float clear_color[4];
     int timer_active;
     /* Offscreen render target */
     struct rendertarget *rt;

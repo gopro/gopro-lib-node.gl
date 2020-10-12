@@ -258,5 +258,13 @@ static const struct glfeature {
         .es_version     = 320,
         .funcs_offsets  = (const size_t[]){OFFSET(DebugMessageCallback),
                                         -1}
+    }, {
+        .name           = "clear_buffer",
+        .flag           = NGLI_FEATURE_CLEAR_BUFFER,
+        .version        = 300,
+        .es_version     = 300,
+        .funcs_offsets  = (const size_t[]){OFFSET(ClearBufferfv),
+                                           OFFSET(ClearBufferfi),
+                                           -1}
     }
 };

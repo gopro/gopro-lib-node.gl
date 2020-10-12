@@ -147,6 +147,18 @@ static inline void ngli_glClear(const struct glcontext *gl, GLbitfield mask)
     check_error_code(gl, "glClear");
 }
 
+static inline void ngli_glClearBufferfi(const struct glcontext *gl, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil)
+{
+    gl->funcs.ClearBufferfi(buffer, drawbuffer, depth, stencil);
+    check_error_code(gl, "glClearBufferfi");
+}
+
+static inline void ngli_glClearBufferfv(const struct glcontext *gl, GLenum buffer, GLint drawbuffer, const GLfloat * value)
+{
+    gl->funcs.ClearBufferfv(buffer, drawbuffer, value);
+    check_error_code(gl, "glClearBufferfv");
+}
+
 static inline void ngli_glClearColor(const struct glcontext *gl, GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
     gl->funcs.ClearColor(red, green, blue, alpha);
@@ -679,9 +691,9 @@ static inline void ngli_glScissor(const struct glcontext *gl, GLint x, GLint y, 
     check_error_code(gl, "glScissor");
 }
 
-static inline void ngli_glShaderBinary(const struct glcontext *gl, GLsizei count, const GLuint * shaders, GLenum binaryformat, const void * binary, GLsizei length)
+static inline void ngli_glShaderBinary(const struct glcontext *gl, GLsizei count, const GLuint * shaders, GLenum binaryFormat, const void * binary, GLsizei length)
 {
-    gl->funcs.ShaderBinary(count, shaders, binaryformat, binary, length);
+    gl->funcs.ShaderBinary(count, shaders, binaryFormat, binary, length);
     check_error_code(gl, "glShaderBinary");
 }
 

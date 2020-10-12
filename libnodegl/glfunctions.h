@@ -29,6 +29,8 @@ struct glfunctions {
     NGLI_GL_APIENTRY void (*BufferSubData)(GLenum target, GLintptr offset, GLsizeiptr size, const void * data);
     NGLI_GL_APIENTRY GLenum (*CheckFramebufferStatus)(GLenum target);
     NGLI_GL_APIENTRY void (*Clear)(GLbitfield mask);
+    NGLI_GL_APIENTRY void (*ClearBufferfi)(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
+    NGLI_GL_APIENTRY void (*ClearBufferfv)(GLenum buffer, GLint drawbuffer, const GLfloat * value);
     NGLI_GL_APIENTRY void (*ClearColor)(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
     NGLI_GL_APIENTRY GLenum (*ClientWaitSync)(GLsync sync, GLbitfield flags, GLuint64 timeout);
     NGLI_GL_APIENTRY void (*ColorMask)(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
@@ -116,7 +118,7 @@ struct glfunctions {
     NGLI_GL_APIENTRY void (*RenderbufferStorage)(GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
     NGLI_GL_APIENTRY void (*RenderbufferStorageMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
     NGLI_GL_APIENTRY void (*Scissor)(GLint x, GLint y, GLsizei width, GLsizei height);
-    NGLI_GL_APIENTRY void (*ShaderBinary)(GLsizei count, const GLuint * shaders, GLenum binaryformat, const void * binary, GLsizei length);
+    NGLI_GL_APIENTRY void (*ShaderBinary)(GLsizei count, const GLuint * shaders, GLenum binaryFormat, const void * binary, GLsizei length);
     NGLI_GL_APIENTRY void (*ShaderSource)(GLuint shader, GLsizei count, const GLchar *const* string, const GLint * length);
     NGLI_GL_APIENTRY void (*StencilFunc)(GLenum func, GLint ref, GLuint mask);
     NGLI_GL_APIENTRY void (*StencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask);

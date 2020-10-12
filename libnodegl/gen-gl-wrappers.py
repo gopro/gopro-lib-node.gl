@@ -107,6 +107,10 @@ cmds_optional = [
     'glDrawBuffer',
     'glDrawBuffers',
 
+    # Clear Buffer
+    'glClearBufferfv',
+    'glClearBufferfi',
+
     # UInt uniforms
     'glUniform1uiv',
     'glUniform2uiv',

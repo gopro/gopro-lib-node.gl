@@ -49,7 +49,6 @@ static void capture_default(struct gctx *s)
     struct ngl_config *config = &s->config;
     struct rendertarget *rt = s_priv->rt;
 
-    ngli_rendertarget_resolve(rt);
     if (config->capture_buffer)
         ngli_rendertarget_read_pixels(rt, config->capture_buffer);
 }
@@ -58,9 +57,7 @@ static void capture_ios(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
-    struct rendertarget *rt = s_priv->rt;
 
-    ngli_rendertarget_resolve(rt);
     ngli_glFinish(gl);
 }
 
@@ -193,7 +190,6 @@ static int offscreen_rendertarget_init(struct gctx *s)
 
     s_priv->capture_func = ios_capture ? capture_ios : capture_default;
 
-    ngli_gctx_set_rendertarget(s, s_priv->rt);
     const int vp[4] = {0, 0, config->width, config->height};
     ngli_gctx_set_viewport(s, vp);
 
@@ -328,6 +324,9 @@ static int gl_pre_draw(struct gctx *s, double t)
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     const struct ngl_config *config = &s->config;
+
+    ngli_gctx_begin_render_pass(s, config->offscreen ? s_priv->rt : NULL);
+
     const float *color = config->clear_color;
     ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
     ngli_glClear(gl, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -341,6 +340,8 @@ static int gl_post_draw(struct gctx *s, double t)
     struct ngl_config *config = &s->config;
 
     ngli_glstate_update(s, &s_priv->default_graphicstate);
+
+    ngli_gctx_end_render_pass(s);
 
     if (s_priv->capture_func)
         s_priv->capture_func(s);
@@ -405,17 +406,25 @@ static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
     memcpy(dst, matrix, 4 * 4 * sizeof(float));
 }
 
-static void gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
+static struct rendertarget *gl_get_rendertarget(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    const struct ngl_config *config = &s->config;
+    if (config->offscreen)
+        return s_priv->rt;
+    return NULL;
+}
+
+static const struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    return &s_priv->default_rendertarget_desc;
+}
+
+static void gl_begin_render_pass(struct gctx *s, struct rendertarget *rt)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
-
-    if (rt == s_priv->rendertarget)
-        return;
-
-    if (s_priv->rendertarget) {
-        ngli_rendertarget_gl_invalidate(s_priv->rendertarget);
-    }
 
     struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)rt;
     const GLuint fbo_id = rt_gl ? rt_gl->id : ngli_glcontext_get_default_framebuffer(gl);
@@ -432,16 +441,16 @@ static void gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
     s_priv->rendertarget = rt;
 }
 
-static struct rendertarget *gl_get_rendertarget(struct gctx *s)
+static void gl_end_render_pass(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    return s_priv->rendertarget;
-}
 
-static const struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    return &s_priv->default_rendertarget_desc;
+    if (s_priv->rendertarget) {
+        ngli_rendertarget_gl_resolve(s_priv->rendertarget);
+        ngli_rendertarget_gl_invalidate(s_priv->rendertarget);
+    }
+
+    s_priv->rendertarget = NULL;
 }
 
 static void gl_set_viewport(struct gctx *s, const int *viewport)
@@ -493,9 +502,12 @@ const struct gctx_class ngli_gctx_gl = {
     .transform_projection_matrix      = gl_transform_projection_matrix,
     .get_rendertarget_uvcoord_matrix  = gl_get_rendertarget_uvcoord_matrix,
 
-    .set_rendertarget         = gl_set_rendertarget,
     .get_rendertarget         = gl_get_rendertarget,
     .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
+
+    .begin_render_pass        = gl_begin_render_pass,
+    .end_render_pass          = gl_end_render_pass,
+
     .set_viewport             = gl_set_viewport,
     .get_viewport             = gl_get_viewport,
     .set_scissor              = gl_set_scissor,
@@ -557,9 +569,12 @@ const struct gctx_class ngli_gctx_gles = {
     .transform_projection_matrix      = gl_transform_projection_matrix,
     .get_rendertarget_uvcoord_matrix  = gl_get_rendertarget_uvcoord_matrix,
 
-    .set_rendertarget         = gl_set_rendertarget,
     .get_rendertarget         = gl_get_rendertarget,
     .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
+
+    .begin_render_pass        = gl_begin_render_pass,
+    .end_render_pass          = gl_end_render_pass,
+
     .set_viewport             = gl_set_viewport,
     .get_viewport             = gl_get_viewport,
     .set_scissor              = gl_set_scissor,

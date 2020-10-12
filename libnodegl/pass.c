@@ -696,7 +696,7 @@ int ngli_pass_exec(struct pass *s)
     if (s->pipeline_type == NGLI_PIPELINE_TYPE_GRAPHICS) {
         if (ctx->bind_current_rendertarget) {
             struct gctx *gctx = ctx->gctx;
-            ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
+            ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
             ctx->bind_current_rendertarget = 0;
         }
 
@@ -705,6 +705,13 @@ int ngli_pass_exec(struct pass *s)
         else
             ngli_pipeline_draw(pipeline, s->nb_vertices, s->nb_instances);
     } else {
+        if (!ctx->bind_current_rendertarget) {
+            struct gctx *gctx = ctx->gctx;
+            ngli_gctx_end_render_pass(gctx);
+            ctx->current_rendertarget = ctx->available_rendertargets[1];
+            ctx->bind_current_rendertarget = 1;
+        }
+
         ngli_pipeline_dispatch(pipeline, params->nb_group_x, params->nb_group_y, params->nb_group_z);
     }
 

@@ -115,14 +115,19 @@ void ngli_gctx_transform_projection_matrix(struct gctx *s, float *dst)
     s->class->transform_projection_matrix(s, dst);
 }
 
+void ngli_gctx_begin_render_pass(struct gctx *s, struct rendertarget *rt)
+{
+    s->class->begin_render_pass(s, rt);
+}
+
+void ngli_gctx_end_render_pass(struct gctx *s)
+{
+    s->class->end_render_pass(s);
+}
+
 void ngli_gctx_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
 {
     s->class->get_rendertarget_uvcoord_matrix(s, dst);
-}
-
-void ngli_gctx_set_rendertarget(struct gctx *s, struct rendertarget *rt)
-{
-    s->class->set_rendertarget(s, rt);
 }
 
 struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)

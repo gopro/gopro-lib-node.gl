@@ -1411,7 +1411,7 @@ static void hud_draw(struct ngl_node *node)
 
     if (ctx->bind_current_rendertarget) {
         struct gctx *gctx = ctx->gctx;
-        ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
+        ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
         ctx->bind_current_rendertarget = 0;
     }
 

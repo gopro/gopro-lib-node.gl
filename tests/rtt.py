@@ -139,7 +139,8 @@ def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mip
         [texture],
         features=features,
         depth_texture=texture_depth,
-        samples=samples
+        samples=samples,
+        clear_color=(0, 0, 0, 1),
     )
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))

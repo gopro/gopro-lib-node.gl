@@ -29,5 +29,6 @@ API_TEST_NAMES =             \
     capture_buffer_lifetime  \
     hud                      \
     text_live_change         \
+    media_sharing_failure    \
 
 $(eval $(call DECLARE_SIMPLE_TESTS,api,$(API_TEST_NAMES)))

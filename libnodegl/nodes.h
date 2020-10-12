@@ -306,6 +306,7 @@ struct media_priv {
 
     struct sxplayer_ctx *player;
     struct sxplayer_frame *frame;
+    int nb_parents;
 
 #if defined(TARGET_ANDROID)
     struct texture *android_texture;

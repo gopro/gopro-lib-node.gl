@@ -167,3 +167,19 @@ def api_text_live_change(width=320, height=240):
         crc = zlib.crc32(capture_buffer)
         assert crc != last_crc
         last_crc = crc
+
+
+def _ret_to_fourcc(ret):
+    if ret >= 0:
+        return None
+    x = -ret
+    return chr(x>>24) + chr(x>>16 & 0xff) + chr(x>>8 & 0xff) + chr(x&0xff)
+
+
+def api_media_sharing_failure():
+    import struct
+    ctx = ngl.Context()
+    assert ctx.configure(offscreen=1, width=16, height=16, backend=_backend) == 0
+    m = ngl.Media('/dev/null')
+    scene = ngl.Group(children=(m, m))
+    assert _ret_to_fourcc(ctx.set_scene(scene)) == 'Eusg'  # Usage error

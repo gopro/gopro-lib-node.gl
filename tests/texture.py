@@ -204,7 +204,7 @@ def texture_scissor(cfg):
     render.update_frag_resources(color=color)
     graphic_config = ngl.GraphicConfig(render, scissor_test=True, scissor=(32, 32, 32, 32))
     texture = ngl.Texture2D(width=64, height=64)
-    rtt = ngl.RenderToTexture(graphic_config, [texture])
+    rtt = ngl.RenderToTexture(graphic_config, [texture], clear_color=(0, 0, 0, 1))
 
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())

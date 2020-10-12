@@ -41,7 +41,6 @@ struct rtt_priv {
     int features;
     int vflip;
 
-    int use_clear_color;
     int invalidate_depth_stencil;
     int width;
     int height;
@@ -54,7 +53,6 @@ struct rtt_priv {
     struct texture *ms_depth;
 };
 
-#define DEFAULT_CLEAR_COLOR {-1.0f, -1.0f, -1.0f, -1.0f}
 #define FEATURE_DEPTH       (1 << 0)
 #define FEATURE_STENCIL     (1 << 1)
 #define FEATURE_NO_CLEAR    (1 << 2)
@@ -83,7 +81,7 @@ static const struct node_param rtt_params[] = {
                       .desc=NGLI_DOCSTRING("destination depth (and potentially combined stencil) texture")},
     {"samples",       PARAM_TYPE_INT, OFFSET(samples),
                       .desc=NGLI_DOCSTRING("number of samples used for multisampling anti-aliasing")},
-    {"clear_color",   PARAM_TYPE_VEC4, OFFSET(clear_color), {.vec=DEFAULT_CLEAR_COLOR},
+    {"clear_color",   PARAM_TYPE_VEC4, OFFSET(clear_color),
                       .desc=NGLI_DOCSTRING("color used to clear the `color_texture`")},
     {"features",      PARAM_TYPE_FLAGS, OFFSET(features),
                       .choices=&feature_choices,
@@ -112,9 +110,6 @@ static int rtt_init(struct ngl_node *node)
             return NGL_ERROR_INVALID_ARG;
         }
     }
-
-    static const float clear_color[4] = DEFAULT_CLEAR_COLOR;
-    s->use_clear_color = memcmp(s->clear_color, clear_color, sizeof(s->clear_color));
 
     return 0;
 }
@@ -386,10 +381,8 @@ static void rtt_draw(struct ngl_node *node)
     ngli_gctx_set_viewport(gctx, vp);
 
     float prev_clear_color[4] = {0};
-    if (s->use_clear_color) {
-        ngli_gctx_get_clear_color(gctx, prev_clear_color);
-        ngli_gctx_set_clear_color(gctx, s->clear_color);
-    }
+    ngli_gctx_get_clear_color(gctx, prev_clear_color);
+    ngli_gctx_set_clear_color(gctx, s->clear_color);
 
     struct rendertarget *prev_rendertarget = ctx->current_rendertarget;
     int prev_clear = ctx->clear_current_rendertarget;
@@ -421,9 +414,7 @@ static void rtt_draw(struct ngl_node *node)
     ctx->clear_current_rendertarget = prev_clear;
 
     ngli_gctx_set_viewport(gctx, prev_vp);
-
-    if (s->use_clear_color)
-        ngli_gctx_set_clear_color(gctx, prev_clear_color);
+    ngli_gctx_set_clear_color(gctx, prev_clear_color);
 
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;

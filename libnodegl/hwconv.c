@@ -77,6 +77,8 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
         .nb_colors = 1,
         .colors[0] = {
             .attachment = texture,
+            .load_op    = NGLI_LOAD_OP_CLEAR,
+            .store_op   = NGLI_STORE_OP_STORE,
         }
     };
     hwconv->rt = ngli_rendertarget_create(gctx);
@@ -179,8 +181,6 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
 
     const int vp[4] = {0, 0, rt->width, rt->height};
     ngli_gctx_set_viewport(gctx, vp);
-
-    ngli_gctx_clear_color(gctx);
 
     struct pipeline *pipeline = hwconv->pipeline;
 

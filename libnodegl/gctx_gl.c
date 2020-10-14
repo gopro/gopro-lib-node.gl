@@ -170,9 +170,17 @@ static int offscreen_rendertarget_init(struct gctx *s)
         .colors[0] = {
             .attachment     = config->samples ? s_priv->ms_color : s_priv->color,
             .resolve_target = config->samples ? s_priv->color    : NULL,
+            .load_op        = NGLI_LOAD_OP_LOAD,
+            .clear_value[0] = config->clear_color[0],
+            .clear_value[1] = config->clear_color[1],
+            .clear_value[2] = config->clear_color[2],
+            .clear_value[3] = config->clear_color[3],
+            .store_op       = NGLI_STORE_OP_STORE,
         },
         .depth_stencil = {
             .attachment = s_priv->depth,
+            .load_op    = NGLI_LOAD_OP_LOAD,
+            .store_op   = NGLI_STORE_OP_STORE,
         },
     };
 
@@ -319,9 +327,12 @@ static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
 
 static int gl_pre_draw(struct gctx *s, double t)
 {
-    ngli_gctx_clear_color(s);
-    ngli_gctx_clear_depth_stencil(s);
-
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+    const struct ngl_config *config = &s->config;
+    const float *color = config->clear_color;
+    ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
+    ngli_glClear(gl, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     return 0;
 }
 
@@ -404,9 +415,21 @@ static void gl_set_rendertarget(struct gctx *s, struct rendertarget *rt)
     if (rt == s_priv->rendertarget)
         return;
 
+    if (s_priv->rendertarget) {
+        ngli_rendertarget_gl_invalidate(s_priv->rendertarget);
+    }
+
     struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)rt;
     const GLuint fbo_id = rt_gl ? rt_gl->id : ngli_glcontext_get_default_framebuffer(gl);
     ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
+
+    if (rt) {
+        const int scissor_test = s_priv->glstate.scissor_test;
+        ngli_glDisable(gl, GL_SCISSOR_TEST);
+        ngli_rendertarget_gl_clear(rt);
+        if (scissor_test)
+            ngli_glEnable(gl, GL_SCISSOR_TEST);
+    }
 
     s_priv->rendertarget = rt;
 }

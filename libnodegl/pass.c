@@ -697,12 +697,7 @@ int ngli_pass_exec(struct pass *s)
         if (ctx->bind_current_rendertarget) {
             struct gctx *gctx = ctx->gctx;
             ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
-            if (ctx->clear_current_rendertarget) {
-                ngli_gctx_clear_color(gctx);
-                ngli_gctx_clear_depth_stencil(gctx);
-            }
             ctx->bind_current_rendertarget = 0;
-            ctx->clear_current_rendertarget = 0;
         }
 
         if (s->indices_buffer)

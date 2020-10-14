@@ -41,11 +41,13 @@ struct rtt_priv {
     int features;
     int vflip;
 
-    int invalidate_depth_stencil;
+    int use_rt_resume;
     int width;
     int height;
 
     struct rendertarget *rt;
+    struct rendertarget *rt_resume;
+    struct rendertarget *available_rendertargets[2];
     struct texture *depth;
 
     struct texture *ms_colors[NGLI_MAX_COLOR_ATTACHMENTS];
@@ -112,7 +114,6 @@ static int rtt_init(struct ngl_node *node)
     return 0;
 }
 
-#ifdef DEBUG_SCENE
 struct renderpass_children_info {
     int has_rtt_or_compute;
     int render_counts[2]; // number of render nodes before and after the first rtt or compute node (renderpass interruption)
@@ -133,7 +134,6 @@ static void get_renderpass_children_info(const struct ngl_node *node, struct ren
         }
     }
 }
-#endif
 
 static int rtt_prepare(struct ngl_node *node)
 {
@@ -142,12 +142,14 @@ static int rtt_prepare(struct ngl_node *node)
     struct rnode *rnode = ctx->rnode_pos;
     struct rtt_priv *s = node->priv_data;
 
-#ifdef DEBUG_SCENE
     struct renderpass_children_info info = {0};
     get_renderpass_children_info(s->child, &info);
-    if (info.render_counts[0] && info.render_counts[1])
+    if (info.render_counts[0] && info.render_counts[1]) {
+#ifdef DEBUG_SCENE
         LOG(WARNING, "the underlying render pass might not be optimal as it contains a rtt or compute node in the middle of it");
 #endif
+        s->use_rt_resume = 1;
+    }
 
     struct rendertarget_desc desc = {0};
     for (int i = 0; i < s->nb_color_textures; i++) {
@@ -258,9 +260,17 @@ static int rtt_prefetch(struct ngl_node *node)
                 rt_params.colors[rt_params.nb_colors].attachment_layer = 0;
                 rt_params.colors[rt_params.nb_colors].resolve_target = texture;
                 rt_params.colors[rt_params.nb_colors].resolve_target_layer = j;
+                rt_params.colors[rt_params.nb_colors].load_op = NGLI_LOAD_OP_CLEAR;
+                float *clear_value = rt_params.colors[rt_params.nb_colors].clear_value;
+                memcpy(clear_value, s->clear_color, sizeof(s->clear_color));
+                rt_params.colors[rt_params.nb_colors].store_op = NGLI_STORE_OP_STORE;
             } else {
                 rt_params.colors[rt_params.nb_colors].attachment = texture;
                 rt_params.colors[rt_params.nb_colors].attachment_layer = j;
+                rt_params.colors[rt_params.nb_colors].load_op = NGLI_LOAD_OP_CLEAR;
+                float *clear_value = rt_params.colors[rt_params.nb_colors].clear_value;
+                memcpy(clear_value, s->clear_color, sizeof(s->clear_color));
+                rt_params.colors[rt_params.nb_colors].store_op = NGLI_STORE_OP_STORE;
             }
             rt_params.nb_colors++;
         }
@@ -288,8 +298,12 @@ static int rtt_prefetch(struct ngl_node *node)
                 return ret;
             rt_params.depth_stencil.attachment = ms_texture;
             rt_params.depth_stencil.resolve_target = texture;
+            rt_params.depth_stencil.load_op = NGLI_LOAD_OP_CLEAR;
+            rt_params.depth_stencil.store_op = NGLI_STORE_OP_DONT_CARE;
         } else {
             rt_params.depth_stencil.attachment = texture;
+            rt_params.depth_stencil.load_op = NGLI_LOAD_OP_CLEAR;
+            rt_params.depth_stencil.store_op = NGLI_STORE_OP_STORE;
         }
     } else {
         if (s->features & FEATURE_STENCIL)
@@ -312,7 +326,8 @@ static int rtt_prefetch(struct ngl_node *node)
             if (ret < 0)
                 return ret;
             rt_params.depth_stencil.attachment = depth;
-            s->invalidate_depth_stencil = 1;
+            rt_params.depth_stencil.load_op = NGLI_LOAD_OP_CLEAR;
+            rt_params.depth_stencil.store_op = s->use_rt_resume ? NGLI_STORE_OP_STORE : NGLI_LOAD_OP_DONT_CARE;
         }
     }
 
@@ -322,6 +337,24 @@ static int rtt_prefetch(struct ngl_node *node)
     ret = ngli_rendertarget_init(s->rt, &rt_params);
     if (ret < 0)
         return ret;
+
+    s->available_rendertargets[0] = s->rt;
+    s->available_rendertargets[1] = s->rt;
+
+    if (s->use_rt_resume) {
+        for (int i = 0; i < rt_params.nb_colors; i++)
+            rt_params.colors[i].load_op = NGLI_LOAD_OP_LOAD;
+        rt_params.depth_stencil.load_op = NGLI_LOAD_OP_LOAD;
+        rt_params.depth_stencil.store_op = s->depth_texture ? NGLI_STORE_OP_STORE : NGLI_LOAD_OP_DONT_CARE;
+
+        s->rt_resume = ngli_rendertarget_create(gctx);
+        if (!s->rt_resume)
+            return NGL_ERROR_MEMORY;
+        ret = ngli_rendertarget_init(s->rt_resume, &rt_params);
+        if (ret < 0)
+            return ret;
+        s->available_rendertargets[1] = s->rt_resume;
+    }
 
     if (s->vflip) {
         /* flip vertically the color and depth textures so the coordinates
@@ -376,41 +409,32 @@ static void rtt_draw(struct ngl_node *node)
     const int vp[4] = {0, 0, s->width, s->height};
     ngli_gctx_set_viewport(gctx, vp);
 
-    float prev_clear_color[4] = {0};
-    ngli_gctx_get_clear_color(gctx, prev_clear_color);
-    ngli_gctx_set_clear_color(gctx, s->clear_color);
+    struct rendertarget *prev_rendertargets[2] = {
+        ctx->available_rendertargets[0],
+        ctx->available_rendertargets[1],
+    };
 
-    struct rendertarget *prev_rendertarget = ctx->current_rendertarget;
-    int prev_clear = ctx->clear_current_rendertarget;
-
-    ctx->current_rendertarget = s->rt;
+    ctx->available_rendertargets[0] = s->available_rendertargets[0];
+    ctx->available_rendertargets[1] = s->available_rendertargets[1];
+    ctx->current_rendertarget = s->available_rendertargets[0];
     ctx->bind_current_rendertarget = 1;
-    ctx->clear_current_rendertarget = 1;
 
     ngli_node_draw(s->child);
 
     if (ctx->bind_current_rendertarget) {
         ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
-        if (ctx->clear_current_rendertarget) {
-            ngli_gctx_clear_color(gctx);
-            ngli_gctx_clear_depth_stencil(gctx);
-        }
         ctx->bind_current_rendertarget = 0;
-        ctx->clear_current_rendertarget = 0;
     }
 
     if (s->samples > 0)
         ngli_rendertarget_resolve(ctx->current_rendertarget);
 
-    if (s->invalidate_depth_stencil)
-        ngli_gctx_invalidate_depth_stencil(gctx);
-
-    ctx->current_rendertarget = prev_rendertarget;
+    ctx->current_rendertarget = prev_rendertargets[1];
+    ctx->available_rendertargets[0] = prev_rendertargets[0];
+    ctx->available_rendertargets[1] = prev_rendertargets[1];
     ctx->bind_current_rendertarget = 1;
-    ctx->clear_current_rendertarget = prev_clear;
 
     ngli_gctx_set_viewport(gctx, prev_vp);
-    ngli_gctx_set_clear_color(gctx, prev_clear_color);
 
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
@@ -425,6 +449,7 @@ static void rtt_release(struct ngl_node *node)
     struct rtt_priv *s = node->priv_data;
 
     ngli_rendertarget_freep(&s->rt);
+    ngli_rendertarget_freep(&s->rt_resume);
     ngli_texture_freep(&s->depth);
 
     for (int i = 0; i < s->nb_ms_colors; i++)

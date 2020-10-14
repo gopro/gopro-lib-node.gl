@@ -1390,7 +1390,6 @@ Constant | Description
 -------- | -----------
 `depth` | add depth buffer
 `stencil` | add stencil buffer
-`no_clear` | not cleared between draws (non-deterministic)
 
 ## valign choices
 

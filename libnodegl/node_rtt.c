@@ -55,14 +55,12 @@ struct rtt_priv {
 
 #define FEATURE_DEPTH       (1 << 0)
 #define FEATURE_STENCIL     (1 << 1)
-#define FEATURE_NO_CLEAR    (1 << 2)
 
 static const struct param_choices feature_choices = {
     .name = "framebuffer_features",
     .consts = {
         {"depth",   FEATURE_DEPTH,   .desc=NGLI_DOCSTRING("add depth buffer")},
         {"stencil", FEATURE_STENCIL, .desc=NGLI_DOCSTRING("add stencil buffer")},
-        {"no_clear",FEATURE_NO_CLEAR,.desc=NGLI_DOCSTRING("not cleared between draws (non-deterministic)")},
         {NULL}
     }
 };
@@ -314,9 +312,7 @@ static int rtt_prefetch(struct ngl_node *node)
             if (ret < 0)
                 return ret;
             rt_params.depth_stencil.attachment = depth;
-
-            if (!(s->features & FEATURE_NO_CLEAR))
-                s->invalidate_depth_stencil = 1;
+            s->invalidate_depth_stencil = 1;
         }
     }
 
@@ -389,7 +385,7 @@ static void rtt_draw(struct ngl_node *node)
 
     ctx->current_rendertarget = s->rt;
     ctx->bind_current_rendertarget = 1;
-    ctx->clear_current_rendertarget = !(s->features & FEATURE_NO_CLEAR);
+    ctx->clear_current_rendertarget = 1;
 
     ngli_node_draw(s->child);
 

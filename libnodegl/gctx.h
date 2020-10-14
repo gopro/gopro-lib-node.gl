@@ -56,7 +56,6 @@ struct gctx_class {
     void (*get_clear_color)(struct gctx *s, float *color);
     void (*clear_color)(struct gctx *s);
     void (*clear_depth_stencil)(struct gctx *s);
-    void (*invalidate_depth_stencil)(struct gctx *s);
     int (*get_preferred_depth_format)(struct gctx *s);
     int (*get_preferred_depth_stencil_format)(struct gctx *s);
 
@@ -133,7 +132,6 @@ void ngli_gctx_get_clear_color(struct gctx *s, float *color);
 
 void ngli_gctx_clear_color(struct gctx *s);
 void ngli_gctx_clear_depth_stencil(struct gctx *s);
-void ngli_gctx_invalidate_depth_stencil(struct gctx *s);
 
 int ngli_gctx_get_preferred_depth_format(struct gctx *s);
 int ngli_gctx_get_preferred_depth_stencil_format(struct gctx *s);

@@ -516,18 +516,6 @@ static void gl_clear_depth_stencil(struct gctx *s)
         ngli_glEnable(gl, GL_SCISSOR_TEST);
 }
 
-static void gl_invalidate_depth_stencil(struct gctx *s)
-{
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    struct glcontext *gl = s_priv->glcontext;
-
-    if (!(gl->features & NGLI_FEATURE_INVALIDATE_SUBDATA))
-        return;
-
-    static const GLenum attachments[] = {GL_DEPTH_ATTACHMENT, GL_STENCIL_ATTACHMENT};
-    ngli_glInvalidateFramebuffer(gl, GL_FRAMEBUFFER, NGLI_ARRAY_NB(attachments), attachments);
-}
-
 static int gl_get_preferred_depth_format(struct gctx *s)
 {
     return NGLI_FORMAT_D16_UNORM;
@@ -562,7 +550,6 @@ const struct gctx_class ngli_gctx_gl = {
     .get_clear_color          = gl_get_clear_color,
     .clear_color              = gl_clear_color,
     .clear_depth_stencil      = gl_clear_depth_stencil,
-    .invalidate_depth_stencil = gl_invalidate_depth_stencil,
     .get_preferred_depth_format = gl_get_preferred_depth_format,
     .get_preferred_depth_stencil_format = gl_get_preferred_depth_stencil_format,
 
@@ -631,7 +618,6 @@ const struct gctx_class ngli_gctx_gles = {
     .get_clear_color          = gl_get_clear_color,
     .clear_color              = gl_clear_color,
     .clear_depth_stencil      = gl_clear_depth_stencil,
-    .invalidate_depth_stencil = gl_invalidate_depth_stencil,
     .get_preferred_depth_format = gl_get_preferred_depth_format,
     .get_preferred_depth_stencil_format = gl_get_preferred_depth_stencil_format,
 

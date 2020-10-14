@@ -175,11 +175,6 @@ void ngli_gctx_clear_depth_stencil(struct gctx *s)
     s->class->clear_depth_stencil(s);
 }
 
-void ngli_gctx_invalidate_depth_stencil(struct gctx *s)
-{
-    s->class->invalidate_depth_stencil(s);
-}
-
 int ngli_gctx_get_preferred_depth_format(struct gctx *s)
 {
     return s->class->get_preferred_depth_format(s);

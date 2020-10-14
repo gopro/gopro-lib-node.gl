@@ -1409,6 +1409,17 @@ static void hud_draw(struct ngl_node *node)
     if (ret < 0)
         return;
 
+    if (ctx->bind_current_rendertarget) {
+        struct gctx *gctx = ctx->gctx;
+        ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
+        if (ctx->clear_current_rendertarget) {
+            ngli_gctx_clear_color(gctx);
+            ngli_gctx_clear_depth_stencil(gctx);
+        }
+        ctx->bind_current_rendertarget = 0;
+        ctx->clear_current_rendertarget = 0;
+    }
+
     const float *modelview_matrix  = ngli_darray_tail(&ctx->modelview_matrix_stack);
     const float *projection_matrix = ngli_darray_tail(&ctx->projection_matrix_stack);
     ngli_pipeline_update_uniform(s->pipeline, s->modelview_matrix_index, modelview_matrix);

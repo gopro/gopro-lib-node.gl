@@ -26,6 +26,7 @@
 #include "nodes.h"
 #include "darray.h"
 #include "drawutils.h"
+#include "gctx.h"
 #include "log.h"
 #include "math_utils.h"
 #include "pgcache.h"
@@ -669,6 +670,17 @@ static void text_draw(struct ngl_node *node)
 
     struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
     struct pipeline_desc *desc = &descs[ctx->rnode_pos->id];
+
+    if (ctx->bind_current_rendertarget) {
+        struct gctx *gctx = ctx->gctx;
+        ngli_gctx_set_rendertarget(gctx, ctx->current_rendertarget);
+        if (ctx->clear_current_rendertarget) {
+            ngli_gctx_clear_color(gctx);
+            ngli_gctx_clear_depth_stencil(gctx);
+        }
+        ctx->bind_current_rendertarget = 0;
+        ctx->clear_current_rendertarget = 0;
+    }
 
     struct pipeline_subdesc *bg_desc = &desc->bg;
     ngli_pipeline_update_uniform(bg_desc->pipeline, bg_desc->modelview_matrix_index, modelview_matrix);

@@ -31,10 +31,10 @@ struct glcontext;
 struct pipeline_gl {
     struct pipeline parent;
 
-    struct darray uniform_descs;
-    struct darray texture_descs;
-    struct darray buffer_descs;
-    struct darray attribute_descs;
+    struct darray uniform_bindings;   // uniform_binding
+    struct darray texture_bindings;   // texture_binding
+    struct darray buffer_bindings;    // buffer_binding
+    struct darray attribute_bindings; // attribute_binding
     int nb_unbound_attributes;
 
     uint64_t used_texture_units;

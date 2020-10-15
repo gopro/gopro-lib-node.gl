@@ -84,7 +84,7 @@ def compute_particules(cfg):
         ],
         layout='std430',
     )
-    opositions = ngl.Block(fields=[ngl.BufferVec3(count=nb_particules, label='positions')], layout='std430')
+    opositions = ngl.Block(fields=[ngl.BufferVec3(count=nb_particules, label='positions')], layout='std140')
 
     animkf = [
         ngl.AnimKeyFrameFloat(0, 0),
@@ -95,6 +95,7 @@ def compute_particules(cfg):
 
     group_size = nb_particules / local_size
     program = ngl.ComputeProgram(_PARTICULES_COMPUTE % dict(local_size=local_size))
+    program.update_properties(odata=ngl.ResourceProps(writable=True))
     compute = ngl.Compute(nb_particules, 1, 1, program)
     compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
 
@@ -198,7 +199,7 @@ def compute_histogram(cfg, show_dbg_points=False):
     texture = ngl.Texture2D(width=size, height=size, data_src=texture_buffer)
     texture.set_format('r32g32b32a32_sfloat')
 
-    histogram_block = ngl.Block(layout='std430', label='histogram')
+    histogram_block = ngl.Block(layout='std140', label='histogram')
     histogram_block.add_fields(
         ngl.BufferUInt(hsize, label='r'),
         ngl.BufferUInt(hsize, label='g'),
@@ -223,6 +224,7 @@ def compute_histogram(cfg, show_dbg_points=False):
     group_size = size // local_size
     exec_histogram_shader = _COMPUTE_HISTOGRAM_EXEC % shader_params
     exec_histogram_program = ngl.ComputeProgram(exec_histogram_shader)
+    exec_histogram_program.update_properties(hist=ngl.ResourceProps(writable=True))
     exec_histogram = ngl.Compute(
         group_size,
         group_size,
@@ -280,7 +282,7 @@ def compute_animation(cfg):
     input_vertices = ngl.BufferVec3(data=vertices_data, label='vertices')
     output_vertices = ngl.BufferVec3(data=vertices_data, label='vertices')
     input_block = ngl.Block(fields=[input_vertices], layout='std140')
-    output_block = ngl.Block(fields=[output_vertices], layout='std430')
+    output_block = ngl.Block(fields=[output_vertices], layout='std140')
 
     rotate_animkf = [ngl.AnimKeyFrameFloat(0, 0),
                      ngl.AnimKeyFrameFloat(cfg.duration, 360)]
@@ -288,6 +290,7 @@ def compute_animation(cfg):
     transform = ngl.UniformMat4(transform=rotate)
 
     program = ngl.ComputeProgram(compute_shader)
+    program.update_properties(dst=ngl.ResourceProps(writable=True))
     compute = ngl.Compute(nb_vertices / (local_size ** 2), 1, 1, program)
     compute.update_resources(transform=transform, src=input_block, dst=output_block)
 

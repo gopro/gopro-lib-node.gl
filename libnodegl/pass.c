@@ -181,7 +181,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
      * Select buffer type. We prefer UBO over SSBO, but in the following
      * situations, UBO is not possible.
      */
-    int type = NGLI_TYPE_UNIFORM_BUFFER;
+    int type = block->type == NGLI_TYPE_NONE ? NGLI_TYPE_UNIFORM_BUFFER : block->type;
     if (block->layout == NGLI_BLOCK_LAYOUT_STD430) {
         LOG(DEBUG, "block %s has a std430 layout, declaring it as SSBO", name);
         type = NGLI_TYPE_STORAGE_BUFFER;

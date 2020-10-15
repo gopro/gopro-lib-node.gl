@@ -31,6 +31,12 @@ struct glcontext;
 struct pipeline_gl {
     struct pipeline parent;
 
+    struct darray uniform_descs;
+    struct darray texture_descs;
+    struct darray buffer_descs;
+    struct darray attribute_descs;
+    int nb_unbound_attributes;
+
     uint64_t used_texture_units;
     GLuint vao_id;
 };

@@ -102,12 +102,6 @@ struct pipeline {
     int type;
     struct pipeline_graphics graphics;
     const struct program *program;
-
-    struct darray uniform_descs;
-    struct darray texture_descs;
-    struct darray buffer_descs;
-    struct darray attribute_descs;
-    int nb_unbound_attributes;
 };
 
 struct pipeline *ngli_pipeline_create(struct gctx *gctx);

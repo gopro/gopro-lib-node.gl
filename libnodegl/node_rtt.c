@@ -414,27 +414,27 @@ static void rtt_draw(struct ngl_node *node)
         ctx->available_rendertargets[1],
     };
 
-    if (!ctx->bind_current_rendertarget) {
+    if (!ctx->begin_render_pass) {
         ngli_gctx_end_render_pass(gctx);
     }
 
     ctx->available_rendertargets[0] = s->available_rendertargets[0];
     ctx->available_rendertargets[1] = s->available_rendertargets[1];
     ctx->current_rendertarget = s->available_rendertargets[0];
-    ctx->bind_current_rendertarget = 1;
+    ctx->begin_render_pass = 1;
 
     ngli_node_draw(s->child);
 
-    if (ctx->bind_current_rendertarget) {
+    if (ctx->begin_render_pass) {
         ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
-        ctx->bind_current_rendertarget = 0;
+        ctx->begin_render_pass = 0;
     }
     ngli_gctx_end_render_pass(gctx);
 
     ctx->current_rendertarget = prev_rendertargets[1];
     ctx->available_rendertargets[0] = prev_rendertargets[0];
     ctx->available_rendertargets[1] = prev_rendertargets[1];
-    ctx->bind_current_rendertarget = 1;
+    ctx->begin_render_pass = 1;
 
     ngli_gctx_set_viewport(gctx, prev_vp);
 

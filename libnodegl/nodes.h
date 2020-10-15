@@ -85,7 +85,7 @@ struct ngl_ctx {
     struct ngl_config config;
     struct rendertarget *available_rendertargets[2];
     struct rendertarget *current_rendertarget;
-    int bind_current_rendertarget;
+    int begin_render_pass;
     struct darray modelview_matrix_stack;
     struct darray projection_matrix_stack;
     struct darray activitycheck_nodes;

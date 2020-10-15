@@ -671,10 +671,10 @@ static void text_draw(struct ngl_node *node)
     struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
     struct pipeline_desc *desc = &descs[ctx->rnode_pos->id];
 
-    if (ctx->bind_current_rendertarget) {
+    if (ctx->begin_render_pass) {
         struct gctx *gctx = ctx->gctx;
         ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
-        ctx->bind_current_rendertarget = 0;
+        ctx->begin_render_pass = 0;
     }
 
     struct pipeline_subdesc *bg_desc = &desc->bg;

@@ -75,7 +75,7 @@ int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t)
 
     if (scene) {
         struct ngl_ctx *ctx = scene->ctx;
-        struct rendertarget *rt = ngli_gctx_get_rendertarget(s);
+        struct rendertarget *rt = ngli_gctx_get_default_rendertarget(s);
         ctx->available_rendertargets[0] = rt;
         ctx->available_rendertargets[1] = rt;
         ctx->current_rendertarget = rt;
@@ -130,9 +130,9 @@ void ngli_gctx_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
     s->class->get_rendertarget_uvcoord_matrix(s, dst);
 }
 
-struct rendertarget *ngli_gctx_get_rendertarget(struct gctx *s)
+struct rendertarget *ngli_gctx_get_default_rendertarget(struct gctx *s)
 {
-    return s->class->get_rendertarget(s);
+    return s->class->get_default_rendertarget(s);
 }
 
 const struct rendertarget_desc *ngli_gctx_get_default_rendertarget_desc(struct gctx *s)

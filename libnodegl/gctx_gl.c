@@ -406,7 +406,7 @@ static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
     memcpy(dst, matrix, 4 * 4 * sizeof(float));
 }
 
-static struct rendertarget *gl_get_rendertarget(struct gctx *s)
+static struct rendertarget *gl_get_default_rendertarget(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     const struct ngl_config *config = &s->config;
@@ -502,7 +502,7 @@ const struct gctx_class ngli_gctx_gl = {
     .transform_projection_matrix      = gl_transform_projection_matrix,
     .get_rendertarget_uvcoord_matrix  = gl_get_rendertarget_uvcoord_matrix,
 
-    .get_rendertarget         = gl_get_rendertarget,
+    .get_default_rendertarget      = gl_get_default_rendertarget,
     .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
 
     .begin_render_pass        = gl_begin_render_pass,
@@ -569,7 +569,7 @@ const struct gctx_class ngli_gctx_gles = {
     .transform_projection_matrix      = gl_transform_projection_matrix,
     .get_rendertarget_uvcoord_matrix  = gl_get_rendertarget_uvcoord_matrix,
 
-    .get_rendertarget         = gl_get_rendertarget,
+    .get_default_rendertarget      = gl_get_default_rendertarget,
     .get_default_rendertarget_desc = gl_get_default_rendertarget_desc,
 
     .begin_render_pass        = gl_begin_render_pass,

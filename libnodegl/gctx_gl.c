@@ -545,7 +545,6 @@ const struct gctx_class ngli_gctx_gl = {
 
     .rendertarget_create      = ngli_rendertarget_gl_create,
     .rendertarget_init        = ngli_rendertarget_gl_init,
-    .rendertarget_resolve     = ngli_rendertarget_gl_resolve,
     .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
     .rendertarget_freep       = ngli_rendertarget_gl_freep,
 
@@ -614,7 +613,6 @@ const struct gctx_class ngli_gctx_gles = {
 
     .rendertarget_create      = ngli_rendertarget_gl_create,
     .rendertarget_init        = ngli_rendertarget_gl_init,
-    .rendertarget_resolve     = ngli_rendertarget_gl_resolve,
     .rendertarget_read_pixels = ngli_rendertarget_gl_read_pixels,
     .rendertarget_freep       = ngli_rendertarget_gl_freep,
 

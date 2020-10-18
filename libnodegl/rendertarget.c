@@ -32,11 +32,6 @@ int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_par
     return s->gctx->class->rendertarget_init(s, params);
 }
 
-void ngli_rendertarget_resolve(struct rendertarget *s)
-{
-    s->gctx->class->rendertarget_resolve(s);
-}
-
 void ngli_rendertarget_read_pixels(struct rendertarget *s, uint8_t *data)
 {
     s->gctx->class->rendertarget_read_pixels(s, data);

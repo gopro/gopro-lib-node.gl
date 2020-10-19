@@ -331,31 +331,30 @@ static int update_character_geometries(struct ngl_node *node)
     }
 
     if (nb_indices > s->nb_indices) { // need re-alloc
+        ngli_buffer_freep(&s->vertices);
+        ngli_buffer_freep(&s->uvcoords);
+        ngli_buffer_freep(&s->indices);
 
-            ngli_buffer_freep(&s->vertices);
-            ngli_buffer_freep(&s->uvcoords);
-            ngli_buffer_freep(&s->indices);
+        s->vertices = ngli_buffer_create(gctx);
+        s->uvcoords = ngli_buffer_create(gctx);
+        s->indices  = ngli_buffer_create(gctx);
+        if (!s->vertices || !s->uvcoords || !s->indices) {
+            ret = NGL_ERROR_MEMORY;
+            goto end;
+        }
 
-            s->vertices = ngli_buffer_create(gctx);
-            s->uvcoords = ngli_buffer_create(gctx);
-            s->indices  = ngli_buffer_create(gctx);
-            if (!s->vertices || !s->uvcoords || !s->indices) {
-                ret = NGL_ERROR_MEMORY;
-                goto end;
-            }
-
-            if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
-                (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
-                (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  NGLI_BUFFER_USAGE_DYNAMIC)) < 0)
-                goto end;
+        if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
+            (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
+            (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  NGLI_BUFFER_USAGE_DYNAMIC)) < 0)
+            goto end;
 
         struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
         const int nb_descs = ngli_darray_count(&s->pipeline_descs);
         for (int i = 0; i < nb_descs; i++) {
             struct pipeline_subdesc *desc = &descs[i].fg;
 
-                ngli_pipeline_update_attribute(desc->pipeline, 0, s->vertices);
-                ngli_pipeline_update_attribute(desc->pipeline, 1, s->uvcoords);
+            ngli_pipeline_update_attribute(desc->pipeline, 0, s->vertices);
+            ngli_pipeline_update_attribute(desc->pipeline, 1, s->uvcoords);
         }
     }
 

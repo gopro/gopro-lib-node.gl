@@ -47,7 +47,7 @@ struct ShaderCompiler {
         for (const string& path : glslFiles) fs::remove(path);
         for (const string& path : spvFiles) fs::remove(path);
         for (const string& path : spvMapFiles) fs::remove(path);
-        fs::remove(tmpDir);
+        //TODO fs::remove(tmpDir);
     }
     string compile(string src, const string& ext) {
         //patch source bindings
@@ -59,6 +59,11 @@ struct ShaderCompiler {
         glslFiles = { tmpFile };
         spvFiles = shaderTools.compileShaders(glslFiles, outDir, "glsl", "", ShaderTools::PATCH_SHADER_LAYOUTS_GLSL);
         spvMapFiles = shaderTools.generateShaderMaps(glslFiles, outDir, "glsl");
+#if defined(GRAPHICS_BACKEND_DIRECT3D12)
+        auto hlslFiles = shaderTools.convertShaders(spvFiles, outDir, "hlsl");
+        auto hlsllibFiles = shaderTools.compileShaders(hlslFiles, outDir, "hlsl");
+        auto hlslMapFiles = shaderTools.generateShaderMaps(hlslFiles, outDir, "hlsl");
+#endif
         return FileUtil::splitExt(spvFiles[0])[0];
     }
     string tmpDir;

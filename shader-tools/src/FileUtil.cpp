@@ -19,6 +19,8 @@
  * under the License.
  */
 #include "FileUtil.h"
+#include "File.h"
+#include "DebugUtil.h"
 #include <fstream>
 #include <cstring>
 #include <cassert>
@@ -33,7 +35,7 @@ bool FileUtil::getmtime(const string& filename, fs::file_time_type &mtime) {
     return true;
 }
 
-bool FileUtil::srcFileChanged(const string& srcFileName, const string& targetFileName) {
+bool FileUtil::srcFileNewerThanOutFile(const string& srcFileName, const string& targetFileName) {
     fs::file_time_type srcTimeStamp, targetTimeStamp;
     getmtime(srcFileName, srcTimeStamp);
     if (!getmtime(targetFileName, targetTimeStamp)) return true;
@@ -47,15 +49,9 @@ string FileUtil::tempDir() {
 }
 
 string FileUtil::readFile(const string& path) {
-    string contents;
-    ifstream in(path, ifstream::binary | ios::ate);
-    assert(in);
-    auto size = in.tellg();
-    in.seekg(0);
-    contents.resize(size);
-    in.read(&contents[0], size);
-    in.close();
-    return contents;
+    File file;
+    file.read(path);
+    return string(file.data.get(), file.size);
 }
 
 void FileUtil::writeFile(const string& path, const string& contents) {

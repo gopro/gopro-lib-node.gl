@@ -123,7 +123,7 @@ int ShaderTools::compileShaderGLSL(string filename, const string& defines, const
     filename = fs::path(filename).filename().string();
     string inFileName = fs::path(parentPath + "/" + filename).make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".spv").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     string contents = preprocess(parentPath, inFileName);
     if (flags & PATCH_SHADER_LAYOUTS_GLSL) contents = patchShaderLayoutsGLSL(parentPath, inFileName);
@@ -148,7 +148,7 @@ int ShaderTools::compileShaderMTL(const string& file, const string& defines, str
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir +"/" + strippedFilename + ".metal").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + strippedFilename + ".metallib").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     string debugFlags = "-gline-tables-only -MO";
     int result = cmd(
@@ -167,7 +167,7 @@ int ShaderTools::compileShaderHLSL(const string& file, const string& defines, st
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir+"/"+strippedFilename +".hlsl").make_preferred().string();
     string outFileName = fs::path(outDir +"/" +strippedFilename +".dxc").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     string shaderModel = "";
     if (strstr(inFileName.c_str(), ".vert")) shaderModel = "vs_5_0";
@@ -186,7 +186,7 @@ int ShaderTools::convertShader(const string& file, const string& extraArgs, stri
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + strippedFilename + (fmt == "msl" ? ".metal" : ".hlsl")).make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     string args = (fmt == "msl" ? "--msl" : "--hlsl --shader-model 60") + extraArgs;
     int result = cmd(SPIRV_CROSS + " " + args + " " + inFileName + " " + "--output" + " " + outFileName);
@@ -202,7 +202,7 @@ int ShaderTools::genShaderReflectionGLSL(const string& file, string outDir) {
     string filename = fs::path(file).filename().string();
     string inFileName = fs::path(outDir + "/" + filename + ".spv").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".spv.reflect").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
     int result = cmd(SPIRV_CROSS+" "+inFileName+" --reflect --output "+outFileName);
 
     inFileName = fs::path(outDir + "/" + filename + ".spv.reflect").make_preferred().string();
@@ -217,7 +217,7 @@ int ShaderTools::genShaderReflectionGLSL(const string& file, string outDir) {
     outFile.close();
 
     if (result == 0)
-        LOG("generated reflection map for file: %s", file.c_str());
+        LOG("generated reflection map: %s", outFileName.c_str());
     else {
         ERR("cannot generate reflection map for file: %s", file.c_str());
     }
@@ -301,7 +301,7 @@ json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& re
         for (json& input: *inputs) {
             regex p(input["name"].get<string>() + "\\s*:\\s*([^;]*);");
             vector<smatch> hlslReflectData = RegexUtil::findAll(p, hlslContents);
-            input["semantic"] = stoi(hlslReflectData[0].str(0));
+            input["semantic"] = hlslReflectData[0].str(1);
         }
     }
 
@@ -321,8 +321,8 @@ json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& re
     //patch descriptor bindings
     set<int> sets;
     set<string> samplerTypes = {"sampler2D", "sampler3D", "samplerCube"};
-    for (const int& setValue: descriptors) {
-        int set = setValue;
+    for (uint32_t set = 0; set < descriptors.size(); set++) {
+        if (descriptors[set].is_null()) continue;
         json& desc = descriptors[set];
         while (sets.find(set) != sets.end()) set += 1;
         desc["set"] = set;
@@ -338,7 +338,7 @@ int ShaderTools::genShaderReflectionMSL(const string& file, string outDir) {
     string strippedFilename = splitFilename[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv.reflect").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + strippedFilename + ".metal.reflect").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     json reflectData = json::parse(readFile(inFileName));
 
@@ -355,7 +355,7 @@ int ShaderTools::genShaderReflectionMSL(const string& file, string outDir) {
     outFile<<contents;
     outFile.close();
 
-    LOG("generated reflection map for file: %s", file.c_str());
+    LOG("generated reflection map: %s", outFileName.c_str());
     return 0;
 }
 
@@ -364,11 +364,11 @@ int ShaderTools::genShaderReflectionHLSL(const string& file, string outDir) {
     string strippedFilename = splitFilename[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv.reflect").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + strippedFilename + ".hlsl.reflect").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     json reflectData = json::parse(readFile(inFileName));
 
-    string ext = FileUtil::splitExt(fs::path(file).filename().string())[1];
+    string ext = FileUtil::splitExt(splitFilename[0])[1];
     reflectData = patchShaderReflectionDataHLSL(file, reflectData, ext);
     if (reflectData.empty()) {
         ERR("cannot generate reflection map for file: %s", file.c_str());
@@ -381,7 +381,7 @@ int ShaderTools::genShaderReflectionHLSL(const string& file, string outDir) {
     outFile<<contents;
     outFile.close();
 
-    LOG("generated reflection map for file: %s", file.c_str());
+    LOG("generated reflection map: %s", outFileName.c_str());
     return 0;
 }
 
@@ -544,10 +544,9 @@ int ShaderTools::generateShaderMapGLSL(const string& file, string outDir, vector
 
     string inFileName = fs::path(outDir + "/" + filename + ".spv.reflect").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".spv.map").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     auto reflectData = json::parse(readFile(inFileName));
-    fs::remove(inFileName);
     string contents = parseReflectionData(reflectData, ext);
 
     ofstream outFile(outFileName);
@@ -567,10 +566,9 @@ int ShaderTools::generateShaderMapMSL(const string& file, string outDir, vector<
 
     string inFileName = fs::path(outDir + "/" + filename + ".metal.reflect").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".metal.map").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     auto reflectData = json::parse(readFile(inFileName));
-    fs::remove(inFileName);
     string contents = parseReflectionData(reflectData, ext);
 
     ofstream outFile(outFileName);
@@ -586,14 +584,13 @@ int ShaderTools::generateShaderMapHLSL(const string& file, string outDir, vector
     string dataPath = fs::path(file).parent_path().string();
     auto splitFilename = FileUtil::splitExt(fs::path(file).filename().string());
     string filename = splitFilename[0];
-    string ext = splitFilename[1];
+    string ext = FileUtil::splitExt(splitFilename[0])[1];
 
     string inFileName = fs::path(outDir + "/" + filename + ".hlsl.reflect").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".hlsl.map").make_preferred().string();
-    if (!FileUtil::srcFileChanged(inFileName, outFileName)) return 0;
+    if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
     auto reflectData = json::parse(readFile(inFileName));
-    fs::remove(inFileName);
     string contents = parseReflectionData(reflectData, ext);
 
     ofstream outFile(outFileName);

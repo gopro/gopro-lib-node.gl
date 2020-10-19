@@ -88,8 +88,9 @@ int ngli_pipeline_ngfx_init(struct pipeline *s, const struct pipeline_desc_param
     graphicstate *gs = &graphics->state;
     gctx_ngfx* gctx = (gctx_ngfx*)pipeline->parent.gctx;
 
-    const struct rendertarget_desc *rt_desc = &graphics->rt_desc;
-    const struct attachment_desc *attachment_desc = &rt_desc->colors[0];
+    const rendertarget_desc *rt_desc = &graphics->rt_desc;
+    const attachment_desc *color_attachment_desc = &rt_desc->colors[0];
+    const attachment_desc* depth_attachment_desc = &rt_desc->depth_stencil;
 
     if (params->type == NGLI_PIPELINE_TYPE_GRAPHICS) {
         int ret = build_attribute_descs(s, params);
@@ -117,7 +118,7 @@ int ngli_pipeline_ngfx_init(struct pipeline *s, const struct pipeline_desc_param
 
         state.cullModeFlags = to_ngfx_cull_mode(gs->cull_mode);
 
-        state.numSamples = glm::max(attachment_desc->samples, 1);
+        state.numSamples = glm::max(color_attachment_desc->samples, 1);
 
         //Handle attribute stride mismatch
         for (int j = 0; j<params->nb_attributes; j++) {
@@ -133,7 +134,8 @@ int ngli_pipeline_ngfx_init(struct pipeline *s, const struct pipeline_desc_param
             gctx->graphics_context,
             state,
             program->vs, program->fs,
-            PIXELFORMAT_UNDEFINED, PIXELFORMAT_UNDEFINED,
+            to_ngfx_format(color_attachment_desc->format), 
+            depth_attachment_desc ? to_ngfx_format(depth_attachment_desc->format) : PIXELFORMAT_UNDEFINED,
             get_instance_attributes(params->attributes_desc, params->nb_attributes)
         );
     }

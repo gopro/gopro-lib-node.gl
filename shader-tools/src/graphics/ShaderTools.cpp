@@ -369,7 +369,8 @@ int ShaderTools::genShaderReflectionHLSL(const string& file, string outDir) {
     json reflectData = json::parse(readFile(inFileName));
 
     string ext = FileUtil::splitExt(splitFilename[0])[1];
-    reflectData = patchShaderReflectionDataHLSL(file, reflectData, ext);
+    string hlslFile = fs::path(outDir + "/" + strippedFilename + ".hlsl").make_preferred().string();
+    reflectData = patchShaderReflectionDataHLSL(hlslFile, reflectData, ext);
     if (reflectData.empty()) {
         ERR("cannot generate reflection map for file: %s", file.c_str());
         return 1;

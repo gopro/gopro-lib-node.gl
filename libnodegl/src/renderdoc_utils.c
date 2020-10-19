@@ -1,5 +1,6 @@
 #include "renderdoc_utils.h"
 #include "renderdoc_app.h"
+#include "log.h"
 #ifdef _WIN32
 #include <Windows.h>
 #else
@@ -13,7 +14,7 @@ static RENDERDOC_API_1_4_1 *rdoc_api = NULL;
 void init_renderdoc() {
 #ifdef _WIN32
     // At init, on windows
-    HMODULE mod = GetModuleHandleA("renderdoc.dll");
+    HMODULE mod = LoadLibraryA("renderdoc.dll");
     assert(mod);
     pRENDERDOC_GetAPI RENDERDOC_GetAPI =
         (pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");

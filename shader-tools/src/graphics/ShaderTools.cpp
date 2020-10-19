@@ -182,13 +182,13 @@ int ShaderTools::compileShaderHLSL(const string& file, const string& defines, st
     return result;
 }
 
-int ShaderTools::convertShader(const string& file, const string& extraArgs, string outDir, string fmt, vector<string>& outFiles) {
+int ShaderTools::convertShader(const string& file, const string& extraArgs, string outDir, Format fmt, vector<string>& outFiles) {
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv").make_preferred().string();
-    string outFileName = fs::path(outDir + "/" + strippedFilename + (fmt == "msl" ? ".metal" : ".hlsl")).make_preferred().string();
+    string outFileName = fs::path(outDir + "/" + strippedFilename + (fmt == FORMAT_MSL ? ".metal" : ".hlsl")).make_preferred().string();
     if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
 
-    string args = (fmt == "msl" ? "--msl" : "--hlsl --shader-model 60") + extraArgs;
+    string args = (fmt == FORMAT_MSL ? "--msl" : "--hlsl --shader-model 60") + extraArgs;
     int result = cmd(SPIRV_CROSS + " " + args + " " + inFileName + " " + "--output" + " " + outFileName);
     if (result == 0)
         LOG("converted file: %s to %s", inFileName.c_str(), outFileName.c_str());
@@ -601,21 +601,21 @@ int ShaderTools::generateShaderMapHLSL(const string& file, string outDir, vector
     return 0;
 }
 
-vector<string> ShaderTools::convertShaders(const vector<string> &files, string outDir, string fmt) {
+vector<string> ShaderTools::convertShaders(const vector<string> &files, string outDir, Format fmt) {
     vector<string> outFiles;
     for (const string& file: files) convertShader(file, "", outDir, fmt, outFiles);
     return outFiles;
 }
 
-vector<string> ShaderTools::compileShaders(const vector<string>& files, string outDir, string fmt, string defines, int flags) {
+vector<string> ShaderTools::compileShaders(const vector<string>& files, string outDir, Format fmt, string defines, int flags) {
 #ifdef GRAPHICS_BACKEND_VULKAN
     defines += " -DGRAPHICS_BACKEND_VULKAN=1";
 #endif
     vector<string> outFiles;
     for (const string& file: files) {
-        if (fmt == "glsl") compileShaderGLSL(file, defines, outDir, outFiles, flags);
-        else if (fmt == "msl") compileShaderMTL(file, defines, outDir, outFiles);
-        else if (fmt == "hlsl") compileShaderHLSL(file, defines, outDir, outFiles);
+        if (fmt == FORMAT_GLSL) compileShaderGLSL(file, defines, outDir, outFiles, flags);
+        else if (fmt == FORMAT_MSL) compileShaderMTL(file, defines, outDir, outFiles);
+        else if (fmt == FORMAT_HLSL) compileShaderHLSL(file, defines, outDir, outFiles);
     }
     return outFiles;
 }
@@ -633,12 +633,12 @@ void ShaderTools::applyPatches(const vector<string> &patchFiles, string outDir) 
     }
 }
 
-vector<string> ShaderTools::generateShaderMaps(const vector<string>& files, string outDir, string fmt) {
+vector<string> ShaderTools::generateShaderMaps(const vector<string>& files, string outDir, Format fmt) {
     vector<string> outFiles;
     for (const string& file: files) {
-        if (fmt == "glsl") generateShaderMapGLSL(file, outDir, outFiles);
-        else if (fmt == "msl") generateShaderMapMSL(file, outDir, outFiles);
-        else if (fmt == "hlsl") generateShaderMapHLSL(file, outDir, outFiles);
+        if (fmt == FORMAT_GLSL) generateShaderMapGLSL(file, outDir, outFiles);
+        else if (fmt == FORMAT_MSL) generateShaderMapMSL(file, outDir, outFiles);
+        else if (fmt == FORMAT_HLSL) generateShaderMapHLSL(file, outDir, outFiles);
     }
     return outFiles;
 }

@@ -33,9 +33,10 @@ class ShaderTools {
 public:
     ShaderTools(bool verbose = false);
     enum { PATCH_SHADER_LAYOUTS_GLSL = 1};
-    std::vector<std::string> compileShaders(const std::vector<std::string>& files, std::string outDir, std::string fmt = "glsl", std::string defines = "", int flags = 0);
-    std::vector<std::string> convertShaders(const std::vector<std::string> &files, std::string outDir, std::string fmt);
-    std::vector<std::string> generateShaderMaps(const std::vector<std::string>& files, std::string outDir, std::string fmt);
+    enum Format { FORMAT_GLSL, FORMAT_HLSL, FORMAT_MSL };
+    std::vector<std::string> compileShaders(const std::vector<std::string>& files, std::string outDir, Format fmt = FORMAT_GLSL, std::string defines = "", int flags = 0);
+    std::vector<std::string> convertShaders(const std::vector<std::string> &files, std::string outDir, Format fmt);
+    std::vector<std::string> generateShaderMaps(const std::vector<std::string>& files, std::string outDir, Format fmt);
 private:
     void applyPatches(const std::vector<std::string> &patchFiles, std::string outDir);
     int cmd(std::string str);
@@ -43,7 +44,7 @@ private:
                           std::vector<std::string>& outFiles, int flags = 0);
     int compileShaderHLSL(const std::string& file, const std::string& defines, std::string outDir, std::vector<std::string>& outFiles);
     int compileShaderMTL(const std::string& file, const std::string& defines, std::string outDir, std::vector<std::string> &outFiles);
-    int convertShader(const std::string& file, const std::string& extraArgs, std::string outDir, std::string fmt, std::vector<std::string>& outFiles);
+    int convertShader(const std::string& file, const std::string& extraArgs, std::string outDir, Format fmt, std::vector<std::string>& outFiles);
     bool findIncludeFile(const std::string& includeFilename, const std::vector<std::string> &includePaths,
         std::string& includeFile);
     struct MetalReflectData {

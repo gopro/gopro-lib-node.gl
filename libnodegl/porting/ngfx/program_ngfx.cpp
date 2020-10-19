@@ -47,6 +47,11 @@ struct ShaderCompiler {
         for (const string& path : glslFiles) fs::remove(path);
         for (const string& path : spvFiles) fs::remove(path);
         for (const string& path : spvMapFiles) fs::remove(path);
+#if defined(GRAPHICS_BACKEND_DIRECT3D12)
+        for (const string& path : hlslFiles) fs::remove(path);
+        for (const string& path : dxcFiles) fs::remove(path);
+        for (const string& path : hlslMapFiles) fs::remove(path);
+#endif
         //TODO fs::remove(tmpDir);
     }
     string compile(string src, const string& ext) {
@@ -60,14 +65,23 @@ struct ShaderCompiler {
         spvFiles = shaderTools.compileShaders(glslFiles, outDir, "glsl", "", ShaderTools::PATCH_SHADER_LAYOUTS_GLSL);
         spvMapFiles = shaderTools.generateShaderMaps(glslFiles, outDir, "glsl");
 #if defined(GRAPHICS_BACKEND_DIRECT3D12)
-        auto hlslFiles = shaderTools.convertShaders(spvFiles, outDir, "hlsl");
-        auto hlsllibFiles = shaderTools.compileShaders(hlslFiles, outDir, "hlsl");
-        auto hlslMapFiles = shaderTools.generateShaderMaps(hlslFiles, outDir, "hlsl");
+        hlslFiles = shaderTools.convertShaders(spvFiles, outDir, "hlsl");
+        dxcFiles = shaderTools.compileShaders(hlslFiles, outDir, "hlsl");
+        hlslMapFiles = shaderTools.generateShaderMaps(dxcFiles, outDir, "hlsl");
+#elif defined(GRAPHICS_BACKEND_METAL)
+        mtlFiles = shaderTools.convertShaders(spvFiles, outDir, "msl");
+        mtllibFiles = shaderTools.compileShaders(mtlFiles, outDir, "msl");
+        mtlMapFiles = shaderTools.generateShaderMaps(mtllibFiles, outDir, "msl");
 #endif
         return FileUtil::splitExt(spvFiles[0])[0];
     }
     string tmpDir;
     std::vector<string> glslFiles, spvFiles, spvMapFiles;
+#if defined(GRAPHICS_BACKEND_DIRECT3D12)
+    std::vector<string> hlslFiles, dxcFiles, hlslMapFiles;
+#elif defined(GRAPHICS_BACKEND_METAL)
+    std::vector<string> mtlFiles, mtllibFiles, mtlMapFiles;
+#endif
 };
 
 int ngli_program_ngfx_init(struct program *s, const char *vertex, const char *fragment, const char *compute) {

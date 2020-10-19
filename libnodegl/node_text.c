@@ -330,10 +330,8 @@ static int update_character_geometries(struct ngl_node *node)
         px++;
     }
 
-    if (nb_indices != s->nb_indices) {
-        const int need_realloc = nb_indices > s->nb_indices;
+    if (nb_indices > s->nb_indices) { // need re-alloc
 
-        if (need_realloc) {
             ngli_buffer_freep(&s->vertices);
             ngli_buffer_freep(&s->uvcoords);
             ngli_buffer_freep(&s->indices);
@@ -350,17 +348,14 @@ static int update_character_geometries(struct ngl_node *node)
                 (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
                 (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  NGLI_BUFFER_USAGE_DYNAMIC)) < 0)
                 goto end;
-        }
 
         struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
         const int nb_descs = ngli_darray_count(&s->pipeline_descs);
         for (int i = 0; i < nb_descs; i++) {
             struct pipeline_subdesc *desc = &descs[i].fg;
 
-            if (need_realloc) {
                 ngli_pipeline_update_attribute(desc->pipeline, 0, s->vertices);
                 ngli_pipeline_update_attribute(desc->pipeline, 1, s->uvcoords);
-            }
         }
     }
 

@@ -42,6 +42,10 @@ bool FileUtil::srcFileChanged(const string& srcFileName, const string& targetFil
     return false;
 }
 
+string FileUtil::tempDir() {
+    return fs::canonical(fs::temp_directory_path()).string();
+}
+
 string FileUtil::readFile(const string& path) {
     string contents;
     ifstream in(path, ifstream::binary | ios::ate);

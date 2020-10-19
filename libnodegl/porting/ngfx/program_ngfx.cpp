@@ -32,7 +32,7 @@
 using namespace ngfx;
 using namespace std;
 namespace fs = std::filesystem;
-static ShaderTools shaderTools(false); //true);
+static ShaderTools shaderTools(true); //false
 
 struct program *ngli_program_ngfx_create(struct gctx *gctx) {
     program_ngfx *s = (program_ngfx*)ngli_calloc(1, sizeof(*s));
@@ -51,9 +51,9 @@ struct ShaderCompiler {
     }
     string compile(string src, const string& ext) {
         //patch source bindings
-        tmpDir = fs::temp_directory_path().string() + "/" + "nodegl" + "/" + to_string(ProcessUtil::getPID());
+        tmpDir = fs::path(FileUtil::tempDir() + "/" + "nodegl" + "/" + to_string(ProcessUtil::getPID())).make_preferred().string();
         fs::create_directories(tmpDir);
-        string tmpFile = tmpDir + "/" + "tmp" + ext;
+        string tmpFile = fs::path(tmpDir + "/" + "tmp" + ext).make_preferred().string();
         FileUtil::writeFile(tmpFile, src);
         string outDir = tmpDir;
         glslFiles = { tmpFile };

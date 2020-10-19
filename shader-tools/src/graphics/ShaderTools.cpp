@@ -106,8 +106,9 @@ string ShaderTools::patchShaderLayoutsGLSL(const string& dataPath, const string&
     while (std::getline(sstream, line)) {
         //Patch GLSL shader layouts
         smatch g;
+
         bool matchLayout = regex_search(line, g,
-            regex("^(.*)" "layout\\s*\\(" "([^)]*)" "binding[\\s]*=[\\s]*" "([\\d]+)" "([^)]*)" "\\)" "(.*)$"));
+            regex("^(.*)" "layout\\s*\\(" "([^)]*)" "binding[\\s]*=[\\s]*" "([\\d]+)" "([^)]*)" "\\)" "(.*)\r*$"));
         if (matchLayout) {
             contents += g[1].str() + "layout(" + g[2].str() + "set = " + g[3].str() + ", binding = 0" + g[4].str() + ")" + g[5].str() + "\n";
         }

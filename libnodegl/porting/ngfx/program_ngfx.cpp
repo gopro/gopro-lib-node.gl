@@ -62,16 +62,16 @@ struct ShaderCompiler {
         FileUtil::writeFile(tmpFile, src);
         string outDir = tmpDir;
         glslFiles = { tmpFile };
-        spvFiles = shaderTools.compileShaders(glslFiles, outDir, "glsl", "", ShaderTools::PATCH_SHADER_LAYOUTS_GLSL);
-        spvMapFiles = shaderTools.generateShaderMaps(glslFiles, outDir, "glsl");
+        spvFiles = shaderTools.compileShaders(glslFiles, outDir, ShaderTools::FORMAT_GLSL, "", ShaderTools::PATCH_SHADER_LAYOUTS_GLSL);
+        spvMapFiles = shaderTools.generateShaderMaps(glslFiles, outDir, ShaderTools::FORMAT_GLSL);
 #if defined(GRAPHICS_BACKEND_DIRECT3D12)
-        hlslFiles = shaderTools.convertShaders(spvFiles, outDir, "hlsl");
-        dxcFiles = shaderTools.compileShaders(hlslFiles, outDir, "hlsl");
-        hlslMapFiles = shaderTools.generateShaderMaps(dxcFiles, outDir, "hlsl");
+        hlslFiles = shaderTools.convertShaders(spvFiles, outDir, ShaderTools::FORMAT_HLSL);
+        dxcFiles = shaderTools.compileShaders(hlslFiles, outDir, ShaderTools::FORMAT_HLSL);
+        hlslMapFiles = shaderTools.generateShaderMaps(dxcFiles, outDir, ShaderTools::FORMAT_HLSL);
 #elif defined(GRAPHICS_BACKEND_METAL)
-        mtlFiles = shaderTools.convertShaders(spvFiles, outDir, "msl");
-        mtllibFiles = shaderTools.compileShaders(mtlFiles, outDir, "msl");
-        mtlMapFiles = shaderTools.generateShaderMaps(mtllibFiles, outDir, "msl");
+        mtlFiles = shaderTools.convertShaders(spvFiles, outDir, ShaderTools::FORMAT_MSL);
+        mtllibFiles = shaderTools.compileShaders(mtlFiles, outDir, ShaderTools::FORMAT_MSL);
+        mtlMapFiles = shaderTools.generateShaderMaps(mtllibFiles, outDir, ShaderTools::FORMAT_MSL);
 #endif
         return FileUtil::splitExt(spvFiles[0])[0];
     }

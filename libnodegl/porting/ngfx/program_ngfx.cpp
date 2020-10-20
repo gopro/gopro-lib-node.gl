@@ -32,7 +32,9 @@
 using namespace ngfx;
 using namespace std;
 namespace fs = std::filesystem;
-static ShaderTools shaderTools(true); //false
+enum { DEBUG_FLAG_VERBOSE = 1, DEBUG_FLAG_KEEP_INTERMEDIATE_FILES = 2 };
+static int DEBUG_FLAGS = 0;
+static ShaderTools shaderTools(DEBUG_FLAGS & DEBUG_FLAG_VERBOSE);
 
 struct program *ngli_program_ngfx_create(struct gctx *gctx) {
     program_ngfx *s = (program_ngfx*)ngli_calloc(1, sizeof(*s));
@@ -44,21 +46,24 @@ struct program *ngli_program_ngfx_create(struct gctx *gctx) {
 
 struct ShaderCompiler {
     ~ShaderCompiler() {
-        for (const string& path : glslFiles) fs::remove(path);
-        for (const string& path : spvFiles) fs::remove(path);
-        for (const string& path : spvMapFiles) fs::remove(path);
+        if (!(DEBUG_FLAGS & DEBUG_FLAG_KEEP_INTERMEDIATE_FILES)) {
+            for (const string& path : glslFiles) fs::remove(path);
+            for (const string& path : spvFiles) fs::remove(path);
+            for (const string& path : spvMapFiles) fs::remove(path);
 #if defined(GRAPHICS_BACKEND_DIRECT3D12)
-        for (const string& path : hlslFiles) fs::remove(path);
-        for (const string& path : dxcFiles) fs::remove(path);
-        for (const string& path : hlslMapFiles) fs::remove(path);
+            for (const string& path : hlslFiles) fs::remove(path);
+            for (const string& path : dxcFiles) fs::remove(path);
+            for (const string& path : hlslMapFiles) fs::remove(path);
 #endif
-        //TODO fs::remove(tmpDir);
+            //TODO fs::remove(tmpDir);
+        }
     }
     string compile(string src, const string& ext) {
+        static int tmpIndex = 0;
         //patch source bindings
         tmpDir = fs::path(FileUtil::tempDir() + "/" + "nodegl" + "/" + to_string(ProcessUtil::getPID())).make_preferred().string();
         fs::create_directories(tmpDir);
-        string tmpFile = fs::path(tmpDir + "/" + "tmp" + ext).make_preferred().string();
+        string tmpFile = fs::path(tmpDir + "/" + "tmp" + to_string(tmpIndex++) + ext).make_preferred().string();
         FileUtil::writeFile(tmpFile, src);
         string outDir = tmpDir;
         glslFiles = { tmpFile };

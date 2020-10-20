@@ -111,6 +111,9 @@ string(REPLACE "/O2" "/Od" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_REL
 MESSAGE(STATUS "Enabling Parallel Build")
 string(APPEND CMAKE_C_FLAGS_RELWITHDEBINFO " /MP")
 string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " /MP")
+MESSAGE(STATUS "Enable Debug Assertions")
+string(REPLACE "/DNDEBUG" "" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+string(REPLACE "/DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message(STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif()
 
@@ -123,7 +126,7 @@ add_subdirectory(shader-tools)
 function (define_custom_command name cmd working_dir)
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/${name}.task
   COMMAND ${cmd}
-  COMMAND touch "${CMAKE_BINARY_DIR}/${name}.task"
+  #COMMAND touch "${CMAKE_BINARY_DIR}/${name}.task"
   WORKING_DIRECTORY ${working_dir}
   COMMENT "${name}"
   VERBATIM
@@ -135,10 +138,14 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/linux/build_python_env.sh
         ${CMAKE_CURRENT_SOURCE_DIR}
     )
+    add_custom_target(build_python_env DEPENDS ${CMAKE_BINARY_DIR}/build_python_env.task)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    define_custom_command(build_pynodegl
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win64/build_pynodegl.sh
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    add_custom_target(build_pynodegl DEPENDS ${CMAKE_BINARY_DIR}/build_pynodegl.task)
     define_custom_command(build_python_env
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win64/build_python_env.sh
         ${CMAKE_CURRENT_SOURCE_DIR})
+    add_custom_target(build_python_env DEPENDS ${CMAKE_BINARY_DIR}/build_python_env.task)
 endif()
-
-add_custom_target(build_python_env DEPENDS ${CMAKE_BINARY_DIR}/build_python_env.task)

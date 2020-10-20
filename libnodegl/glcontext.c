@@ -25,7 +25,7 @@
 
 #include "bstr.h"
 #include "glcontext.h"
-#include "limits.h"
+#include "limit.h"
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"

@@ -25,7 +25,7 @@
 #include "buffer.h"
 #include "feature.h"
 #include "gtimer.h"
-#include "limits.h"
+#include "limit.h"
 #include "nodegl.h"
 #include "pipeline.h"
 #include "rendertarget.h"

@@ -26,7 +26,7 @@
 
 #include "feature.h"
 #include "glfunctions.h"
-#include "limits.h"
+#include "limit.h"
 #include "nodegl.h"
 
 struct glcontext_class;

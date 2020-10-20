@@ -22,7 +22,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
 
 #include "hmap.h"
 #include "log.h"

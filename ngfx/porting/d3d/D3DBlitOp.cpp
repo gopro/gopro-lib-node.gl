@@ -24,6 +24,7 @@
 #include "src/graphics/BufferUtil.h"
 #include "porting/d3d/D3DGraphics.h"
 #include "porting/d3d/D3DDebugUtil.h"
+#include "graphics/Config.h"
 #include <glm/gtc/type_ptr.hpp>
 #include "DebugUtil.h"
 using namespace ngfx;
@@ -62,8 +63,8 @@ void D3DBlitOp::createPipeline() {
     state.primitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     auto device = ctx->device;
     graphicsPipeline = (D3DGraphicsPipeline*)GraphicsPipeline::create(ctx, state,
-        VertexShaderModule::create(device, "d3dBlitOp.vert").get(),
-        FragmentShaderModule::create(device, "d3dBlitOp.frag").get(),
+        VertexShaderModule::create(device, NGFX_DATA_DIR "/d3dBlitOp.vert").get(),
+        FragmentShaderModule::create(device, NGFX_DATA_DIR "/d3dBlitOp.frag").get(),
         ctx->surfaceFormat, ctx->depthFormat
     );
     ctx->pipelineCache->add(key, graphicsPipeline);

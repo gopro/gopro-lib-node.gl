@@ -49,8 +49,8 @@ void DrawColorOp::createPipeline() {
     state.primitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     auto device = ctx->device;
     graphicsPipeline = GraphicsPipeline::create(ctx, state,
-        VertexShaderModule::create(device, "drawColor.vert").get(),
-        FragmentShaderModule::create(device, "drawColor.frag").get(),
+        VertexShaderModule::create(device, NGFX_DATA_DIR "/drawColor.vert").get(),
+        FragmentShaderModule::create(device, NGFX_DATA_DIR "/drawColor.frag").get(),
         ctx->surfaceFormat, ctx->depthFormat
     );
     ctx->pipelineCache->add(key, graphicsPipeline);

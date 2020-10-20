@@ -51,8 +51,8 @@ void DrawTextureOp::createPipeline() {
     state.primitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     auto device = ctx->device;
     graphicsPipeline = GraphicsPipeline::create(ctx, state,
-        VertexShaderModule::create(device, "drawTexture.vert").get(),
-        FragmentShaderModule::create(device, "drawTexture.frag").get(),
+        VertexShaderModule::create(device, NGFX_DATA_DIR "/drawTexture.vert").get(),
+        FragmentShaderModule::create(device, NGFX_DATA_DIR "/drawTexture.frag").get(),
         ctx->surfaceFormat, ctx->depthFormat
     );
     ctx->pipelineCache->add(key, graphicsPipeline);

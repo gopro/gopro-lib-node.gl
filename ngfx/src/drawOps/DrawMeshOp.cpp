@@ -69,8 +69,8 @@ void DrawMeshOp::createPipeline() {
     state.depthWriteEnable = true;
     auto device = ctx->device;
     graphicsPipeline = GraphicsPipeline::create(ctx, state,
-        VertexShaderModule::create(device, "drawMesh.vert").get(),
-        FragmentShaderModule::create(device, "drawMesh.frag").get(),
+        VertexShaderModule::create(device, NGFX_DATA_DIR "/drawMesh.vert").get(),
+        FragmentShaderModule::create(device, NGFX_DATA_DIR "/drawMesh.frag").get(),
         ctx->surfaceFormat, ctx->depthFormat
     );
     ctx->pipelineCache->add(key, graphicsPipeline);

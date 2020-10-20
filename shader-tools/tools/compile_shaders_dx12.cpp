@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     const vector<string> extensions = {".vert", ".frag", ".comp"};
     auto glslFiles = FileUtil::findFiles(paths, extensions);
     if (argc == 2) glslFiles = FileUtil::filterFiles(glslFiles, argv[1]);
-    string outDir = "cmake-build-debug";
+    string outDir = "cmake-build-debug/ngfx";
     ShaderTools shaderTools(true);
     string defines = "-DGRAPHICS_BACKEND_DIRECTX12=1";
     auto spvFiles = shaderTools.compileShaders(glslFiles, outDir, ShaderTools::FORMAT_GLSL);

@@ -33,7 +33,7 @@ using namespace ngfx;
 using namespace std;
 namespace fs = std::filesystem;
 enum { DEBUG_FLAG_VERBOSE = 1, DEBUG_FLAG_KEEP_INTERMEDIATE_FILES = 2 };
-static int DEBUG_FLAGS = 0;
+static int DEBUG_FLAGS = DEBUG_FLAG_VERBOSE | DEBUG_FLAG_KEEP_INTERMEDIATE_FILES; // 0;
 static ShaderTools shaderTools(DEBUG_FLAGS & DEBUG_FLAG_VERBOSE);
 
 struct program *ngli_program_ngfx_create(struct gctx *gctx) {

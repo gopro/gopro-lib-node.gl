@@ -247,14 +247,18 @@ int ngli_pipeline_ngfx_update_texture(struct pipeline *s, int index, struct text
 static void bind_buffers(CommandBuffer *cmd_buf, pipeline *s) {
     struct gctx_ngfx *gctx_ngfx = (struct gctx_ngfx *)s->gctx;
     int nb_buffers = ngli_darray_count(&s->buffers);
+    program_ngfx *program = (program_ngfx *)s->program;
     for (int j = 0; j<nb_buffers; j++) {
         const buffer_ngfx *buffer = *(const buffer_ngfx **)ngli_darray_get(&s->buffers, j);
         const pipeline_buffer_desc &buffer_desc = *(const pipeline_buffer_desc *)ngli_darray_get(&s->buffer_descs, j);
+        ShaderModule *shader_module = (buffer_desc.stage == 0) ? (ShaderModule *)program->vs : (ShaderModule*)program->fs;
         if (buffer_desc.type == NGLI_TYPE_UNIFORM_BUFFER) {
-            gctx_ngfx->graphics->bindUniformBuffer(cmd_buf, buffer->v, buffer_desc.binding, buffer_desc.stage);
+            auto& buffer_info = shader_module->uniformBufferInfos[buffer_desc.name];
+            gctx_ngfx->graphics->bindUniformBuffer(cmd_buf, buffer->v, buffer_info.set, buffer_info.shaderStages);
         }
         else {
-            gctx_ngfx->graphics->bindStorageBuffer(cmd_buf, buffer->v, buffer_desc.binding, buffer_desc.stage);
+            auto& buffer_info = shader_module->uniformBufferInfos[buffer_desc.name];
+            gctx_ngfx->graphics->bindStorageBuffer(cmd_buf, buffer->v, buffer_info.set, buffer_info.shaderStages);
         }
     }
 }

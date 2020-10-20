@@ -82,7 +82,7 @@ $(REF_TESTS):
 ifneq ($(TARGET_OS),Windows)
 	$(Q)ngl-test $(MODULE).py $(FUNC_NAME) refs/$(FUNC_NAME).ref $(OUT)
 else
-	$(Q)python.exe ../nodegl-env/Scripts/ngl-test-script.py $(MODULE).py $(FUNC_NAME) refs/$(FUNC_NAME).ref $(OUT)
+	../cmake-build-debug/pyshell/RelWithDebInfo/pyshell.exe ../nodegl-env/Scripts/ngl-test-script.py $(MODULE).py $(FUNC_NAME) refs/$(FUNC_NAME).ref $(OUT)
 endif
 
 $(SIMPLE_TESTS):

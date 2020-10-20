@@ -1,5 +1,5 @@
 LOG_FILE=$1
-passed=`cat $LOG_FILE | grep -e 'passed$'`
+passed=`cat $LOG_FILE | sed 's/\r$//' | grep -e 'passed$'`
 tests=`cd tests && make tests-list | grep -e '^test-'`
 
 function status {

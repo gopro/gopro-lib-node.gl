@@ -257,7 +257,7 @@ static void bind_buffers(CommandBuffer *cmd_buf, pipeline *s) {
             gctx_ngfx->graphics->bindUniformBuffer(cmd_buf, buffer->v, buffer_info.set, buffer_info.shaderStages);
         }
         else {
-            auto& buffer_info = shader_module->uniformBufferInfos[buffer_desc.name];
+            auto& buffer_info = shader_module->shaderStorageBufferInfos[buffer_desc.name];
             gctx_ngfx->graphics->bindStorageBuffer(cmd_buf, buffer->v, buffer_info.set, buffer_info.shaderStages);
         }
     }

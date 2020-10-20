@@ -39,7 +39,6 @@ struct rtt_priv {
     int samples;
     float clear_color[4];
     int features;
-    int vflip;
 
     int use_rt_resume;
     int width;
@@ -86,8 +85,6 @@ static const struct node_param rtt_params[] = {
     {"features",      PARAM_TYPE_FLAGS, OFFSET(features),
                       .choices=&feature_choices,
                       .desc=NGLI_DOCSTRING("framebuffer feature mask")},
-    {"vflip",         PARAM_TYPE_BOOL, OFFSET(vflip), {.i64=1},
-                      .desc=NGLI_DOCSTRING("apply a vertical flip to `color_texture` and `depth_texture` transformation matrices to match the `node.gl` uv coordinates system")},
     {NULL}
 };
 
@@ -356,20 +353,18 @@ static int rtt_prefetch(struct ngl_node *node)
         s->available_rendertargets[1] = s->rt_resume;
     }
 
-    if (s->vflip) {
-        /* flip vertically the color and depth textures so the coordinates
-         * match how the uv coordinates system works */
-        for (int i = 0; i < s->nb_color_textures; i++) {
-            struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
-            struct image *image = &texture_priv->image;
-            ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, image->coordinates_matrix);
-        }
+    /* transform the color and depth textures so the coordinates
+     * match how the graphics context uv coordinate system works */
+    for (int i = 0; i < s->nb_color_textures; i++) {
+        struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
+        struct image *image = &texture_priv->image;
+        ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, image->coordinates_matrix);
+    }
 
-        if (s->depth_texture) {
-            struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
-            struct image *depth_image = &depth_texture_priv->image;
-            ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, depth_image->coordinates_matrix);
-        }
+    if (s->depth_texture) {
+        struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
+        struct image *depth_image = &depth_texture_priv->image;
+        ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, depth_image->coordinates_matrix);
     }
 
     return 0;

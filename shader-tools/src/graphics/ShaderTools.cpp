@@ -313,18 +313,18 @@ json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& re
          *images = getEntry(reflectData, "images");
     uint32_t numDescriptors = (textures ? textures->size() : 0) + (images ? images->size() : 0) +
         (ubos ? ubos->size() : 0) + (ssbos ? ssbos->size() : 0);
-    json descriptors;
-    if (textures) for (const auto& desc: *textures) descriptors[desc["set"].get<int>()] = desc;
-    if (ubos) for (const auto& desc: *ubos) descriptors[desc["set"].get<int>()] = desc;
-    if (ssbos) for (const auto& desc: *ssbos) descriptors[desc["set"].get<int>()] = desc;
-    if (images) for (const auto& desc: *images) descriptors[desc["set"].get<int>()] = desc;
+    map<int, json*> descriptors;
+    if (textures) for (auto& desc: *textures) descriptors[desc["set"].get<int>()] = &desc;
+    if (ubos) for (auto& desc: *ubos) descriptors[desc["set"].get<int>()] = &desc;
+    if (ssbos) for  (auto& desc: *ssbos) descriptors[desc["set"].get<int>()] = &desc;
+    if (images) for (auto& desc: *images) descriptors[desc["set"].get<int>()] = &desc;
 
     //patch descriptor bindings
     set<int> sets;
     set<string> samplerTypes = {"sampler2D", "sampler3D", "samplerCube"};
-    for (uint32_t set = 0; set < descriptors.size(); set++) {
-        if (descriptors[set].is_null()) continue;
-        json& desc = descriptors[set];
+    for (const auto& kv : descriptors) {
+        uint32_t set = kv.first;
+        json& desc = *kv.second;
         while (sets.find(set) != sets.end()) set += 1;
         desc["set"] = set;
         sets.insert(set);

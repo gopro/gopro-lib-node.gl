@@ -98,5 +98,4 @@ build_test(mesh)
 build_tool(meshTool)
 
 message(STATUS "graphics_backend_cflags: ${GRAPHICS_BACKEND_CFLAGS} window_backend_cflags: ${WINDOW_BACKEND_CFLAGS}")
-
 set (NGFX_CFLAGS ${NGFX_CFLAGS} ${GRAPHICS_BACKEND_CFLAGS} ${WINDOW_BACKEND_CFLAGS} PARENT_SCOPE)

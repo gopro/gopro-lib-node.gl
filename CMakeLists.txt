@@ -104,6 +104,12 @@ option (GRAPHICS_BACKEND_METAL "build metal backend" OFF)
 option (GRAPHICS_BACKEND_DIRECT3D12 "build directx12 backend" OFF)
 option (GRAPHICS_BACKEND_VULKAN "build vulkan backend" OFF)
 
+if (CMAKE_GENERATOR MATCHES "Visual Studio" AND ${CMAKE_BUILD_TYPE} MATCHES "RelWithDebInfo")
+MESSAGE(STATUS "Disabling Compiler Optimization")
+string(REPLACE "/O2" "/Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
+string(REPLACE "/O2" "/Od" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
+
 add_subdirectory(ngfx)
 add_subdirectory(external/sxplayer-9.5.1)
 add_subdirectory(libnodegl)

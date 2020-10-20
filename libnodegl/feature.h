@@ -19,8 +19,8 @@
  * under the License.
  */
 
-#ifndef FEATURES_H
-#define FEATURES_H
+#ifndef FEATURE_H
+#define FEATURE_H
 
 #define NGLI_FEATURE_VERTEX_ARRAY_OBJECT          (1 << 0)
 #define NGLI_FEATURE_TEXTURE_3D                   (1 << 1)

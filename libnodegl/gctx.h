@@ -23,7 +23,7 @@
 #define GCTX_H
 
 #include "buffer.h"
-#include "features.h"
+#include "feature.h"
 #include "gtimer.h"
 #include "limits.h"
 #include "nodegl.h"

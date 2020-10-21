@@ -3,7 +3,6 @@ project (nodegl)
 
 file (GLOB_RECURSE NODEGL_SRC_FILES src/*)
 if (ENABLE_RENDERDOC_INTEGRATION)
-    MESSAGE(STATUS "Enable RenderDoc Integration")
     list (APPEND ${NODEGL_SRC_FILES} tools/renderdoc/*)
     set (NODEGL_CFLAGS "${NODEGL_CFLAGS} -DENABLE_RENDERDOC_CAPTURE")
 endif()

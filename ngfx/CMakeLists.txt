@@ -87,11 +87,11 @@ add_executable(${name} ${TOOL_SOURCE_FILES})
 target_link_libraries(${name} ngfx ${GRAPHICS_BACKEND_LIBS} ${WINDOW_BACKEND_LIBS})
 endfunction()
 
-build_test(triangle)
-build_test(texture)
-build_test(matrixMultiply)
-build_test(mesh)
-build_tool(meshTool)
+#build_test(triangle)
+#build_test(texture)
+#build_test(matrixMultiply)
+#build_test(mesh)
+#build_tool(meshTool)
 
 message(STATUS "\n"
     "ngfx graphics_backend_cflags: ${GRAPHICS_BACKEND_CFLAGS}\n"

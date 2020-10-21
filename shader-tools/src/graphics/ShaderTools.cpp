@@ -153,8 +153,8 @@ int ShaderTools::compileShaderMTL(const string& file, const string& defines, str
 
     string debugFlags = "-gline-tables-only -MO";
     int result = cmd(
-          "xcrun -sdk macosx metal {debugFlags} -c {inFileName} -o {outDir}/{filename}.air && "
-          "xcrun -sdk macosx metallib {outDir}/{filename}.air -o {outFileName}"
+          "xcrun -sdk macosx metal " + debugFlags + " -c " + inFileName + " -o " + outDir + "/" + strippedFilename + ".air && "
+          "xcrun -sdk macosx metallib " + outDir + "/" + strippedFilename + ".air -o " + outFileName
     );
     if (result == 0)
         LOG("compiled file: %s", file.c_str());

@@ -4,7 +4,7 @@
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-cd cmake-build-debug/pyshell/Debug && ln -s /Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/ .; cd -
+cd cmake-build-debug/pyshell/Debug && ln -fs /Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/ .; cd -
 
 echo -e "${GREEN}Setting up python virtual environment${NC}"
 python3 -m venv nodegl-env
@@ -13,7 +13,7 @@ install -C -d nodegl-env/share
 install -C -d nodegl-env/share/nodegl
 install -C -d nodegl-env/lib/pkgconfig
 
-install -C -m 644 cmake-build-debug/external/sxplayer-9.5.1/libsxplayer.so nodegl-env/lib/
+install -C -m 644 cmake-build-debug/external/sxplayer-9.5.1/Debug/libsxplayer.dylib nodegl-env/lib/
 CWD=$PWD && cd external/sxplayer-9.5.1 && \
 sed -e "s#PREFIX#$CWD/nodegl-env#;s#DEP_LIBS##;s#DEP_PRIVATE_LIBS#-lavformat -lavfilter -lavcodec -lavutil  -lm -pthread#" \
     libsxplayer.pc.tpl > libsxplayer.pc

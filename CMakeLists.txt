@@ -156,4 +156,9 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win64/build_python_env.sh
         ${CMAKE_CURRENT_SOURCE_DIR})
     add_custom_target(build_python_env DEPENDS ${CMAKE_BINARY_DIR}/build_python_env.task)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    define_custom_command(build_python_env
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/macOS/build_python_env.sh
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    add_custom_target(build_python_env DEPENDS ${CMAKE_BINARY_DIR}/build_python_env.task)
 endif()

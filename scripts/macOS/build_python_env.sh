@@ -22,7 +22,7 @@ install -C -m 644 external/sxplayer-9.5.1/libsxplayer.pc nodegl-env/lib/pkgconfi
 
 install -C -m 644 libnodegl/src/nodegl.h nodegl-env/include/
 install -C -m 644 libnodegl/nodes.specs nodegl-env/share/nodegl/
-install -C -m 644 cmake-build-debug/libnodegl/libnodegl.so nodegl-env/lib/.
+install -C -m 644 cmake-build-debug/libnodegl/Debug/libnodegl.dylib nodegl-env/lib/.
 
 CWD=$PWD cd libnodegl && \
 sed -e "s#PREFIX#$CWD/nodegl-env#" \

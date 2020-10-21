@@ -7,13 +7,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug)
 set (EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
+set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package (Python3 COMPONENTS Interpreter Development)
-message(STATUS "\n"
-    "Python3_FOUND: ${Python3_FOUND}\n"
-    "Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}\n"
-    "Python3_LIBRARY_DIRS: ${Python3_LIBRARY_DIRS}\n"
-    "PYTHON_LIBRARIES: ${Python3_LIBRARIES}\n"
-)
+find_package (OpenGL COMPONENTS OpenGL)
     
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
@@ -36,7 +32,7 @@ set (GLEW_LIBRARIES glew32)
 set (GLFW_DIR ${EXTERNAL_DIR}/win64/glfw-3.3.2.bin.WIN64)
 set (GLFW_INCLUDE_DIRS ${GLFW_DIR}/include)
 set (GLFW_LIBRARY_DIRS ${GLFW_DIR}/lib-vc2019)
-set (GLFW_LIBRARIES glfw3 OpenGL32)
+set (GLFW_LIBRARIES glfw3)
 
 set (SXPLAYER_DIR ${EXTERNAL_DIR}/sxplayer-9.5.1)
 set (SXPLAYER_INCLUDE_DIRS ${SXPLAYER_DIR})
@@ -52,9 +48,6 @@ set (SHADERC_DIR ${VULKANSDK_DIR})
 set (SHADERC_INCLUDE_DIRS ${VULKANSDK_INCLUDE_DIRS})
 set (SHADERC_LIBRARY_DIRS ${VULKANSDK_LIBRARY_DIRS})
 set (SHADERC_LIBRARIES shaderc_combined)
-
-set (GL_LIBRARIES OpenGL32)
-set (GL_INCLUDE_DIRS ${EXTERNAL_DIR}/win64/gl/include)
 
 set (GLM_INCLUDE_DIRS ${EXTERNAL_DIR}/win64/glm-0.9.9.8/glm)
 

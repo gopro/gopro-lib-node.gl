@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 project (shader-tools)
-set(CMAKE_CXX_STANDARD 17)
 
 file (GLOB_RECURSE SHADER_TOOLS_SRC_FILES src/*.cpp src/*.h)
 

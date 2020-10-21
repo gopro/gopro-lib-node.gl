@@ -35,12 +35,13 @@ void MTLGraphics::endRenderPass(CommandBuffer* commandBuffer) {
     currentRenderPassDescriptor = nullptr;
 }
 
-void MTLGraphics::bindVertexBuffer(CommandBuffer* cmdBuffer, Buffer* buffer, uint32_t location) {
+void MTLGraphics::bindVertexBuffer(CommandBuffer* cmdBuffer, Buffer* buffer, uint32_t location, uint32_t stride) {
     auto renderEncoder = (MTLRenderCommandEncoder*)currentCommandEncoder;
     [renderEncoder->v setVertexBuffer:mtl(buffer)->v offset:0 atIndex:location];
 }
-void MTLGraphics::bindIndexBuffer(CommandBuffer* cmdBuffer, Buffer* buffer) {
+void MTLGraphics::bindIndexBuffer(CommandBuffer* cmdBuffer, Buffer* buffer, IndexFormat indexFormat) {
     currentIndexBuffer = mtl(buffer);
+    currentIndexFormat = indexFormat;
 }
 void MTLGraphics::bindUniformBuffer(CommandBuffer* cmdBuffer, Buffer* buffer, uint32_t binding, ShaderStageFlags shaderStageFlags) {
     if (MTLGraphicsPipeline* graphicsPipeline = dynamic_cast<MTLGraphicsPipeline*>(currentPipeline)) {
@@ -111,7 +112,7 @@ void MTLGraphics::draw(CommandBuffer* cmdBuffer, uint32_t vertexCount, uint32_t 
 void MTLGraphics::drawIndexed(CommandBuffer* cmdBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) {
     auto renderEncoder = (MTLRenderCommandEncoder*)currentCommandEncoder;
     [renderEncoder->v drawIndexedPrimitives:currentPrimitiveType indexCount:indexCount
-        indexType: (currentIndexBuffer->stride == sizeof(uint16_t) ? ::MTLIndexTypeUInt16 : ::MTLIndexTypeUInt32)
+        indexType: (currentIndexFormat == INDEXFORMAT_UINT16 ? ::MTLIndexTypeUInt16 : ::MTLIndexTypeUInt32)
         indexBuffer:currentIndexBuffer->v indexBufferOffset:0
         instanceCount: instanceCount baseVertex: 0 baseInstance: firstInstance];
 }

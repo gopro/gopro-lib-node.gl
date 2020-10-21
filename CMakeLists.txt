@@ -71,6 +71,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set (GL_PACKAGES gl egl)
     pkg_check_modules(GL REQUIRED ${GL_PACKAGES})
     pkg_check_modules(GLM REQUIRED glm)
+else()
+    set (GLM_INCLUDE_DIRS /usr/local/include)
 endif()
 
 set (SXPLAYER_DIR ${EXTERNAL_DIR}/sxplayer-9.5.1)

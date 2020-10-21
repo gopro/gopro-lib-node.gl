@@ -33,13 +33,13 @@ static std::unique_ptr<T> createShaderModule(Device* device, const std::string& 
 }
 
 unique_ptr<VertexShaderModule> VertexShaderModule::create(Device* device, const std::string& filename) {
-    return createShaderModule<MTLVertexShaderModule>(device, DATA_PATH() + "/" + filename);
+    return createShaderModule<MTLVertexShaderModule>(device, filename);
 }
 
 unique_ptr<FragmentShaderModule> FragmentShaderModule::create(Device* device, const std::string& filename) {
-    return createShaderModule<MTLFragmentShaderModule>(device, DATA_PATH() + "/" + filename);
+    return createShaderModule<MTLFragmentShaderModule>(device, filename);
 }
 
 unique_ptr<ComputeShaderModule> ComputeShaderModule::create(Device* device, const std::string& filename) {
-    return createShaderModule<MTLComputeShaderModule>(device, DATA_PATH() + "/" + filename);
+    return createShaderModule<MTLComputeShaderModule>(device, filename);
 }

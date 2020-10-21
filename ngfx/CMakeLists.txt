@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project (ngfx)
+set(CMAKE_CXX_STANDARD 20)
 
 file (GLOB_RECURSE NGFX_SOURCE_FILES src/*.cpp src/*.h)
 if (GRAPHICS_BACKEND_VULKAN)

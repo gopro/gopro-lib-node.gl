@@ -37,8 +37,8 @@ void MTLGraphicsContext::setSurface(Surface *surface) {
             TODO();
         }
     }
-    mtlDefaultRenderPass = (MTLRenderPass*)getRenderPass({ false, enableDepthStencil, numSamples });
-    mtlDefaultOffscreenRenderPass = (MTLRenderPass*)getRenderPass({true, enableDepthStencil, numSamples});
+    mtlDefaultRenderPass = (MTLRenderPass*)getRenderPass({ false, enableDepthStencil, false, numSamples, 1 });
+    mtlDefaultOffscreenRenderPass = (MTLRenderPass*)getRenderPass({true, enableDepthStencil, false, numSamples, 1 });
     if (surface && !surface->offscreen) createSwapchainFramebuffers(mtkView.drawableSize.width, mtkView.drawableSize.height);
     createBindings();
 }

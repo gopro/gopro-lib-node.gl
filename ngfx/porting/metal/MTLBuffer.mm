@@ -8,11 +8,9 @@ void MTLBuffer::create(MTLGraphicsContext* ctx, const void* data, uint32_t size,
     else v = [ctx->mtlDevice.v newBufferWithBytes:data length:size options:resourceOptions];
 }
 
-Buffer* Buffer::create(GraphicsContext* ctx, const void* data, uint32_t size, uint32_t stride,
-           BufferUsageFlags usageFlags) {
+Buffer* Buffer::create(GraphicsContext* ctx, const void* data, uint32_t size, BufferUsageFlags usageFlags) {
     MTLBuffer* buffer = new MTLBuffer();
     buffer->create(mtl(ctx), data, size, MTLResourceStorageModeShared);
-    buffer->stride = stride;
     return buffer;
 }
 

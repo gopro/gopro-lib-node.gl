@@ -19,12 +19,12 @@ void MTLGraphicsPipeline::create(MTLGraphicsContext* ctx, const State& state, MT
         auto colorAttachment = pipelineStateDescriptor.colorAttachments[j];
         colorAttachment.pixelFormat = colorFormat;
         colorAttachment.blendingEnabled = state.blendEnable;
-        colorAttachment.sourceRGBBlendFactor = ::MTLBlendFactor(state.blendSrcFactor);
-        colorAttachment.sourceAlphaBlendFactor = ::MTLBlendFactor(state.blendSrcFactor);
-        colorAttachment.destinationRGBBlendFactor = ::MTLBlendFactor(state.blendDstFactor);
-        colorAttachment.destinationAlphaBlendFactor = ::MTLBlendFactor(state.blendDstFactor);
-        colorAttachment.rgbBlendOperation = ::MTLBlendOperation(state.blendOp);
-        colorAttachment.alphaBlendOperation = ::MTLBlendOperation(state.blendOp);
+        colorAttachment.sourceRGBBlendFactor = ::MTLBlendFactor(state.srcColorBlendFactor);
+        colorAttachment.sourceAlphaBlendFactor = ::MTLBlendFactor(state.srcAlphaBlendFactor);
+        colorAttachment.destinationRGBBlendFactor = ::MTLBlendFactor(state.dstColorBlendFactor);
+        colorAttachment.destinationAlphaBlendFactor = ::MTLBlendFactor(state.dstAlphaBlendFactor);
+        colorAttachment.rgbBlendOperation = ::MTLBlendOperation(state.colorBlendOp);
+        colorAttachment.alphaBlendOperation = ::MTLBlendOperation(state.alphaBlendOp);
         colorAttachment.writeMask = state.colorWriteMask;
     }
     

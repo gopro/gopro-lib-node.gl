@@ -318,7 +318,7 @@ static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
     return 0;
 }
 
-static int gl_pre_draw(struct gctx *s, double t)
+static int gl_begin_draw(struct gctx *s, double t)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -332,7 +332,7 @@ static int gl_pre_draw(struct gctx *s, double t)
     return 0;
 }
 
-static int gl_post_draw(struct gctx *s, double t)
+static int gl_end_draw(struct gctx *s, double t)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -493,8 +493,8 @@ const struct gctx_class ngli_gctx_gl = {
     .create       = gl_create,
     .init         = gl_init,
     .resize       = gl_resize,
-    .pre_draw     = gl_pre_draw,
-    .post_draw    = gl_post_draw,
+    .begin_draw   = gl_begin_draw,
+    .end_draw     = gl_end_draw,
     .destroy      = gl_destroy,
 
     .transform_cull_mode              = gl_transform_cull_mode,
@@ -561,8 +561,8 @@ const struct gctx_class ngli_gctx_gles = {
     .create       = gl_create,
     .init         = gl_init,
     .resize       = gl_resize,
-    .pre_draw     = gl_pre_draw,
-    .post_draw    = gl_post_draw,
+    .begin_draw   = gl_begin_draw,
+    .end_draw     = gl_end_draw,
     .destroy      = gl_destroy,
 
     .transform_cull_mode              = gl_transform_cull_mode,

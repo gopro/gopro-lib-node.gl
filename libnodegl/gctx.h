@@ -37,8 +37,8 @@ struct gctx_class {
     struct gctx *(*create)(const struct ngl_config *config);
     int (*init)(struct gctx *s);
     int (*resize)(struct gctx *s, int width, int height, const int *viewport);
-    int (*pre_draw)(struct gctx *s, double t);
-    int (*post_draw)(struct gctx *s, double t);
+    int (*begin_draw)(struct gctx *s, double t);
+    int (*end_draw)(struct gctx *s, double t);
     void (*destroy)(struct gctx *s);
 
     int (*transform_cull_mode)(struct gctx *s, int cull_mode);

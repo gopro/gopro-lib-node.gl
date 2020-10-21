@@ -69,7 +69,7 @@ int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t)
 {
     const struct gctx_class *class = s->class;
 
-    int ret = class->pre_draw(s, t);
+    int ret = class->begin_draw(s, t);
     if (ret < 0)
         goto end;
 
@@ -85,7 +85,7 @@ int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t)
     }
 
 end:;
-    int end_ret = class->post_draw(s, t);
+    int end_ret = class->end_draw(s, t);
     if (end_ret < 0)
         return end_ret;
 

@@ -3,16 +3,18 @@ project (shader-tools)
 
 file (GLOB_RECURSE SHADER_TOOLS_SRC_FILES src/*.cpp src/*.h)
 
-if ( ${CMAKE_SYSTEM_NAME} MATCHES "Linux") 
-set(SHADER_TOOLS_BUILD_TYPE SHARED)
-elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 set(SHADER_TOOLS_BUILD_TYPE STATIC)
+else()
+set(SHADER_TOOLS_BUILD_TYPE SHARED)
 endif()
 add_library(shader_tools ${SHADER_TOOLS_BUILD_TYPE} ${SHADER_TOOLS_SRC_FILES})
 target_compile_options(shader_tools PUBLIC ${NGFX_CFLAGS})
 target_include_directories(shader_tools PUBLIC src ${JSON_INCLUDE_DIRS} ${NGFX_INCLUDE_DIRS})
 
-if (NOT (${CMAKE_SYSTEM_NAME} MATCHES "Windows"))
+target_link_libraries(shader_tools PUBLIC ngfx)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 target_link_libraries(shader_tools PUBLIC stdc++fs)
 endif()
 
@@ -20,7 +22,7 @@ function(build_tool name)
 file (GLOB_RECURSE TOOL_SOURCE_FILES tools/${name}*.cpp tools/${name}*.h)
 add_executable(${name} ${TOOL_SOURCE_FILES})
 target_include_directories(${name} PUBLIC src)
-target_link_libraries(${name} shader_tools ngfx)
+target_link_libraries(${name} shader_tools)
 endfunction()
 
 #if (GRAPHICS_BACKEND_VULKAN)

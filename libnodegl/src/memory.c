@@ -80,8 +80,12 @@ void *ngli_calloc(size_t n, size_t size)
 
 void *ngli_malloc_aligned(size_t size)
 {
-#ifdef WIN32
+#if defined(WIN32)
     return  _aligned_malloc(size, NGLI_ALIGN_VAL);
+#elif defined(__APPLE__)
+    void* addr = NULL;
+    posix_memalign(&addr, NGLI_ALIGN_VAL, size);
+    return addr;
 #else
     return aligned_alloc(NGLI_ALIGN_VAL, size);
 #endif

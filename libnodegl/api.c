@@ -278,7 +278,7 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         return ret;
 
-    ret = ngli_node_update(scene, t);
+    ret = ngli_gctx_update(s->gctx, scene, t);
     if (ret < 0)
         return ret;
 

@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 project (nodegl)
-set(CMAKE_CXX_STANDARD 20)
-set (CMAKE_C_STANDARD 11)
-
-message(STATUS "CMAKE_GENERATOR: ${CMAKE_GENERATOR}")
 
 file (GLOB_RECURSE NODEGL_SRC_FILES src/*)
 file (GLOB_RECURSE NODEGL_NGFX_BACKEND_SRC_FILES porting/ngfx/*)
@@ -21,7 +17,6 @@ endif()
 add_library(nodegl ${NODEGL_BUILD_TYPE} ${NODEGL_SRC_FILES}
     ${NODEGL_NGFX_BACKEND_SRC_FILES}
 )
-message(STATUS "NODEGL_BUILD_TYPE: ${NODEGL_BUILD_TYPE}")
 target_compile_options(nodegl PUBLIC ${NODEGL_CFLAGS} ${NGFX_CFLAGS})
 target_link_libraries(nodegl PUBLIC 
     ${SXPLAYER_LIBRARIES}

@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 project (gopro-nodegl)
 
+set(CMAKE_CXX_STANDARD 20)
+set (CMAKE_C_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug)
 set (EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 find_package (Python3 COMPONENTS Interpreter Development)
-message(STATUS 
+message(STATUS "\n"
     "Python3_FOUND: ${Python3_FOUND}\n"
     "Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}\n"
     "Python3_LIBRARY_DIRS: ${Python3_LIBRARY_DIRS}\n"

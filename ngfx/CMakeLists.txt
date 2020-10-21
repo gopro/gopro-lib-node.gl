@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
 project (ngfx)
-set(CMAKE_CXX_STANDARD 20)
 
 file (GLOB_RECURSE NGFX_SOURCE_FILES src/*.cpp src/*.h)
 if (GRAPHICS_BACKEND_VULKAN)
@@ -68,7 +67,6 @@ endif()
 function(build_test name)
 file (GLOB_RECURSE TEST_SOURCE_FILES test/${name}/*.cpp test/${name}/*.h test/${name}/*.mm)
 if (GRAPHICS_BACKEND_METAL)
-MESSAGE(STATUS "test: ${name} app backend src: ${APP_BACKEND_SOURCE_FILES}")
 add_executable(${name} ${TEST_SOURCE_FILES} ${APP_BACKEND_SOURCE_FILES} ${NGFX_DIR}/porting/appkit/Main.storyboard)
 set(RESOURCE_FILES ${NGFX_DIR}/porting/appkit/Info.plist ${NGFX_DIR}/porting/appkit/Main.storyboard)
 set_target_properties(${name} PROPERTIES
@@ -95,5 +93,8 @@ build_test(matrixMultiply)
 build_test(mesh)
 build_tool(meshTool)
 
-message(STATUS "graphics_backend_cflags: ${GRAPHICS_BACKEND_CFLAGS} window_backend_cflags: ${WINDOW_BACKEND_CFLAGS}")
+message(STATUS "\n"
+    "ngfx graphics_backend_cflags: ${GRAPHICS_BACKEND_CFLAGS}\n"
+    "ngfx window_backend_cflags  : ${WINDOW_BACKEND_CFLAGS}\n"
+)
 set (NGFX_CFLAGS ${NGFX_CFLAGS} ${GRAPHICS_BACKEND_CFLAGS} ${WINDOW_BACKEND_CFLAGS} PARENT_SCOPE)

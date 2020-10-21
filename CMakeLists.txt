@@ -5,6 +5,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set (BUILD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake-build-debug)
 set (EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
+find_package (Python3 COMPONENTS Interpreter Development)
+message(STATUS 
+    "Python3_FOUND: ${Python3_FOUND}\n"
+    "Python3_INCLUDE_DIRS: ${Python3_INCLUDE_DIRS}\n"
+    "Python3_LIBRARY_DIRS: ${Python3_LIBRARY_DIRS}\n"
+    "PYTHON_LIBRARIES: ${Python3_LIBRARIES}\n"
+)
+    
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 set (PTHREADS_DIR ${EXTERNAL_DIR}/win64/pthreads-w32-2-9-1-release/Pre-built.2)
@@ -48,11 +56,6 @@ set (GL_INCLUDE_DIRS ${EXTERNAL_DIR}/win64/gl/include)
 
 set (GLM_INCLUDE_DIRS ${EXTERNAL_DIR}/win64/glm-0.9.9.8/glm)
 
-set (PYTHON_DIR C:/Users/jmoguillansky/AppData/Local/Programs/Python/Python38)
-set (PYTHON_INCLUDE_DIRS ${PYTHON_DIR}/include)
-set (PYTHON_LIBRARY_DIRS ${PYTHON_DIR}/libs)
-set (PYTHON_LIBRARIES python38)
-
 set (D3DX12_INCLUDE_DIRS ${EXTERNAL_DIR}/win64/d3dx12)
 
 else ()
@@ -61,12 +64,14 @@ find_package (PkgConfig REQUIRED)
 pkg_check_modules(FFMPEG REQUIRED libavcodec libavdevice libavformat libavfilter libavutil)
 pkg_check_modules(GLEW REQUIRED glew)
 pkg_check_modules(GLFW REQUIRED glfw3)
-pkg_check_modules(VULKANSDK REQUIRED vulkan)
-pkg_check_modules(SHADERC REQUIRED shaderc_combined)
-set (GL_PACKAGES gl egl)
-pkg_check_modules(GL REQUIRED ${GL_PACKAGES})
-pkg_check_modules(GLM REQUIRED glm)
-pkg_check_modules(PYTHON REQUIRED python-3.7)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    pkg_check_modules(VULKANSDK REQUIRED vulkan)
+    pkg_check_modules(SHADERC REQUIRED shaderc_combined)
+    set (GL_PACKAGES gl egl)
+    pkg_check_modules(GL REQUIRED ${GL_PACKAGES})
+    pkg_check_modules(GLM REQUIRED glm)
+endif()
 
 set (SXPLAYER_DIR ${EXTERNAL_DIR}/sxplayer-9.5.1)
 set (SXPLAYER_INCLUDE_DIRS ${SXPLAYER_DIR})

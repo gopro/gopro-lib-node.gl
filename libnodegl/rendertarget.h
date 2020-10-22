@@ -73,7 +73,6 @@ struct rendertarget {
     struct rendertarget_params params;
     int width;
     int height;
-    int nb_color_attachments;
 };
 
 struct rendertarget *ngli_rendertarget_create(struct gctx *gctx);

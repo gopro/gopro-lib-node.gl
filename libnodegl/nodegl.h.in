@@ -22,9 +22,9 @@
 #ifndef NODEGL_H
 #define NODEGL_H
 
-#define NODEGL_VERSION_MAJOR 0
-#define NODEGL_VERSION_MINOR 0
-#define NODEGL_VERSION_MICRO 0
+#define NODEGL_VERSION_MAJOR @version_major@
+#define NODEGL_VERSION_MINOR @version_minor@
+#define NODEGL_VERSION_MICRO @version_micro@
 
 #define NODEGL_GET_VERSION(major, minor, micro) ((major)<<16 | (minor)<<8 | (micro))
 

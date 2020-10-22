@@ -25,20 +25,19 @@ include common.mak
 
 SXPLAYER_VERSION ?= 9.6.0
 
-# Prevent headers from being rewritten, which would cause unecessary
-# recompilations between `make` calls.
-INSTALL = install -C
-
 ACTIVATE = $(PREFIX)/bin/activate
 
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX)/lib
-ifeq ($(TARGET_OS),Darwin)
-	LIBNODEGL_EXTRA_LDFLAGS   = -Wl,-install_name,@rpath/libnodegl.dylib
-endif
 
 MESON_SETUP   = meson setup --prefix=$(PREFIX) --pkg-config-path=$(PREFIX)/lib/pkgconfig -Drpath=true
-MESON_COMPILE = meson compile
+# MAKEFLAGS= is a workaround for the issue described here:
+# https://github.com/ninja-build/ninja/issues/1139#issuecomment-724061270
+MESON_COMPILE = MAKEFLAGS= meson compile
 MESON_INSTALL = meson install
+ifeq ($(COVERAGE),yes)
+MESON_SETUP += -Db_coverage=true
+DEBUG = yes
+endif
 ifeq ($(DEBUG),yes)
 MESON_SETUP += --buildtype=debugoptimized
 else
@@ -46,6 +45,14 @@ MESON_SETUP += --buildtype=release
 endif
 ifneq ($(V),)
 MESON_COMPILE += -v
+endif
+
+# Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
+ifeq ($(TARGET_OS),Linux)
+DISTRIB_ID := $(or $(shell lsb_release -si 2>/dev/null),none)
+ifeq ($(DISTRIB_ID),$(filter $(DISTRIB_ID),Ubuntu Debian))
+MESON_SETUP += --libdir lib
+endif
 endif
 
 all: ngl-tools-install pynodegl-utils-install
@@ -57,7 +64,7 @@ all: ngl-tools-install pynodegl-utils-install
 	@echo
 
 ngl-tools-install: nodegl-install
-	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) $(MAKE) -C ngl-tools install PREFIX=$(PREFIX) DEBUG=$(DEBUG)
+	(. $(ACTIVATE) && $(MESON_SETUP) ngl-tools builddir/ngl-tools && $(MESON_COMPILE) -C builddir/ngl-tools && $(MESON_INSTALL) -C builddir/ngl-tools)
 
 pynodegl-utils-install: pynodegl-utils-deps-install
 	(. $(ACTIVATE) && pip -v install -e ./pynodegl-utils)
@@ -89,7 +96,7 @@ pynodegl-deps-install: $(PREFIX) nodegl-install
 	(. $(ACTIVATE) && pip install -r ./pynodegl/requirements.txt)
 
 nodegl-install: sxplayer-install
-	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS="$(RPATH_LDFLAGS) $(LIBNODEGL_EXTRA_LDFLAGS)" $(MAKE) -C libnodegl install PREFIX=$(PREFIX) DEBUG=$(DEBUG) SHARED=yes INSTALL="$(INSTALL)"
+	(. $(ACTIVATE) && $(MESON_SETUP) libnodegl builddir/libnodegl && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
 
 sxplayer-install: sxplayer $(PREFIX)
 	(. $(ACTIVATE) && $(MESON_SETUP) sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
@@ -113,15 +120,24 @@ sxplayer-$(SXPLAYER_VERSION): sxplayer-$(SXPLAYER_VERSION).tar.gz
 sxplayer-$(SXPLAYER_VERSION).tar.gz:
 	$(CURL) -L https://github.com/Stupeflix/sxplayer/archive/v$(SXPLAYER_VERSION).tar.gz -o $@
 
+#
+# We do not pull meson from pip on Windows for the same reasons we don't pull
+# Pillow and PySide2. We require the users to have it on their system.
+#
 $(PREFIX):
 	$(PYTHON) -m venv $(PREFIX)
+ifneq ($(TARGET_OS),MinGW-w64)
 	(. $(ACTIVATE) && pip install meson ninja)
+endif
 
 tests: ngl-tools-install pynodegl-utils-install nodegl-tests
 	(. $(ACTIVATE) && $(MAKE) -C tests)
 
+nodegl-tests: nodegl-install
+	(. $(ACTIVATE) && meson test -C builddir/libnodegl)
+
 nodegl-%: nodegl-install
-	(. $(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) $(MAKE) -C libnodegl $(subst nodegl-,,$@) DEBUG=$(DEBUG))
+	(. $(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl $(subst nodegl-,,$@))
 
 clean_py:
 	$(RM) pynodegl/nodes_def.pyx
@@ -133,20 +149,19 @@ clean_py:
 	$(RM) -r pynodegl-utils/pynodegl_utils.egg-info
 	$(RM) -r pynodegl-utils/.eggs
 
-clean_gcx:
-	$(RM) libnodegl/*.gcda libnodegl/*.gcno
-	$(RM) ngl-tools/*.gcda ngl-tools/*.gcno
-
-clean: clean_gcx clean_py
+clean: clean_py
 	$(RM) -r builddir/sxplayer
-	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig $(MAKE) -C libnodegl clean
-	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig $(MAKE) -C ngl-tools clean
+	$(RM) -r builddir/libnodegl
+	$(RM) -r builddir/ngl-tools
 
 # You need to build and run with COVERAGE set to generate data.
 # For example: `make clean && make -j8 tests COVERAGE=yes`
-coverage:
-	mkdir -p ngl-cov
-	gcovr -r libnodegl --html-details --html-title "node.gl coverage" --print-summary -o ngl-cov/index.html
+# We don't use `meson coverage` here because of
+# https://github.com/mesonbuild/meson/issues/7895
+coverage-html:
+	(. $(ACTIVATE) && ninja -C builddir/libnodegl coverage-html)
+coverage-xml:
+	(. $(ACTIVATE) && ninja -C builddir/libnodegl coverage-xml)
 
 .PHONY: all
 .PHONY: ngl-tools-install
@@ -155,5 +170,5 @@ coverage:
 .PHONY: nodegl-install
 .PHONY: sxplayer-install
 .PHONY: tests
-.PHONY: clean clean_gcx clean_py
-.PHONY: coverage
+.PHONY: clean clean_py
+.PHONY: coverage-html coverage-xml

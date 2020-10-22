@@ -1,5 +1,5 @@
 #
-# Copyright 2017 GoPro Inc.
+# Copyright 2020 GoPro Inc.
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -19,18 +19,10 @@
 # under the License.
 #
 
-PYTHON_MAJOR = 3
+option('python', type: 'feature', value: 'auto',
+       description: 'Python support')
+option('sdl', type: 'feature', value: 'auto',
+       description: 'SDL support')
 
-#
-# User configuration
-#
-DEBUG      ?= no
-COVERAGE   ?= no
-CURL       ?= curl
-PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYTHON_MAJOR),)
-TAR        ?= tar
-TARGET_OS  ?= $(shell uname -s)
-
-ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON_MAJOR))
-$(error "Python $(PYTHON_MAJOR) not found")
-endif
+option('rpath', type: 'boolean', value: false,
+       description: 'install with rpath')

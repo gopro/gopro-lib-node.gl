@@ -14,7 +14,7 @@ The `ngli_*` symbols share this meaning and correspond to symbols shared inside
 the project but never exposed to the user (you will never see them in the
 public header).
 
-[nodegl-header]: /libnodegl/nodegl.h
+[nodegl-header]: /libnodegl/nodegl.h.in
 
 
 ## Compilation and linking with node.gl

@@ -1,9 +1,3 @@
-*.d
-*.exe
-*.o
 builddir
 nodegl-env/
 sxplayer*
-*.gcda
-*.gcno
-ngl-cov/

@@ -26,10 +26,3 @@ option when targeting desktop and mobile.
 
 It is very fast and simple to script in Python. Bindings in other languages
 could be added.
-
-## Makefile
-
-There are tons of build system available out there, and the most popular ones
-(autotools, CMake, ...) are the worse. Until a good, portable and wildly
-distributed build system appears, a simple `Makefile` with control variables
-will do the trick just fine.

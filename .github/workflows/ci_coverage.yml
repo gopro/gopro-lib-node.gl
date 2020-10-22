@@ -26,9 +26,8 @@ jobs:
         BACKEND=opengles DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests COVERAGE=yes
     - name: Get coverage
       run: |
-        gcovr -r libnodegl -s -x -o coverage.xml
-        make clean
+        make coverage-xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
-        file: coverage.xml
+        file: builddir/libnodegl/meson-logs/coverage.xml

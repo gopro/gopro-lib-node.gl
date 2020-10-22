@@ -9,14 +9,14 @@ prototypes required to implement a new node.
 
 In order to add a node, you need to:
 
-- in `nodegl.h`: declare a new `NGL_NODE_*` with an arbitrary unique FourCC
+- in `nodegl.h.in`: declare a new `NGL_NODE_*` with an arbitrary unique FourCC
 - create a `node_*.c` file declaring a `const struct node_class`. Don't forget
   the Copyright header. See other node files, such as `node_identity.c`
 - in `nodes_register.h`: register the new node
-- in `Makefile`: add the object name associated with your `.c` to `LIB_OBJS`
-- run `make updatespecs` to update `nodes.specs` every time you update the
-  parameter of the node
-- similarly, run `make updatedoc` to update the [reference
+- reference the source file node in `libnodegl/meson.build`
+- run `make nodegl-updatespecs` (from the top-level Makefile) to update
+  `nodes.specs` every time you update the parameters of the node
+- similarly, run `make nodegl-updatedoc` to update the [reference
   documentation][libnodegl-ref] after every change to the parameters
 - refer to [nodes.h][nodes-h] for the available callbacks to
   implement in your class map

@@ -23,6 +23,8 @@ jobs:
         run: |
           C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed git make"
           C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}"
+          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-python3-pip"
+          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-meson"
 
       - name: Build
         run: |

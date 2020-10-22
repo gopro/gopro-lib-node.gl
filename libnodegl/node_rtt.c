@@ -330,6 +330,7 @@ static int rtt_prefetch(struct ngl_node *node)
     s->rt = ngli_rendertarget_create(gctx);
     if (!s->rt)
         return NGL_ERROR_MEMORY;
+
     ret = ngli_rendertarget_init(s->rt, &rt_params);
     if (ret < 0)
         return ret;
@@ -346,6 +347,7 @@ static int rtt_prefetch(struct ngl_node *node)
         s->rt_resume = ngli_rendertarget_create(gctx);
         if (!s->rt_resume)
             return NGL_ERROR_MEMORY;
+
         ret = ngli_rendertarget_init(s->rt_resume, &rt_params);
         if (ret < 0)
             return ret;

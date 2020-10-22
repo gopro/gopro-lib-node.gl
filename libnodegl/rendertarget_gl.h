@@ -46,4 +46,6 @@ void ngli_rendertarget_gl_invalidate(struct rendertarget *s);
 void ngli_rendertarget_gl_read_pixels(struct rendertarget *s, uint8_t *data);
 void ngli_rendertarget_gl_freep(struct rendertarget **sp);
 
+int ngli_default_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_params *params);
+
 #endif

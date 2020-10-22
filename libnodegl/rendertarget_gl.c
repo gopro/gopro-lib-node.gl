@@ -397,3 +397,55 @@ void ngli_rendertarget_gl_freep(struct rendertarget **sp)
 
     ngli_freep(sp);
 }
+
+int ngli_default_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_params *params)
+{
+    struct rendertarget_gl *s_priv = (struct rendertarget_gl *)s;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
+
+    ngli_assert(params->nb_colors == 1);
+
+    s->params = *params;
+    s->width = params->width;
+    s->height = params->height;
+
+    s_priv->id = ngli_glcontext_get_default_framebuffer(gl);
+
+    if (gl->features & NGLI_FEATURE_INVALIDATE_SUBDATA) {
+        s_priv->invalidate = invalidate;
+    } else {
+        s_priv->invalidate = invalidate_noop;
+    }
+
+    if (gl->features & NGLI_FEATURE_CLEAR_BUFFER) {
+        s_priv->clear = clear_buffers;
+    } else {
+        s_priv->clear = clear_buffer;
+    }
+
+    s_priv->resolve = resolve_no_draw_buffers;
+
+    const struct attachment *color = &params->colors[0];
+    if (color->load_op == NGLI_LOAD_OP_DONT_CARE ||
+        color->load_op == NGLI_LOAD_OP_CLEAR) {
+        s_priv->clear_flags |= GL_COLOR_BUFFER_BIT;
+    }
+    if (color->store_op == NGLI_STORE_OP_DONT_CARE) {
+        s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = GL_COLOR;
+    }
+
+    const struct attachment *depth_stencil = &params->depth_stencil;
+    if (depth_stencil->attachment) {
+        if (depth_stencil->load_op == NGLI_LOAD_OP_DONT_CARE ||
+            depth_stencil->load_op == NGLI_LOAD_OP_CLEAR) {
+            s_priv->clear_flags |= (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        }
+        if (depth_stencil->store_op == NGLI_STORE_OP_DONT_CARE) {
+            s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = GL_DEPTH;
+            s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = GL_STENCIL;
+        }
+    }
+
+    return 0;
+}

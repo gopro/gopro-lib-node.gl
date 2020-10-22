@@ -240,15 +240,16 @@ json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& re
     if (ext == ".vert") {
        metalReflectData.attributes = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[attribute\\(([0-9]+)\\)\\]\\]"), metalContents);
     }
-    metalReflectData.buffers = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[buffer\(([0-9]+)\\)\\]\\]"), metalContents);
-    metalReflectData.textures = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[texture\(([0-9]+)\\)\\]\\]"), metalContents);
+    metalReflectData.buffers = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[buffer\\(([0-9]+)\\)\\]\\]"), metalContents);
+    metalReflectData.textures = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[texture\\(([0-9]+)\\)\\]\\]"), metalContents);
 
     json *textures = getEntry(reflectData, "textures"),
                *ubos = getEntry(reflectData, "ubos"),
                *ssbos = getEntry(reflectData, "ssbos"),
                *images = getEntry(reflectData, "images"),
                *types = getEntry(reflectData, "types");
-    uint32_t numDescriptors = textures->size() + images->size() + ubos->size() + ssbos->size();
+    uint32_t numDescriptors = (textures ? textures->size() : 0) + (images ? images->size() : 0) +
+        (ubos ? ubos->size() : 0) + (ssbos ? ssbos->size() : 0);
 
     //update input bindings
     if (ext == ".vert") {
@@ -344,7 +345,8 @@ int ShaderTools::genShaderReflectionMSL(const string& file, string outDir) {
     json reflectData = json::parse(readFile(inFileName));
 
     string ext = FileUtil::splitExt(fs::path(file).filename().string())[1];
-    reflectData = patchShaderReflectionDataMSL(file, reflectData, ext);
+    string mslFile = fs::path(outDir + "/" + strippedFilename + ".metal").make_preferred().string();
+    reflectData = patchShaderReflectionDataMSL(mslFile, reflectData, ext);
     if (reflectData.empty()) {
         ERR("cannot generate reflection map for file: %s", file.c_str());
         return 1;

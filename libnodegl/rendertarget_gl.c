@@ -68,8 +68,6 @@ static void resolve_draw_buffers(struct rendertarget *s)
     struct glcontext *gl = gctx_gl->glcontext;
     struct rendertarget_params *params = &s->params;
 
-    const GLenum *draw_buffers = s_priv->blit_draw_buffers;
-
     for (int i = 0; i < params->nb_colors; i++) {
         const struct attachment *attachment = &params->colors[i];
         if (!attachment->resolve_target)
@@ -81,9 +79,10 @@ static void resolve_draw_buffers(struct rendertarget *s)
 #if defined(TARGET_DARWIN)
         ngli_glDrawBuffer(gl, GL_COLOR_ATTACHMENT0 + i);
 #else
+        GLenum draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS] = {0};
+        draw_buffers[i] = GL_COLOR_ATTACHMENT0 + i;
         ngli_glDrawBuffers(gl, i + 1, draw_buffers);
 #endif
-        draw_buffers += i + 1;
         ngli_glBlitFramebuffer(gl, 0, 0, s->width, s->height, 0, 0, s->width, s->height, flags, GL_NEAREST);
     }
     ngli_glReadBuffer(gl, GL_COLOR_ATTACHMENT0);
@@ -295,13 +294,6 @@ int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_
             for (int i = 0; i < params->nb_colors; i++)
                 s_priv->draw_buffers[i] = GL_COLOR_ATTACHMENT0 + i;
             ngli_glDrawBuffers(gl, params->nb_colors, s_priv->draw_buffers);
-
-            GLenum *draw_buffers = s_priv->blit_draw_buffers;
-            for (int i = 0; i < params->nb_colors; i++) {
-                draw_buffers += i + 1;
-                draw_buffers[-1] = GL_COLOR_ATTACHMENT0 + i;
-            }
-
             s_priv->resolve = resolve_draw_buffers;
         }
     }

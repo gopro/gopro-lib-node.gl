@@ -30,7 +30,6 @@ struct rendertarget_gl {
     GLuint id;
     GLuint resolve_id;
     GLenum draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS];
-    GLenum blit_draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS*(NGLI_MAX_COLOR_ATTACHMENTS+1)/2];
     GLenum clear_flags;
     GLenum invalidate_attachments[NGLI_MAX_COLOR_ATTACHMENTS + 2]; // max color attachments + depth and stencil attachments
     int nb_invalidate_attachments;

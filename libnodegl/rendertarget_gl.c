@@ -170,7 +170,6 @@ static int create_fbo(struct rendertarget *s, int resolve)
 
     if (resolve) {
         s_priv->resolve_id = id;
-        s->nb_resolve_color_attachments = nb_color_attachments;
     } else {
         s_priv->id = id;
         s->nb_color_attachments = nb_color_attachments;

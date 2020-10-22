@@ -556,7 +556,7 @@ int ShaderTools::generateShaderMapMSL(const string &file, string outDir, vector<
     string dataPath = fs::path(file).parent_path().string();
     auto splitFilename = FileUtil::splitExt(fs::path(file).filename().string());
     string filename = splitFilename[0];
-    string ext = splitFilename[1];
+    string ext = FileUtil::splitExt(splitFilename[0])[1];
 
     string inFileName = fs::path(outDir + "/" + filename + ".metal.reflect").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".metal.map").make_preferred().string();

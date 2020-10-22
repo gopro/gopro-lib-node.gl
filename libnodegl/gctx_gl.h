@@ -55,7 +55,7 @@ struct gctx_gl {
     struct texture *color;
     struct texture *ms_color;
     struct texture *depth;
-    /* Capture offscreen render target */
+    /* Offscreen capture callback and resources */
     capture_func_type capture_func;
 #if defined(TARGET_IPHONE)
     CVPixelBufferRef capture_cvbuffer;

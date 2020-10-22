@@ -183,7 +183,7 @@ static int ngfx_post_draw(struct gctx *s, double t)
     gctx_ngfx *s_priv = (gctx_ngfx *)s;
     ngli_gctx_bind_rendertarget(s, nullptr);
     s_priv->cur_command_buffer->end();
-    s_priv->graphics_context->queue->submit(s_priv->cur_command_buffer);
+    s_priv->graphics_context->submit(s_priv->cur_command_buffer);
     if (s->config.offscreen && s->config.capture_buffer) {
         uint32_t size = s->config.width * s->config.height * 4;
         auto &output_texture = ((texture_ngfx *)s_priv->offscreen_resources.color_texture)->v;

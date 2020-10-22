@@ -76,7 +76,7 @@ namespace ngfx {
         };
         virtual RenderPass* getRenderPass(RenderPassConfig config) = 0;
         std::vector<Framebuffer*> swapchainFramebuffers;
-        Queue* queue;
+        Queue* queue = nullptr;
         RenderPass *defaultRenderPass, *defaultOffscreenRenderPass;
         Swapchain* swapchain;
         uint32_t currentImageIndex = 0;

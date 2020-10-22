@@ -200,3 +200,46 @@ def rtt_load_attachment(cfg):
     foreground.update_frag_resources(tex0=texture)
 
     return ngl.Group(children=(background, rtt, foreground))
+
+
+@test_fingerprint(width=512, height=512, nb_keyframes=10)
+@scene()
+def rtt_clear_attachment_with_timeranges(cfg):
+    cfg.aspect_ratio = (1, 1)
+
+    # Time-disabled full screen white quad
+    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
+    program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    render = ngl.Render(quad, program)
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
+    time_range_filter = ngl.TimeRangeFilter(render)
+    time_range_filter.add_ranges(ngl.TimeRangeModeNoop(0))
+
+    # Intermediate no-op RTT to force the use of a different render pass internally
+    texture = ngl.Texture2D(width=32, height=32)
+    rtt_noop = ngl.RenderToTexture(ngl.Identity(), [texture])
+
+    # Centered rotating quad
+    quad = ngl.Quad((-0.5, -0.5, 0), (1, 0, 0), (0, 1, 0))
+    program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    render = ngl.Render(quad, program)
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['orange']))
+    animkf = [ngl.AnimKeyFrameFloat(0, 0), ngl.AnimKeyFrameFloat(cfg.duration, -360)]
+    render = ngl.Rotate(render, anim=ngl.AnimatedFloat(animkf))
+
+    group = ngl.Group(children=(time_range_filter, rtt_noop, render))
+
+    # Root RTT
+    texture = ngl.Texture2D(width=512, height=512)
+    rtt = ngl.RenderToTexture(group, [texture])
+
+    # Full screen render of the root RTT result
+    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
+    program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    render = ngl.Render(quad, program)
+    render.update_frag_resources(tex0=texture)
+
+    return ngl.Group(children=(rtt, render))

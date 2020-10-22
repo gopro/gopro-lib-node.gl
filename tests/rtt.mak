@@ -26,6 +26,7 @@ RTT_TEST_NAMES =                         \
     mipmap                               \
     texture_depth                        \
     texture_depth_stencil                \
+    clear_attachment_with_timeranges     \
 
 ifneq ($(DISABLE_TESTS_SAMPLES),yes)
 RTT_TEST_NAMES +=                        \

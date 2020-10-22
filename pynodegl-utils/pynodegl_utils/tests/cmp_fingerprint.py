@@ -22,11 +22,8 @@
 
 from PIL import Image
 
-from .cmp import CompareSceneBase, get_test_decorator
+from .cmp import CompareSceneBase, get_test_decorator, get_temp_dir
 import os
-import tempfile
-
-TMP_DIR = tempfile.gettempdir()
 
 _HSIZE = 8
 _HNBITS = _HSIZE * _HSIZE * 2
@@ -83,7 +80,7 @@ class _CompareFingerprints(CompareSceneBase):
             # TODO: png output for debug?
             img = Image.frombuffer(_MODE, (width, height), capture_buffer, 'raw', _MODE, 0, 1)
             if debug:
-                filename = os.path.normpath(f"{TMP_DIR}/pynodegl_tests/{debug_func}_{debug_index}.png")
+                filename = os.path.normpath(get_temp_dir() + f"/{debug_func}_{debug_index}.png")
                 print("writing to file: "+filename)
                 img.save(filename)
                 debug_index += 1

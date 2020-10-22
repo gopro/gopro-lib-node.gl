@@ -20,12 +20,9 @@
 # under the License.
 #
 
-from .cmp import CompareSceneBase, get_test_decorator
+from .cmp import CompareSceneBase, get_test_decorator, get_temp_dir
 from PIL import Image
 import os
-import tempfile
-
-TMP_DIR = tempfile.gettempdir()
 
 class _CompareCuePoints(CompareSceneBase):
 
@@ -68,7 +65,7 @@ class _CompareCuePoints(CompareSceneBase):
             if debug:
                 _MODE = "RGBA"
                 img = Image.frombuffer(_MODE, (width, height), capture_buffer, 'raw', _MODE, 0, 1)
-                filename = os.path.normpath(f"{TMP_DIR}/pynodegl_tests/{debug_func}_{debug_index}.png")
+                filename = os.path.normpath(get_temp_dir() + f"/{debug_func}_{debug_index}.png")
                 print("writing to file: " + filename)
                 img.save(filename)
                 debug_index += 1

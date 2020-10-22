@@ -31,8 +31,8 @@
 #include "math_utils.h"
 #include "format.h"
 #include "util_ngfx.h"
-#ifdef ENABLE_RENDERDOC_CAPTURE
-#include "renderdoc_utils.h"
+#ifdef ENABLE_CAPTURE
+#include "capture.h"
 static bool DEBUG_CAPTURE = (getenv("DEBUG_CAPTURE") != NULL);
 #endif
 using namespace std;
@@ -101,14 +101,14 @@ static int ngfx_init(struct gctx *s)
 {
     const ngl_config *config = &s->config;
     gctx_ngfx *ctx = (gctx_ngfx *)s;
-#ifdef ENABLE_RENDERDOC_CAPTURE
-    if (DEBUG_CAPTURE) init_renderdoc();
+#ifdef ENABLE_CAPTURE
+    if (DEBUG_CAPTURE) init_capture();
 #endif
     /* FIXME */
     s->features = -1;
     ctx->graphics_context = GraphicsContext::create("NGLApplication", true);
-#ifdef ENABLE_RENDERDOC_CAPTURE
-    if (DEBUG_CAPTURE) begin_renderdoc_capture();
+#ifdef ENABLE_CAPTURE
+    if (DEBUG_CAPTURE) begin_capture();
 #endif
     if (config->offscreen) {
         Surface surface(config->width, config->height, true);
@@ -208,8 +208,8 @@ static void ngfx_destroy(struct gctx *s)
     delete ctx->graphics;
     delete ctx->graphics_context;
     delete ctx;
-#ifdef ENABLE_RENDERDOC_CAPTURE
-    if (DEBUG_CAPTURE) end_renderdoc_capture();
+#ifdef ENABLE_CAPTURE
+    if (DEBUG_CAPTURE) end_capture();
 #endif
 }
 

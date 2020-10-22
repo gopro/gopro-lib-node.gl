@@ -37,11 +37,11 @@ namespace fs = std::filesystem;
 
 #ifdef _WIN32
     #define PATCH string("patch.exe")
-    #define GLSLANG_VALIDATOR string("glslangValidator.exe")
+    #define GLSLC string("glslc.exe")
     #define SPIRV_CROSS string("spirv-cross.exe")
 #else
     #define PATCH string("patch")
-    #define GLSLANG_VALIDATOR string("glslangValidator")
+    #define GLSLC string("glslc")
     #define SPIRV_CROSS string("spirv-cross")
 #endif
 
@@ -131,7 +131,7 @@ int ShaderTools::compileShaderGLSL(string filename, const string& defines, const
     assert(outFile);
     outFile<< contents;
     outFile.close();
-    int result = cmd(GLSLANG_VALIDATOR+" " + defines + " -V "+
+    int result = cmd(GLSLC + " " + defines +
                      fs::path(outDir + "/" + filename).make_preferred().string()+
                      fs::path(" -o "+ outFileName).string());
     if (result == 0) {
@@ -344,7 +344,7 @@ int ShaderTools::genShaderReflectionMSL(const string& file, string outDir) {
 
     json reflectData = json::parse(readFile(inFileName));
 
-    string ext = FileUtil::splitExt(fs::path(file).filename().string())[1];
+    string ext = FileUtil::splitExt(splitFilename[0])[1];
     string mslFile = fs::path(outDir + "/" + strippedFilename + ".metal").make_preferred().string();
     reflectData = patchShaderReflectionDataMSL(mslFile, reflectData, ext);
     if (reflectData.empty()) {

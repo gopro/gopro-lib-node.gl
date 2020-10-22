@@ -21,7 +21,6 @@
 
 #include "ShaderTools.h"
 #include "FileUtil.h"
-#include "RegexUtil.h"
 #include "StringUtil.h"
 #include "DebugUtil.h"
 #include <filesystem>
@@ -226,10 +225,10 @@ int ShaderTools::genShaderReflectionGLSL(const string& file, string outDir) {
     return result;
 }
 
-bool ShaderTools::findMetalReflectData(const vector<smatch>& metalReflectData, const string& name, smatch& match) {
-    for (const smatch& data: metalReflectData) {
-        if (data.str(1) == name) { match = data; return true; }
-        else if (strstr(data[0].str().c_str(), name.c_str())) { match = data; return true; }
+bool ShaderTools::findMetalReflectData(const vector<RegexUtil::Match>& metalReflectData, const string& name, RegexUtil::Match& match) {
+    for (const RegexUtil::Match& data: metalReflectData) {
+        if (data.s[2] == name) { match = data; return true; }
+        else if (strstr(data.s[1].c_str(), name.c_str())) { match = data; return true; }
     }
     return false;
 }
@@ -242,7 +241,7 @@ json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& re
     }
     metalReflectData.buffers = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[buffer\\(([0-9]+)\\)\\]\\]"), metalContents);
     metalReflectData.textures = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[texture\\(([0-9]+)\\)\\]\\]"), metalContents);
-
+    
     json *textures = getEntry(reflectData, "textures"),
                *ubos = getEntry(reflectData, "ubos"),
                *ssbos = getEntry(reflectData, "ssbos"),
@@ -255,39 +254,40 @@ json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& re
     if (ext == ".vert") {
         json* inputs = getEntry(reflectData, "inputs");
         for (json& input : *inputs) {
-            smatch metalInputReflectData;
+            RegexUtil::Match metalInputReflectData;
             bool foundMatch = findMetalReflectData(metalReflectData.attributes, input["name"], metalInputReflectData);
             if (!foundMatch) {
                 ERR("cannot patch shader reflection data for file: %s", metalFile.c_str());
                 return {};
             }
-            input["location"] = stoi(metalInputReflectData.str(2)) + numDescriptors;
+            input["location"] = stoi(metalInputReflectData.s[3]) + numDescriptors;
         }
     }
 
     //update descriptor bindings
     if (textures) for (json& descriptor : *textures) {
-        smatch metalTextureReflectData;
+        RegexUtil::Match metalTextureReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.textures, descriptor["name"], metalTextureReflectData);
         assert(foundMatch);
-        descriptor["set"] = stoi(metalTextureReflectData.str(2));
+        descriptor["set"] = stoi(metalTextureReflectData.s[3]);
     }
     if (ubos) for (json& descriptor: *ubos) {
-        smatch metalBufferReflectData;
+        RegexUtil::Match metalBufferReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.buffers, descriptor["name"], metalBufferReflectData);
         assert(foundMatch);
-        descriptor["set"] = stoi(metalBufferReflectData.str(2));
+        descriptor["set"] = stoi(metalBufferReflectData.s[3]);
     }
     if (ssbos) for (json& descriptor: *ssbos) {
-        smatch metalBufferReflectData;
+        RegexUtil::Match metalBufferReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.buffers, descriptor["name"], metalBufferReflectData);
         assert(foundMatch);
-        descriptor["set"] = stoi(metalBufferReflectData.str(2));
+        descriptor["set"] = stoi(metalBufferReflectData.s[3]);
     }
     if (images) for (json& descriptor: *images) {
-        smatch metalTextureReflectData;
+        RegexUtil::Match metalTextureReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.textures, descriptor["name"], metalTextureReflectData);
-        descriptor["set"] = stoi(metalTextureReflectData.str(2));
+        assert(foundMatch);
+        descriptor["set"] = stoi(metalTextureReflectData.s[3]);
     }
 
     return reflectData;
@@ -302,8 +302,8 @@ json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& re
         json* inputs = getEntry(reflectData, "inputs");
         for (json& input: *inputs) {
             regex p(input["name"].get<string>() + "\\s*:\\s*([^;]*);");
-            vector<smatch> hlslReflectData = RegexUtil::findAll(p, hlslContents);
-            input["semantic"] = hlslReflectData[0].str(1);
+            vector<RegexUtil::Match> hlslReflectData = RegexUtil::findAll(p, hlslContents);
+            input["semantic"] = hlslReflectData[0].s[1];
         }
     }
 

@@ -20,14 +20,22 @@
  */
 
 #include "RegexUtil.h"
+#include "DebugUtil.h"
 using namespace std;
 using namespace ngfx;
 
-vector<smatch> RegexUtil::findAll(const regex& p, string contents) {
-    vector<smatch> matches;
+static RegexUtil::Match toMatch(smatch& m) {
+    RegexUtil::Match match;
+    match.s.resize(m.size());
+    for (uint32_t j = 0; j<m.size(); j++) match.s[j] = m.str(j);
+    return match;
+}
+
+vector<RegexUtil::Match> RegexUtil::findAll(const regex& p, string contents) {
+    vector<Match> matches;
     smatch m;
     while (regex_search(contents, m, p) ) {
-        matches.push_back(m);
+        matches.push_back(toMatch(m));
         contents = m.suffix().str();
     }
     return matches;

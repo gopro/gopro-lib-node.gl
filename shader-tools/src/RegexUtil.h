@@ -25,6 +25,9 @@
 namespace ngfx {
 class RegexUtil {
 public:
-    static std::vector<std::smatch> findAll(const std::regex& p, std::string contents);
+    struct Match {
+        std::vector<std::string> s;
+    };
+    static std::vector<Match> findAll(const std::regex& p, std::string contents);
 };
 }

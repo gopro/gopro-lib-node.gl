@@ -26,6 +26,7 @@
 #include <regex>
 #include <vector>
 #include <json.hpp>
+#include "RegexUtil.h"
 using json = nlohmann::json;
 
 namespace ngfx {
@@ -48,12 +49,12 @@ private:
     bool findIncludeFile(const std::string& includeFilename, const std::vector<std::string> &includePaths,
         std::string& includeFile);
     struct MetalReflectData {
-        std::vector<std::smatch> attributes, buffers, textures;
+        std::vector<RegexUtil::Match> attributes, buffers, textures;
     };
     struct HLSLReflectData {
-        std::vector<std::smatch> attributes, buffers, textures;
+        std::vector<RegexUtil::Match> attributes, buffers, textures;
     };
-    bool findMetalReflectData(const std::vector<std::smatch>& metalReflectData, const std::string& name, std::smatch &match);
+    bool findMetalReflectData(const std::vector<RegexUtil::Match>& metalReflectData, const std::string& name, RegexUtil::Match &match);
     int genShaderReflectionGLSL(const std::string& file, std::string outDir);
     int genShaderReflectionHLSL(const std::string& file, std::string outDir);
     int genShaderReflectionMSL(const std::string& file, std::string outDir);

@@ -34,6 +34,7 @@ using namespace ngfx;
 auto readFile = FileUtil::readFile;
 auto toLower = StringUtil::toLower;
 namespace fs = std::filesystem;
+#define V(func) { ret = func; if (ret != 0) return ret; }
 
 #ifdef _WIN32
     #define PATCH string("patch.exe")
@@ -45,11 +46,11 @@ namespace fs = std::filesystem;
     #define SPIRV_CROSS string("spirv-cross")
 #endif
 
-static string getEnv(const string& name) {
+static string getEnv(const string &name) {
     char* value = getenv(name.c_str());
     return (value ? value : "");
 }
-static json* getEntry(const json& data, const string& key) {
+static json* getEntry(const json &data, const string &key) {
     auto it = data.find(key);
     if (it == data.end()) return nullptr;
     return (json*)&it.value();
@@ -64,9 +65,9 @@ int ShaderTools::cmd(string str) {
     return system(str.c_str());
 }
 
-bool ShaderTools::findIncludeFile(const string& includeFilename, const vector<string> &includePaths,
-        string& includeFile) {
-    for (const string& includePath : includePaths) {
+bool ShaderTools::findIncludeFile(const string &includeFilename, const vector<string> &includePaths,
+        string &includeFile) {
+    for (const string &includePath : includePaths) {
         fs::path filename = includePath  / fs::path(includeFilename);
         if (fs::exists(filename)) {
             includeFile = filename.string();
@@ -76,7 +77,7 @@ bool ShaderTools::findIncludeFile(const string& includeFilename, const vector<st
     return false;
 }
 
-string ShaderTools::preprocess(const string& dataPath, const string& inFile) {
+string ShaderTools::preprocess(const string &dataPath, const string &inFile) {
     string contents = "";
     vector<string> includePaths = defaultIncludePaths;
     includePaths.push_back(dataPath);
@@ -98,9 +99,27 @@ string ShaderTools::preprocess(const string& dataPath, const string& inFile) {
     return contents;
 }
 
-string ShaderTools::patchShaderLayoutsGLSL(const string& dataPath, const string& inFile) {
-    string contents = "";
-    istringstream sstream(readFile(inFile));
+int ShaderTools::compileShaderGLSL(const string &inFile, const string &defines, const string &outFile, bool verbose) {
+    int result = cmd(GLSLC + " " + defines + inFile + " -o " + outFile);
+    if (result == 0) {
+        if (verbose) LOG("compiled file: %s", inFile.c_str());
+    }
+    else {
+        ERR("cannot compile file: %s", inFile.c_str());
+    }
+    return result;
+}
+
+int ShaderTools::removeUnusedVariablesGLSL(const std::string &inFile, const string &defines, const std::string &outFile) {
+    int ret = 0;
+    V(compileShaderGLSL(inFile, defines, inFile + ".spv", false));
+    V(cmd(SPIRV_CROSS + " " + inFile + ".spv" + " --remove-unused-variables" +" --output " + outFile));
+    return 0;
+}
+
+int ShaderTools::patchShaderLayoutsGLSL(const string &inFile, const string &outFile) {
+    string output = "";
+    istringstream sstream(FileUtil::readFile(inFile));
     string line;
     while (std::getline(sstream, line)) {
         //Patch GLSL shader layouts
@@ -109,42 +128,33 @@ string ShaderTools::patchShaderLayoutsGLSL(const string& dataPath, const string&
         bool matchLayout = regex_search(line, g,
             regex("^(.*)" "layout\\s*\\(" "([^)]*)" "binding[\\s]*=[\\s]*" "([\\d]+)" "([^)]*)" "\\)" "(.*)\r*$"));
         if (matchLayout) {
-            contents += g[1].str() + "layout(" + g[2].str() + "set = " + g[3].str() + ", binding = 0" + g[4].str() + ")" + g[5].str() + "\n";
+            output += g[1].str() + "layout(" + g[2].str() + "set = " + g[3].str() + ", binding = 0" + g[4].str() + ")" + g[5].str() + "\n";
         }
         else {
-            contents += line + "\n";
+            output += line + "\n";
         }
     }
-    return contents;
+    FileUtil::writeFile(outFile, output);
+    return 0;
 }
 
-int ShaderTools::compileShaderGLSL(string filename, const string& defines, const string& outDir, vector<string>& outFiles, int flags) {
+int ShaderTools::compileShaderGLSL(string filename, const string &defines, const string &outDir, vector<string> &outFiles, int flags) {
     string parentPath = fs::path(filename).parent_path().string();
     filename = fs::path(filename).filename().string();
     string inFileName = fs::path(parentPath + "/" + filename).make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".spv").make_preferred().string();
     if (!FileUtil::srcFileNewerThanOutFile(inFileName, outFileName)) return 0;
-
-    string contents = preprocess(parentPath, inFileName);
-    if (flags & PATCH_SHADER_LAYOUTS_GLSL) contents = patchShaderLayoutsGLSL(parentPath, inFileName);
-    ofstream outFile(fs::path(outDir + "/" + filename).make_preferred());
-    assert(outFile);
-    outFile<< contents;
-    outFile.close();
-    int result = cmd(GLSLC + " " + defines +
-                     fs::path(outDir + "/" + filename).make_preferred().string()+
-                     fs::path(" -o "+ outFileName).string());
-    if (result == 0) {
-        LOG("compiled file: %s", filename.c_str());
-    }
-    else {
-        ERR("cannot compile file: %s", filename.c_str());
-    }
+    
+    string preprocessFileName = fs::path(outDir + "/" + filename).make_preferred().string();
+    int ret = 0;
+    if (flags & REMOVE_UNUSED_VARIABLES) V(removeUnusedVariablesGLSL(inFileName, defines, preprocessFileName));
+    if (flags & PATCH_SHADER_LAYOUTS_GLSL) V(patchShaderLayoutsGLSL(preprocessFileName, preprocessFileName));
+    V(compileShaderGLSL(preprocessFileName, defines, outFileName));
     outFiles.push_back(outFileName);
-    return result;
+    return 0;
 }
 
-int ShaderTools::compileShaderMTL(const string& file, const string& defines, string outDir, vector<string> &outFiles) {
+int ShaderTools::compileShaderMTL(const string &file, const string &defines, string outDir, vector<string> &outFiles) {
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir +"/" + strippedFilename + ".metal").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + strippedFilename + ".metallib").make_preferred().string();
@@ -163,7 +173,7 @@ int ShaderTools::compileShaderMTL(const string& file, const string& defines, str
     return result;
 }
 
-int ShaderTools::compileShaderHLSL(const string& file, const string& defines, string outDir, vector<string>& outFiles) {
+int ShaderTools::compileShaderHLSL(const string &file, const string &defines, string outDir, vector<string> &outFiles) {
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir+"/"+strippedFilename +".hlsl").make_preferred().string();
     string outFileName = fs::path(outDir +"/" +strippedFilename +".dxc").make_preferred().string();
@@ -182,7 +192,7 @@ int ShaderTools::compileShaderHLSL(const string& file, const string& defines, st
     return result;
 }
 
-int ShaderTools::convertShader(const string& file, const string& extraArgs, string outDir, Format fmt, vector<string>& outFiles) {
+int ShaderTools::convertShader(const string &file, const string &extraArgs, string outDir, Format fmt, vector<string> &outFiles) {
     string strippedFilename = FileUtil::splitExt(fs::path(file).filename().string())[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + strippedFilename + (fmt == FORMAT_MSL ? ".metal" : ".hlsl")).make_preferred().string();
@@ -198,7 +208,7 @@ int ShaderTools::convertShader(const string& file, const string& extraArgs, stri
     return result;
 }
 
-int ShaderTools::genShaderReflectionGLSL(const string& file, string outDir) {
+int ShaderTools::genShaderReflectionGLSL(const string &file, string outDir) {
     string filename = fs::path(file).filename().string();
     string inFileName = fs::path(outDir + "/" + filename + ".spv").make_preferred().string();
     string outFileName = fs::path(outDir + "/" + filename + ".spv.reflect").make_preferred().string();
@@ -210,11 +220,7 @@ int ShaderTools::genShaderReflectionGLSL(const string& file, string outDir) {
 
     auto reflectData = json::parse(readFile(inFileName));
 
-    ofstream outFile(outFileName);
-    assert(outFile);
-    string contents = reflectData.dump(4);
-    outFile<<contents;
-    outFile.close();
+    FileUtil::writeFile(outFileName, reflectData.dump(4));
 
     if (result == 0)
         LOG("generated reflection map: %s", outFileName.c_str());
@@ -225,15 +231,15 @@ int ShaderTools::genShaderReflectionGLSL(const string& file, string outDir) {
     return result;
 }
 
-bool ShaderTools::findMetalReflectData(const vector<RegexUtil::Match>& metalReflectData, const string& name, RegexUtil::Match& match) {
-    for (const RegexUtil::Match& data: metalReflectData) {
+bool ShaderTools::findMetalReflectData(const vector<RegexUtil::Match> &metalReflectData, const string &name, RegexUtil::Match &match) {
+    for (const RegexUtil::Match &data: metalReflectData) {
         if (data.s[2] == name) { match = data; return true; }
         else if (strstr(data.s[1].c_str(), name.c_str())) { match = data; return true; }
     }
     return false;
 }
 
-json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& reflectData, const string& ext) {
+json ShaderTools::patchShaderReflectionDataMSL(const string &metalFile, json &reflectData, const string &ext) {
     string metalContents = readFile(metalFile);
     MetalReflectData metalReflectData;
     if (ext == ".vert") {
@@ -243,17 +249,16 @@ json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& re
     metalReflectData.textures = RegexUtil::findAll(regex("([^\\s]*)[\\s]*([^\\s]*)[\\s]*\\[\\[texture\\(([0-9]+)\\)\\]\\]"), metalContents);
     
     json *textures = getEntry(reflectData, "textures"),
-               *ubos = getEntry(reflectData, "ubos"),
-               *ssbos = getEntry(reflectData, "ssbos"),
-               *images = getEntry(reflectData, "images"),
-               *types = getEntry(reflectData, "types");
+        *ubos = getEntry(reflectData, "ubos"),
+        *ssbos = getEntry(reflectData, "ssbos"),
+        *images = getEntry(reflectData, "images");
     uint32_t numDescriptors = (textures ? textures->size() : 0) + (images ? images->size() : 0) +
         (ubos ? ubos->size() : 0) + (ssbos ? ssbos->size() : 0);
 
     //update input bindings
     if (ext == ".vert") {
         json* inputs = getEntry(reflectData, "inputs");
-        for (json& input : *inputs) {
+        for (json &input : *inputs) {
             RegexUtil::Match metalInputReflectData;
             bool foundMatch = findMetalReflectData(metalReflectData.attributes, input["name"], metalInputReflectData);
             if (!foundMatch) {
@@ -265,25 +270,25 @@ json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& re
     }
 
     //update descriptor bindings
-    if (textures) for (json& descriptor : *textures) {
+    if (textures) for (json &descriptor : *textures) {
         RegexUtil::Match metalTextureReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.textures, descriptor["name"], metalTextureReflectData);
         assert(foundMatch);
         descriptor["set"] = stoi(metalTextureReflectData.s[3]);
     }
-    if (ubos) for (json& descriptor: *ubos) {
+    if (ubos) for (json &descriptor: *ubos) {
         RegexUtil::Match metalBufferReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.buffers, descriptor["name"], metalBufferReflectData);
         assert(foundMatch);
         descriptor["set"] = stoi(metalBufferReflectData.s[3]);
     }
-    if (ssbos) for (json& descriptor: *ssbos) {
+    if (ssbos) for (json &descriptor: *ssbos) {
         RegexUtil::Match metalBufferReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.buffers, descriptor["name"], metalBufferReflectData);
         assert(foundMatch);
         descriptor["set"] = stoi(metalBufferReflectData.s[3]);
     }
-    if (images) for (json& descriptor: *images) {
+    if (images) for (json &descriptor: *images) {
         RegexUtil::Match metalTextureReflectData;
         bool foundMatch = findMetalReflectData(metalReflectData.textures, descriptor["name"], metalTextureReflectData);
         assert(foundMatch);
@@ -293,14 +298,14 @@ json ShaderTools::patchShaderReflectionDataMSL(const string& metalFile, json& re
     return reflectData;
 }
 
-json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& reflectData, string ext) {
+json ShaderTools::patchShaderReflectionDataHLSL(const string &hlslFile, json &reflectData, string ext) {
     string hlslContents = readFile(hlslFile);
     HLSLReflectData hlslReflectData;
 
     //parse semantics
     if (ext == ".vert") {
         json* inputs = getEntry(reflectData, "inputs");
-        for (json& input: *inputs) {
+        for (json &input: *inputs) {
             regex p(input["name"].get<string>() + "\\s*:\\s*([^;]*);");
             vector<RegexUtil::Match> hlslReflectData = RegexUtil::findAll(p, hlslContents);
             input["semantic"] = hlslReflectData[0].s[1];
@@ -312,20 +317,18 @@ json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& re
          *ubos = getEntry(reflectData, "ubos"),
          *ssbos = getEntry(reflectData, "ssbos"),
          *images = getEntry(reflectData, "images");
-    uint32_t numDescriptors = (textures ? textures->size() : 0) + (images ? images->size() : 0) +
-        (ubos ? ubos->size() : 0) + (ssbos ? ssbos->size() : 0);
     map<int, json*> descriptors;
-    if (textures) for (auto& desc: *textures) descriptors[desc["set"].get<int>()] = &desc;
-    if (ubos) for (auto& desc: *ubos) descriptors[desc["set"].get<int>()] = &desc;
-    if (ssbos) for  (auto& desc: *ssbos) descriptors[desc["set"].get<int>()] = &desc;
-    if (images) for (auto& desc: *images) descriptors[desc["set"].get<int>()] = &desc;
+    if (textures) for (auto &desc: *textures) descriptors[desc["set"].get<int>()] = &desc;
+    if (ubos) for (auto &desc: *ubos) descriptors[desc["set"].get<int>()] = &desc;
+    if (ssbos) for  (auto &desc: *ssbos) descriptors[desc["set"].get<int>()] = &desc;
+    if (images) for (auto &desc: *images) descriptors[desc["set"].get<int>()] = &desc;
 
     //patch descriptor bindings
     set<int> sets;
     set<string> samplerTypes = {"sampler2D", "sampler3D", "samplerCube"};
-    for (const auto& kv : descriptors) {
+    for (const auto &kv : descriptors) {
         uint32_t set = kv.first;
-        json& desc = *kv.second;
+        json &desc = *kv.second;
         while (sets.find(set) != sets.end()) set += 1;
         desc["set"] = set;
         sets.insert(set);
@@ -335,7 +338,7 @@ json ShaderTools::patchShaderReflectionDataHLSL(const string& hlslFile, json& re
     return reflectData;
 }
 
-int ShaderTools::genShaderReflectionMSL(const string& file, string outDir) {
+int ShaderTools::genShaderReflectionMSL(const string &file, string outDir) {
     auto splitFilename = FileUtil::splitExt(fs::path(file).filename().string());
     string strippedFilename = splitFilename[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv.reflect").make_preferred().string();
@@ -352,17 +355,13 @@ int ShaderTools::genShaderReflectionMSL(const string& file, string outDir) {
         return 1;
     }
         
-    ofstream outFile(outFileName);
-    assert(outFile);
-    string contents = reflectData.dump();
-    outFile<<contents;
-    outFile.close();
+    FileUtil::writeFile(outFileName, reflectData.dump(4));
 
     LOG("generated reflection map: %s", outFileName.c_str());
     return 0;
 }
 
-int ShaderTools::genShaderReflectionHLSL(const string& file, string outDir) {
+int ShaderTools::genShaderReflectionHLSL(const string &file, string outDir) {
     auto splitFilename = FileUtil::splitExt(fs::path(file).filename().string());
     string strippedFilename = splitFilename[0];
     string inFileName = fs::path(outDir + "/" + strippedFilename + ".spv.reflect").make_preferred().string();
@@ -379,22 +378,18 @@ int ShaderTools::genShaderReflectionHLSL(const string& file, string outDir) {
         return 1;
     }
 
-    ofstream outFile(outFileName);
-    assert(outFile);
-    string contents = reflectData.dump();
-    outFile<<contents;
-    outFile.close();
+    FileUtil::writeFile(outFileName, reflectData.dump(4));
 
     LOG("generated reflection map: %s", outFileName.c_str());
     return 0;
 }
 
-string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
+string ShaderTools::parseReflectionData(const json &reflectData, string ext) {
     string contents = "";
     if (ext == ".vert") {
         json* inputs = getEntry(reflectData, "inputs");
         contents += "INPUT_ATTRIBUTES "+to_string(inputs->size())+"\n";
-        for (const json& input: *inputs) {
+        for (const json &input: *inputs) {
             string inputName = input["name"];
             string inputSemantic = "";
             string inputNameLower = toLower(inputName);
@@ -417,8 +412,8 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
     json uniformBufferInfos;
     json shaderStorageBufferInfos;
 
-    std::function<void(const json&, json&, uint32_t, string)> parseMembers = [&](const json& membersData, json& members, uint32_t baseOffset = 0, string baseName = "") {
-        for (const json& memberData: membersData) {
+    std::function<void(const json&, json&, uint32_t, string)> parseMembers = [&](const json &membersData, json &members, uint32_t baseOffset = 0, string baseName = "") {
+        for (const json &memberData: membersData) {
             const map<string, int> typeSizeMap = {
                {"int",4}, {"uint",4}, {"float",4},
                {"vec2",8}, {"vec3",12}, {"vec4",16},
@@ -437,7 +432,7 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
                 members.push_back(member);
             }
             else if (types->find(memberType) != types->end()) {
-                const json& type = (*types)[memberType];
+                const json &type = (*types)[memberType];
                 parseMembers(
                     type["members"],
                     members,
@@ -449,9 +444,9 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
         }
     };
 
-    auto parseBuffers = [&](const json& buffers, json& bufferInfos) {
-        for (const json& buffer: buffers) {
-            const json& bufferType = (*types)[buffer["type"].get<string>()];
+    auto parseBuffers = [&](const json &buffers, json &bufferInfos) {
+        for (const json &buffer: buffers) {
+            const json &bufferType = (*types)[buffer["type"].get<string>()];
             json bufferMembers = {};
             parseMembers(bufferType["members"], bufferMembers, 0, "");
             json bufferInfo = {
@@ -468,7 +463,7 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
 
     json textureDescriptors = {};
     json bufferDescriptors = {};
-    if (textures) for (const json& texture: *textures) {
+    if (textures) for (const json &texture: *textures) {
         textureDescriptors[to_string(texture["set"].get<int>())] = {
             { "type", texture["type"] },
             { "name", texture["name"] },
@@ -476,7 +471,7 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
             { "binding", texture["binding"] }
         };
     }
-    if (images) for (const json& image: *images) {
+    if (images) for (const json &image: *images) {
         textureDescriptors[to_string(image["set"].get<int>())] = {
             { "type", image["type"] },
             { "name", image["name"] },
@@ -484,7 +479,7 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
             { "binding", image["binding"] }
         };
     }
-    if (ubos) for (const json& ubo: *ubos) {
+    if (ubos) for (const json &ubo: *ubos) {
         bufferDescriptors[to_string(ubo["set"].get<int>())] = {
             { "type", "uniformBuffer" },
             { "name", ubo["name"] },
@@ -492,7 +487,7 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
             { "binding", ubo["binding"] }
         };
     }
-    if (ssbos) for (const json& ssbo: *ssbos) {
+    if (ssbos) for (const json &ssbo: *ssbos) {
         bufferDescriptors[to_string(ssbo["set"].get<int>())] = {
             { "type", "shaderStorageBuffer" },
             { "name", ssbo["name"] },
@@ -509,38 +504,36 @@ string ShaderTools::parseReflectionData(const json& reflectData, string ext) {
         { "uniformBuffer", "DESCRIPTOR_TYPE_UNIFORM_BUFFER" },
         { "shaderStorageBuffer", "DESCRIPTOR_TYPE_STORAGE_BUFFER" }
     };
-    for (auto& [key, val]: textureDescriptors.items()) {
-        int set = stoi(key);
+    for (auto &[key, val]: textureDescriptors.items()) {
         string descriptorType = descriptorTypeMap[val["type"]];
         contents += "\t" + val["name"].get<string>() + " " + descriptorType + " " + to_string(val["set"].get<int>()) + "\n";
     }
-    for (auto& [key, val]: bufferDescriptors.items()) {
-        int set = stoi(key);
+    for (auto &[key, val]: bufferDescriptors.items()) {
         string descriptorType = descriptorTypeMap[val["type"]];
         contents += "\t" + val["name"].get<string>() + " " + descriptorType + " " + to_string(val["set"].get<int>()) + "\n";
     }
-    auto processBufferInfos = [&](const json& bufferInfo) -> string {
+    auto processBufferInfos = [&](const json &bufferInfo) -> string {
         string contents = "";
-        const json& memberInfos = bufferInfo["members"];
+        const json &memberInfos = bufferInfo["members"];
         contents += bufferInfo["name"].get<string>() + " " + to_string(bufferInfo["set"].get<int>()) + " " + to_string(memberInfos.size()) + "\n";
-        for (const json& m: memberInfos) {
+        for (const json &m: memberInfos) {
             contents += m["name"].get<string>() + " " + to_string(m["offset"].get<int>()) + " " + to_string(m["size"].get<int>()) + " " + to_string(m["array_count"].get<int>()) + " " + to_string(m["array_stride"].get<int>()) + "\n";
         }
         return contents;
     };
     contents += "UNIFORM_BUFFER_INFOS "+to_string(uniformBufferInfos.size())+"\n";
-    for (const json& bufferInfo: uniformBufferInfos) {
+    for (const json &bufferInfo: uniformBufferInfos) {
         contents += processBufferInfos(bufferInfo);
     }
 
     contents += "SHADER_STORAGE_BUFFER_INFOS "+ to_string(shaderStorageBufferInfos.size())+"\n";
-    for (const json& bufferInfo: shaderStorageBufferInfos) {
+    for (const json &bufferInfo: shaderStorageBufferInfos) {
         contents += processBufferInfos(bufferInfo);
     }
     return contents;
 }
 
-int ShaderTools::generateShaderMapGLSL(const string& file, string outDir, vector<string>& outFiles) {
+int ShaderTools::generateShaderMapGLSL(const string &file, string outDir, vector<string> &outFiles) {
     genShaderReflectionGLSL(file, outDir);
     string dataPath = fs::path(file).parent_path().string();
     string filename = fs::path(file).filename().string();
@@ -553,15 +546,12 @@ int ShaderTools::generateShaderMapGLSL(const string& file, string outDir, vector
     auto reflectData = json::parse(readFile(inFileName));
     string contents = parseReflectionData(reflectData, ext);
 
-    ofstream outFile(outFileName);
-    assert(outFile);
-    outFile<<contents;
-    outFile.close();
+    FileUtil::writeFile(outFileName, contents);
     outFiles.push_back(outFileName);
     return 0;
 }
 
-int ShaderTools::generateShaderMapMSL(const string& file, string outDir, vector<string>& outFiles) {
+int ShaderTools::generateShaderMapMSL(const string &file, string outDir, vector<string> &outFiles) {
     genShaderReflectionMSL(file, outDir);
     string dataPath = fs::path(file).parent_path().string();
     auto splitFilename = FileUtil::splitExt(fs::path(file).filename().string());
@@ -575,15 +565,12 @@ int ShaderTools::generateShaderMapMSL(const string& file, string outDir, vector<
     auto reflectData = json::parse(readFile(inFileName));
     string contents = parseReflectionData(reflectData, ext);
 
-    ofstream outFile(outFileName);
-    assert(outFile);
-    outFile<<contents;
-    outFile.close();
+    FileUtil::writeFile(outFileName, contents);
     outFiles.push_back(outFileName);
     return 0;
 }
 
-int ShaderTools::generateShaderMapHLSL(const string& file, string outDir, vector<string>& outFiles) {
+int ShaderTools::generateShaderMapHLSL(const string &file, string outDir, vector<string> &outFiles) {
     genShaderReflectionHLSL(file, outDir);
     string dataPath = fs::path(file).parent_path().string();
     auto splitFilename = FileUtil::splitExt(fs::path(file).filename().string());
@@ -597,26 +584,23 @@ int ShaderTools::generateShaderMapHLSL(const string& file, string outDir, vector
     auto reflectData = json::parse(readFile(inFileName));
     string contents = parseReflectionData(reflectData, ext);
 
-    ofstream outFile(outFileName);
-    assert(outFile);
-    outFile<<contents;
-    outFile.close();
+    FileUtil::writeFile(outFileName, contents);
     outFiles.push_back(outFileName);
     return 0;
 }
 
 vector<string> ShaderTools::convertShaders(const vector<string> &files, string outDir, Format fmt) {
     vector<string> outFiles;
-    for (const string& file: files) convertShader(file, "", outDir, fmt, outFiles);
+    for (const string &file: files) convertShader(file, "", outDir, fmt, outFiles);
     return outFiles;
 }
 
-vector<string> ShaderTools::compileShaders(const vector<string>& files, string outDir, Format fmt, string defines, int flags) {
+vector<string> ShaderTools::compileShaders(const vector<string> &files, string outDir, Format fmt, string defines, int flags) {
 #ifdef GRAPHICS_BACKEND_VULKAN
     defines += " -DGRAPHICS_BACKEND_VULKAN=1";
 #endif
     vector<string> outFiles;
-    for (const string& file: files) {
+    for (const string &file: files) {
         if (fmt == FORMAT_GLSL) compileShaderGLSL(file, defines, outDir, outFiles, flags);
         else if (fmt == FORMAT_MSL) compileShaderMTL(file, defines, outDir, outFiles);
         else if (fmt == FORMAT_HLSL) compileShaderHLSL(file, defines, outDir, outFiles);
@@ -625,7 +609,7 @@ vector<string> ShaderTools::compileShaders(const vector<string>& files, string o
 }
 
 void ShaderTools::applyPatches(const vector<string> &patchFiles, string outDir) {
-    for (const string& patchFile: patchFiles) {
+    for (const string &patchFile: patchFiles) {
         string filename = FileUtil::splitExt(fs::path(patchFile).string())[0];
         LOG("filename: %s", filename.c_str());
         string outFile = fs::path(outDir+"/"+filename).make_preferred().string();
@@ -637,9 +621,9 @@ void ShaderTools::applyPatches(const vector<string> &patchFiles, string outDir) 
     }
 }
 
-vector<string> ShaderTools::generateShaderMaps(const vector<string>& files, string outDir, Format fmt) {
+vector<string> ShaderTools::generateShaderMaps(const vector<string> &files, string outDir, Format fmt) {
     vector<string> outFiles;
-    for (const string& file: files) {
+    for (const string &file: files) {
         if (fmt == FORMAT_GLSL) generateShaderMapGLSL(file, outDir, outFiles);
         else if (fmt == FORMAT_MSL) generateShaderMapMSL(file, outDir, outFiles);
         else if (fmt == FORMAT_HLSL) generateShaderMapHLSL(file, outDir, outFiles);

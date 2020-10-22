@@ -48,6 +48,10 @@ string FileUtil::tempDir() {
     return fs::canonical(fs::temp_directory_path()).string();
 }
 
+string FileUtil::tempFile() {
+    return std::tmpnam(nullptr);
+}
+
 string FileUtil::readFile(const string& path) {
     File file;
     file.read(path);

@@ -67,7 +67,8 @@ struct ShaderCompiler {
         FileUtil::writeFile(tmpFile, src);
         string outDir = tmpDir;
         glslFiles = { tmpFile };
-        spvFiles = shaderTools.compileShaders(glslFiles, outDir, ShaderTools::FORMAT_GLSL, "", ShaderTools::PATCH_SHADER_LAYOUTS_GLSL);
+        spvFiles = shaderTools.compileShaders(glslFiles, outDir, ShaderTools::FORMAT_GLSL, "",
+            ShaderTools::PATCH_SHADER_LAYOUTS_GLSL | ShaderTools::REMOVE_UNUSED_VARIABLES);
         spvMapFiles = shaderTools.generateShaderMaps(glslFiles, outDir, ShaderTools::FORMAT_GLSL);
 #if defined(GRAPHICS_BACKEND_DIRECT3D12)
         hlslFiles = shaderTools.convertShaders(spvFiles, outDir, ShaderTools::FORMAT_HLSL);

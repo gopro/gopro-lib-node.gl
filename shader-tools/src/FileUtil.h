@@ -29,6 +29,7 @@ public:
     static bool getmtime(const std::string& filename, std::filesystem::file_time_type &mtime);
     static bool srcFileNewerThanOutFile(const std::string& srcFileName, const std::string& targetFileName);
     static std::string tempDir();
+    static std::string tempFile();
     static std::string readFile(const std::string& path);
     static void writeFile(const std::string& path, const std::string& contents);
     static std::vector<std::string> splitExt(const std::string& filename);

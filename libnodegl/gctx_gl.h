@@ -50,8 +50,8 @@ struct gctx_gl {
     int viewport[4];
     int scissor[4];
     int timer_active;
-    /* Offscreen render target */
     struct rendertarget *rt;
+    /* Offscreen render target resources */
     struct texture *color;
     struct texture *ms_color;
     struct texture *depth;

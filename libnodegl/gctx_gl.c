@@ -196,7 +196,40 @@ static int offscreen_rendertarget_init(struct gctx *s)
     return 0;
 }
 
-static void offscreen_rendertarget_reset(struct gctx *s)
+static int onscreen_rendertarget_init(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    const struct ngl_config *config = &s->config;
+
+    const struct rendertarget_params rt_params = {
+        .width = config->width,
+        .height = config->height,
+        .nb_colors = 1,
+        .colors[0] = {
+            .attachment     = NULL,
+            .resolve_target = NULL,
+            .load_op        = NGLI_LOAD_OP_LOAD,
+            .clear_value[0] = config->clear_color[0],
+            .clear_value[1] = config->clear_color[1],
+            .clear_value[2] = config->clear_color[2],
+            .clear_value[3] = config->clear_color[3],
+            .store_op       = NGLI_STORE_OP_STORE,
+        },
+        .depth_stencil = {
+            .attachment = NULL,
+            .load_op    = NGLI_LOAD_OP_LOAD,
+            .store_op   = NGLI_STORE_OP_STORE,
+        },
+    };
+
+    s_priv->rt = ngli_rendertarget_create(s);
+    if (!s_priv->rt)
+        return NGL_ERROR_MEMORY;
+
+    return ngli_default_rendertarget_gl_init(s_priv->rt, &rt_params);
+}
+
+static void rendertarget_reset(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     ngli_rendertarget_freep(&s_priv->rt);
@@ -261,11 +294,9 @@ static int gl_init(struct gctx *s)
     }
 #endif
 
-    if (gl->offscreen) {
-        ret = offscreen_rendertarget_init(s);
-        if (ret < 0)
-            return ret;
-    }
+    ret = gl->offscreen ? offscreen_rendertarget_init(s) : onscreen_rendertarget_init(s);
+    if (ret < 0)
+        return ret;
 
     s->version = gl->version;
     s->features = gl->features;
@@ -305,6 +336,16 @@ static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
     if (ret < 0)
         return ret;
 
+    s_priv->rt->width = gl->width;
+    s_priv->rt->height = gl->height;
+
+    /*
+     * The default framebuffer id can change after a resize operation on EAGL,
+     * thus we need to update the rendertarget wrapping the default framebuffer
+     */
+    struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)s_priv->rt;
+    rt_gl->id = ngli_glcontext_get_default_framebuffer(gl);
+
     if (viewport && viewport[2] > 0 && viewport[3] > 0) {
         ngli_gctx_set_viewport(s, viewport);
     } else {
@@ -324,7 +365,7 @@ static int gl_begin_draw(struct gctx *s, double t)
     struct glcontext *gl = s_priv->glcontext;
     const struct ngl_config *config = &s->config;
 
-    ngli_gctx_begin_render_pass(s, config->offscreen ? s_priv->rt : NULL);
+    ngli_gctx_begin_render_pass(s, s_priv->rt);
 
     const float *color = config->clear_color;
     ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
@@ -360,7 +401,7 @@ static int gl_end_draw(struct gctx *s, double t)
 static void gl_destroy(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    offscreen_rendertarget_reset(s);
+    rendertarget_reset(s);
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 
@@ -408,10 +449,7 @@ static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
 static struct rendertarget *gl_get_default_rendertarget(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    const struct ngl_config *config = &s->config;
-    if (config->offscreen)
-        return s_priv->rt;
-    return NULL;
+    return s_priv->rt;
 }
 
 static const struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
@@ -425,17 +463,15 @@ static void gl_begin_render_pass(struct gctx *s, struct rendertarget *rt)
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
+    ngli_assert(rt);
     struct rendertarget_gl *rt_gl = (struct rendertarget_gl *)rt;
-    const GLuint fbo_id = rt_gl ? rt_gl->id : ngli_glcontext_get_default_framebuffer(gl);
-    ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, fbo_id);
+    ngli_glBindFramebuffer(gl, GL_FRAMEBUFFER, rt_gl->id);
 
-    if (rt) {
-        const int scissor_test = s_priv->glstate.scissor_test;
-        ngli_glDisable(gl, GL_SCISSOR_TEST);
-        ngli_rendertarget_gl_clear(rt);
-        if (scissor_test)
-            ngli_glEnable(gl, GL_SCISSOR_TEST);
-    }
+    const int scissor_test = s_priv->glstate.scissor_test;
+    ngli_glDisable(gl, GL_SCISSOR_TEST);
+    ngli_rendertarget_gl_clear(rt);
+    if (scissor_test)
+        ngli_glEnable(gl, GL_SCISSOR_TEST);
 
     s_priv->rendertarget = rt;
 }

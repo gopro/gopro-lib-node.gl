@@ -339,7 +339,7 @@ updatedoc: gen_doc$(EXESUF)
 # OpenGL function wrappers
 #
 gen_gl_wrappers: gl.xml
-	$(PYTHON) gen-gl-wrappers.py $^
+	$(PYTHON) gen-gl-wrappers.py $^ glfunctions.h gldefinitions_data.h glwrappers.h
 gl.xml:
 	$(CURL) https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/master/xml/$@ -o $@
 

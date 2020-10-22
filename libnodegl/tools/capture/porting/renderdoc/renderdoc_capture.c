@@ -1,4 +1,4 @@
-#include "renderdoc_utils.h"
+#include "capture.h"
 #include "renderdoc_app.h"
 #include "log.h"
 #ifdef _WIN32
@@ -11,7 +11,7 @@
 #include <assert.h>
 static RENDERDOC_API_1_4_1 *rdoc_api = NULL;
 
-void init_renderdoc() {
+void init_capture() {
 #ifdef _WIN32
     // At init, on windows
     HMODULE mod = LoadLibraryA("renderdoc.dll");
@@ -30,10 +30,10 @@ void init_renderdoc() {
     fprintf(stderr, "renderdoc capture path: %s\n", rdoc_api->GetCaptureFilePathTemplate());
 }
 
-void begin_renderdoc_capture() {
+void begin_capture() {
     rdoc_api->StartFrameCapture(NULL, NULL);
 }
 
-void end_renderdoc_capture() {
+void end_capture() {
     rdoc_api->EndFrameCapture(NULL, NULL);
 }

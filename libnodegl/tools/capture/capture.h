@@ -24,9 +24,9 @@
 extern "C" {
 #endif
 
-void init_renderdoc();
-void begin_renderdoc_capture();
-void end_renderdoc_capture();
+void init_capture();
+void begin_capture();
+void end_capture();
 
 #ifdef __cplusplus
 }

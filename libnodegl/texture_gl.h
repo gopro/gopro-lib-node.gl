@@ -28,7 +28,6 @@
 GLint ngli_texture_get_gl_min_filter(int min_filter, int mipmap_filter);
 GLint ngli_texture_get_gl_mag_filter(int mag_filter);
 GLint ngli_texture_get_gl_wrap(int wrap);
-GLenum ngli_texture_get_gl_access(int access);
 
 struct texture_gl {
     struct texture parent;

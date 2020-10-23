@@ -63,15 +63,6 @@ static const struct param_choices wrap_choices = {
     }
 };
 
-static const struct param_choices access_choices = {
-    .name = "access",
-    .consts = {
-        {"read",  NGLI_ACCESS_READ_BIT,   .desc=NGLI_DOCSTRING("read")},
-        {"write", NGLI_ACCESS_WRITE_BIT,  .desc=NGLI_DOCSTRING("write")},
-        {NULL}
-    }
-};
-
 /* These formats are not in format.h because they do not represent a native GPU format */
 #define NGLI_FORMAT_AUTO_DEPTH         (NGLI_FORMAT_NB + 1)
 #define NGLI_FORMAT_AUTO_DEPTH_STENCIL (NGLI_FORMAT_NB + 2)
@@ -192,8 +183,6 @@ static const struct node_param texture2d_params[] = {
                .desc=NGLI_DOCSTRING("wrap parameter for the texture on the s dimension (horizontal)")},
     {"wrap_t", PARAM_TYPE_SELECT, OFFSET(params.wrap_t), {.i64=NGLI_WRAP_CLAMP_TO_EDGE}, .choices=&wrap_choices,
                .desc=NGLI_DOCSTRING("wrap parameter for the texture on the t dimension (vertical)")},
-    {"access", PARAM_TYPE_FLAGS, OFFSET(params.access), {.i64=NGLI_ACCESS_READ_WRITE}, .choices=&access_choices,
-               .desc=NGLI_DOCSTRING("texture access (only honored by the `Compute` node)")},
     {"data_src", PARAM_TYPE_NODE, OFFSET(data_src), .node_types=DATA_SRC_TYPES_LIST_2D,
                  .desc=NGLI_DOCSTRING("data source")},
     {"direct_rendering", PARAM_TYPE_BOOL, OFFSET(direct_rendering), {.i64=1},
@@ -223,8 +212,6 @@ static const struct node_param texture3d_params[] = {
                .desc=NGLI_DOCSTRING("wrap parameter for the texture on the t dimension (vertical)")},
     {"wrap_r", PARAM_TYPE_SELECT, OFFSET(params.wrap_r), {.i64=NGLI_WRAP_CLAMP_TO_EDGE}, .choices=&wrap_choices,
                .desc=NGLI_DOCSTRING("wrap parameter for the texture on the r dimension (depth)")},
-    {"access", PARAM_TYPE_FLAGS, OFFSET(params.access), {.i64=NGLI_ACCESS_READ_WRITE}, .choices=&access_choices,
-               .desc=NGLI_DOCSTRING("texture access (only honored by the `Compute` node)")},
     {"data_src", PARAM_TYPE_NODE, OFFSET(data_src), .node_types=DATA_SRC_TYPES_LIST_3D,
                  .desc=NGLI_DOCSTRING("data source")},
     {NULL}
@@ -248,8 +235,6 @@ static const struct node_param texturecube_params[] = {
                .desc=NGLI_DOCSTRING("wrap parameter for the texture on the t dimension (vertical)")},
     {"wrap_r", PARAM_TYPE_SELECT, OFFSET(params.wrap_r), {.i64=NGLI_WRAP_CLAMP_TO_EDGE}, .choices=&wrap_choices,
                .desc=NGLI_DOCSTRING("wrap parameter for the texture on the r dimension (depth)")},
-    {"access", PARAM_TYPE_FLAGS, OFFSET(params.access), {.i64=NGLI_ACCESS_READ_WRITE}, .choices=&access_choices,
-               .desc=NGLI_DOCSTRING("texture access (only honored by the `Compute` node)")},
     {"data_src", PARAM_TYPE_NODE, OFFSET(data_src), .node_types=DATA_SRC_TYPES_LIST_3D,
                  .desc=NGLI_DOCSTRING("data source")},
     {NULL}

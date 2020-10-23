@@ -42,6 +42,7 @@ struct pipeline_texture_desc {
     int type;
     int location;
     int binding;
+    int access;
 };
 
 struct pipeline_buffer_desc {

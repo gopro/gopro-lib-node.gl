@@ -547,7 +547,6 @@ Parameter | Live-chg. | Type | Description | Default
 `mipmap_filter` |  | [`mipmap_filter`](#mipmap_filter-choices) | texture minifying mipmap function | `none`
 `wrap_s` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the s dimension (horizontal) | `clamp_to_edge`
 `wrap_t` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the t dimension (vertical) | `clamp_to_edge`
-`access` |  | [`access`](#access-choices) | texture access (only honored by the `Compute` node) | `read+write`
 `data_src` |  | [`Node`](#parameter-types) ([Media](#media), [AnimatedBufferFloat](#animatedbuffer), [AnimatedBufferVec2](#animatedbuffer), [AnimatedBufferVec4](#animatedbuffer), [BufferByte](#buffer), [BufferBVec2](#buffer), [BufferBVec4](#buffer), [BufferInt](#buffer), [BufferIVec2](#buffer), [BufferIVec4](#buffer), [BufferShort](#buffer), [BufferSVec2](#buffer), [BufferSVec4](#buffer), [BufferUByte](#buffer), [BufferUBVec2](#buffer), [BufferUBVec4](#buffer), [BufferUInt](#buffer), [BufferUIVec2](#buffer), [BufferUIVec4](#buffer), [BufferUShort](#buffer), [BufferUSVec2](#buffer), [BufferUSVec4](#buffer), [BufferFloat](#buffer), [BufferVec2](#buffer), [BufferVec4](#buffer)) | data source | 
 `direct_rendering` |  | [`bool`](#parameter-types) | whether direct rendering is allowed or not for media playback | `1`
 
@@ -569,7 +568,6 @@ Parameter | Live-chg. | Type | Description | Default
 `wrap_s` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the s dimension (horizontal) | `clamp_to_edge`
 `wrap_t` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the t dimension (vertical) | `clamp_to_edge`
 `wrap_r` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the r dimension (depth) | `clamp_to_edge`
-`access` |  | [`access`](#access-choices) | texture access (only honored by the `Compute` node) | `read+write`
 `data_src` |  | [`Node`](#parameter-types) ([AnimatedBufferFloat](#animatedbuffer), [AnimatedBufferVec2](#animatedbuffer), [AnimatedBufferVec4](#animatedbuffer), [BufferByte](#buffer), [BufferBVec2](#buffer), [BufferBVec4](#buffer), [BufferInt](#buffer), [BufferIVec2](#buffer), [BufferIVec4](#buffer), [BufferShort](#buffer), [BufferSVec2](#buffer), [BufferSVec4](#buffer), [BufferUByte](#buffer), [BufferUBVec2](#buffer), [BufferUBVec4](#buffer), [BufferUInt](#buffer), [BufferUIVec2](#buffer), [BufferUIVec4](#buffer), [BufferUShort](#buffer), [BufferUSVec2](#buffer), [BufferUSVec4](#buffer), [BufferFloat](#buffer), [BufferVec2](#buffer), [BufferVec4](#buffer)) | data source | 
 
 
@@ -588,7 +586,6 @@ Parameter | Live-chg. | Type | Description | Default
 `wrap_s` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the s dimension (horizontal) | `clamp_to_edge`
 `wrap_t` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the t dimension (vertical) | `clamp_to_edge`
 `wrap_r` |  | [`wrap`](#wrap-choices) | wrap parameter for the texture on the r dimension (depth) | `clamp_to_edge`
-`access` |  | [`access`](#access-choices) | texture access (only honored by the `Compute` node) | `read+write`
 `data_src` |  | [`Node`](#parameter-types) ([AnimatedBufferFloat](#animatedbuffer), [AnimatedBufferVec2](#animatedbuffer), [AnimatedBufferVec4](#animatedbuffer), [BufferByte](#buffer), [BufferBVec2](#buffer), [BufferBVec4](#buffer), [BufferInt](#buffer), [BufferIVec2](#buffer), [BufferIVec4](#buffer), [BufferShort](#buffer), [BufferSVec2](#buffer), [BufferSVec4](#buffer), [BufferUByte](#buffer), [BufferUBVec2](#buffer), [BufferUBVec4](#buffer), [BufferUInt](#buffer), [BufferUIVec2](#buffer), [BufferUIVec4](#buffer), [BufferUShort](#buffer), [BufferUSVec2](#buffer), [BufferUSVec4](#buffer), [BufferFloat](#buffer), [BufferVec2](#buffer), [BufferVec4](#buffer)) | data source | 
 
 
@@ -1483,10 +1480,3 @@ Constant | Description
 `clamp_to_edge` | clamp to edge wrapping
 `mirrored_repeat` | mirrored repeat wrapping
 `repeat` | repeat pattern wrapping
-
-## access choices
-
-Constant | Description
--------- | -----------
-`read` | read
-`write` | write

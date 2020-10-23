@@ -65,17 +65,6 @@ GLint ngli_texture_get_gl_wrap(int wrap)
     return gl_wrap_map[wrap];
 }
 
-static const GLenum gl_access_map[NGLI_ACCESS_NB] = {
-    [NGLI_ACCESS_READ_BIT]   = GL_READ_ONLY,
-    [NGLI_ACCESS_WRITE_BIT]  = GL_WRITE_ONLY,
-    [NGLI_ACCESS_READ_WRITE] = GL_READ_WRITE,
-};
-
-GLenum ngli_texture_get_gl_access(int access)
-{
-    return gl_access_map[access];
-}
-
 static void texture_set_image(struct texture *s, const uint8_t *data)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;

@@ -245,6 +245,17 @@ static int acquire_next_available_texture_unit(uint64_t *texture_units)
     return NGL_ERROR_LIMIT_EXCEEDED;
 }
 
+static const GLenum gl_access_map[NGLI_ACCESS_NB] = {
+    [NGLI_ACCESS_READ_BIT]   = GL_READ_ONLY,
+    [NGLI_ACCESS_WRITE_BIT]  = GL_WRITE_ONLY,
+    [NGLI_ACCESS_READ_WRITE] = GL_READ_WRITE,
+};
+
+static GLenum get_gl_access(int access)
+{
+    return gl_access_map[access];
+}
+
 static void set_textures(struct pipeline *s, struct glcontext *gl)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
@@ -257,12 +268,10 @@ static void set_textures(struct pipeline *s, struct glcontext *gl)
 
         if (texture_binding->desc.type == NGLI_TYPE_IMAGE_2D) {
             GLuint texture_id = 0;
-            GLenum access = GL_READ_WRITE;
+            const GLenum access = get_gl_access(texture_binding->desc.access);
             GLenum internal_format = GL_RGBA8;
             if (texture) {
-                const struct texture_params *params = &texture->params;
                 texture_id = texture_gl->id;
-                access = ngli_texture_get_gl_access(params->access);
                 internal_format = texture_gl->internal_format;
             }
             ngli_glBindImageTexture(gl, texture_binding->desc.binding, texture_id, 0, GL_FALSE, 0, access, internal_format);

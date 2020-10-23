@@ -65,7 +65,6 @@ NGLI_STATIC_ASSERT(texture_access, (NGLI_ACCESS_READ_BIT | NGLI_ACCESS_WRITE_BIT
     .wrap_s = NGLI_WRAP_CLAMP_TO_EDGE,         \
     .wrap_t = NGLI_WRAP_CLAMP_TO_EDGE,         \
     .wrap_r = NGLI_WRAP_CLAMP_TO_EDGE,         \
-    .access = NGLI_ACCESS_READ_WRITE           \
 }
 
 #define NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY (1 << 0)
@@ -89,7 +88,6 @@ struct texture_params {
     int wrap_s;
     int wrap_t;
     int wrap_r;
-    int access;
     int immutable;
     int usage;
     int external_storage;

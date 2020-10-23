@@ -310,6 +310,7 @@ static int inject_texture_info(struct pgcraft *s, struct pgcraft_texture_info *i
                 .type     = field->type,
                 .location = -1,
                 .binding  = -1,
+                .access   = info->writable ? NGLI_ACCESS_WRITE_BIT : NGLI_ACCESS_READ_BIT,
             };
             snprintf(pl_texture_desc.name, sizeof(pl_texture_desc.name), "%s", field->name);
 

@@ -155,13 +155,13 @@ static int media_init(struct ngl_node *node)
 
     if (config->backend == NGL_BACKEND_OPENGLES) {
         struct texture_params params = {
-            .type = NGLI_TEXTURE_TYPE_2D,
-            .format = NGLI_FORMAT_UNDEFINED,
-            .min_filter = NGLI_FILTER_NEAREST,
-            .mag_filter = NGLI_FILTER_NEAREST,
-            .wrap_s = NGLI_WRAP_CLAMP_TO_EDGE,
-            .wrap_t = NGLI_WRAP_CLAMP_TO_EDGE,
-            .wrap_r = NGLI_WRAP_CLAMP_TO_EDGE,
+            .type         = NGLI_TEXTURE_TYPE_2D,
+            .format       = NGLI_FORMAT_UNDEFINED,
+            .min_filter   = NGLI_FILTER_NEAREST,
+            .mag_filter   = NGLI_FILTER_NEAREST,
+            .wrap_s       = NGLI_WRAP_CLAMP_TO_EDGE,
+            .wrap_t       = NGLI_WRAP_CLAMP_TO_EDGE,
+            .wrap_r       = NGLI_WRAP_CLAMP_TO_EDGE,
             .external_oes = 1,
         };
 

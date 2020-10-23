@@ -107,10 +107,12 @@ static int offscreen_rendertarget_init(struct gctx *s)
         ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
 
-        struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-        attachment_params.format = NGLI_FORMAT_B8G8R8A8_UNORM;
-        attachment_params.width = width;
-        attachment_params.height = height;
+        struct texture_params attachment_params = {
+            .type   = NGLI_TEXTURE_TYPE_2D,
+            .format = NGLI_FORMAT_B8G8R8A8_UNORM,
+            .width  = width,
+            .height = height,
+        };
         s_priv->color = ngli_texture_create(s);
         if (!s_priv->color)
             return NGL_ERROR_MEMORY;
@@ -119,11 +121,13 @@ static int offscreen_rendertarget_init(struct gctx *s)
             return ret;
 #endif
     } else {
-        struct texture_params params = NGLI_TEXTURE_PARAM_DEFAULTS;
-        params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
-        params.width = config->width;
-        params.height = config->height;
-        params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+        struct texture_params params = {
+            .type   = NGLI_TEXTURE_TYPE_2D,
+            .format = NGLI_FORMAT_R8G8B8A8_UNORM,
+            .width  = config->width,
+            .height = config->height,
+            .usage  = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+        };
         s_priv->color = ngli_texture_create(s);
         if (!s_priv->color)
             return NGL_ERROR_MEMORY;
@@ -133,12 +137,14 @@ static int offscreen_rendertarget_init(struct gctx *s)
     }
 
     if (config->samples) {
-        struct texture_params params = NGLI_TEXTURE_PARAM_DEFAULTS;
-        params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
-        params.width = config->width;
-        params.height = config->height;
-        params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
-        params.samples = config->samples;
+        struct texture_params params = {
+            .type    = NGLI_TEXTURE_TYPE_2D,
+            .format  = NGLI_FORMAT_R8G8B8A8_UNORM,
+            .width   = config->width,
+            .height  = config->height,
+            .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+            .samples = config->samples,
+        };
         s_priv->ms_color = ngli_texture_create(s);
         if (!s_priv->ms_color)
             return NGL_ERROR_MEMORY;
@@ -147,12 +153,14 @@ static int offscreen_rendertarget_init(struct gctx *s)
             return ret;
     }
 
-    struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-    attachment_params.format = NGLI_FORMAT_D24_UNORM_S8_UINT;
-    attachment_params.width = config->width;
-    attachment_params.height = config->height;
-    attachment_params.samples = config->samples;
-    attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+    struct texture_params attachment_params = {
+        .type    = NGLI_TEXTURE_TYPE_2D,
+        .format  = NGLI_FORMAT_D24_UNORM_S8_UINT,
+        .width   = config->width,
+        .height  = config->height,
+        .samples = config->samples,
+        .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+    };
     s_priv->depth = ngli_texture_create(s);
     if (!s_priv->depth)
         return NGL_ERROR_MEMORY;

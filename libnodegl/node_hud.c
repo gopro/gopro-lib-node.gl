@@ -1269,13 +1269,15 @@ static int hud_init(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    struct texture_params tex_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-    tex_params.width = s->canvas.w;
-    tex_params.height = s->canvas.h;
-    tex_params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
-    tex_params.min_filter = NGLI_FILTER_LINEAR;
-    tex_params.mag_filter = NGLI_FILTER_NEAREST;
-    tex_params.mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR;
+    struct texture_params tex_params = {
+        .type          = NGLI_TEXTURE_TYPE_2D,
+        .format        = NGLI_FORMAT_R8G8B8A8_UNORM,
+        .width         = s->canvas.w,
+        .height        = s->canvas.h,
+        .min_filter    = NGLI_FILTER_LINEAR,
+        .mag_filter    = NGLI_FILTER_NEAREST,
+        .mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR,
+    };
     s->texture = ngli_texture_create(gctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;

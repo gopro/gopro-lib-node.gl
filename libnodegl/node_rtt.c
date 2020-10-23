@@ -243,12 +243,14 @@ static int rtt_prefetch(struct ngl_node *node)
                 if (!ms_texture)
                     return NGL_ERROR_MEMORY;
                 s->ms_colors[s->nb_ms_colors++] = ms_texture;
-                struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-                attachment_params.format = params->format;
-                attachment_params.width = s->width;
-                attachment_params.height = s->height;
-                attachment_params.samples = s->samples;
-                attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+                struct texture_params attachment_params = {
+                    .type    = NGLI_TEXTURE_TYPE_2D,
+                    .format  = params->format,
+                    .width   = s->width,
+                    .height  = s->height,
+                    .samples = s->samples,
+                    .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+                };
                 ret = ngli_texture_init(ms_texture, &attachment_params);
                 if (ret < 0)
                     return ret;
@@ -283,12 +285,14 @@ static int rtt_prefetch(struct ngl_node *node)
             if (!ms_texture)
                 return NGL_ERROR_MEMORY;
             s->ms_depth = ms_texture;
-            struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-            attachment_params.format = params->format;
-            attachment_params.width = s->width;
-            attachment_params.height = s->height;
-            attachment_params.samples = s->samples;
-            attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+            struct texture_params attachment_params = {
+                .type    = NGLI_TEXTURE_TYPE_2D,
+                .format  = params->format,
+                .width   = s->width,
+                .height  = s->height,
+                .samples = s->samples,
+                .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+            };
             ret = ngli_texture_init(ms_texture, &attachment_params);
             if (ret < 0)
                 return ret;
@@ -312,12 +316,14 @@ static int rtt_prefetch(struct ngl_node *node)
             if (!depth)
                 return NGL_ERROR_MEMORY;
             s->depth = depth;
-            struct texture_params attachment_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-            attachment_params.format = depth_format;
-            attachment_params.width = s->width;
-            attachment_params.height = s->height;
-            attachment_params.samples = s->samples;
-            attachment_params.usage = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY;
+            struct texture_params attachment_params = {
+                .type    = NGLI_TEXTURE_TYPE_2D,
+                .format  = depth_format,
+                .width   = s->width,
+                .height  = s->height,
+                .samples = s->samples,
+                .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+            };
             ret = ngli_texture_init(depth, &attachment_params);
             if (ret < 0)
                 return ret;

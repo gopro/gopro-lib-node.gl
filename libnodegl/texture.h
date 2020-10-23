@@ -46,17 +46,6 @@ enum {
     NGLI_NB_WRAP
 };
 
-#define NGLI_TEXTURE_PARAM_DEFAULTS {          \
-    .type = NGLI_TEXTURE_TYPE_2D,              \
-    .format = NGLI_FORMAT_UNDEFINED,           \
-    .min_filter = NGLI_FILTER_NEAREST,         \
-    .mag_filter = NGLI_FILTER_NEAREST,         \
-    .mipmap_filter = NGLI_MIPMAP_FILTER_NONE,  \
-    .wrap_s = NGLI_WRAP_CLAMP_TO_EDGE,         \
-    .wrap_t = NGLI_WRAP_CLAMP_TO_EDGE,         \
-    .wrap_r = NGLI_WRAP_CLAMP_TO_EDGE,         \
-}
-
 #define NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY (1 << 0)
 
 enum texture_type {
@@ -64,6 +53,11 @@ enum texture_type {
     NGLI_TEXTURE_TYPE_3D,
     NGLI_TEXTURE_TYPE_CUBE,
 };
+
+NGLI_STATIC_ASSERT(texture_params_type_default,          NGLI_TEXTURE_TYPE_2D == 0);
+NGLI_STATIC_ASSERT(texture_params_filter_default,        NGLI_FILTER_NEAREST == 0);
+NGLI_STATIC_ASSERT(texture_params_mipmap_filter_default, NGLI_MIPMAP_FILTER_NONE == 0);
+NGLI_STATIC_ASSERT(texture_params_wrap_default,          NGLI_WRAP_CLAMP_TO_EDGE == 0);
 
 struct texture_params {
     enum texture_type type;

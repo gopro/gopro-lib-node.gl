@@ -418,13 +418,15 @@ static int atlas_create(struct ngl_node *node)
     if (ret < 0)
         goto end;
 
-    struct texture_params tex_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-    tex_params.width = canvas.w;
-    tex_params.height = canvas.h;
-    tex_params.format = NGLI_FORMAT_R8_UNORM;
-    tex_params.min_filter = NGLI_FILTER_LINEAR;
-    tex_params.mag_filter = NGLI_FILTER_NEAREST;
-    tex_params.mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR;
+    struct texture_params tex_params = {
+        .type          = NGLI_TEXTURE_TYPE_2D,
+        .width         = canvas.w,
+        .height        = canvas.h,
+        .format        = NGLI_FORMAT_R8_UNORM,
+        .min_filter    = NGLI_FILTER_LINEAR,
+        .mag_filter    = NGLI_FILTER_NEAREST,
+        .mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR,
+    };
 
     ctx->font_atlas = ngli_texture_create(gctx); // freed at context reconfiguration/destruction
     if (!ctx->font_atlas) {

@@ -88,14 +88,14 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
         int format = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM;
 
         const struct texture_params plane_params = {
-            .type = NGLI_TEXTURE_TYPE_2D,
-            .format = format,
-            .min_filter = params->min_filter,
-            .mag_filter = params->mag_filter,
-            .mipmap_filter = NGLI_MIPMAP_FILTER_NONE,
-            .wrap_s = params->wrap_s,
-            .wrap_t = params->wrap_t,
-            .wrap_r = params->wrap_r,
+            .type             = NGLI_TEXTURE_TYPE_2D,
+            .format           = format,
+            .min_filter       = params->min_filter,
+            .mag_filter       = params->mag_filter,
+            .mipmap_filter    = NGLI_MIPMAP_FILTER_NONE,
+            .wrap_s           = params->wrap_s,
+            .wrap_t           = params->wrap_t,
+            .wrap_r           = params->wrap_r,
             .external_storage = 1,
         };
 

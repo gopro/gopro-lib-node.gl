@@ -259,6 +259,8 @@ int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_
     s->width = params->width;
     s->height = params->height;
 
+    s_priv->wrapped = 0;
+
     int ret;
     if (require_resolve_fbo(s)) {
         ret = create_fbo(s, 1);
@@ -392,8 +394,11 @@ void ngli_rendertarget_gl_freep(struct rendertarget **sp)
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
     struct rendertarget_gl *s_priv = (struct rendertarget_gl *)s;
-    ngli_glDeleteFramebuffers(gl, 1, &s_priv->id);
-    ngli_glDeleteFramebuffers(gl, 1, &s_priv->resolve_id);
+
+    if (!s_priv->wrapped) {
+        ngli_glDeleteFramebuffers(gl, 1, &s_priv->id);
+        ngli_glDeleteFramebuffers(gl, 1, &s_priv->resolve_id);
+    }
 
     ngli_freep(sp);
 }
@@ -410,6 +415,7 @@ int ngli_default_rendertarget_gl_init(struct rendertarget *s, const struct rende
     s->width = params->width;
     s->height = params->height;
 
+    s_priv->wrapped = 1;
     s_priv->id = ngli_glcontext_get_default_framebuffer(gl);
 
     if (gl->features & NGLI_FEATURE_INVALIDATE_SUBDATA) {
@@ -432,7 +438,7 @@ int ngli_default_rendertarget_gl_init(struct rendertarget *s, const struct rende
         s_priv->clear_flags |= GL_COLOR_BUFFER_BIT;
     }
     if (color->store_op == NGLI_STORE_OP_DONT_CARE) {
-        s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = GL_COLOR;
+        s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = s_priv->id ? GL_COLOR_ATTACHMENT0 : GL_COLOR;
     }
 
     const struct attachment *depth_stencil = &params->depth_stencil;
@@ -442,8 +448,8 @@ int ngli_default_rendertarget_gl_init(struct rendertarget *s, const struct rende
             s_priv->clear_flags |= (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         }
         if (depth_stencil->store_op == NGLI_STORE_OP_DONT_CARE) {
-            s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = GL_DEPTH;
-            s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = GL_STENCIL;
+            s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = s_priv->id ? GL_DEPTH_ATTACHMENT : GL_DEPTH;
+            s_priv->invalidate_attachments[s_priv->nb_invalidate_attachments++] = s_priv->id ? GL_STENCIL_ATTACHMENT : GL_STENCIL;
         }
     }
 

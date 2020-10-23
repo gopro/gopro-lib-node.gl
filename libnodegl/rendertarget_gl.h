@@ -27,6 +27,7 @@
 
 struct rendertarget_gl {
     struct rendertarget parent;
+    int wrapped;
     GLuint id;
     GLuint resolve_id;
     GLenum draw_buffers[NGLI_MAX_COLOR_ATTACHMENTS];

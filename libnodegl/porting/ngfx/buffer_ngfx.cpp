@@ -36,6 +36,9 @@ struct buffer *ngli_buffer_ngfx_create(struct gctx *gctx)
 
 int ngli_buffer_ngfx_init(struct buffer *s, int size, int usage)
 {
+#ifdef GRAPHICS_BACKEND_METAL //TODO: pass correct size from higher level
+    size = (size + 15) / 16 * 16; //align to multiple of 16
+#endif
     struct gctx_ngfx *ctx = (struct gctx_ngfx *)s->gctx;
     struct buffer_ngfx *s_priv = (struct buffer_ngfx *)s;
     s->size = size;

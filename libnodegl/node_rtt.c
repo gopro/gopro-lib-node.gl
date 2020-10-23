@@ -250,7 +250,7 @@ static int rtt_prefetch(struct ngl_node *node)
                     .width   = s->width,
                     .height  = s->height,
                     .samples = s->samples,
-                    .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+                    .usage   = NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT,
                 };
                 ret = ngli_texture_init(ms_texture, &attachment_params);
                 if (ret < 0)
@@ -292,7 +292,7 @@ static int rtt_prefetch(struct ngl_node *node)
                 .width   = s->width,
                 .height  = s->height,
                 .samples = s->samples,
-                .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+                .usage   = NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             };
             ret = ngli_texture_init(ms_texture, &attachment_params);
             if (ret < 0)
@@ -323,7 +323,7 @@ static int rtt_prefetch(struct ngl_node *node)
                 .width   = s->width,
                 .height  = s->height,
                 .samples = s->samples,
-                .usage   = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+                .usage   = NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             };
             ret = ngli_texture_init(depth, &attachment_params);
             if (ret < 0)

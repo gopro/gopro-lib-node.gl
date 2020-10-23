@@ -1220,6 +1220,7 @@ int ngli_hud_init(struct hud *s)
         .height        = s->canvas.h,
         .min_filter    = NGLI_FILTER_NEAREST,
         .mag_filter    = NGLI_FILTER_NEAREST,
+        .usage         = NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT | NGLI_TEXTURE_USAGE_SAMPLED_BIT,
     };
     s->texture = ngli_texture_create(gctx);
     if (!s->texture)

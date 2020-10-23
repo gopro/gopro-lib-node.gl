@@ -46,7 +46,14 @@ enum {
     NGLI_NB_WRAP
 };
 
-#define NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY (1 << 0)
+enum {
+    NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT             = 1 << 0,
+    NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT             = 1 << 1,
+    NGLI_TEXTURE_USAGE_SAMPLED_BIT                  = 1 << 2,
+    NGLI_TEXTURE_USAGE_STORAGE_BIT                  = 1 << 3,
+    NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT         = 1 << 4,
+    NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT = 1 << 5,
+};
 
 enum texture_type {
     NGLI_TEXTURE_TYPE_2D,

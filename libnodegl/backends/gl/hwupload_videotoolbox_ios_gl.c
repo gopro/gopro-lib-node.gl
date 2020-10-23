@@ -243,6 +243,7 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
 
     for (int i = 0; i < format_desc.nb_planes; i++) {
         plane_params.format = format_desc.planes[i].format;
+        plane_params.usage = NGLI_TEXTURE_USAGE_SAMPLED_BIT;
 
         vt->planes[i] = ngli_texture_create(gctx);
         if (!vt->planes[i])

@@ -253,7 +253,8 @@ static int texture_init_fields(struct texture *s)
     struct glcontext *gl = gctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
-    if (params->usage & NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY) {
+    if (params->usage == NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT ||
+        params->usage == NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
         s_priv->target = GL_RENDERBUFFER;
         int ret = ngli_format_get_gl_renderbuffer_format(gl, params->format, &s_priv->format);
         if (ret < 0)
@@ -430,7 +431,8 @@ int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize)
 
     /* texture with external storage (including wrapped textures and render
      * buffers) cannot update their content with this function */
-    ngli_assert(!s->external_storage && !(params->usage & NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY));
+    ngli_assert(!s->external_storage);
+    ngli_assert(params->usage & NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT);
 
     ngli_glBindTexture(gl, s_priv->target, s_priv->id);
     if (data) {
@@ -450,7 +452,8 @@ int ngli_texture_gl_generate_mipmap(struct texture *s)
     struct glcontext *gl = gctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
-    ngli_assert(!(params->usage & NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY));
+    ngli_assert(params->usage & NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT);
+    ngli_assert(params->usage & NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT);
 
     ngli_glBindTexture(gl, s_priv->target, s_priv->id);
     ngli_glGenerateMipmap(gl, s_priv->target);

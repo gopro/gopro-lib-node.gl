@@ -253,6 +253,17 @@ static int texture_prefetch(struct ngl_node *node)
     if (gctx->features & NGLI_FEATURE_TEXTURE_STORAGE)
         params->immutable = 1;
 
+    params->usage = NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT
+                  | NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT
+                  | NGLI_TEXTURE_USAGE_SAMPLED_BIT;
+
+    if (ngli_format_has_depth(params->format) || ngli_format_has_stencil(params->format)) {
+        params->usage |= NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    } else {
+        params->usage |= NGLI_TEXTURE_USAGE_STORAGE_BIT;
+        params->usage |= NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+    }
+
     const uint8_t *data = NULL;
 
     if (s->data_src) {

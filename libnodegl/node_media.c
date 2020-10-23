@@ -164,6 +164,7 @@ static int media_init(struct ngl_node *node)
             .wrap_s       = NGLI_WRAP_CLAMP_TO_EDGE,
             .wrap_t       = NGLI_WRAP_CLAMP_TO_EDGE,
             .wrap_r       = NGLI_WRAP_CLAMP_TO_EDGE,
+            .usage        = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
             .external_oes = 1,
         };
 

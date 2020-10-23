@@ -96,6 +96,7 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
             .wrap_s           = params->wrap_s,
             .wrap_t           = params->wrap_t,
             .wrap_r           = params->wrap_r,
+            .usage            = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
             .external_storage = 1,
         };
 

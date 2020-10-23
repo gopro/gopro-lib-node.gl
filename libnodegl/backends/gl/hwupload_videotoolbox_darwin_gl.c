@@ -119,6 +119,7 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
         struct texture_params plane_params = {
             .type             = NGLI_TEXTURE_TYPE_2D,
             .format           = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM,
+            .usage            = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
             .rectangle        = 1,
             .external_storage = 1,
         };

@@ -426,6 +426,9 @@ static int atlas_create(struct ngl_node *node)
         .min_filter    = NGLI_FILTER_LINEAR,
         .mag_filter    = NGLI_FILTER_NEAREST,
         .mipmap_filter = NGLI_MIPMAP_FILTER_LINEAR,
+        .usage         = NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT
+                       | NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT
+                       | NGLI_TEXTURE_USAGE_SAMPLED_BIT,
     };
 
     ctx->font_atlas = ngli_texture_create(gctx); // freed at context reconfiguration/destruction

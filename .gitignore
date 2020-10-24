@@ -18,3 +18,4 @@ external/win64
 external/sxplayer-*
 external/stb
 CMakeLists.txt.user
+.DS_Store

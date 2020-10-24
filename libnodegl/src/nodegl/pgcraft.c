@@ -222,7 +222,7 @@ static const int texture_types_map_gl[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO
         [NGLI_INFO_FIELD_Y_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_UV_SAMPLER]        = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_COLOR_MATRIX]      = NGLI_TYPE_MAT4,
-#elif defined(TARGET_DARWIN)
+#elif (defined(TARGET_DARWIN) && defined(BACKEND_GL))
         [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
         [NGLI_INFO_FIELD_Y_RECT_SAMPLER]    = NGLI_TYPE_SAMPLER_2D_RECT,
         [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D_RECT,
@@ -250,7 +250,7 @@ static const int texture_types_map_default[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
         [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
-#if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
+#if (defined(TARGET_DARWIN) || defined(TARGET_IPHONE)) && defined(BACKEND_GL)
         [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
         [NGLI_INFO_FIELD_Y_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_UV_SAMPLER]        = NGLI_TYPE_SAMPLER_2D,
@@ -685,7 +685,7 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
                          ARG_FMT(arg0), ARG_FMT(coords), s->rg);
         if (!fast_picking)
             ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
-#elif defined(TARGET_DARWIN)
+#elif (defined(TARGET_DARWIN) && defined(BACKEND_GL))
         if (!fast_picking)
             ngli_bstr_printf(dst, "%.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_rect_sampler,  (%.*s) * %.*s_dimensions).r, "
@@ -699,7 +699,7 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
         ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #endif
         } else {
-#if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
+#if ((defined(TARGET_DARWIN) || defined(TARGET_IPHONE)) && defined(BACKEND_GL))
         if (!fast_picking)
             ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler,  %.*s).r, "

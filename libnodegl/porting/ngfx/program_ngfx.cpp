@@ -19,8 +19,8 @@
  * under the License.
  */
 
-#include "memory.h"
-#include "program_ngfx.h"
+#include "nodegl/memory.h"
+#include "porting/ngfx/program_ngfx.h"
 #include <stdlib.h>
 #include "log.h"
 #include "graphics/ShaderModule.h"

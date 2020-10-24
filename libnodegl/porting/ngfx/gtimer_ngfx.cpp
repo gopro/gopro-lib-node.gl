@@ -19,9 +19,9 @@
  * under the License.
  */
 
-#include "gtimer_ngfx.h"
-#include "memory.h"
-#include "log.h"
+#include "porting/ngfx/gtimer_ngfx.h"
+#include "nodegl/memory.h"
+#include "nodegl/log.h"
 
 struct gtimer *ngli_gtimer_ngfx_create(struct gctx *gctx)
 { TODO();

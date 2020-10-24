@@ -22,7 +22,7 @@
 #ifndef GTIMER_NGFX_H
 #define GTIMER_NGFX_H
 
-#include "gtimer.h"
+#include "nodegl/gtimer.h"
 
 struct gctx;
 

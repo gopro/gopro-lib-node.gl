@@ -18,21 +18,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "gctx_ngfx.h"
-#include "buffer_ngfx.h"
-#include "gtimer_ngfx.h"
-#include "pipeline_ngfx.h"
-#include "program_ngfx.h"
-#include "rendertarget_ngfx.h"
-#include "swapchain_ngfx.h"
-#include "texture_ngfx.h"
-#include "memory.h"
-#include "log.h"
-#include "math_utils.h"
-#include "format.h"
-#include "util_ngfx.h"
+#include "porting/ngfx/gctx_ngfx.h"
+#include "porting/ngfx/buffer_ngfx.h"
+#include "porting/ngfx/gtimer_ngfx.h"
+#include "porting/ngfx/pipeline_ngfx.h"
+#include "porting/ngfx/program_ngfx.h"
+#include "porting/ngfx/rendertarget_ngfx.h"
+#include "porting/ngfx/swapchain_ngfx.h"
+#include "porting/ngfx/texture_ngfx.h"
+#include "nodegl/memory.h"
+#include "nodegl/log.h"
+#include "nodegl/math_utils.h"
+#include "nodegl/format.h"
+#include "porting/ngfx/util_ngfx.h"
 #ifdef ENABLE_CAPTURE
-#include "capture.h"
+#include "tools/capture/capture.h"
 static bool DEBUG_CAPTURE = (getenv("DEBUG_CAPTURE") != NULL);
 #endif
 using namespace std;

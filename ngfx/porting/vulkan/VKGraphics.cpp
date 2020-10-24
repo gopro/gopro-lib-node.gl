@@ -110,7 +110,7 @@ void VKGraphics::bindTexture(CommandBuffer* commandBuffer, Texture* texture, uin
         set, 1, descriptorSet, 0, nullptr));
 }
 
-void VKGraphics::bindVertexBuffer(CommandBuffer* commandBuffer, Buffer* buffer, uint32_t location) {
+void VKGraphics::bindVertexBuffer(CommandBuffer* commandBuffer, Buffer* buffer, uint32_t location, uint32_t stride) {
     VkDeviceSize offsets[] = { 0 };
     VK_TRACE(vkCmdBindVertexBuffers(vk(commandBuffer)->v, location, 1, &vk(buffer)->v, offsets));
 }

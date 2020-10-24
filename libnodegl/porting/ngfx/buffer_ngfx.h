@@ -22,7 +22,7 @@
 #ifndef BUFFER_NGFX_H
 #define BUFFER_NGFX_H
 
-#include "buffer.h"
+#include "nodegl/buffer.h"
 #include "graphics/Buffer.h"
 
 struct buffer_ngfx {

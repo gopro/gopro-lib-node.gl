@@ -19,9 +19,9 @@
  * under the License.
  */
 
-#include "util_ngfx.h"
-#include "texture.h"
-#include "graphicstate.h"
+#include "porting/ngfx/util_ngfx.h"
+#include "nodegl/texture.h"
+#include "nodegl/graphicstate.h"
 #include <map>
 using namespace ngfx;
 using namespace std;

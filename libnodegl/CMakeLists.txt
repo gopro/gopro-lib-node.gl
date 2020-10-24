@@ -42,6 +42,7 @@ target_link_directories(nodegl PUBLIC
     ${VULKANSDK_LIBRARY_DIRS}
 )
 target_include_directories(nodegl PUBLIC
+    .
     src
     tools/capture
     ${SXPLAYER_INCLUDE_DIRS}

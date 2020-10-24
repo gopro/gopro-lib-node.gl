@@ -9,7 +9,7 @@ set (EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 set(CMAKE_FIND_DEBUG_MODE TRUE)
 find_package (Python3 COMPONENTS Interpreter Development)
-find_package (OpenGL COMPONENTS OpenGL)
+#find_package (OpenGL COMPONENTS OpenGL)
     
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 

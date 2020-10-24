@@ -20,7 +20,7 @@
  */
 
 #define _GNU_SOURCE
-//#include <pthread.h>
+#include <pthread.h>
 
 #include <time.h>
 #include <stdarg.h>

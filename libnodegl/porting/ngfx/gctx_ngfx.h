@@ -22,7 +22,7 @@
 #ifndef GCTX_NGFX_H
 #define GCTX_NGFX_H
 
-#include "gctx.h"
+#include "nodegl/gctx.h"
 #include "graphics/GraphicsContext.h"
 #include "graphics/Graphics.h"
 #include "graphics/CommandBuffer.h"

@@ -19,7 +19,7 @@
  * under the License.
  */
 
-#include "swapchain.h"
+#include "nodegl/swapchain.h"
 
 int ngli_swapchain_ngfx_create(struct gctx *s) { return 0; }
 

@@ -22,7 +22,7 @@
 #ifndef PROGRAM_NGFX_H
 #define PROGRAM_NGFX_H
 
-#include "program.h"
+#include "nodegl/program.h"
 #include "graphics/ShaderModule.h"
 struct gctx;
 

@@ -19,19 +19,19 @@
  * under the License.
  */
 
-#include "pipeline_ngfx.h"
-#include "memory.h"
+#include "porting/ngfx/pipeline_ngfx.h"
+#include "nodegl/memory.h"
 #include "graphics/Graphics.h"
 #include "compute/ComputePipeline.h"
 #include "graphics/GraphicsPipeline.h"
 #include "graphics/Buffer.h"
-#include "buffer_ngfx.h"
-#include "gctx_ngfx.h"
-#include "program_ngfx.h"
-#include "format.h"
-#include "type.h"
-#include "texture_ngfx.h"
-#include "util_ngfx.h"
+#include "porting/ngfx/buffer_ngfx.h"
+#include "porting/ngfx/gctx_ngfx.h"
+#include "porting/ngfx/program_ngfx.h"
+#include "nodegl/format.h"
+#include "nodegl/type.h"
+#include "porting/ngfx/texture_ngfx.h"
+#include "porting/ngfx/util_ngfx.h"
 #include "porting/vulkan/VKTexture.h"
 #include <map>
 using namespace ngfx;

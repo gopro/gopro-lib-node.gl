@@ -100,7 +100,7 @@ string ShaderTools::preprocess(const string &dataPath, const string &inFile) {
 }
 
 int ShaderTools::compileShaderGLSL(const string &inFile, const string &defines, const string &outFile, bool verbose) {
-    int result = cmd(GLSLC + " " + defines + inFile + " -o " + outFile);
+    int result = cmd(GLSLC + " " + defines + " " + inFile + " -o " + outFile);
     if (result == 0) {
         if (verbose) LOG("compiled file: %s", inFile.c_str());
     }

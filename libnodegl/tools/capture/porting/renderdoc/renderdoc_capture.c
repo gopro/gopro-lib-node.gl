@@ -1,9 +1,10 @@
 #include "capture.h"
-#include "renderdoc_app.h"
 #include "log.h"
 #ifdef _WIN32
+#include "renderdoc_app.h"
 #include <Windows.h>
 #else
+#include "renderdoc.h"
 #include <dlfcn.h>
 #endif
 #include <stdio.h>

@@ -39,6 +39,12 @@ namespace ngfx {
         };
         typedef std::vector<DescriptorInfo> DescriptorInfos;
         DescriptorInfos descriptors;
+        inline DescriptorInfo* findDescriptorInfo(const std::string& name) {
+            for (auto& desc : descriptors) {
+                if (desc.name == name) return &desc;
+            }
+            return nullptr;
+        }
         struct BufferMemberInfo { uint32_t offset, size, arrayCount, arrayStride; };
         typedef std::map<std::string, BufferMemberInfo> BufferMemberInfos;
         struct BufferInfo {
@@ -48,6 +54,16 @@ namespace ngfx {
             BufferMemberInfos memberInfos;
         };
         typedef std::map<std::string, BufferInfo> BufferInfos;
+        inline BufferInfo* findUniformBufferInfo(const std::string& name) {
+            auto it = uniformBufferInfos.find(name);
+            if (it == uniformBufferInfos.end()) return nullptr;
+            return &it->second;
+        }
+        inline BufferInfo* findStorageBufferInfo(const std::string& name) {
+            auto it = shaderStorageBufferInfos.find(name);
+            if (it == shaderStorageBufferInfos.end()) return nullptr;
+            return &it->second;
+        }
         BufferInfos uniformBufferInfos, shaderStorageBufferInfos;
         void initBindings(std::ifstream& in, ShaderStageFlags shaderStages);
         void initBindings(const std::string& filename, ShaderStageFlags shaderStages);

@@ -254,12 +254,14 @@ static void bind_buffers(CommandBuffer *cmd_buf, pipeline *s) {
         const pipeline_buffer_desc &buffer_desc = *(const pipeline_buffer_desc *)ngli_darray_get(&s->buffer_descs, j);
         ShaderModule *shader_module = (buffer_desc.stage == 0) ? (ShaderModule *)program->vs : (ShaderModule*)program->fs;
         if (buffer_desc.type == NGLI_TYPE_UNIFORM_BUFFER) {
-            auto& buffer_info = shader_module->uniformBufferInfos[buffer_desc.name];
-            gctx_ngfx->graphics->bindUniformBuffer(cmd_buf, buffer->v, buffer_info.set, buffer_info.shaderStages);
+            auto buffer_info = shader_module->findUniformBufferInfo(buffer_desc.name);
+            if (!buffer_info) continue; //unused variable
+            gctx_ngfx->graphics->bindUniformBuffer(cmd_buf, buffer->v, buffer_info->set, buffer_info->shaderStages);
         }
         else {
-            auto& buffer_info = shader_module->shaderStorageBufferInfos[buffer_desc.name];
-            gctx_ngfx->graphics->bindStorageBuffer(cmd_buf, buffer->v, buffer_info.set, buffer_info.shaderStages);
+            auto buffer_info = shader_module->findStorageBufferInfo(buffer_desc.name);
+            if (!buffer_info) continue; //unused variable
+            gctx_ngfx->graphics->bindStorageBuffer(cmd_buf, buffer->v, buffer_info->set, buffer_info->shaderStages);
         }
     }
 }
@@ -267,10 +269,14 @@ static void bind_buffers(CommandBuffer *cmd_buf, pipeline *s) {
 static void bind_textures(CommandBuffer *cmd_buf, pipeline *s) {
     struct gctx_ngfx *gctx_ngfx = (struct gctx_ngfx *)s->gctx;
     int nb_textures = ngli_darray_count(&s->textures);
+    program_ngfx *program = (program_ngfx *)s->program;
     for (int j = 0; j<nb_textures; j++) {
         const pipeline_texture_desc &texture_desc = *(const pipeline_texture_desc *)ngli_darray_get(&s->texture_descs, j);
+        ShaderModule *shader_module = (texture_desc.stage == 0) ? (ShaderModule *)program->vs : (ShaderModule*)program->fs;
+        auto texture_info = shader_module->findDescriptorInfo(texture_desc.name);
+        if (!texture_info) continue;
         const texture_ngfx *texture = *(const texture_ngfx **)ngli_darray_get(&s->textures, j);
-        gctx_ngfx->graphics->bindTexture(cmd_buf, texture->v, texture_desc.binding);
+        gctx_ngfx->graphics->bindTexture(cmd_buf, texture->v, texture_info->set);
     }
 }
 

@@ -21,18 +21,37 @@ void MTLGraphics::beginComputePass(CommandBuffer* commandBuffer) {
 }
 void MTLGraphics::endComputePass(CommandBuffer* commandBuffer) {
     [currentComputeCommandEncoder.v endEncoding];
+    currentComputeCommandEncoder.v = nullptr;
 }
+
+struct MTLGraphicsUtil {
+    static void setViewport(MTLGraphics* g, Rect2D& r) {
+        [g->currentRenderCommandEncoder.v setViewport:(MTLViewport){ double(r.x), double(r.y), double(r.w), double(r.h), 0.0, 1.0 }];
+    }
+
+    static void setScissor(MTLGraphics* g, Rect2D &r) {
+        #ifdef ORIGIN_BOTTOM_LEFT
+            Rect2D &vp = g->viewport;
+            MTLScissorRect mtlScissorRect = { NSUInteger(r.x), vp.h - r.y - r.h ,  r.w, r.h };
+        #else
+            MTLScissorRect mtlScissorRect = { NSUInteger(r.x), NSUInteger(r.y), r.w, r.h };
+        #endif
+            [g->currentRenderCommandEncoder.v setScissorRect:mtlScissorRect];
+    }
+};
 
 void MTLGraphics::beginRenderPass(CommandBuffer* commandBuffer, RenderPass* renderPass, Framebuffer* framebuffer,
           glm::vec4 clearColor, float clearDepth, uint32_t clearStencil) {
     MTLRenderPassDescriptor* mtlRenderPassDescriptor = mtl(renderPass)->getDescriptor(mtl(ctx), mtl(framebuffer), clearColor, clearDepth, clearStencil);
     currentRenderCommandEncoder.v = [mtl(commandBuffer)->v renderCommandEncoderWithDescriptor:mtlRenderPassDescriptor];
     currentCommandEncoder = &currentRenderCommandEncoder;
+    MTLGraphicsUtil::setViewport(this, viewport);
+    MTLGraphicsUtil::setScissor(this, scissorRect);
 }
 
 void MTLGraphics::endRenderPass(CommandBuffer* commandBuffer) {
     [currentRenderCommandEncoder.v endEncoding];
-    currentRenderPassDescriptor = nullptr;
+    currentRenderCommandEncoder.v = nullptr;
 }
 
 void MTLGraphics::bindVertexBuffer(CommandBuffer* cmdBuffer, Buffer* buffer, uint32_t location, uint32_t stride) {
@@ -118,19 +137,13 @@ void MTLGraphics::drawIndexed(CommandBuffer* cmdBuffer, uint32_t indexCount, uin
 }
 void MTLGraphics::setViewport(CommandBuffer* cmdBuffer, Rect2D r) {
     auto renderEncoder = (MTLRenderCommandEncoder*)currentCommandEncoder;
-    [renderEncoder->v setViewport:(MTLViewport){ double(r.x), double(r.y), double(r.w), double(r.h), 0.0, 1.0 }];
+    if (renderEncoder) MTLGraphicsUtil::setViewport(this, r);
     viewport = r;
 }
 void MTLGraphics::setScissor(CommandBuffer* cmdBuffer, Rect2D r) {
     auto renderEncoder = (MTLRenderCommandEncoder*)currentCommandEncoder;
+    if (renderEncoder) MTLGraphicsUtil::setScissor(this, r);
     scissorRect = r;
-#ifdef ORIGIN_BOTTOM_LEFT
-    auto& v = viewport;
-    MTLScissorRect mtlScissorRect = { NSUInteger(r.x), v.h - r.y - r.h ,  r.w, r.h };
-#else
-    MTLScissorRect mtlScissorRect = { NSUInteger(r.x), NSUInteger(r.y), r.w, r.h };
-#endif
-    [renderEncoder->v setScissorRect:mtlScissorRect];
 }
 
 void MTLGraphics::waitIdle(CommandBuffer* cmdBuffer) {

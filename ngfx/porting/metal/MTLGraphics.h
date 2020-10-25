@@ -54,7 +54,6 @@ namespace ngfx {
         void waitIdle(CommandBuffer* cmdBuffer) override;
         MTLComputeCommandEncoder currentComputeCommandEncoder;
         MTLRenderCommandEncoder currentRenderCommandEncoder;
-        MTLRenderPassDescriptor* currentRenderPassDescriptor = nullptr;
         MTLCommandEncoder* currentCommandEncoder = nullptr;
         ::MTLPrimitiveType currentPrimitiveType;
         MTLBuffer* currentIndexBuffer = nullptr;

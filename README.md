@@ -12,6 +12,7 @@ and API can change at any time.
 
 ![tests Linux](https://github.com/gopro/gopro-lib-node.gl/workflows/tests%20Linux/badge.svg)
 ![tests Mac](https://github.com/gopro/gopro-lib-node.gl/workflows/tests%20Mac/badge.svg)
+![tests Windows](https://github.com/gopro/gopro-lib-node.gl/workflows/tests%20Windows/badge.svg)
 [![coverage](https://codecov.io/gh/gopro/gopro-lib-node.gl/branch/master/graph/badge.svg)](https://codecov.io/gh/gopro/gopro-lib-node.gl)
 
 [gopro]: https://gopro.com/

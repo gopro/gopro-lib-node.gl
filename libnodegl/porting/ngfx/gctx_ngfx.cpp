@@ -220,7 +220,7 @@ static int ngfx_transform_cull_mode(struct gctx *s, int cull_mode)
 
 static void ngfx_transform_projection_matrix(struct gctx *s, float *dst)
 {
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
     static const NGLI_ALIGNED_MAT(matrix) = {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f,-1.0f, 0.0f, 0.0f,

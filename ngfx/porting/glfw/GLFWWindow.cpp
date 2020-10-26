@@ -20,7 +20,7 @@
  */
 #include "porting/glfw/GLFWWindow.h"
 #include "input/InputMap.h"
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
 #include "porting/vulkan/VKGraphicsContext.h"
 #include "porting/vulkan/VKDebugUtil.h"
 #endif
@@ -51,14 +51,14 @@ static void glfwOnMouseButton(GLFWwindow* window, int button, int action, int mo
 
 void GLFWWindow::create(GraphicsContext* graphicsContext, const char* title, 
         std::function<void(Window* thiz)> onWindowCreated, int w, int h) {
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
     this->instance = vk(graphicsContext)->vkInstance.v;
     VkResult vkResult;
 #endif
     glfwSetErrorCallback(glfwOnError);
     int result = glfwInit();
     if (result != GLFW_TRUE) ERR("glfwInit failed");
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -74,7 +74,7 @@ void GLFWWindow::create(GraphicsContext* graphicsContext, const char* title,
     glfwSetCursorPosCallback(v, ::glfwOnCursorPos);
     glfwSetMouseButtonCallback(v, ::glfwOnMouseButton);
     this->w = w; this->h = h;
-#ifdef GRAPHICS_BACKEND_VULKAN    
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN    
     V(glfwCreateWindowSurface(instance, v, NULL, &vkSurface.v));
     vkSurface.instance = instance;
     vkSurface.w = w; vkSurface.h = h;

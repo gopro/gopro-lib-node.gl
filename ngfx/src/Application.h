@@ -19,7 +19,7 @@
  * under the License.
  */
 #pragma once
-#if defined(GRAPHICS_BACKEND_METAL)
+#if defined(NGFX_GRAPHICS_BACKEND_METAL)
 #include "porting/metal/MTLApplication.h"
 #define Application MTLApplication
 #else

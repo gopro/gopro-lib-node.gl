@@ -50,7 +50,7 @@ struct ShaderCompiler {
             for (const string& path : glslFiles) fs::remove(path);
             for (const string& path : spvFiles) fs::remove(path);
             for (const string& path : spvMapFiles) fs::remove(path);
-#if defined(GRAPHICS_BACKEND_DIRECT3D12)
+#if defined(NGFX_GRAPHICS_BACKEND_DIRECT3D12)
             for (const string& path : hlslFiles) fs::remove(path);
             for (const string& path : dxcFiles) fs::remove(path);
             for (const string& path : hlslMapFiles) fs::remove(path);
@@ -70,11 +70,11 @@ struct ShaderCompiler {
         spvFiles = shaderTools.compileShaders(glslFiles, outDir, ShaderTools::FORMAT_GLSL, "",
             ShaderTools::PATCH_SHADER_LAYOUTS_GLSL | ShaderTools::REMOVE_UNUSED_VARIABLES);
         spvMapFiles = shaderTools.generateShaderMaps(glslFiles, outDir, ShaderTools::FORMAT_GLSL);
-#if defined(GRAPHICS_BACKEND_DIRECT3D12)
+#if defined(NGFX_GRAPHICS_BACKEND_DIRECT3D12)
         hlslFiles = shaderTools.convertShaders(spvFiles, outDir, ShaderTools::FORMAT_HLSL);
         dxcFiles = shaderTools.compileShaders(hlslFiles, outDir, ShaderTools::FORMAT_HLSL);
         hlslMapFiles = shaderTools.generateShaderMaps(dxcFiles, outDir, ShaderTools::FORMAT_HLSL);
-#elif defined(GRAPHICS_BACKEND_METAL)
+#elif defined(NGFX_GRAPHICS_BACKEND_METAL)
         mtlFiles = shaderTools.convertShaders(spvFiles, outDir, ShaderTools::FORMAT_MSL);
         mtllibFiles = shaderTools.compileShaders(mtlFiles, outDir, ShaderTools::FORMAT_MSL);
         mtlMapFiles = shaderTools.generateShaderMaps(mtllibFiles, outDir, ShaderTools::FORMAT_MSL);
@@ -83,9 +83,9 @@ struct ShaderCompiler {
     }
     string tmpDir;
     std::vector<string> glslFiles, spvFiles, spvMapFiles;
-#if defined(GRAPHICS_BACKEND_DIRECT3D12)
+#if defined(NGFX_GRAPHICS_BACKEND_DIRECT3D12)
     std::vector<string> hlslFiles, dxcFiles, hlslMapFiles;
-#elif defined(GRAPHICS_BACKEND_METAL)
+#elif defined(NGFX_GRAPHICS_BACKEND_METAL)
     std::vector<string> mtlFiles, mtllibFiles, mtlMapFiles;
 #endif
 };

@@ -4,7 +4,7 @@ out gl_PerVertex {
 };
 
 void setPos(vec4 pos) {
-#ifdef GRAPHICS_BACKEND_VULKAN	
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN	
 	gl_Position = vec4(pos.x, -pos.y, 0.5f * ( pos.z + pos.w ), pos.w);
 #else
 	gl_Position = vec4(pos.x, pos.y, 0.5f * ( pos.z + pos.w ), pos.w);

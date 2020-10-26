@@ -20,13 +20,13 @@
  */
 #pragma once
 #include "graphics/GraphicsContext.h"
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
 #include "porting/vulkan/VKWindow.h"
 #endif
 #include <GLFW/glfw3.h>
 
 namespace ngfx {
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
     class GLFWWindow : public VKWindow {
 #else
     class GLFWWindow {

@@ -21,13 +21,13 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#ifdef GRAPHICS_BACKEND_VULKAN
+#ifdef NGFX_GRAPHICS_BACKEND_VULKAN
 #include "porting/vulkan/VKGraphicsCore.h"
 #endif
-#ifdef GRAPHICS_BACKEND_DIRECT3D12
+#ifdef NGFX_GRAPHICS_BACKEND_DIRECT3D12
 #include "porting/d3d/D3DGraphicsCore.h"
 #endif
-#ifdef GRAPHICS_BACKEND_METAL
+#ifdef NGFX_GRAPHICS_BACKEND_METAL
 #include "porting/metal/MTLGraphicsCore.h"
 #endif
 

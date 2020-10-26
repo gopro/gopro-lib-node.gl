@@ -26,7 +26,7 @@
 #include <regex>
 #include <vector>
 #include <json.hpp>
-#include "ngfx/RegexUtil.h"
+#include "ngfx/regex/RegexUtil.h"
 using json = nlohmann::json;
 
 namespace ngfx {

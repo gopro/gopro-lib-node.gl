@@ -20,8 +20,8 @@
  */
 
 #include "ShaderTools.h"
-#include "ngfx/FileUtil.h"
-#include "ngfx/StringUtil.h"
+#include "ngfx/core/FileUtil.h"
+#include "ngfx/core/StringUtil.h"
 #include "ngfx/core/DebugUtil.h"
 #include <filesystem>
 #include <regex>

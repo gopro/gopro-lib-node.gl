@@ -25,8 +25,8 @@
 #include "log.h"
 #include "ngfx/graphics/ShaderModule.h"
 #include "ngfx/graphics/ShaderTools.h"
-#include "ngfx/FileUtil.h"
-#include "ngfx/ProcessUtil.h"
+#include "ngfx/core/FileUtil.h"
+#include "ngfx/core/ProcessUtil.h"
 #include "gctx_ngfx.h"
 #include <filesystem>
 using namespace ngfx;

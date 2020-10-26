@@ -2,11 +2,11 @@
 #include <string.h>
 #include <vulkan/vulkan.h>
 
-#include "nodegl/format.h"
+#include "nodegl/core/format.h"
 #include "nodegl/porting/vk/gctx_vk.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/vk/rendertarget_vk.h"
 #include "nodegl/porting/vk/texture_vk.h"
 #include "nodegl/porting/vk/gctx_vk.h"

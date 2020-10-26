@@ -22,7 +22,7 @@
 #include "ngfx/porting/vulkan/VKDevice.h"
 #include "ngfx/porting/vulkan/VKDebugUtil.h"
 #include "ngfx/graphics/Config.h"
-#include "ngfx/File.h"
+#include "ngfx/core/File.h"
 using namespace ngfx;
 using namespace std;
 

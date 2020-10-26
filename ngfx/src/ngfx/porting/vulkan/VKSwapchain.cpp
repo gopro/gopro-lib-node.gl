@@ -22,7 +22,7 @@
 #include "ngfx/porting/vulkan/VKGraphicsContext.h"
 #include "ngfx/porting/vulkan/VKDebugUtil.h"
 #include "ngfx/porting/vulkan/VKSemaphore.h"
-#include "ngfx/Util.h"
+#include "ngfx/core/Util.h"
 #include "ngfx/porting/vulkan/VKDevice.h"
 #include "ngfx/graphics/Config.h"
 using namespace ngfx;

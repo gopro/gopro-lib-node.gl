@@ -23,7 +23,7 @@
 #define PROGRAM_GL_H
 
 #include "nodegl/porting/gl/glincludes.h"
-#include "nodegl/program.h"
+#include "nodegl/core/program.h"
 
 struct gctx;
 

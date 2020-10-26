@@ -23,13 +23,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "nodegl/bstr.h"
+#include "nodegl/core/bstr.h"
 #include "nodegl/porting/gl/glcontext.h"
-#include "nodegl/glimits.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodegl.h"
-#include "nodegl/utils.h"
+#include "nodegl/core/glimits.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodegl.h"
+#include "nodegl/core/utils.h"
 #include "nodegl/porting/gl/glincludes.h"
 
 #include "nodegl/porting/gl/gldefinitions_data.h"

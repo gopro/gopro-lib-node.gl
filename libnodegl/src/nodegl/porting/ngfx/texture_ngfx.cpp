@@ -20,8 +20,8 @@
  */
 
 #include "nodegl/porting/ngfx/texture_ngfx.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
 #include <map>
 #include "ngfx/graphics/Texture.h"
 #include "nodegl/porting/ngfx/gctx_ngfx.h"

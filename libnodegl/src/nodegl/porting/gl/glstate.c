@@ -25,8 +25,8 @@
 #include "nodegl/porting/gl/glcontext.h"
 #include "nodegl/porting/gl/glincludes.h"
 #include "nodegl/porting/gl/glstate.h"
-#include "nodegl/graphicstate.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/graphicstate.h"
+#include "nodegl/core/nodes.h"
 
 static const GLenum gl_blend_factor_map[NGLI_BLEND_FACTOR_NB] = {
     [NGLI_BLEND_FACTOR_ZERO]                = GL_ZERO,

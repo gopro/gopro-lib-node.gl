@@ -21,7 +21,7 @@
 
 #ifndef SWAPCHAIN_VK_H
 #define SWAPCHAIN_VK_H
-#include "nodegl/swapchain.h"
+#include "nodegl/core/swapchain.h"
 
 int ngli_swapchain_vk_create(struct gctx *s);
 

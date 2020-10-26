@@ -22,7 +22,7 @@
 #ifndef GCTX_VK_H
 #define GCTX_VK_H
 
-#include "nodegl/gctx.h"
+#include "nodegl/core/gctx.h"
 #include "nodegl/porting/vk/vkcontext.h"
 
 struct gctx_vk {

@@ -23,7 +23,7 @@
 #define TOPOLOGY_VK_H
 
 #include <vulkan/vulkan.h>
-#include "nodegl/topology.h"
+#include "nodegl/core/topology.h"
 
 VkPrimitiveTopology ngli_topology_get_vk_topology(int topology);
 

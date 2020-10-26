@@ -25,7 +25,7 @@
 #include "ngfx/graphics/GraphicsContext.h"
 #include "nodegl/porting/ngfx/format_ngfx.h"
 #include "nodegl/porting/ngfx/topology_ngfx.h"
-#include "nodegl/rendertarget.h"
+#include "nodegl/core/rendertarget.h"
 
 ngfx::FilterMode to_ngfx_filter_mode(int filter);
 ngfx::FilterMode to_ngfx_mip_filter_mode(int filter);

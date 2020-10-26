@@ -21,10 +21,10 @@
 
 #include "nodegl/porting/vk/swapchain_vk.h"
 #include "nodegl/porting/vk/gctx_vk.h"
-#include "nodegl/log.h"
-#include "nodegl/format.h"
-#include "nodegl/nodes.h"
-#include "nodegl/memory.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/format.h"
+#include "nodegl/core/nodes.h"
+#include "nodegl/core/memory.h"
 #include "nodegl/porting/vk/texture_vk.h"
 #include "nodegl/porting/vk/util_vk.h"
 

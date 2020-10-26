@@ -25,9 +25,9 @@
 #include "nodegl/porting/gl/gctx_gl.h"
 #include "nodegl/porting/gl/glcontext.h"
 #include "nodegl/porting/gl/glincludes.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodes.h"
-#include "nodegl/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodes.h"
+#include "nodegl/core/log.h"
 
 static const GLenum gl_usage_map[NGLI_BUFFER_USAGE_NB] = {
     [NGLI_BUFFER_USAGE_STATIC]  = GL_STATIC_DRAW,

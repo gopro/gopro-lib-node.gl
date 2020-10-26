@@ -22,15 +22,15 @@
 #include <string.h>
 
 #include "nodegl/porting/gl/rendertarget_gl.h"
-#include "nodegl/format.h"
+#include "nodegl/core/format.h"
 #include "nodegl/porting/gl/gctx_gl.h"
 #include "nodegl/porting/gl/glcontext.h"
 #include "nodegl/porting/gl/glincludes.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/gl/texture_gl.h"
-#include "nodegl/utils.h"
+#include "nodegl/core/utils.h"
 
 static GLenum get_gl_attachment_index(GLenum format)
 {

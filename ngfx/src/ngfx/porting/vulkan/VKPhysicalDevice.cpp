@@ -18,9 +18,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/VKPhysicalDevice.h"
-#include "ngfx/VKDebugUtil.h"
-#include "ngfx/VKConfig.h"
+#include "ngfx/porting/vulkan/VKPhysicalDevice.h"
+#include "ngfx/porting/vulkan/VKDebugUtil.h"
+#include "ngfx/porting/vulkan/VKConfig.h"
 #include <algorithm>
 using namespace ngfx;
 

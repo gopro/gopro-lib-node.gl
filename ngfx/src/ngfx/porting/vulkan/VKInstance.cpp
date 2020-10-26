@@ -18,10 +18,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/VKInstance.h"
-#include "ngfx/DebugUtil.h"
-#include "ngfx/VKDebugUtil.h"
-#include "ngfx/VKConfig.h"
+#include "ngfx/porting/vulkan/VKInstance.h"
+#include "ngfx/core/DebugUtil.h"
+#include "ngfx/porting/vulkan/VKDebugUtil.h"
+#include "ngfx/porting/vulkan/VKConfig.h"
 #include <cstring>
 using namespace ngfx;
 

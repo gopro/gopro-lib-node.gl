@@ -24,7 +24,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "nodegl/texture.h"
+#include "nodegl/core/texture.h"
 #include "nodegl/porting/vk/vkcontext.h"
 
 struct texture_vk {

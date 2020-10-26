@@ -22,12 +22,12 @@
 #include <string.h>
 
 #include "nodegl/porting/gl/buffer_gl.h"
-#include "nodegl/format.h"
+#include "nodegl/core/format.h"
 #include "nodegl/porting/gl/gctx_gl.h"
 #include "nodegl/porting/gl/glcontext.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/gl/pipeline_gl.h"
 #include "nodegl/porting/gl/program_gl.h"
 #include "nodegl/porting/gl/texture_gl.h"

@@ -25,13 +25,13 @@
 
 #include <vulkan/vulkan.h>
 
-#include "nodegl/math_utils.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/math_utils.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/vk/vkcontext.h"
 #include "nodegl/porting/vk/gctx_vk.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/pgcache.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/pgcache.h"
 
 /* FIXME: missing includes probably */
 #include "nodegl/porting/vk/buffer_vk.h"

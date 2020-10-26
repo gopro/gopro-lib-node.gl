@@ -35,10 +35,10 @@
 #include <vulkan/vulkan.h>
 #include <string.h>
 
-#include "nodegl/format.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodegl.h"
+#include "nodegl/core/format.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodegl.h"
 #include "nodegl/porting/vk/vkcontext.h"
 
 // FIXME: rely on DEBUG_VK

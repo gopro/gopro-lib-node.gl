@@ -20,8 +20,8 @@
  */
 
 #include "nodegl/porting/ngfx/gtimer_ngfx.h"
-#include "nodegl/memory.h"
-#include "nodegl/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/log.h"
 
 struct gtimer *ngli_gtimer_ngfx_create(struct gctx *gctx)
 { TODO();

@@ -23,7 +23,7 @@
 #define TYPE_GL_H
 
 #include "nodegl/porting/gl/glincludes.h"
-#include "nodegl/type.h"
+#include "nodegl/core/type.h"
 
 GLenum ngli_type_get_gl_type(int type);
 

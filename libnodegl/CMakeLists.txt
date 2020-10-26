@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project (nodegl)
 
-file (GLOB NODEGL_SRC_FILES src/*)
+file (GLOB_RECURSE NODEGL_SRC_FILES src/nodegl/core/*)
 
 #GPU Capture Options
 if (ENABLE_RENDERDOC_CAPTURE)
@@ -20,8 +20,8 @@ set (NODEGL_CFLAGS ${NODEGL_CFLAGS} -fPIC -g)
 
 #Backend Configuration
 set (NODEGL_ENABLE_NGFX_BACKEND on)
-set (NODEGL_ENABLE_GL_BACKEND on)
-set (NODEGL_ENABLE_VK_BACKEND on)
+#set (NODEGL_ENABLE_GL_BACKEND on)
+#set (NODEGL_ENABLE_VK_BACKEND on)
 
 if (NODEGL_ENABLE_NGFX_BACKEND)
     set (NODEGL_CFLAGS ${NODEGL_CFLAGS} -DBACKEND_NGFX)

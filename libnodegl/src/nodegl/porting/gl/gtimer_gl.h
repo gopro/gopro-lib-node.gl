@@ -23,7 +23,7 @@
 #define GTIMER_GL_H
 
 #include "glincludes.h"
-#include "nodegl/gtimer.h"
+#include "nodegl/core/gtimer.h"
 
 struct gctx;
 

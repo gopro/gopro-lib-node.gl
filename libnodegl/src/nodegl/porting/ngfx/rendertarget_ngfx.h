@@ -22,7 +22,7 @@
 #ifndef RENDERTARGET_NGFX_H
 #define RENDERTARGET_NGFX_H
 
-#include "nodegl/rendertarget.h"
+#include "nodegl/core/rendertarget.h"
 #include "ngfx/graphics/Framebuffer.h"
 
 struct rendertarget_ngfx {

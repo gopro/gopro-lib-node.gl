@@ -21,13 +21,13 @@
 
 #include <string.h>
 
-#include "nodegl/log.h"
-#include "nodegl/utils.h"
-#include "nodegl/format.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/utils.h"
+#include "nodegl/core/format.h"
 #include "nodegl/porting/vk/format_vk.h"
-#include "nodegl/memory.h"
+#include "nodegl/core/memory.h"
 #include "nodegl/porting/vk/texture_vk.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/vk/gctx_vk.h"
 
 static const VkFilter vk_filter_map[NGLI_NB_FILTER] = {

@@ -23,7 +23,7 @@
 #define RENDERTARGET_VK_H
 
 #include <vulkan/vulkan.h>
-#include "nodegl/rendertarget.h"
+#include "nodegl/core/rendertarget.h"
 
 struct rendertarget_vk {
     struct rendertarget parent;

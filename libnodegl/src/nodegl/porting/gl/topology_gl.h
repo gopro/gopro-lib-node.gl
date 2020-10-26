@@ -23,7 +23,7 @@
 #define TOPOLOGY_GL_H
 
 #include "nodegl/porting/gl/glincludes.h"
-#include "nodegl/topology.h"
+#include "nodegl/core/topology.h"
 
 GLenum ngli_topology_get_gl_topology(int topology);
 

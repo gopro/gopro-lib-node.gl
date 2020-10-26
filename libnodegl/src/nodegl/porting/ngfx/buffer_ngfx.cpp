@@ -18,11 +18,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "nodegl/memory.h"
+#include "nodegl/core/memory.h"
 #include "nodegl/porting/ngfx/buffer_ngfx.h"
 #include "nodegl/porting/ngfx/gctx_ngfx.h"
 #include "ngfx/graphics/Buffer.h"
-#include "nodegl/log.h"
+#include "nodegl/core/log.h"
 using namespace ngfx;
 
 struct buffer *ngli_buffer_ngfx_create(struct gctx *gctx)

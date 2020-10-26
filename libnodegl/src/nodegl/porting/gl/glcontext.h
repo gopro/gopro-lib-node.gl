@@ -24,10 +24,10 @@
 
 #include <stdlib.h>
 
-#include "nodegl/features.h"
+#include "nodegl/core/features.h"
 #include "nodegl/porting/gl/glfunctions.h"
-#include "nodegl/glimits.h"
-#include "nodegl/nodegl.h"
+#include "nodegl/core/glimits.h"
+#include "nodegl/core/nodegl.h"
 
 struct glcontext_class;
 

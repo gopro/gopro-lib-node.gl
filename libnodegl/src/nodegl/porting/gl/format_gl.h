@@ -22,7 +22,7 @@
 #ifndef FORMAT_GL_H
 #define FORMAT_GL_H
 
-#include "nodegl/format.h"
+#include "nodegl/core/format.h"
 #include "nodegl/porting/gl/glcontext.h"
 #include "nodegl/porting/gl/glincludes.h"
 

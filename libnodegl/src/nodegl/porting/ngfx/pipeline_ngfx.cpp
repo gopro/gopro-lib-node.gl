@@ -20,8 +20,8 @@
  */
 
 #include "nodegl/porting/ngfx/pipeline_ngfx.h"
-#include "nodegl/memory.h"
-#include "nodegl/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/log.h"
 #include "ngfx/graphics/Graphics.h"
 #include "ngfx/compute/ComputePipeline.h"
 #include "ngfx/graphics/GraphicsPipeline.h"
@@ -29,8 +29,8 @@
 #include "nodegl/porting/ngfx/buffer_ngfx.h"
 #include "nodegl/porting/ngfx/gctx_ngfx.h"
 #include "nodegl/porting/ngfx/program_ngfx.h"
-#include "nodegl/format.h"
-#include "nodegl/type.h"
+#include "nodegl/core/format.h"
+#include "nodegl/core/type.h"
 #include "nodegl/porting/ngfx/texture_ngfx.h"
 #include "nodegl/porting/ngfx/util_ngfx.h"
 #include <map>

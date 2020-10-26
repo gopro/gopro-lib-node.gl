@@ -18,8 +18,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/VKCommandPool.h"
-#include "ngfx/VKDebugUtil.h"
+#include "ngfx/porting/vulkan/VKCommandPool.h"
+#include "ngfx/porting/vulkan/VKDebugUtil.h"
 using namespace ngfx;
 
 void VKCommandPool::create(VkDevice device, uint32_t queueFamilyIndex, VkCommandPoolCreateFlags createFlags) {

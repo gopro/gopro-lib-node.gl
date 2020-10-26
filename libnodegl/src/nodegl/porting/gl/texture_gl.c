@@ -21,14 +21,14 @@
 
 #include <string.h>
 
-#include "nodegl/log.h"
-#include "nodegl/utils.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/utils.h"
 #include "nodegl/porting/gl/format_gl.h"
 #include "nodegl/porting/gl/gctx_gl.h"
 #include "nodegl/porting/gl/glincludes.h"
 #include "nodegl/porting/gl/glcontext.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/gl/texture_gl.h"
 
 static const GLint gl_filter_map[NGLI_NB_FILTER][NGLI_NB_MIPMAP] = {

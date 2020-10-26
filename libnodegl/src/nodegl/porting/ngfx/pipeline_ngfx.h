@@ -22,7 +22,7 @@
 #ifndef PIPELINE_NGFX_H
 #define PIPELINE_NGFX_H
 
-#include "nodegl/pipeline.h"
+#include "nodegl/core/pipeline.h"
 #include "ngfx/compute/ComputePipeline.h"
 #include "ngfx/graphics/GraphicsPipeline.h"
 

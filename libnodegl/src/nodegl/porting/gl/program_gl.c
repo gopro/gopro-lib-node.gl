@@ -24,11 +24,11 @@
 
 #include "nodegl/porting/gl/gctx_gl.h"
 #include "nodegl/porting/gl/glincludes.h"
-#include "nodegl/log.h"
-#include "nodegl/memory.h"
-#include "nodegl/nodes.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/memory.h"
+#include "nodegl/core/nodes.h"
 #include "nodegl/porting/gl/program_gl.h"
-#include "nodegl/type.h"
+#include "nodegl/core/type.h"
 
 static int program_check_status(const struct glcontext *gl, GLuint id, GLenum status)
 {

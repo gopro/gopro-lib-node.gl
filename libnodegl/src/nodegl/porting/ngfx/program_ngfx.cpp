@@ -19,7 +19,7 @@
  * under the License.
  */
 
-#include "nodegl/memory.h"
+#include "nodegl/core/memory.h"
 #include "nodegl/porting/ngfx/program_ngfx.h"
 #include <stdlib.h>
 #include "log.h"

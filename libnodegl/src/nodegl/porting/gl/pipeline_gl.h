@@ -22,7 +22,7 @@
 #ifndef PIPELINE_GL_H
 #define PIPELINE_GL_H
 
-#include "nodegl/pipeline.h"
+#include "nodegl/core/pipeline.h"
 #include "nodegl/porting/gl/glincludes.h"
 
 struct gctx;

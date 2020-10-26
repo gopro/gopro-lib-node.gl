@@ -21,7 +21,7 @@
 #include "ngfx/porting/vulkan/VKGraphicsPipeline.h"
 #include "ngfx/porting/vulkan/VKDebugUtil.h"
 #include <vector>
-#include <graphics/GraphicsContext.h>
+#include "ngfx/graphics/GraphicsContext.h"
 #include "ngfx/graphics/CommandBuffer.h"
 #include "ngfx/porting/vulkan/VKGraphicsContext.h"
 #include "ngfx/porting/vulkan/VKShaderModule.h"

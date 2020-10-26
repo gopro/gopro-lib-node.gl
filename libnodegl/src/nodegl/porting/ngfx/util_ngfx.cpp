@@ -20,8 +20,8 @@
  */
 
 #include "nodegl/porting/ngfx/util_ngfx.h"
-#include "nodegl/texture.h"
-#include "nodegl/graphicstate.h"
+#include "nodegl/core/texture.h"
+#include "nodegl/core/graphicstate.h"
 #include <map>
 using namespace ngfx;
 using namespace std;

@@ -23,9 +23,9 @@
 #include <stdint.h>
 
 #include "nodegl/porting/vk/buffer_vk.h"
-#include "nodegl/log.h"
-#include "nodegl/nodes.h"
-#include "nodegl/memory.h"
+#include "nodegl/core/log.h"
+#include "nodegl/core/nodes.h"
+#include "nodegl/core/memory.h"
 #include "nodegl/porting/vk/gctx_vk.h"
 #include "nodegl/porting/vk/vkcontext.h"
 

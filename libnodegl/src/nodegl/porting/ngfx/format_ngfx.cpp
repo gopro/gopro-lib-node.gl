@@ -18,9 +18,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "nodegl/format.h"
+#include "nodegl/core/format.h"
 #include "nodegl/porting/ngfx/format_ngfx.h"
-#include "nodegl/utils.h"
+#include "nodegl/core/utils.h"
 #include <map>
 using namespace ngfx;
 using namespace std;

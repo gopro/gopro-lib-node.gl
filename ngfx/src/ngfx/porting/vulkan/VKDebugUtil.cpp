@@ -18,8 +18,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/VKDebugUtil.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/porting/vulkan/VKDebugUtil.h"
+#include "ngfx/core/DebugUtil.h"
 #include <string>
 #include <sstream>
 using namespace ngfx;

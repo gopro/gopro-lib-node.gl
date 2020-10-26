@@ -18,8 +18,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/VKDevice.h"
-#include "ngfx/VKDebugUtil.h"
+#include "ngfx/porting/vulkan/VKDevice.h"
+#include "ngfx/porting/vulkan/VKDebugUtil.h"
 using namespace ngfx;
 
 uint32_t VKDevice::getQueueFamilyIndex(VkQueueFlags queueFlags) {

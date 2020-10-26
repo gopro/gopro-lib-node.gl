@@ -245,6 +245,14 @@ int ngli_pipeline_ngfx_update_texture(struct pipeline *s, int index, struct text
     return 0;
 }
 
+static ShaderModule *get_shader_module(program_ngfx *program, int stage) {
+    switch (stage) {
+    case 0: return program->vs; break;
+    case 1: return program->fs; break;
+    case 2: return program->cs; break;
+    }
+    return nullptr;
+}
 static void bind_buffers(CommandBuffer *cmd_buf, pipeline *s) {
     struct gctx_ngfx *gctx_ngfx = (struct gctx_ngfx *)s->gctx;
     int nb_buffers = ngli_darray_count(&s->buffers);
@@ -252,7 +260,7 @@ static void bind_buffers(CommandBuffer *cmd_buf, pipeline *s) {
     for (int j = 0; j<nb_buffers; j++) {
         const buffer_ngfx *buffer = *(const buffer_ngfx **)ngli_darray_get(&s->buffers, j);
         const pipeline_buffer_desc &buffer_desc = *(const pipeline_buffer_desc *)ngli_darray_get(&s->buffer_descs, j);
-        ShaderModule *shader_module = (buffer_desc.stage == 0) ? (ShaderModule *)program->vs : (ShaderModule*)program->fs;
+        ShaderModule *shader_module = get_shader_module(program, buffer_desc.stage);
         if (buffer_desc.type == NGLI_TYPE_UNIFORM_BUFFER) {
             auto buffer_info = shader_module->findUniformBufferInfo(buffer_desc.name);
             if (!buffer_info) continue; //unused variable
@@ -272,7 +280,7 @@ static void bind_textures(CommandBuffer *cmd_buf, pipeline *s) {
     program_ngfx *program = (program_ngfx *)s->program;
     for (int j = 0; j<nb_textures; j++) {
         const pipeline_texture_desc &texture_desc = *(const pipeline_texture_desc *)ngli_darray_get(&s->texture_descs, j);
-        ShaderModule *shader_module = (texture_desc.stage == 0) ? (ShaderModule *)program->vs : (ShaderModule*)program->fs;
+        ShaderModule *shader_module = get_shader_module(program, texture_desc.stage);
         auto texture_info = shader_module->findDescriptorInfo(texture_desc.name);
         if (!texture_info) continue;
         const texture_ngfx *texture = *(const texture_ngfx **)ngli_darray_get(&s->textures, j);

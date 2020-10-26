@@ -363,18 +363,23 @@ static void rtt_draw(struct ngl_node *node)
     int prev_vp[4] = {0};
     ngli_gctx_get_viewport(gctx, prev_vp);
 
-    const int vp[4] = {0, 0, s->width, s->height};
-    ngli_gctx_set_viewport(gctx, vp);
-
     int prev_sr[4] = {0};
     ngli_gctx_get_scissor(gctx, prev_sr);
-
-    int sr[4] = {0, 0, s->width, s->height};
-    ngli_gctx_set_scissor(gctx, sr);
 
     float prev_clear_color[4] = {0};
     if (s->use_clear_color) {
         ngli_gctx_get_clear_color(gctx, prev_clear_color);
+    }
+
+    ngli_gctx_bind_rendertarget(gctx, rt);
+
+    const int vp[4] = {0, 0, s->width, s->height};
+    ngli_gctx_set_viewport(gctx, vp);
+
+    int sr[4] = {0, 0, s->width, s->height};
+    ngli_gctx_set_scissor(gctx, sr);
+
+    if (s->use_clear_color) {
         ngli_gctx_set_clear_color(gctx, s->clear_color);
     }
 
@@ -382,8 +387,6 @@ static void rtt_draw(struct ngl_node *node)
         ngli_gctx_clear_color(gctx);
         ngli_gctx_clear_depth_stencil(gctx);
     }
-
-    ngli_gctx_bind_rendertarget(gctx, rt);
 
     ngli_node_draw(s->child);
 

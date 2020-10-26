@@ -469,7 +469,7 @@ int ngli_texture_vk_init(struct texture *s,
     if (res != VK_SUCCESS)
         return NGL_ERROR_EXTERNAL;
 
-    if (!(params->usage & s_priv->is_attachment)) {
+    if (params->usage & NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT) {
         const int bytes_per_pixel = ngli_format_get_bytes_per_pixel(params->format);
         s_priv->staging_buffer_size = s->params.width * s->params.height * depth * bytes_per_pixel * s_priv->array_layers;
 

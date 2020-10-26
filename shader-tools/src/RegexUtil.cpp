@@ -20,7 +20,7 @@
  */
 
 #include "RegexUtil.h"
-#include "DebugUtil.h"
+#include "ngfx/DebugUtil.h"
 using namespace std;
 using namespace ngfx;
 

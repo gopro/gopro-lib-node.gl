@@ -23,7 +23,7 @@
 #include "nodegl/log.h"
 #include "nodegl/memory.h"
 #include <map>
-#include "graphics/Texture.h"
+#include "ngfx/graphics/Texture.h"
 #include "nodegl/porting/ngfx/gctx_ngfx.h"
 #include "nodegl/porting/ngfx/util_ngfx.h"
 using namespace ngfx;

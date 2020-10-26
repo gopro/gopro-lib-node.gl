@@ -19,8 +19,8 @@
  * under the License.
  */
 #pragma once
-#include "compute/ComputeApplication.h"
-#include "computeOps/MatrixMultiplyGPUOp.h"
+#include "ngfx/compute/ComputeApplication.h"
+#include "ngfx/computeOps/MatrixMultiplyGPUOp.h"
 #include <memory>
 #include <vector>
 

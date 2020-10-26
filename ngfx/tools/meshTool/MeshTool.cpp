@@ -1,5 +1,5 @@
-#include "MeshTool.h"
-#include "DebugUtil.h"
+#include "ngfx/MeshTool.h"
+#include "ngfx/DebugUtil.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 using namespace ngfx;

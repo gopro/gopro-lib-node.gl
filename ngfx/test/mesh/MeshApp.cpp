@@ -19,12 +19,12 @@
  * under the License.
  */
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "MeshApp.h"
-#include "graphics/MeshUtil.h"
-#include "graphics/ShaderModule.h"
+#include "ngfx/MeshApp.h"
+#include "ngfx/graphics/MeshUtil.h"
+#include "ngfx/graphics/ShaderModule.h"
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/component_wise.hpp>
-#include "DebugUtil.h"
+#include "ngfx/DebugUtil.h"
 #include <memory>
 using namespace ngfx;
 using namespace std;

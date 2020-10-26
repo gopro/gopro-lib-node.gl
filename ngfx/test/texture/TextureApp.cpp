@@ -18,8 +18,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "TextureApp.h"
-#include "graphics/ShaderModule.h"
+#include "ngfx/TextureApp.h"
+#include "ngfx/graphics/ShaderModule.h"
 #include <memory>
 using namespace ngfx;
 using namespace glm;

@@ -19,9 +19,9 @@
  * under the License.
  */
 #pragma once
-#include "Application.h"
-#include "graphics/Camera.h"
-#include "drawOps/DrawMeshOp.h"
+#include "ngfx/Application.h"
+#include "ngfx/graphics/Camera.h"
+#include "ngfx/drawOps/DrawMeshOp.h"
 #include <memory>
 
 namespace ngfx {

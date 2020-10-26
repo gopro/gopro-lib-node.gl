@@ -23,7 +23,7 @@
 #define RENDERTARGET_NGFX_H
 
 #include "nodegl/rendertarget.h"
-#include "graphics/Framebuffer.h"
+#include "ngfx/graphics/Framebuffer.h"
 
 struct rendertarget_ngfx {
     struct rendertarget parent;

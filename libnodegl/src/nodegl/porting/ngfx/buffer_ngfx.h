@@ -23,7 +23,7 @@
 #define BUFFER_NGFX_H
 
 #include "nodegl/buffer.h"
-#include "graphics/Buffer.h"
+#include "ngfx/graphics/Buffer.h"
 
 struct buffer_ngfx {
     struct buffer parent;

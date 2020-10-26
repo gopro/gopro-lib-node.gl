@@ -19,8 +19,8 @@
  * under the License.
  */
 #pragma once
-#include "Application.h"
-#include "drawOps/DrawColorOp.h"
+#include "ngfx/Application.h"
+#include "ngfx/drawOps/DrawColorOp.h"
 #include <memory>
 
 namespace ngfx {

@@ -21,8 +21,8 @@
 
 #ifndef UTIL_NGFX_H
 #define UTIL_NGFX_H
-#include "graphics/GraphicsCore.h"
-#include "graphics/GraphicsContext.h"
+#include "ngfx/graphics/GraphicsCore.h"
+#include "ngfx/graphics/GraphicsContext.h"
 #include "nodegl/porting/ngfx/format_ngfx.h"
 #include "nodegl/porting/ngfx/topology_ngfx.h"
 #include "nodegl/rendertarget.h"

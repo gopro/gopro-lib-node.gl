@@ -22,7 +22,7 @@
 #include "ShaderTools.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "DebugUtil.h"
+#include "ngfx/DebugUtil.h"
 #include <filesystem>
 #include <regex>
 #include <fstream>

@@ -23,7 +23,7 @@
 #define TEXTURE_NGFX_H
 
 #include "nodegl/texture.h"
-#include "graphics/Texture.h"
+#include "ngfx/graphics/Texture.h"
 
 struct texture_ngfx {
     struct texture parent;

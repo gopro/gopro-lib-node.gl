@@ -19,8 +19,8 @@
  * under the License.
  */
 #include "FileUtil.h"
-#include "File.h"
-#include "DebugUtil.h"
+#include "ngfx/File.h"
+#include "ngfx/DebugUtil.h"
 #include <fstream>
 #include <cstring>
 #include <cassert>

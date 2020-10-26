@@ -23,7 +23,7 @@
 #define FORMAT_NGFX_H
 
 #include "nodegl/format.h"
-#include "graphics/GraphicsCore.h"
+#include "ngfx/graphics/GraphicsCore.h"
 
 ngfx::PixelFormat to_ngfx_format(int format);
 int to_ngli_format(ngfx::PixelFormat format);

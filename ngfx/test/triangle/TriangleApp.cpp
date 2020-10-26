@@ -18,8 +18,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "TriangleApp.h"
-#include "graphics/ShaderModule.h"
+#include "ngfx/TriangleApp.h"
+#include "ngfx/graphics/ShaderModule.h"
 #include <memory>
 using namespace ngfx;
 using namespace glm;

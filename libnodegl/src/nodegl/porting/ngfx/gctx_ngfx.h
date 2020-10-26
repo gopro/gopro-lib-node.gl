@@ -23,9 +23,9 @@
 #define GCTX_NGFX_H
 
 #include "nodegl/gctx.h"
-#include "graphics/GraphicsContext.h"
-#include "graphics/Graphics.h"
-#include "graphics/CommandBuffer.h"
+#include "ngfx/graphics/GraphicsContext.h"
+#include "ngfx/graphics/Graphics.h"
+#include "ngfx/graphics/CommandBuffer.h"
 #include <memory>
 
 struct gctx_ngfx {

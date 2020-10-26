@@ -23,8 +23,8 @@
 #define PIPELINE_NGFX_H
 
 #include "nodegl/pipeline.h"
-#include "compute/ComputePipeline.h"
-#include "graphics/GraphicsPipeline.h"
+#include "ngfx/compute/ComputePipeline.h"
+#include "ngfx/graphics/GraphicsPipeline.h"
 
 struct gctx;
 struct glcontext;

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project (ngfx)
 
-file (GLOB_RECURSE NGFX_SOURCE_FILES src/*.cpp src/*.h)
+file (GLOB_RECURSE NGFX_SOURCE_FILES src/ngfx/compute/* src/ngfx/computeOps/* src/ngfx/drawOps/* src/ngfx/graphics/* src/ngfx/input/* src/ngfx)
 if (NGFX_GRAPHICS_BACKEND_VULKAN)
     set (WINDOW_BACKEND_GLFW 1)
     file (GLOB_RECURSE NGFX_GRAPHICS_BACKEND_SOURCE_FILES porting/vulkan/*.cpp porting/vulkan/*.h)

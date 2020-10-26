@@ -23,7 +23,7 @@
 #include "nodegl/porting/ngfx/program_ngfx.h"
 #include <stdlib.h>
 #include "log.h"
-#include "graphics/ShaderModule.h"
+#include "ngfx/graphics/ShaderModule.h"
 #include "graphics/ShaderTools.h"
 #include "FileUtil.h"
 #include "ProcessUtil.h"

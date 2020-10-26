@@ -18,12 +18,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "MatrixMultiplyApp.h"
-#include "computeOps/MatrixMultiplyCPUOp.h"
-#include "computeOps/MatrixMultiplyGPUOp.h"
-#include "graphics/ShaderModule.h"
+#include "ngfx/MatrixMultiplyApp.h"
+#include "ngfx/computeOps/MatrixMultiplyCPUOp.h"
+#include "ngfx/computeOps/MatrixMultiplyGPUOp.h"
+#include "ngfx/graphics/ShaderModule.h"
 #include <glm/gtx/string_cast.hpp>
-#include "DebugUtil.h"
+#include "ngfx/DebugUtil.h"
 #include <memory>
 #define VALIDATE_RESULT
 using namespace ngfx;

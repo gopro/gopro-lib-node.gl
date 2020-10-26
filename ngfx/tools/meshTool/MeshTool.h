@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "graphics/MeshData.h"
+#include "ngfx/graphics/MeshData.h"
 
 namespace ngfx {
 	struct MeshTool {

@@ -22,7 +22,7 @@
 #ifndef TOPOLOGY_NGFX_H
 #define TOPOLOGY_NGFX_H
 
-#include "graphics/GraphicsCore.h"
+#include "ngfx/graphics/GraphicsCore.h"
 #include "nodegl/topology.h"
 
 ngfx::PrimitiveTopology to_ngfx_topology(int topology);

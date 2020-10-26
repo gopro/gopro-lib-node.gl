@@ -21,7 +21,7 @@
 #include "nodegl/memory.h"
 #include "nodegl/porting/ngfx/buffer_ngfx.h"
 #include "nodegl/porting/ngfx/gctx_ngfx.h"
-#include "graphics/Buffer.h"
+#include "ngfx/graphics/Buffer.h"
 #include "nodegl/log.h"
 using namespace ngfx;
 

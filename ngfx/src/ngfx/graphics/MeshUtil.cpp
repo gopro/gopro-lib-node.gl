@@ -19,7 +19,7 @@
  * under the License.
  */
 #include "ngfx/graphics/MeshUtil.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/core/DebugUtil.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 using namespace ngfx;

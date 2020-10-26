@@ -18,8 +18,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/Timer.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/core/Timer.h"
+#include "ngfx/core/DebugUtil.h"
 using namespace ngfx;
 using namespace std::chrono;
 

@@ -20,9 +20,9 @@
  */
 
 #include "ShaderTools.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/FileUtil.h"
+#include "ngfx/StringUtil.h"
+#include "ngfx/core/DebugUtil.h"
 #include <filesystem>
 #include <regex>
 #include <fstream>

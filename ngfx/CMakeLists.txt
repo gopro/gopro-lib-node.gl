@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project (ngfx)
 
-file (GLOB_RECURSE NGFX_SOURCE_FILES src/ngfx/compute/* src/ngfx/computeOps/* src/ngfx/drawOps/* src/ngfx/graphics/* src/ngfx/input/* src/ngfx)
+file (GLOB_RECURSE NGFX_SOURCE_FILES src/ngfx/core/* src/ngfx/compute/* src/ngfx/computeOps/* src/ngfx/drawOps/* src/ngfx/graphics/* src/ngfx/input/*)
 if (NGFX_GRAPHICS_BACKEND_VULKAN)
     set (WINDOW_BACKEND_GLFW 1)
     file (GLOB_RECURSE NGFX_GRAPHICS_BACKEND_SOURCE_FILES porting/vulkan/*.cpp porting/vulkan/*.h)
@@ -43,6 +43,7 @@ elseif (WINDOW_BACKEND_APPKIT)
 endif()
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${NGFX_SOURCE_FILES} ${NGFX_GRAPHICS_BACKEND_SOURCE_FILES} ${WINDOW_BACKEND_SOURCE_FILES})
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(NGFX_BUILD_TYPE STATIC)
 else()

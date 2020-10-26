@@ -21,8 +21,8 @@
 #include "ngfx/computeOps/MatrixMultiplyGPUOp.h"
 #include "ngfx/computeOps/MatrixMultiplyCPUOp.h"
 #include "ngfx/graphics/BufferUtil.h"
-#include "ngfx/DebugUtil.h"
-#include "ngfx/Timer.h"
+#include "ngfx/core/DebugUtil.h"
+#include "ngfx/core/Timer.h"
 using namespace ngfx;
 
 MatrixMultiplyGPUOp::MatrixMultiplyGPUOp(GraphicsContext* ctx,

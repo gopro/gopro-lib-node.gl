@@ -20,8 +20,8 @@
  */
 #include "ngfx/computeOps/MatrixMultiplyCPUOp.h"
 #include <glm/glm.hpp>
-#include "ngfx/DebugUtil.h"
-#include "ngfx/Timer.h"
+#include "ngfx/core/DebugUtil.h"
+#include "ngfx/core/Timer.h"
 using namespace ngfx;
 using namespace glm;
 

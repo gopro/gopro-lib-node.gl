@@ -19,7 +19,7 @@
  * under the License.
  */
 #include "ngfx/graphics/ShaderModule.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/core/DebugUtil.h"
 #include <fstream>
 #include <map>
 using namespace ngfx;

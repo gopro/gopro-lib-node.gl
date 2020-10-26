@@ -20,8 +20,8 @@
  */
 #include "ngfx/compute/ComputeApplication.h"
 #include "ngfx/graphics/Graphics.h"
-#include "ngfx/Timer.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/core/Timer.h"
+#include "ngfx/core/DebugUtil.h"
 #include <memory>
 using namespace ngfx;
 using namespace glm;

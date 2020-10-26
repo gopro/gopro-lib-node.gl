@@ -18,17 +18,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#pragma once
-#include "ngfx/Timer.h"
+#include "ngfx/core/File.h"
+#include "ngfx/core/DebugUtil.h"
+#include <fstream>
+#include <cstdlib>
+using namespace ngfx;
 
-namespace ngfx {
-    class FPSCounter {
-    public:
-        FPSCounter() {}
-        void update();
-        float fps = 0.0f;
-    private:
-        int numFrames = 0;
-        Timer timer;
-    };
+void File::read(const std::string& filename) {
+    std::ifstream in(filename.c_str(), std::ios::binary | std::ios::in | std::ios::ate);
+    if (!in.is_open()) ERR("cannot open file: %s", filename.c_str());
+    size = int(in.tellg());
+    in.seekg(0, std::ios::beg);
+    data.reset(new char[size]);
+    in.read(data.get(), size);
+    in.close();
 }

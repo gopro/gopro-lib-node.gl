@@ -19,7 +19,7 @@
  * under the License.
  */
 #include "ngfx/graphics/Camera.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/core/DebugUtil.h"
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 using namespace ngfx;

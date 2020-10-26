@@ -18,17 +18,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-#include "ngfx/FPSCounter.h"
-#include "ngfx/DebugUtil.h"
+#include "ngfx/core/StringUtil.h"
+#include <string>
+#include <locale>
+#include <codecvt>
 using namespace ngfx;
 
-void FPSCounter::update() {
-    numFrames++;
-    if (numFrames == 100) {
-        timer.update();
-        fps = 100/timer.elapsed;
-        LOG("FPS: %3.2f", fps);
-        numFrames = 0;
-    }
+std::wstring StringUtil::toWString(const std::string& str) {
+    std::wstring target;
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(str);
 }
-

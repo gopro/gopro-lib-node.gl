@@ -19,9 +19,9 @@
  * under the License.
  */
 #include <cstdio>
-#include "ngfx/BaseApplication.h"
-#include "ngfx/DebugUtil.h"
-#include "ngfx/FPSCounter.h"
+#include "ngfx/core/BaseApplication.h"
+#include "ngfx/core/DebugUtil.h"
+#include "ngfx/core/FPSCounter.h"
 using namespace ngfx;
 using namespace std::placeholders;
 

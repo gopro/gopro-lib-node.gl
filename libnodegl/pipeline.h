@@ -31,6 +31,16 @@
 
 struct gctx;
 
+enum {
+    NGLI_ACCESS_UNDEFINED,
+    NGLI_ACCESS_READ_BIT,
+    NGLI_ACCESS_WRITE_BIT,
+    NGLI_ACCESS_READ_WRITE,
+    NGLI_ACCESS_NB
+};
+
+NGLI_STATIC_ASSERT(texture_access, (NGLI_ACCESS_READ_BIT | NGLI_ACCESS_WRITE_BIT) == NGLI_ACCESS_READ_WRITE);
+
 struct pipeline_uniform_desc {
     char name[MAX_ID_LEN];
     int type;

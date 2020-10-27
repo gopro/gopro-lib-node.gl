@@ -310,7 +310,7 @@ static int inject_texture_info(struct pgcraft *s, struct pgcraft_texture_info *i
                 .type     = field->type,
                 .location = -1,
                 .binding  = -1,
-                .access   = info->writable ? NGLI_ACCESS_WRITE_BIT : NGLI_ACCESS_READ_BIT,
+                .access   = info->writable ? NGLI_ACCESS_READ_WRITE : NGLI_ACCESS_READ_BIT,
             };
             snprintf(pl_texture_desc.name, sizeof(pl_texture_desc.name), "%s", field->name);
 
@@ -332,7 +332,7 @@ static int inject_texture_info(struct pgcraft *s, struct pgcraft_texture_info *i
                 ngli_bstr_printf(b, "layout(%s", format);
                 if (pl_texture_desc.binding != -1)
                     ngli_bstr_printf(b, ", binding=%d", pl_texture_desc.binding);
-                ngli_bstr_printf(b, ") %s ", info->writable ? "writeonly" : "readonly");
+                ngli_bstr_printf(b, ") %s ", info->writable ? "" : "readonly");
             } else if (pl_texture_desc.binding != -1) {
                 ngli_bstr_printf(b, "layout(binding=%d) ", pl_texture_desc.binding);
             }

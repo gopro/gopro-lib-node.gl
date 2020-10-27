@@ -68,7 +68,6 @@ static const struct glfeature {
         .es_version     = 310,
         .extensions     = (const char*[]){"GL_ARB_compute_shader", NULL},
         .funcs_offsets  = (const size_t[]){OFFSET(DispatchCompute),
-                                           OFFSET(MemoryBarrier),
                                            -1}
     }, {
         .name           = "program_interface_query",
@@ -89,6 +88,7 @@ static const struct glfeature {
         .es_version     = 310,
         .extensions     = (const char*[]){"GL_ARB_shader_image_load_store", NULL},
         .funcs_offsets  = (const size_t[]){OFFSET(BindImageTexture),
+                                           OFFSET(MemoryBarrier),
                                            -1}
     }, {
         .name           = "shader_storage_buffer_object",

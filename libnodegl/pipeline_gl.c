@@ -731,7 +731,6 @@ void ngli_pipeline_gl_dispatch(struct pipeline *s, int nb_group_x, int nb_group_
     set_buffers(s, gl);
     set_textures(s, gl);
 
-    ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
     ngli_glDispatchCompute(gl, nb_group_x, nb_group_y, nb_group_z);
     ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
 }

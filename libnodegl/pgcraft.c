@@ -388,6 +388,7 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
     struct pipeline_buffer_desc pl_buffer_desc = {
         .type    = block->type,
         .binding = -1,
+        .access  = named_block->writable ? NGLI_ACCESS_READ_WRITE : NGLI_ACCESS_READ_BIT,
     };
     int len = snprintf(pl_buffer_desc.name, sizeof(pl_buffer_desc.name), "%s_block", named_block->name);
     if (len >= sizeof(pl_buffer_desc.name)) {

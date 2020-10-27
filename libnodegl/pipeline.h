@@ -59,6 +59,7 @@ struct pipeline_buffer_desc {
     char name[MAX_ID_LEN];
     int type;
     int binding;
+    int access;
 };
 
 struct pipeline_attribute_desc {

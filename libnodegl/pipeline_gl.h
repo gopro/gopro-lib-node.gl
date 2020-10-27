@@ -39,6 +39,8 @@ struct pipeline_gl {
 
     uint64_t used_texture_units;
     GLuint vao_id;
+    GLenum barriers;
+    void (*insert_memory_barriers)(struct pipeline *s);
 };
 
 struct pipeline *ngli_pipeline_gl_create(struct gctx *gctx);

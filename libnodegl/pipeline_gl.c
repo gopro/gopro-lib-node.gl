@@ -226,6 +226,9 @@ static int build_texture_bindings(struct pipeline *s, const struct pipeline_para
                 return NGL_ERROR_INVALID_DATA;
             }
             s_priv->used_texture_units |= 1ULL << texture_desc->binding;
+
+            if (texture_desc->access & NGLI_ACCESS_WRITE_BIT)
+                s_priv->barriers |= GL_ALL_BARRIER_BITS;
         }
 
         struct texture_binding binding = {
@@ -332,6 +335,9 @@ static int build_buffer_bindings(struct pipeline *s, const struct pipeline_param
             LOG(ERROR, "context does not support shader storage buffer objects");
             return NGL_ERROR_UNSUPPORTED;
         }
+
+        if (pipeline_buffer_desc->access & NGLI_ACCESS_WRITE_BIT)
+            s_priv->barriers |= GL_ALL_BARRIER_BITS;
 
         struct buffer_binding binding = {
             .type = ngli_type_get_gl_type(pipeline_buffer_desc->type),
@@ -478,6 +484,18 @@ static int pipeline_compute_init(struct pipeline *s)
     return 0;
 }
 
+static void insert_memory_barriers_noop(struct pipeline *s)
+{
+}
+
+static void insert_memory_barriers(struct pipeline *s)
+{
+    struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
+    ngli_glMemoryBarrier(gl, s_priv->barriers);
+}
+
 struct pipeline *ngli_pipeline_gl_create(struct gctx *gctx)
 {
     struct pipeline_gl *s = ngli_calloc(1, sizeof(*s));
@@ -517,6 +535,10 @@ int ngli_pipeline_gl_init(struct pipeline *s, const struct pipeline_params *para
     } else {
         ngli_assert(0);
     }
+
+    s_priv->insert_memory_barriers = s_priv->barriers
+                                   ? insert_memory_barriers
+                                   : insert_memory_barriers_noop;
 
     return 0;
 }
@@ -695,6 +717,8 @@ void ngli_pipeline_gl_draw(struct pipeline *s, int nb_vertices, int nb_instances
         ngli_glDrawArrays(gl, gl_topology, 0, nb_vertices);
 
     unbind_vertex_attribs(s, gl);
+
+    s_priv->insert_memory_barriers(s);
 }
 
 void ngli_pipeline_gl_draw_indexed(struct pipeline *s, struct buffer *indices, int indices_format, int nb_indices, int nb_instances)
@@ -736,6 +760,8 @@ void ngli_pipeline_gl_draw_indexed(struct pipeline *s, struct buffer *indices, i
         ngli_glDrawElements(gl, gl_topology, nb_indices, gl_indices_type, 0);
 
     unbind_vertex_attribs(s, gl);
+
+    s_priv->insert_memory_barriers(s);
 }
 
 void ngli_pipeline_gl_dispatch(struct pipeline *s, int nb_group_x, int nb_group_y, int nb_group_z)
@@ -751,7 +777,9 @@ void ngli_pipeline_gl_dispatch(struct pipeline *s, int nb_group_x, int nb_group_
     set_textures(s, gl);
 
     ngli_glDispatchCompute(gl, nb_group_x, nb_group_y, nb_group_z);
-    ngli_glMemoryBarrier(gl, GL_ALL_BARRIER_BITS);
+
+    struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
+    s_priv->insert_memory_barriers(s);
 }
 
 void ngli_pipeline_gl_freep(struct pipeline **sp)

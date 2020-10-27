@@ -212,6 +212,7 @@ def compute_histogram(cfg, show_dbg_points=False):
     group_size = hsize // local_size
     clear_histogram_shader = _COMPUTE_HISTOGRAM_CLEAR % shader_params
     clear_histogram_program = ngl.ComputeProgram(clear_histogram_shader)
+    clear_histogram_program.update_properties(hist=ngl.ResourceProps(writable=True))
     clear_histogram = ngl.Compute(
         group_size,
         1,

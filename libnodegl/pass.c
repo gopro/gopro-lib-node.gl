@@ -188,15 +188,16 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
         LOG(DEBUG, "block %s is larger than the max UBO size (%d > %d), declaring it as SSBO",
             name, block->size, limits->max_uniform_block_size);
         type = NGLI_TYPE_STORAGE_BUFFER;
-    } else {
-        const struct pass_params *params = &s->params;
-        if (params->properties) {
-            const struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
-            if (resprops_node) {
-                const struct resourceprops_priv *resprops = resprops_node->priv_data;
-                if (resprops->variadic || resprops->writable)
-                    type = NGLI_TYPE_STORAGE_BUFFER;
-            }
+    }
+
+    const struct pass_params *params = &s->params;
+    if (params->properties) {
+        const struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
+        if (resprops_node) {
+            const struct resourceprops_priv *resprops = resprops_node->priv_data;
+            if (resprops->variadic || resprops->writable)
+                type = NGLI_TYPE_STORAGE_BUFFER;
+            crafter_block.writable = resprops->writable;
         }
     }
 

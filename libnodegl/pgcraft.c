@@ -405,6 +405,9 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
         ngli_bstr_printf(b, "layout(%s)", layout);
     }
 
+    if (block->type == NGLI_TYPE_STORAGE_BUFFER && !named_block->writable)
+        ngli_bstr_print(b, " readonly");
+
     const char *keyword = get_glsl_type(block->type);
     ngli_bstr_printf(b, " %s %s_block {\n", keyword, named_block->name);
     const struct block_field *field_info = ngli_darray_data(&block->fields);

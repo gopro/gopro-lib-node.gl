@@ -211,6 +211,11 @@ static int build_texture_bindings(struct pipeline *s, const struct pipeline_para
             struct glcontext *gl = gctx_gl->glcontext;
             const struct limits *limits = &gl->limits;
 
+            if (!(gl->features & NGLI_FEATURE_SHADER_IMAGE_LOAD_STORE)) {
+                LOG(ERROR, "context does not support shader image load store operations");
+                return NGL_ERROR_UNSUPPORTED;
+            }
+
             int max_nb_textures = NGLI_MIN(limits->max_texture_image_units, sizeof(s_priv->used_texture_units) * 8);
             if (texture_desc->binding >= max_nb_textures) {
                 LOG(ERROR, "maximum number (%d) of texture unit reached", max_nb_textures);
@@ -310,9 +315,23 @@ static void set_buffers(struct pipeline *s, struct glcontext *gl)
 static int build_buffer_bindings(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
+    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
+    struct glcontext *gl = gctx_gl->glcontext;
 
     for (int i = 0; i < params->nb_buffers; i++) {
         const struct pipeline_buffer_desc *pipeline_buffer_desc = &params->buffers_desc[i];
+
+        if (pipeline_buffer_desc->type == NGLI_TYPE_UNIFORM_BUFFER &&
+            !(gl->features & NGLI_FEATURE_UNIFORM_BUFFER_OBJECT)) {
+            LOG(ERROR, "context does not support uniform buffer objects");
+            return NGL_ERROR_UNSUPPORTED;
+        }
+
+        if (pipeline_buffer_desc->type == NGLI_TYPE_STORAGE_BUFFER &&
+            !(gl->features & NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)) {
+            LOG(ERROR, "context does not support shader storage buffer objects");
+            return NGL_ERROR_UNSUPPORTED;
+        }
 
         struct buffer_binding binding = {
             .type = ngli_type_get_gl_type(pipeline_buffer_desc->type),

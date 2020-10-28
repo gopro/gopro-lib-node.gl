@@ -458,6 +458,21 @@ void ngli_mat4_scale(float *dst, float x, float y, float z)
     dst[15] =  1.0f;
 }
 
+void ngli_mat4_skew(float *dst, float x, float y, float z, const float *axis)
+{
+    memset(dst, 0, 4 * 4 * sizeof(*dst));
+    dst[ 0] = 1.f;
+    dst[ 1] = axis[1] * x;  // X skew on Y-axis
+    dst[ 2] = axis[2] * x;  // X skew on Z-axis
+    dst[ 4] = axis[0] * y;  // Y skew on X-axis
+    dst[ 5] = 1.f;
+    dst[ 6] = axis[2] * y;  // Y skew on Z-axis
+    dst[ 8] = axis[0] * z;  // Z skew on X-axis
+    dst[ 9] = axis[1] * z;  // Z skew on Y-axis
+    dst[10] = 1.f;
+    dst[15] = 1.f;
+}
+
 #define COS_ALPHA_THRESHOLD 0.9995f
 
 void ngli_quat_slerp(float *dst, const float *q1, const float *q2, float t)

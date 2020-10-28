@@ -236,9 +236,9 @@ Parameter | Live-chg. | Type | Description | Default
 `perspective` | ✓ | [`vec2`](#parameter-types) | the 2 following values: *fov*, *aspect* | (`0`,`0`)
 `orthographic` | ✓ | [`vec4`](#parameter-types) | the 4 following values: *left*, *right*, *bottom*, *top* | (`0`,`0`,`0`,`0`)
 `clipping` | ✓ | [`vec2`](#parameter-types) | the 2 following values: *near clipping plane*, *far clipping plane* | (`0`,`0`)
-`eye_transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Identity](#identity)) | `eye` transformation chain | 
-`center_transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Identity](#identity)) | `center` transformation chain | 
-`up_transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Identity](#identity)) | `up` transformation chain | 
+`eye_transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Skew](#skew), [Identity](#identity)) | `eye` transformation chain | 
+`center_transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Skew](#skew), [Identity](#identity)) | `center` transformation chain | 
+`up_transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Skew](#skew), [Identity](#identity)) | `up` transformation chain | 
 `fov_anim` |  | [`Node`](#parameter-types) ([AnimatedFloat](#animatedfloat)) | field of view animation (first field of `perspective`) | 
 
 
@@ -499,6 +499,20 @@ Parameter | Live-chg. | Type | Description | Default
 
 
 **Source**: [node_scale.c](/libnodegl/node_scale.c)
+
+
+## Skew
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`child` |  | [`Node`](#parameter-types) | scene to skew | 
+`angles` | ✓ | [`vec3`](#parameter-types) | skewing angles, only components forming a plane opposite to `axis` should be set | (`0`,`0`,`0`)
+`axis` |  | [`vec3`](#parameter-types) | skew axis | (`1`,`0`,`0`)
+`anchor` |  | [`vec3`](#parameter-types) | vector to the center point of the skew | (`0`,`0`,`0`)
+`anim` |  | [`Node`](#parameter-types) ([AnimatedVec3](#animatedvec3), [StreamedVec3](#streamedvec3)) | `angles` animation | 
+
+
+**Source**: [node_skew.c](/libnodegl/node_skew.c)
 
 
 ## Text
@@ -1111,7 +1125,7 @@ Parameter | Live-chg. | Type | Description | Default
 Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
 `value` | ✓ | [`mat4`](#parameter-types) | value exposed to the shader | 
-`transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Identity](#identity)) | `value` transformation chain | 
+`transform` |  | [`Node`](#parameter-types) ([Rotate](#rotate), [RotateQuat](#rotatequat), [Transform](#transform), [Translate](#translate), [Scale](#scale), [Skew](#skew), [Identity](#identity)) | `value` transformation chain | 
 
 
 **Source**: [node_uniform.c](/libnodegl/node_uniform.c)

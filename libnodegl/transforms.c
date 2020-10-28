@@ -33,6 +33,7 @@ const float *ngli_get_last_transformation_matrix(const struct ngl_node *node)
             case NGL_NODE_ROTATE:
             case NGL_NODE_ROTATEQUAT:
             case NGL_NODE_SCALE:
+            case NGL_NODE_SKEW:
             case NGL_NODE_TRANSFORM:
             case NGL_NODE_TRANSLATE: {
                 const struct transform_priv *trf = node->priv_data;

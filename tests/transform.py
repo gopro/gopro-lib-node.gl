@@ -172,6 +172,30 @@ def transform_scale_anchor_animated(cfg, factors=(0.7, 1.4, 0), anchor=(-0.4, 0.
 
 
 @test_fingerprint()
+@scene(angles=scene.Vector(n=3, minv=(-360, -360, -360), maxv=(360, 360, 360)),
+       axis=scene.Vector(n=3, minv=(-1, -1, -1), maxv=(1, 1, 1)))
+def transform_skew(cfg, angles=(0.0, -70, 14), axis=(1, 0, 0)):
+    cfg.aspect_ratio = (1, 1)
+    shape = _transform_shape(cfg)
+    return ngl.Skew(shape, angles=angles, axis=axis)
+
+
+@test_fingerprint(nb_keyframes=8)
+@scene(angles=scene.Vector(n=3, minv=(-360, -360, -360), maxv=(360, 360, 360)),
+       axis=scene.Vector(n=3, minv=(-1, -1, -1), maxv=(1, 1, 1)))
+def transform_skew_animated(cfg, angles=(0, -60, 14), axis=(1, 0, 0), anchor=(0, .05, -.5)):
+    cfg.aspect_ratio = (1, 1)
+    cfg.duration = 2.0
+    shape = _transform_shape(cfg)
+    anim = [
+        ngl.AnimKeyFrameVec3(0, (0, 0, 0)),
+        ngl.AnimKeyFrameVec3(cfg.duration / 2., angles),
+        ngl.AnimKeyFrameVec3(cfg.duration, (0, 0, 0)),
+    ]
+    return ngl.Skew(shape, anim=ngl.AnimatedVec3(anim), axis=axis, anchor=anchor)
+
+
+@test_fingerprint()
 @scene(angle=scene.Range(range=[0, 360], unit_base=10))
 def transform_rotate(cfg, angle=123.4):
     cfg.aspect_ratio = (1, 1)

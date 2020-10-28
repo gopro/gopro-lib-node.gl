@@ -290,6 +290,8 @@ foreach backend : backends
     'scale_animated',
     'scale_anchor',
     'scale_anchor_animated',
+    'skew',
+    'skew_animated',
     'rotate',
     'rotate_anchor',
     'rotate_quat',

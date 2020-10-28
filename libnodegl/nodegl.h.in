@@ -181,6 +181,7 @@ struct ngl_node;
 #define NGL_NODE_ROTATE                 NGLI_FOURCC('T','R','o','t')
 #define NGL_NODE_ROTATEQUAT             NGLI_FOURCC('T','R','o','Q')
 #define NGL_NODE_SCALE                  NGLI_FOURCC('T','s','c','l')
+#define NGL_NODE_SKEW                   NGLI_FOURCC('T','s','k','w')
 #define NGL_NODE_STREAMEDINT            NGLI_FOURCC('S','t','i','1')
 #define NGL_NODE_STREAMEDIVEC2          NGLI_FOURCC('S','t','i','2')
 #define NGL_NODE_STREAMEDIVEC3          NGLI_FOURCC('S','t','i','3')

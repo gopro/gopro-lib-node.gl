@@ -70,6 +70,7 @@ void ngli_mat4_rotate(float *dst, float angle, float *axis);
 void ngli_mat4_rotate_from_quat(float *dst, const float *quat);
 void ngli_mat4_translate(float *dst, float x, float y, float z);
 void ngli_mat4_scale(float *dst, float x, float y, float z);
+void ngli_mat4_skew(float *dst, float x, float y, float z, const float *axis);
 
 /* Arch specific versions */
 

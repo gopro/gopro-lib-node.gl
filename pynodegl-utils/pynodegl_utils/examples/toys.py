@@ -26,6 +26,7 @@ from pynodegl_utils.toolbox.colors import COLORS
 
 @scene(
     txt=scene.Text(),
+    font_file=scene.File(),
     fg_color=scene.Color(),
     bg_color=scene.Color(),
     box_corner=scene.Vector(n=3, minv=(-1, -1, -1), maxv=(1, 1, 1)),
@@ -38,6 +39,20 @@ from pynodegl_utils.toolbox.colors import COLORS
 )
 def text(cfg,
          txt='the quick brown fox\njumps over the lazy dog',
+         #txt='ABCD',
+         #font_file='/home/ux/.fonts/FG_Virgil.otf',
+
+         #txt="Ленивый рыжий кот",
+
+         #txt="كسول الزنجبيل القط",
+         #font_file='/usr/share/fonts/noto/NotoKufiArabic-Regular.ttf',
+
+         #txt="懶惰的姜貓",
+         #font_file='/usr/share/fonts/TTF/HAN NOM A.ttf',
+
+         #txt='ウィキペディア\nへようこそ',
+         #font_file='/usr/share/fonts/TTF/HanaMinA.ttf',
+         font_file=None,
          fg_color=COLORS.cgreen,
          bg_color=(0.3, 0.3, 0.3, 1.0),
          box_corner=(-1+.25, -1+.25, 0),
@@ -49,6 +64,7 @@ def text(cfg,
          halign='center',
 ):
     return ngl.Text(txt,
+                    font_file=font_file,
                     fg_color=fg_color,
                     bg_color=bg_color,
                     box_corner=box_corner,

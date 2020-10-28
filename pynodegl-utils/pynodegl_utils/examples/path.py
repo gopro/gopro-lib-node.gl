@@ -109,7 +109,7 @@ def catmull(cfg, tension=0.5):
 
     return ngl.Group(
         children=(
-            ngl.PathDraw(path),
+            ngl.PathDraw(path, glow_color=ngl.UniformVec4(value=(1,1,1,1)), glow=ngl.UniformFloat(.3)),
             ngl.Scale(_path_scene(cfg, path, points, controls, easing='exp_in_out')),
         )
     )

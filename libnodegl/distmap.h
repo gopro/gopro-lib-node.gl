@@ -34,7 +34,7 @@ struct distmap_params {
      * that the extremities of the distance map are always black, and thus not
      * affect neighbor glyph, typically when relying on mipmapping.
      */
-    int spread;
+    //int spread;
     int shape_w;
     int shape_h;
 

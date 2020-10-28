@@ -96,7 +96,6 @@ static int cmd_stop(struct ngl_ctx *s, void *arg)
 #if defined(TARGET_ANDROID)
     ngli_android_ctx_reset(&s->android_ctx);
 #endif
-    ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_pgcache_reset(&s->pgcache);
     ngli_hud_freep(&s->hud);
     ngli_gpu_ctx_freep(&s->gpu_ctx);

@@ -8,9 +8,7 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -158,7 +156,7 @@ static int pathdraw_init(struct ngl_node *node)
     s->color[0] = s->color[1] = s->color[2] = s->color[3] = 1.f;
     s->outline = 0.005f;
     s->glow = 0.f;
-    s->glow_color[0] = s->glow_color[1] = s->glow_color[2] = s->glow_color[3] = 0.f;
+    s->glow_color[0] = s->glow_color[1] = s->glow_color[2] = s->glow_color[3] = 1.f;
     s->blur = 0.f;
 
     ASSIGN_EFFECT_PTR_VECTOR(color);
@@ -172,7 +170,7 @@ static int pathdraw_init(struct ngl_node *node)
         return NGL_ERROR_MEMORY;
 
     const struct distmap_params params = {
-        .spread      = PATH_DISTMAP_SPREAD,
+        //.spread      = PATH_DISTMAP_SPREAD,
         .shape_w     = PATH_DISTMAP_SIZE,
         .shape_h     = PATH_DISTMAP_SIZE,
         .poly_corner = {NGLI_ARG_VEC2(s->poly_corner)},

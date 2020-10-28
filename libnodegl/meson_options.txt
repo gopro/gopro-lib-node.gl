@@ -27,6 +27,8 @@ option('vaapi-x11', type: 'feature', value: 'auto',
        description: 'VAAPI support for X11')
 option('vaapi-wayland', type: 'feature', value: 'auto',
        description: 'VAAPI support for Wayland')
+option('text-libs', type: 'feature', value: 'auto',
+       description: 'Text libraries support (harfbuzz, freetype2)')
 
 option('rpath', type: 'boolean', value: false,
        description: 'install with rpath')

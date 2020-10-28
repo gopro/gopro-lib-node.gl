@@ -356,13 +356,13 @@ float get_distance_sq_poly5(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d)
     float dt_e =  2.0*(2.0*(b.x*d.x - b.x*p.x + b.y*d.y - b.y*p.y) + c.x*c.x + c.y*c.y);
     float dt_f =  2.0*(c.x*d.x - c.x*p.x + c.y*d.y - c.y*p.y);
 
-    float roots5[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+    float roots5[5] = float[5](0.0, 0.0, 0.0, 0.0, 0.0);
     int nb_roots = root_find5(roots5, dt_a, dt_b, dt_c, dt_d, dt_e, dt_f);
 
     float min_dist = 1e38;
 
     /* also include start and end points */
-    float roots[7] = {0.0, 1.0, roots5[0], roots5[1], roots5[2], roots5[3], roots5[4]};
+    float roots[7] = float[7](0.0, 1.0, roots5[0], roots5[1], roots5[2], roots5[3], roots5[4]);
     for (int r = 0; r < nb_roots + 2; r++) {
         float t = roots[r];
         if (t < 0.0 || t > 1.0) /* ignore out of bounds roots */
@@ -370,10 +370,6 @@ float get_distance_sq_poly5(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d)
 
         vec2 dvec = p - poly3_vec2(a, b, c, d, t);
         float dist = dot(dvec, dvec); // length squared
-        //float xmp = p.x - poly3(a.x, b.x, c.x, d.x, t);
-        //float ymp = p.y - poly3(a.y, b.y, c.y, d.y, t);
-        //float dist = xmp*xmp + ymp*ymp;
-
         min_dist = min(min_dist, dist);
     }
 
@@ -381,25 +377,52 @@ float get_distance_sq_poly5(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d)
 }
 #endif
 
-int get_nb_intersect_poly5(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d)
+/*
+ * Rely on the non-zero rule to find if we are inside or outside the shape.
+ * https://en.wikipedia.org/wiki/Nonzero-rule
+ */
+int get_winding_number(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d)
 {
     /*
-     * On the y dimension, find the intersection of the cubic polynomial and
-     * the horizontal line passing by current point p. This is equivalent to
-     * solving at³+bt²+ct+d=y.
+     * We first find the intersections of the 2D curve B(t) with f(x), where
+     * f(x) is an horizontal line passing by the current point p: f(x)=Py.
+     * This is equivalent to solving the at³+bt²+ct+d=Py, or at³+bt²+ct+d-Py=0.
+     * The roots we obtain correspond to the time t where B(t) crosses this
+     * horizontal line.  Using these roots, we can obtain the x coordinates of
+     * these intersections.
      *
-     * The we check these intersection on the 2nd dimension (x). Note that x
-     * and y dimension could be swapped here.
+     * Note that the x and y dimension could be swapped here.
      */
     vec3 roots = vec3(0.0);
     int n_roots = root_find3(roots, a.y, b.y, c.y, d.y - p.y);
-    int nb_intersect = 0;
+    int winding_number = 0;
     for (int i = 0; i < n_roots; i++) {
         float t = roots[i];
-        if (t >= 0.0 && t <= 1.0 && poly3(a.x, b.x, c.x, d.x, t) > p.x)
-            nb_intersect++;
+
+        /*
+         * When looking at the x-axis, we are first checking if we are within
+         * the boundaries of the curve (0 ≤ t ≤ 1), then we look at the ray
+         * from Px toward +∞. This is the reason why we check for the curve
+         * above Px. Checking instead below Px would work just fine as well,
+         * because what matters is that we are checking a single direction
+         * toward one infinity.
+         */
+        if (t < 0.0 || t > 1.0)
+            continue;
+        vec2 inter = poly3_vec2(a, b, c, d, t);
+        if (inter.x < p.x)
+            continue;
+
+        /*
+         * Compute the tangent to identify whether we are on the right or the
+         * left of the curve: if the tangent is going from left to right as
+         * viewed from P we subtract 1, otherwise we add 1.
+         */
+        float tan_y = (((3.0 * a.y) * t + 2.0 * b.y) * t) + c.y;
+        winding_number += tan_y < 0.0 ? -1 : 1;
     }
-    return nb_intersect;
+
+    return winding_number;
 }
 
 #define linear_interp(a, b, x) (((x) - (a)) / ((b) - (a)))
@@ -408,7 +431,7 @@ int get_nb_intersect_poly5(vec2 p, vec2 a, vec2 b, vec2 c, vec2 d)
 vec4 draw_shape(vec2 pos, int shape_id)
 {
     /* spread position on both size of both axis */
-    pos = linear_interp(vec2(spread), vec2(1.0 - spread), pos);
+    //pos = linear_interp(vec2(spread), vec2(1.0 - spread), pos);
 
     float min_dist = 1e38;
 
@@ -416,7 +439,7 @@ vec4 draw_shape(vec2 pos, int shape_id)
     int start = poly_start[shape_id];
     int end   = poly_start[shape_id + 1];
 
-    int nb_intersect = 0;
+    int winding_number = 0;
     for (int i = start; i < end; i++) {
         vec4 poly_x = poly_x_buf[i];
         vec4 poly_y = poly_y_buf[i];
@@ -425,12 +448,13 @@ vec4 draw_shape(vec2 pos, int shape_id)
         vec2 c = vec2(poly_x.z, poly_y.z);
         vec2 d = vec2(poly_x.w, poly_y.w);
 
-        nb_intersect += get_nb_intersect_poly5(pos, a, b, c, d);
+        winding_number += get_winding_number(pos, a, b, c, d);
         float dist = get_distance_sq_poly5(pos, a, b, c, d);
         min_dist = min(min_dist, dist);
     }
 
-    float dsign = nb_intersect % 2 == 0 ? -1.0 : 1.0;
+    /* Negative means outside, positive means inside */
+    float dsign = winding_number == 0 ? -1.0 : 1.0;
     return vec4(vec3(dsign * sqrt(min_dist)), 1.0);
 }
 

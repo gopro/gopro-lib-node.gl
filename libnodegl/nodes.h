@@ -40,6 +40,7 @@
 
 #include "animation.h"
 #include "block.h"
+#include "distmap.h"
 #include "drawutils.h"
 #include "graphicstate.h"
 #include "hmap.h"
@@ -80,7 +81,6 @@ struct ngl_ctx {
     struct darray modelview_matrix_stack;
     struct darray projection_matrix_stack;
     struct darray activitycheck_nodes;
-    struct texture *font_atlas;
     struct pgcache pgcache;
 #if defined(HAVE_VAAPI)
     struct vaapi_ctx vaapi_ctx;
@@ -435,6 +435,37 @@ struct pathkey_bezier3_priv {
     float control1[3];
     float control2[3];
     float to[3];
+};
+
+enum {
+    NGLI_TEXT_EFFECT_CHAR,
+    NGLI_TEXT_EFFECT_CHAR_NOSPACE,
+    NGLI_TEXT_EFFECT_WORD,
+    NGLI_TEXT_EFFECT_LINE,
+    NGLI_TEXT_EFFECT_TEXT,
+};
+
+struct texteffect_priv {
+    double start_time;
+    double end_time;
+    int target;
+    int random;
+    int random_seed;
+
+    /* if animated, expressed in effect time (0 to 1) */
+    struct ngl_node *start_pos_node;
+    struct ngl_node *end_pos_node;
+    struct ngl_node *overlap_node;
+
+    /* if animated, expressed in target time (0 to 1) */
+    struct ngl_node *transform_chain;
+    struct ngl_node *line_spacing_node;
+    struct ngl_node *char_spacing_node;
+    struct ngl_node *color_node;
+    struct ngl_node *outline_node;
+    struct ngl_node *glow_node;
+    struct ngl_node *glow_color_node;
+    struct ngl_node *blur_node;
 };
 
 enum {

@@ -92,11 +92,17 @@ int ngli_distmap_init(struct distmap *d, const struct distmap_params *params)
 {
     d->p = *params;
 
+    //LOG(ERROR, "distmap init with shape w:%d h:%d",
+    //    params->shape_w, params->shape_h);
+
     /* Assume polynomials are in a normalized coordinate space by default */
     if (d->p.poly_width[0] == 0.f && d->p.poly_width[1] == 0.f)
         d->p.poly_width[0] = 1.f;
     if (d->p.poly_height[0] == 0.f && d->p.poly_height[1] == 0.f)
         d->p.poly_height[1] = 1.f;
+
+    //d->shape_w_padded = d->p.shape_w + 2 * d->p.spread;
+    //d->shape_h_padded = d->p.shape_h + 2 * d->p.spread;
 
     return 0;
 }
@@ -203,10 +209,11 @@ int ngli_distmap_generate_texture(struct distmap *d)
     d->nb_cols = ceilf(d->nb_shapes / (float)d->nb_rows);
     ngli_assert(d->nb_rows * d->nb_cols >= d->nb_shapes);
 
-    const int shape_w_padded = d->p.shape_w + 2 * d->p.spread;
-    const int shape_h_padded = d->p.shape_h + 2 * d->p.spread;
-    d->texture_w = shape_w_padded * d->nb_cols;
-    d->texture_h = shape_h_padded * d->nb_rows;
+    d->texture_w = d->p.shape_w * d->nb_cols;
+    d->texture_h = d->p.shape_h * d->nb_rows;
+
+    //LOG(ERROR, "distmap texture size:%dx%d (cols:%d rows:%d)",
+    //    d->texture_w, d->texture_h, d->nb_cols, d->nb_rows);
 
     /*
      * Start a dummy next polynomial so that we can obtain the range of
@@ -282,18 +289,19 @@ int ngli_distmap_generate_texture(struct distmap *d)
 
     // XXX: lifespan?
     // XXX appropriate spread value?
-    const float spread_vec[2] = {
-        d->p.spread / (float)(d->p.shape_w + 2.f*d->p.spread),
-        d->p.spread / (float)(d->p.shape_h + 2.f*d->p.spread),
-    };
+    /* value injected corresponds to the spread ratio */
+    //const float spread_vec[2] = {
+    //    d->p.spread / (float)(d->p.shape_w + 2.f*d->p.spread),
+    //    d->p.spread / (float)(d->p.shape_h + 2.f*d->p.spread),
+    //};
     const int grid[2] = {d->nb_cols, d->nb_rows};
     const struct pgcraft_uniform uniforms[] = {
         {
-            .name  = "spread",
-            .type  = NGLI_TYPE_VEC2,
-            .stage = NGLI_PROGRAM_SHADER_FRAG,
-            .data  = spread_vec,
-        }, {
+        //    .name  = "spread",
+        //    .type  = NGLI_TYPE_VEC2,
+        //    .stage = NGLI_PROGRAM_SHADER_FRAG,
+        //    .data  = spread_vec,
+        //}, {
             .name  = "grid",
             .type  = NGLI_TYPE_IVEC2,
             .stage = NGLI_PROGRAM_SHADER_FRAG,
@@ -418,10 +426,8 @@ void ngli_distmap_get_shape_coords(const struct distmap *d, int shape_id, float 
 
     const int row = shape_id / d->nb_cols;
     const int col = shape_id - row * d->nb_cols;
-    const int shape_w_padded = d->p.shape_w + 2 * d->p.spread;
-    const int shape_h_padded = d->p.shape_h + 2 * d->p.spread;
-    const int px = col * shape_w_padded + d->p.spread;
-    const int py = row * shape_h_padded + d->p.spread;
+    const int px = col * d->p.shape_w;
+    const int py = row * d->p.shape_h;
     const float scale_w = 1.f / d->texture_w;
     const float scale_h = 1.f / d->texture_h;
     const float gx = px * scale_w;

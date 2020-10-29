@@ -19,6 +19,17 @@
  * under the License.
  */
 
+/*
+ * To workaround a SDL issue¹ on macOS, we need to include <string.h> before
+ * defining _POSIX_C_SOURCE to ensure that memset_pattern4() is defined. This
+ * is mandatory because SDL_stdinc.h (included by SDL.h) uses memset_pattern4()
+ * unconditionally on Apple systems.
+ * [1]: https://bugzilla.libsdl.org/show_bug.cgi?id=5107
+ */
+#ifdef __APPLE__
+#include <string.h>
+#endif
+
 #define _POSIX_C_SOURCE 200112L // for struct addrinfo with glibc
 
 #include <errno.h>

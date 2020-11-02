@@ -1,6 +1,7 @@
 /ngl-desktop
 /ngl-ipc
 /ngl-player
+/ngl-probe
 /ngl-python
 /ngl-render
 /ngl-serialize

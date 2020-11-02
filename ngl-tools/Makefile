@@ -45,7 +45,7 @@ endif
 # "pkg-config --exists python" never will, so an explicit version is needed.
 HAS_PYTHON := $(if $(shell pkg-config --exists python$(PYTHON_MAJOR) && echo 1),yes,no)
 
-TOOLS = desktop ipc player render
+TOOLS = desktop ipc player probe render
 ifeq ($(HAS_PYTHON),yes)
 PYTHON_CFLAGS := $(shell python$(PYTHON_MAJOR)-config --cflags)
 #
@@ -126,6 +126,10 @@ ngl-serialize$(EXESUF): ngl-serialize.o python_utils.o
 ngl-player$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS) $(SDL_CFLAGS) $(SXPLAYER_CFLAGS)
 ngl-player$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS) $(SDL_LDLIBS) $(SXPLAYER_LDLIBS)
 ngl-player$(EXESUF): ngl-player.o player.o opts.o $(WSI_OBJS)
+
+ngl-probe$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS)
+ngl-probe$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS)
+ngl-probe$(EXESUF): ngl-probe.o opts.o
 
 ngl-render$(EXESUF): CFLAGS = $(PROJECT_CFLAGS) $(TOOLS_CFLAGS) $(SDL_CFLAGS)
 ngl-render$(EXESUF): LDLIBS = $(PROJECT_LDLIBS) $(TOOLS_LDLIBS) $(SDL_LDLIBS)

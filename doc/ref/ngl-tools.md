@@ -101,6 +101,17 @@ The detail of available options can be obtained with `ngl-ipc -h`.
 **Example**: `ngl-serialize pynodegl_utils.examples.misc fibo - | ngl-ipc -p 2000 -f - -t 5`
 
 
+## ngl-probe
+
+`ngl-probe` is a backend capabilities probing tool.
+
+By default, `ngl-probe` prints the capabilities of every available backends,
+following a YAML output layout. If the `--cap` option is specified, it will
+query the specified backend if set (`-b`/`--backend`) or query the default one.
+
+The detail of available options can be obtained with `ngl-probe -h`.
+
+
 ## Player keyboard controls
 
 `ngl-player` and `ngl-python` are both scene players supporting the following

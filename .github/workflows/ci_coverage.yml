@@ -21,10 +21,10 @@ jobs:
     - name: Run tests with GL backend
       run: |
         export CFLAGS=-fPIE
-        DISABLE_TESTS_SAMPLES=yes DISABLE_TESTS_STD430=yes BACKEND=opengl DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests COVERAGE=yes
+        BACKEND=opengl DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests COVERAGE=yes
     - name: Run tests with GLES backend
       run: |
-        DISABLE_TESTS_SAMPLES=yes DISABLE_TESTS_STD430=yes BACKEND=opengles DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests COVERAGE=yes
+        BACKEND=opengles DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests COVERAGE=yes
     - name: Get coverage
       run: |
         gcovr -r libnodegl -s -x -o coverage.xml

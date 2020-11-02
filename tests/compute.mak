@@ -21,7 +21,7 @@
 
 COMPUTE_TEST_NAMES =
 
-ifneq ($(DISABLE_TESTS_STD430),yes)
+ifeq ($(HAS_COMPUTE),1)
 COMPUTE_TEST_NAMES +=            \
     animation                    \
     histogram                    \

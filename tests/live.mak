@@ -34,7 +34,7 @@ LIVE_TEST_BASE_NAMES =     \
 LIVE_TEST_NAMES += $(addsuffix _uniform,$(LIVE_TEST_BASE_NAMES))
 LIVE_TEST_NAMES += $(addsuffix _std140,$(LIVE_TEST_BASE_NAMES))
 
-ifneq ($(DISABLE_TESTS_STD430),yes)
+ifeq ($(HAS_COMPUTE),1)
 LIVE_TEST_NAMES += $(addsuffix _std430,$(LIVE_TEST_BASE_NAMES))
 endif
 

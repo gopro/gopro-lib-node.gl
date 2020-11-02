@@ -28,7 +28,7 @@ RTT_TEST_NAMES =                         \
     texture_depth_stencil                \
     clear_attachment_with_timeranges     \
 
-ifneq ($(DISABLE_TESTS_SAMPLES),yes)
+ifneq ($(MAX_SAMPLES),$(filter $(MAX_SAMPLES),0 1))
 RTT_TEST_NAMES +=                        \
     feature_depth_msaa                   \
     feature_depth_stencil_msaa           \

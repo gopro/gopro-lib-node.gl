@@ -58,7 +58,7 @@ DATA_TEST_BLOCK_NAMES =             \
 DATA_TEST_NAMES      += $(addsuffix _uniform,$(DATA_TEST_UNIFORM_NAMES))
 DATA_TEST_NAMES      += $(addsuffix _std140,$(DATA_TEST_BLOCK_NAMES))
 
-ifneq ($(DISABLE_TESTS_STD430),yes)
+ifeq ($(HAS_COMPUTE),1)
 DATA_TEST_NAMES      += $(addsuffix _std430,$(DATA_TEST_BLOCK_NAMES))
 endif
 

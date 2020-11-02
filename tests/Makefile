@@ -21,6 +21,10 @@
 
 include ../common.mak
 
+BACKEND ?= auto
+HAS_COMPUTE := $(or $(shell ngl-probe -l quiet -b $(BACKEND) --cap compute | tail -n1),0)
+MAX_SAMPLES := $(or $(shell ngl-probe -l quiet -b $(BACKEND) --cap max_samples | tail -n1),0)
+
 ifeq ($(V),)
 Q   := @
 OUT := > /dev/null
@@ -55,10 +59,6 @@ endef
 define DECLARE_REF_TESTS
 $(call DECLARE_TESTS,REF_TESTS,$(1),$(2))
 endef
-
-ifeq ($(TARGET_OS),Darwin)
-DISABLE_TESTS_STD430 = yes
-endif
 
 include anim.mak
 include api.mak

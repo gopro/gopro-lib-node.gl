@@ -42,7 +42,7 @@ SHAPE_TEST_NAMES =              \
     cropboard                   \
     cropboard_indices           \
 
-ifneq ($(DISABLE_TESTS_SAMPLES),yes)
+ifneq ($(MAX_SAMPLES),$(filter $(MAX_SAMPLES),0 1))
 SHAPE_TEST_NAMES += geometry_rtt_samples \
                     triangle_msaa        \
 

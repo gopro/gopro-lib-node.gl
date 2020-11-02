@@ -30,7 +30,7 @@ TEXTURE_TEST_NAMES =        \
     mipmap                  \
     scissor                 \
 
-ifneq ($(DISABLE_TESTS_SAMPLES),yes)
+ifneq ($(MAX_SAMPLES),$(filter $(MAX_SAMPLES),0 1))
 TEXTURE_TEST_NAMES +=       \
     cubemap_from_mrt_msaa   \
 

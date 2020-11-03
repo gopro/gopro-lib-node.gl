@@ -90,7 +90,7 @@ class Config(QtCore.QObject):
         config_filepath = self._get_config_filepath()
         if op.exists(config_filepath):
             with open(config_filepath) as f:
-                self._cfg.update(json.load(f))
+                self._cfg.update(self._sanitized_config(json.load(f)))
         else:
             self._needs_saving = True
 
@@ -98,6 +98,18 @@ class Config(QtCore.QObject):
         self._config_timer.setInterval(1000)  # every second
         self._config_timer.timeout.connect(self._check_config)
         self._config_timer.start()
+
+    def _sanitized_config(self, cfg):
+        out_cfg = {}
+        for key, value in cfg.items():
+            allowed_values = self.CHOICES.get(key)
+            if isinstance(value, list):
+                value = tuple(value)
+            if allowed_values is None or value in allowed_values:
+                out_cfg[key] = value
+            else:
+                print(f'warning: {value} not allowed for {key}')
+        return out_cfg
 
     def _get_config_filepath(self):
         config_basedir = os.environ.get('XDG_DATA_HOME', op.expanduser('~/.local/share'))

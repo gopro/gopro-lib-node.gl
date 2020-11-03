@@ -31,6 +31,7 @@ cdef extern from "nodegl.h":
     cdef int NGL_LOG_INFO
     cdef int NGL_LOG_WARNING
     cdef int NGL_LOG_ERROR
+    cdef int NGL_LOG_QUIET
 
     void ngl_log_set_min_level(int level)
 
@@ -107,6 +108,7 @@ LOG_DEBUG   = NGL_LOG_DEBUG
 LOG_INFO    = NGL_LOG_INFO
 LOG_WARNING = NGL_LOG_WARNING
 LOG_ERROR   = NGL_LOG_ERROR
+LOG_QUIET   = NGL_LOG_QUIET
 
 cdef _ret_pystr(char *s):
     try:

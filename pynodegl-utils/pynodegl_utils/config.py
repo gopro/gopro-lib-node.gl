@@ -52,6 +52,7 @@ class Config(QtCore.QObject):
             'info',
             'warning',
             'error',
+            'quiet',
         ],
         'backend': [
             'gl',

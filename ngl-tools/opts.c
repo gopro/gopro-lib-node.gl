@@ -77,6 +77,7 @@ static int opt_loglevel(const char *arg, void *dst)
         {"info",    NGL_LOG_INFO},
         {"warning", NGL_LOG_WARNING},
         {"error",   NGL_LOG_ERROR},
+        {"quiet",   NGL_LOG_QUIET},
     };
     const int lvl = s2i(loglevel_map, ARRAY_NB(loglevel_map), arg);
     if (lvl < 0) {

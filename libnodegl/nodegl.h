@@ -44,6 +44,7 @@ enum {
     NGL_LOG_INFO,
     NGL_LOG_WARNING,
     NGL_LOG_ERROR,
+    NGL_LOG_QUIET = 1 << 8
 };
 
 /**

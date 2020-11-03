@@ -109,6 +109,9 @@ typedef void (NGLI_GL_APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint 
 #endif
 
 #if NGL_GLES2_COMPAT_INCLUDES
+# define GL_COLOR                              0x1800
+# define GL_DEPTH                              0x1801
+# define GL_STENCIL                            0x1802
 # define GL_UNPACK_ROW_LENGTH                  0x0CF2
 # define GL_MAX_DRAW_BUFFERS                   0x8824
 # define GL_MAX_SAMPLES                        0x8D57

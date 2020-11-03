@@ -59,7 +59,7 @@ class _CompareResources(CompareSceneBase):
         os.close(fd)
         return ngl.HUD(scene, export_filename=self._csvfile)
 
-    def get_out_data(self):
+    def get_out_data(self, debug=False, debug_func=None):
         for frame in self.render_frames():
             pass
 

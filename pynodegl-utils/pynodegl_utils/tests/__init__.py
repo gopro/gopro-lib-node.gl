@@ -46,17 +46,17 @@ def _get_ref_data(tester, ref_filepath):
     return tester.deserialize(serialized_data)
 
 
-def _run_test_default(func_name, tester, ref_filepath):
+def _run_test_default(func_name, tester, ref_filepath, dump=False):
     if not op.exists(ref_filepath):
         sys.stderr.write('{}: reference file {} not found, use GEN=yes to create it\n'.format(func_name, ref_filepath))
         sys.exit(1)
     ref_data = _get_ref_data(tester, ref_filepath)
-    out_data = tester.get_out_data()
+    out_data = tester.get_out_data(dump, func_name)
     return _run_test(func_name, tester, ref_data, out_data)
 
 
-def _run_test_gen_yes(func_name, tester, ref_filepath):
-    out_data = tester.get_out_data()
+def _run_test_gen_yes(func_name, tester, ref_filepath, dump=False):
+    out_data = tester.get_out_data(dump, func_name)
     if not op.exists(ref_filepath):
         sys.stderr.write('{}: creating {}\n'.format(func_name, ref_filepath))
         _set_ref_data(tester, ref_filepath, out_data)
@@ -65,8 +65,8 @@ def _run_test_gen_yes(func_name, tester, ref_filepath):
     return _run_test(func_name, tester, ref_data, out_data)
 
 
-def _run_test_gen_update(func_name, tester, ref_filepath):
-    out_data = tester.get_out_data()
+def _run_test_gen_update(func_name, tester, ref_filepath, dump=False):
+    out_data = tester.get_out_data(dump, func_name)
     if not op.exists(ref_filepath):
         sys.stderr.write('{}: creating {}\n'.format(func_name, ref_filepath))
         _set_ref_data(tester, ref_filepath, out_data)
@@ -79,12 +79,12 @@ def _run_test_gen_update(func_name, tester, ref_filepath):
     return None
 
 
-def _run_test_gen_force(func_name, tester, ref_filepath):
+def _run_test_gen_force(func_name, tester, ref_filepath, dump=False):
     if not op.exists(ref_filepath):
         sys.stderr.write('{}: creating {}\n'.format(func_name, ref_filepath))
     else:
         sys.stderr.write('{}: re-generating {}\n'.format(func_name, ref_filepath))
-    out_data = tester.get_out_data()
+    out_data = tester.get_out_data(dump, func_name)
     _set_ref_data(tester, ref_filepath, out_data)
     return []
 
@@ -104,15 +104,25 @@ def run():
         sys.stderr.write('GEN environment variable must be any of {}\n'.format(', '.join(allowed_gen_opt)))
         sys.exit(1)
 
+    tests_opts = os.environ.get('TESTS_OPTIONS')
+
+    allowed_tests_opts = ('dump',)
+    if tests_opts is not None and tests_opts not in allowed_tests_opts:
+        sys.stderr.write('TESTS_OPTIONS environment variable must be any of {}\n'.format(', '.join(allowed_tests_opts)))
+        sys.exit(1)
+    dump = tests_opts == 'dump'
+
     if len(sys.argv) not in (3, 4):
-        sys.stderr.write('''Usage: [GEN={}] {} <script_path> <func_name> [<ref_filepath>]
+        sys.stderr.write('''Usage: [TESTS_OPTIONS={} GEN={}] {} <script_path> <func_name> [<ref_filepath>]
 
     GEN=yes     Create the reference file if not present
     GEN=update  Same as "yes" and update the reference if the test fails
     GEN=force   Same as "yes" and always replace the reference file. This may
                 change the references even if the tests are passing due to the
                 threshold/tolerance mechanism.
-'''.format('|'.join(allowed_gen_opt), op.basename(sys.argv[0])))
+
+    TESTS_OPTIONS=dump Dump tests outputs to the filesystem (in <temp directory>/nodegl/tests)
+'''.format('|'.join(allowed_tests_opts), '|'.join(allowed_gen_opt), op.basename(sys.argv[0])))
         sys.exit(1)
 
     if len(sys.argv) == 3:
@@ -127,7 +137,7 @@ def run():
 
     tester = func.tester
     test_func = _gen_map.get(gen_opt, _run_test_default)
-    err = test_func(func_name, tester, ref_filepath)
+    err = test_func(func_name, tester, ref_filepath, dump)
     if err:
         sys.stderr.write('\n'.join(err) + '\n')
         sys.exit(1)

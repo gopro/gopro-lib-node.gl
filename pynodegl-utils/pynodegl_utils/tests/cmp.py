@@ -21,9 +21,11 @@
 #
 
 import os
+import os.path as op
 import difflib
 import pynodegl as ngl
 from pynodegl_utils.misc import get_backend
+import tempfile
 
 
 class CompareBase:
@@ -36,7 +38,7 @@ class CompareBase:
     def deserialize(data):
         return data
 
-    def get_out_data(self):
+    def get_out_data(self, debug=False, debug_func=None):
         raise NotImplementedError
 
     def compare_data(self, test_name, ref_data, out_data):
@@ -50,6 +52,13 @@ class CompareBase:
             diff = ''.join(difflib.unified_diff(ref_data, out_data, fromfile=test_name + '-ref', tofile=test_name + '-out', n=10))
             err.append('{} fail:\n{}'.format(test_name, diff))
         return err
+
+    @staticmethod
+    def dump_image(img, dump_index, func_name=None):
+        filename = op.join(get_temp_dir(), f'{func_name}_{dump_index:03}.png')
+        print(f'Dumping output image to {filename}')
+        img.save(filename)
+        dump_index += 1
 
 
 class CompareSceneBase(CompareBase):
@@ -133,3 +142,10 @@ def get_test_decorator(cls):
             return user_func
         return test_decorator
     return test_func
+
+
+def get_temp_dir():
+    dir = op.join(tempfile.gettempdir(), 'nodegl/tests')
+    if not op.exists(dir):
+        os.makedirs(dir)
+    return dir

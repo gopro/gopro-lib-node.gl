@@ -20,7 +20,13 @@
 # under the License.
 #
 
-from .cmp import CompareSceneBase, get_test_decorator
+import os.path as op
+from PIL import Image
+
+from .cmp import CompareBase, CompareSceneBase, get_test_decorator, get_temp_dir
+
+_MODE = 'RGBA'
+
 
 class _CompareCuePoints(CompareSceneBase):
 
@@ -56,9 +62,14 @@ class _CompareCuePoints(CompareSceneBase):
         y = min(max(y, 0), height - 1)
         return [x, y]
 
-    def get_out_data(self):
+    def get_out_data(self, dump=False, func_name=None):
         cpoints = []
+        dump_index = 0
         for (width, height, capture_buffer) in self.render_frames():
+            if dump:
+                img = Image.frombuffer(_MODE, (width, height), capture_buffer, 'raw', _MODE, 0, 1)
+                CompareBase.dump_image(img, dump_index, func_name)
+                dump_index += 1
             frame_cpoints = {}
             for point_name, (x, y) in self._points.items():
                 pix_x, pix_y = self._pos_to_px((x, y), width, height)

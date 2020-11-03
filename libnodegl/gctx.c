@@ -30,22 +30,37 @@
 extern const struct gctx_class ngli_gctx_gl;
 extern const struct gctx_class ngli_gctx_gles;
 
-static const struct gctx_class *backend_map[] = {
+static const struct {
+    const char *string_id;
+    const struct gctx_class *cls;
+} backend_map[] = {
+    [NGL_BACKEND_OPENGL] = {
+        .string_id = "opengl",
 #ifdef BACKEND_GL
-    [NGL_BACKEND_OPENGL]   = &ngli_gctx_gl,
-    [NGL_BACKEND_OPENGLES] = &ngli_gctx_gles,
+        .cls = &ngli_gctx_gl,
 #endif
+    },
+    [NGL_BACKEND_OPENGLES] = {
+        .string_id = "opengles",
+#ifdef BACKEND_GL
+        .cls = &ngli_gctx_gles,
+#endif
+    },
 };
 
 struct gctx *ngli_gctx_create(const struct ngl_config *config)
 {
     if (config->backend < 0 ||
-        config->backend >= NGLI_ARRAY_NB(backend_map) ||
-        !backend_map[config->backend]) {
+        config->backend >= NGLI_ARRAY_NB(backend_map)) {
         LOG(ERROR, "unknown backend %d", config->backend);
         return NULL;
     }
-    const struct gctx_class *class = backend_map[config->backend];
+    if (!backend_map[config->backend].cls) {
+        LOG(ERROR, "backend \"%s\" not available with this build",
+            backend_map[config->backend].string_id);
+        return NULL;
+    }
+    const struct gctx_class *class = backend_map[config->backend].cls;
     struct gctx *s = class->create(config);
     if (!s)
         return NULL;

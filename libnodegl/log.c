@@ -67,7 +67,7 @@ static struct {
     int min_level;
 } log_ctx = {
     .callback  = default_callback,
-    .min_level = NGL_LOG_INFO,
+    .min_level = NGL_LOG_WARNING,
 };
 
 void ngl_log_set_callback(void *arg, ngl_log_callback_type callback)

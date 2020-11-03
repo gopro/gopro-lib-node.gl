@@ -116,8 +116,8 @@ class Toolbar(QtWidgets.QWidget):
         loglevel_hbox.addWidget(self._loglevel_cbbox)
 
         backend_names = {
-            'gl': 'OpenGL',
-            'gles': 'OpenGL ES',
+            'opengl': 'OpenGL',
+            'opengles': 'OpenGL ES',
         }
         all_backends = config.CHOICES['backend']
         default_backend = config.get('backend')

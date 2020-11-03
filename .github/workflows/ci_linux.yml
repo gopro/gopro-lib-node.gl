@@ -33,7 +33,7 @@ jobs:
         make -j$(($(nproc)+1))
     - name: Run tests with GL backend
       run: |
-        DISABLE_TESTS_SAMPLES=yes DISABLE_TESTS_STD430=yes BACKEND=gl DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests
+        DISABLE_TESTS_SAMPLES=yes DISABLE_TESTS_STD430=yes BACKEND=opengl DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests
     - name: Run tests with GLES backend
       run: |
-        DISABLE_TESTS_SAMPLES=yes DISABLE_TESTS_STD430=yes BACKEND=gles DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests
+        DISABLE_TESTS_SAMPLES=yes DISABLE_TESTS_STD430=yes BACKEND=opengles DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests

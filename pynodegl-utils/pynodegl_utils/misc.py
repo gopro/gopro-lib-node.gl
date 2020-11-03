@@ -139,7 +139,7 @@ class SceneCfg:
         'aspect_ratio': (16, 9),
         'duration': 30.0,
         'framerate': (60, 1),
-        'backend': 'gl',
+        'backend': 'opengl',
         'samples': 0,
         'system': platform.system(),
         'files': [],
@@ -203,7 +203,7 @@ def get_viewport(width, height, aspect_ratio):
 
 def get_backend(backend):
     backend_map = {
-        'gl': ngl.BACKEND_OPENGL,
-        'gles': ngl.BACKEND_OPENGLES,
+        'opengl': ngl.BACKEND_OPENGL,
+        'opengles': ngl.BACKEND_OPENGLES,
     }
     return backend_map[backend]

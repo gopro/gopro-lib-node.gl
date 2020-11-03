@@ -285,8 +285,8 @@ static int handle_tag_info(const uint8_t *data, int size, int fd, struct ctx *s)
     if (size != 0)
         return NGL_ERROR_INVALID_DATA;
     static const char * const backend_map[] = {
-        [NGL_BACKEND_OPENGL]   = "gl",
-        [NGL_BACKEND_OPENGLES] = "gles",
+        [NGL_BACKEND_OPENGL]   = "opengl",
+        [NGL_BACKEND_OPENGLES] = "opengles",
     };
     /* Note: we use the player ngl_config and not the local config because the
      * former contains the backend in use after the configure call */

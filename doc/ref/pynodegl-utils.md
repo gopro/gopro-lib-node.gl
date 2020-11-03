@@ -221,8 +221,8 @@ Y5fd953df Smartphone 9000 GEN X
 
 Accepted values for the `backend`:
 
-- `gl`
-- `gles`
+- `opengl`
+- `opengles`
 
 Accepted values for the `system`:
 
@@ -235,7 +235,7 @@ Accepted values for the `system`:
 
 ```shell
 $ ./hook.get_session_info X2fca1f2c
-backend=gles
+backend=opengles
 system=Linux
 ```
 

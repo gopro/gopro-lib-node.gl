@@ -85,7 +85,11 @@ TESTS = $(SIMPLE_TESTS) $(REF_TESTS)
 
 tests: $(TESTS)
 
+$(TESTS): tests-info
+tests-info:
+	$(Q)ngl-probe -l info -b $(BACKEND)
+
 tests-list:
 	@for test in $(TESTS); do echo $$test; done
 
-.PHONY: all tests tests-list $(TESTS)
+.PHONY: all tests tests-info tests-list $(TESTS)

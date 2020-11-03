@@ -63,6 +63,7 @@ cdef extern from "nodegl.h":
 
     cdef struct ngl_backend:
         int id
+        const char *string_id
         const char *name
         int is_default
 
@@ -194,6 +195,7 @@ def probe_backends(**kwargs):
         backend = &backends[i]
         backend_set.append(dict(
             id=backend.id,
+            string_id=backend.string_id,
             name=backend.name,
             is_default=True if backend.is_default else False,
         ))

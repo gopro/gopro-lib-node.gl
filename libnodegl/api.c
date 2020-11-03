@@ -335,6 +335,7 @@ static int backend_probe(struct ngl_backend *backend, const struct ngl_config *c
         goto end;
 
     backend->id         = config->backend;
+    backend->string_id  = gctx->backend_str;
     backend->name       = gctx->class->name;
 
 end:

@@ -65,6 +65,7 @@ struct gctx *ngli_gctx_create(const struct ngl_config *config)
     if (!s)
         return NULL;
     s->config = *config;
+    s->backend_str = backend_map[config->backend].string_id;
     s->class = class;
     return s;
 }

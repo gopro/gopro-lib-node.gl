@@ -406,6 +406,7 @@ struct ngl_config {
 
 struct ngl_backend {
     int id;                 /* any of NGL_BACKEND_* */
+    const char *string_id;  /* unique backend identifier string */
     const char *name;
     int is_default;
 };

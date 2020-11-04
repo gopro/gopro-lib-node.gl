@@ -19,6 +19,7 @@
  * under the License.
  */
 
+#include <limits.h>
 #include <string.h>
 #include <stddef.h>
 
@@ -489,15 +490,75 @@ const char *ublock_names[] = {
     [NGLI_PROGRAM_SHADER_COMP] = "comp",
 };
 
-static void set_glsl_header(struct pgcraft *s, struct bstr *b)
+static int params_have_ssbos(struct pgcraft *s, const struct pgcraft_params *params, int stage)
 {
+    for (int i = 0; i < params->nb_blocks; i++) {
+        const struct pgcraft_block *pgcraft_block = &params->blocks[i];
+        const struct block *block = pgcraft_block->block;
+        if (pgcraft_block->stage == stage && block->type == NGLI_TYPE_STORAGE_BUFFER)
+            return 1;
+    }
+    return 0;
+}
+
+static int params_have_images(struct pgcraft *s, const struct pgcraft_params *params, int stage)
+{
+    const struct darray *texture_infos_array = &s->texture_infos;
+    const struct pgcraft_texture_info *texture_infos = ngli_darray_data(texture_infos_array);
+    for (int i = 0; i < ngli_darray_count(texture_infos_array); i++) {
+        const struct pgcraft_texture_info *info = &texture_infos[i];
+        for (int j = 0; j < NGLI_INFO_FIELD_NB; j++) {
+            const struct pgcraft_texture_info_field *field = &info->fields[j];
+            if (field->stage == stage && field->type == NGLI_TYPE_IMAGE_2D)
+                return 1;
+        }
+    }
+    return 0;
+}
+
+static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcraft_params *params, int stage)
+{
+    struct ngl_ctx *ctx = s->ctx;
+    struct gctx *gctx = ctx->gctx;
+    const struct ngl_config *config = &gctx->config;
+
     ngli_bstr_printf(b, "#version %d%s\n", s->glsl_version, s->glsl_version_suffix);
 
-    if (ngli_darray_data(&s->texture_infos)) {
-        if (s->required_tex_exts)
-            for (int i = 0; s->required_tex_exts[i]; i++)
-                ngli_bstr_printf(b, "#extension %s : require\n", s->required_tex_exts[i]);
+    const int require_ssbo_feature = params_have_ssbos(s, params, stage);
+    const int require_image_feature = params_have_images(s, params, stage);
+#if defined(TARGET_ANDROID)
+    const int require_image_external_feature       = ngli_darray_count(&s->texture_infos) > 0 && s->glsl_version  < 300;
+    const int require_image_external_essl3_feature = ngli_darray_count(&s->texture_infos) > 0 && s->glsl_version >= 300;
+#endif
 
+    const struct {
+        int backend;
+        const char *extension;
+        int glsl_version;
+        int required;
+    } features[] = {
+        /* OpenGL */
+        {NGL_BACKEND_OPENGL, "GL_ARB_shading_language_420pack",       420, s->has_explicit_bindings},
+        {NGL_BACKEND_OPENGL, "GL_ARB_shader_image_load_store",        420, require_image_feature},
+        {NGL_BACKEND_OPENGL, "GL_ARB_shader_image_size",              430, require_image_feature},
+        {NGL_BACKEND_OPENGL, "GL_ARB_shader_storage_buffer_object",   430, require_ssbo_feature},
+        {NGL_BACKEND_OPENGL, "GL_ARB_compute_shader",                 430, stage == NGLI_PROGRAM_SHADER_COMP},
+
+        /* OpenGLES */
+#if defined(TARGET_ANDROID)
+        {NGL_BACKEND_OPENGLES, "GL_OES_EGL_image_external",       INT_MAX, require_image_external_feature},
+        {NGL_BACKEND_OPENGLES, "GL_OES_EGL_image_external_essl3", INT_MAX, require_image_external_essl3_feature},
+#endif
+    };
+
+    for (int i = 0; i < NGLI_ARRAY_NB(features); i++) {
+        if (features[i].backend == config->backend &&
+            features[i].glsl_version > s->glsl_version &&
+            features[i].required)
+            ngli_bstr_printf(b, "#extension %s : require\n", features[i].extension);
+    }
+
+    if (ngli_darray_data(&s->texture_infos)) {
         if (s->has_modern_texture_picking)
             ngli_bstr_print(b, "#define ngl_tex2d   texture\n"
                                "#define ngl_tex3d   texture\n"
@@ -730,7 +791,7 @@ static int craft_vert(struct pgcraft *s, const struct pgcraft_params *params)
 {
     struct bstr *b = s->shaders[NGLI_PROGRAM_SHADER_VERT];
 
-    set_glsl_header(s, b);
+    set_glsl_header(s, b, params, NGLI_PROGRAM_SHADER_VERT);
 
     ngli_bstr_printf(b, "#define ngl_out_pos gl_Position\n"
                         "#define ngl_vertex_index %s\n"
@@ -754,7 +815,7 @@ static int craft_frag(struct pgcraft *s, const struct pgcraft_params *params)
 {
     struct bstr *b = s->shaders[NGLI_PROGRAM_SHADER_FRAG];
 
-    set_glsl_header(s, b);
+    set_glsl_header(s, b, params, NGLI_PROGRAM_SHADER_FRAG);
 
     if (s->has_precision_qualifiers)
         ngli_bstr_print(b, "#if GL_FRAGMENT_PRECISION_HIGH\n"
@@ -798,7 +859,7 @@ static int craft_comp(struct pgcraft *s, const struct pgcraft_params *params)
 {
     struct bstr *b = s->shaders[NGLI_PROGRAM_SHADER_COMP];
 
-    set_glsl_header(s, b);
+    set_glsl_header(s, b, params, NGLI_PROGRAM_SHADER_COMP);
 
     int ret;
     if ((ret = inject_uniforms(s, b, params, NGLI_PROGRAM_SHADER_COMP)) < 0 ||
@@ -972,11 +1033,6 @@ static void setup_glsl_info_gl(struct pgcraft *s)
         } else {
             s->rg = "ra";
         }
-#if defined(TARGET_ANDROID)
-        static const char * const img_ext[]  = {"GL_OES_EGL_image_external", NULL};
-        static const char * const img_ext3[] = {"GL_OES_EGL_image_external_essl3", NULL};
-        s->required_tex_exts = gctx->version < 300 ? img_ext : img_ext3;
-#endif
     }
 
     s->has_in_out_qualifiers        = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(150);
@@ -984,9 +1040,9 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
 
-    const int has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420) ||
-                                      (gctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
-    if (has_explicit_bindings) {
+    s->has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420) ||
+                               (gctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
+    if (s->has_explicit_bindings) {
         /* Bindings are unique across stages and types */
         for (int i = 0; i < NB_BINDINGS; i++)
             s->next_bindings[i] = &s->bindings[i];

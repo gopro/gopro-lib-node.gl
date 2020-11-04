@@ -194,7 +194,7 @@ struct pgcraft {
     int has_in_out_layout_qualifiers;
     int has_precision_qualifiers;
     int has_modern_texture_picking;
-    const char * const *required_tex_exts;
+    int has_explicit_bindings;
 };
 
 struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx);

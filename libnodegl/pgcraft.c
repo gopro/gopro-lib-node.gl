@@ -964,19 +964,12 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->sym_vertex_index   = "gl_VertexID";
     s->sym_instance_index = "gl_InstanceID";
 
-    if (config->backend == NGL_BACKEND_OPENGL) {
-        switch (gctx->version) {
-        case 300: s->glsl_version = 130;           break;
-        case 310: s->glsl_version = 140;           break;
-        case 320: s->glsl_version = 150;           break;
-        default:  s->glsl_version = gctx->version; break;
-        }
-    } else if (config->backend == NGL_BACKEND_OPENGLES) {
+    s->glsl_version = gctx->language_version;
+
+    if (config->backend == NGL_BACKEND_OPENGLES) {
         if (gctx->version >= 300) {
-            s->glsl_version = gctx->version;
             s->glsl_version_suffix = " es";
         } else {
-            s->glsl_version = 100;
             s->rg = "ra";
         }
 #if defined(TARGET_ANDROID)
@@ -984,8 +977,6 @@ static void setup_glsl_info_gl(struct pgcraft *s)
         static const char * const img_ext3[] = {"GL_OES_EGL_image_external_essl3", NULL};
         s->required_tex_exts = gctx->version < 300 ? img_ext : img_ext3;
 #endif
-    } else {
-        ngli_assert(0);
     }
 
     s->has_in_out_qualifiers        = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(150);

@@ -984,7 +984,8 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
 
-    const int has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420);
+    const int has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420) ||
+                                      (gctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
     if (has_explicit_bindings) {
         /* Bindings are unique across stages and types */
         for (int i = 0; i < NB_BINDINGS; i++)

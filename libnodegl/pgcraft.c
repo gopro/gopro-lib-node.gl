@@ -993,8 +993,8 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
 
-    const int has_buffer_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420);
-    if (has_buffer_bindings) {
+    const int has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420);
+    if (has_explicit_bindings) {
         /* Bindings are unique across stages and types */
         for (int i = 0; i < NB_BINDINGS; i++)
             s->next_bindings[i] = &s->bindings[i];

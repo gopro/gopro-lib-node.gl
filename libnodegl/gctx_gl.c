@@ -307,6 +307,7 @@ static int gl_init(struct gctx *s)
         return ret;
 
     s->version = gl->version;
+    s->language_version = gl->glsl_version;
     s->features = gl->features;
     s->limits = gl->limits;
     s_priv->default_rendertarget_desc.samples = gl->samples;

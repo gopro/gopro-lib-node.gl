@@ -169,6 +169,32 @@ static int glcontext_probe_version(struct glcontext *glcontext)
     return 0;
 }
 
+static int glcontext_probe_glsl_version(struct glcontext *glcontext)
+{
+    if (glcontext->backend == NGL_BACKEND_OPENGL) {
+        const char *glsl_version = (const char *)ngli_glGetString(glcontext, GL_SHADING_LANGUAGE_VERSION);
+        if (!glsl_version) {
+            LOG(ERROR, "could not get GLSL version");
+            return NGL_ERROR_BUG;
+        }
+
+        int major_version;
+        int minor_version;
+        int ret = sscanf(glsl_version, "%d.%d", &major_version, &minor_version);
+        if (ret != 2) {
+            LOG(ERROR, "could not parse GLSL version (%s)", glsl_version);
+            return NGL_ERROR_BUG;
+        }
+        glcontext->glsl_version = major_version * 100 + minor_version;
+    } else if (glcontext->backend == NGL_BACKEND_OPENGLES) {
+        glcontext->glsl_version = glcontext->version >= 300 ? glcontext->version : 100;
+    } else {
+        ngli_assert(0);
+    }
+
+    return 0;
+}
+
 static int glcontext_check_extension(const char *extension,
                                      const struct glcontext *glcontext)
 {
@@ -323,6 +349,10 @@ static int glcontext_load_extensions(struct glcontext *glcontext)
         return ret;
 
     ret = glcontext_probe_version(glcontext);
+    if (ret < 0)
+        return ret;
+
+    ret = glcontext_probe_glsl_version(glcontext);
     if (ret < 0)
         return ret;
 

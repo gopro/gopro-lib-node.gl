@@ -104,6 +104,7 @@ struct gctx {
     struct ngl_config config;
     const struct gctx_class *class;
     int version;
+    int language_version;
     uint64_t features;
     struct limits limits;
 };

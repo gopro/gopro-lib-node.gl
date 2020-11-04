@@ -266,5 +266,11 @@ static const struct glfeature {
         .funcs_offsets  = (const size_t[]){OFFSET(ClearBufferfv),
                                            OFFSET(ClearBufferfi),
                                            -1}
+    }, {
+        .name           = "shader_image_size",
+        .flag           = NGLI_FEATURE_SHADER_IMAGE_SIZE,
+        .version        = 430,
+        .es_version     = 310,
+        .extensions     = (const char*[]){"GL_ARB_shader_image_size", NULL},
     }
 };

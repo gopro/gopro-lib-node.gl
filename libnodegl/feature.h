@@ -55,10 +55,12 @@
 #define NGLI_FEATURE_EGL_ANDROID_GET_IMAGE_NATIVE_CLIENT_BUFFER (1 << 30)
 #define NGLI_FEATURE_KHR_DEBUG                    (1ULL << 31)
 #define NGLI_FEATURE_CLEAR_BUFFER                 (1ULL << 32)
+#define NGLI_FEATURE_SHADER_IMAGE_SIZE            (1ULL << 33)
 
 #define NGLI_FEATURE_COMPUTE_SHADER_ALL (NGLI_FEATURE_COMPUTE_SHADER           | \
                                          NGLI_FEATURE_PROGRAM_INTERFACE_QUERY  | \
                                          NGLI_FEATURE_SHADER_IMAGE_LOAD_STORE  | \
+                                         NGLI_FEATURE_SHADER_IMAGE_SIZE        | \
                                          NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)
 
 #endif

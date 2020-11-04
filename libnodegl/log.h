@@ -25,7 +25,11 @@
 #include "nodegl.h"
 #include "utils.h"
 
-#define LOG(log_level, ...) ngli_log_print(NGL_LOG_##log_level, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ __FUNCTION__
+#endif
+
+#define LOG(log_level, ...) ngli_log_print(NGL_LOG_##log_level, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)
 
 #ifdef LOGTRACE
 # define TRACE(...) LOG(VERBOSE, __VA_ARGS__)

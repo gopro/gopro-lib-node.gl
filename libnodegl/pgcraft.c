@@ -952,8 +952,6 @@ static int probe_pipeline_elems(struct pgcraft *s)
     return 0;
 }
 
-#define IS_GL_ES_MIN(min)   (config->backend == NGL_BACKEND_OPENGLES && gctx->version >= (min))
-#define IS_GL_MIN(min)      (config->backend == NGL_BACKEND_OPENGL   && gctx->version >= (min))
 #define IS_GLSL_ES_MIN(min) (config->backend == NGL_BACKEND_OPENGLES && s->glsl_version >= (min))
 #define IS_GLSL_MIN(min)    (config->backend == NGL_BACKEND_OPENGL   && s->glsl_version >= (min))
 
@@ -995,7 +993,7 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
 
-    const int has_buffer_bindings = IS_GL_ES_MIN(310) || IS_GL_MIN(420);
+    const int has_buffer_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420);
     if (has_buffer_bindings) {
         /* Bindings are unique across stages and types */
         for (int i = 0; i < NB_BINDINGS; i++)

@@ -223,7 +223,11 @@ static int parse_kvs(const char *s, int *nb_kvsp, char ***keysp, int **valsp)
 
 static struct ngl_node **get_abs_node(struct darray *nodes_array, int id)
 {
-    return ngli_darray_get(nodes_array, ngli_darray_count(nodes_array) - id - 1);
+    const int index = ngli_darray_count(nodes_array) - id - 1;
+    if (index < 0 || index >= ngli_darray_count(nodes_array))
+        return NULL;
+    struct ngl_node **nodes = ngli_darray_data(nodes_array);
+    return &nodes[index];
 }
 
 static const uint8_t hexm[256] = {

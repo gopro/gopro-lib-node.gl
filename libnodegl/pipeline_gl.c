@@ -571,7 +571,6 @@ int ngli_pipeline_gl_set_resources(struct pipeline *s, const struct pipeline_res
     ngli_assert(ngli_darray_count(&s_priv->uniform_bindings) == data_params->nb_uniforms);
     for (int i = 0; i < data_params->nb_uniforms; i++) {
         struct uniform_binding *uniform_binding = ngli_darray_get(&s_priv->uniform_bindings, i);
-        ngli_assert(uniform_binding);
         const void *uniform_data = data_params->uniforms[i];
         uniform_binding->data = uniform_data;
     }
@@ -592,8 +591,6 @@ int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buff
     ngli_assert(s->type == NGLI_PIPELINE_TYPE_GRAPHICS);
 
     struct attribute_binding *attribute_binding = ngli_darray_get(&s_priv->attribute_bindings, index);
-    ngli_assert(attribute_binding);
-
     const struct buffer *current_buffer = attribute_binding->buffer;
     if (!current_buffer && buffer)
         s_priv->nb_unbound_attributes--;
@@ -626,7 +623,6 @@ int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *d
         return NGL_ERROR_NOT_FOUND;
 
     struct uniform_binding *uniform_binding = ngli_darray_get(&s_priv->uniform_bindings, index);
-    ngli_assert(uniform_binding);
 
     if (data) {
         struct gctx *gctx = s->gctx;
@@ -649,8 +645,6 @@ int ngli_pipeline_gl_update_texture(struct pipeline *s, int index, struct textur
         return NGL_ERROR_NOT_FOUND;
 
     struct texture_binding *texture_binding = ngli_darray_get(&s_priv->texture_bindings, index);
-    ngli_assert(texture_binding);
-
     texture_binding->texture = texture;
 
     return 0;
@@ -664,7 +658,6 @@ int ngli_pipeline_gl_update_buffer(struct pipeline *s, int index, struct buffer 
         return NGL_ERROR_NOT_FOUND;
 
     struct buffer_binding *buffer_binding = ngli_darray_get(&s_priv->buffer_bindings, index);
-    ngli_assert(buffer_binding);
 
     if (buffer) {
         struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;

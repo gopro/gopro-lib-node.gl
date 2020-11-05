@@ -104,8 +104,8 @@ def run():
         sys.stderr.write('GEN environment variable must be any of {}\n'.format(', '.join(allowed_gen_opt)))
         sys.exit(1)
 
-    if len(sys.argv) != 4:
-        sys.stderr.write('''Usage: [GEN={}] {} <script_path> <func_name> <ref_filepath>
+    if len(sys.argv) not in (3, 4):
+        sys.stderr.write('''Usage: [GEN={}] {} <script_path> <func_name> [<ref_filepath>]
 
     GEN=yes     Create the reference file if not present
     GEN=update  Same as "yes" and update the reference if the test fails
@@ -115,11 +115,17 @@ def run():
 '''.format('|'.join(allowed_gen_opt), op.basename(sys.argv[0])))
         sys.exit(1)
 
-    script_path, func_name, ref_filepath = sys.argv[1:4]
+    if len(sys.argv) == 3:
+        script_path, func_name, ref_filepath = sys.argv[1], sys.argv[2], None
+    else:
+        script_path, func_name, ref_filepath = sys.argv[1:4]
     module = load_script(script_path)
     func = getattr(module, func_name)
-    tester = func.tester
 
+    if ref_filepath is None:
+        sys.exit(func())
+
+    tester = func.tester
     test_func = _gen_map.get(gen_opt, _run_test_default)
     err = test_func(func_name, tester, ref_filepath)
     if err:

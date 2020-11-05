@@ -19,8 +19,6 @@
 # under the License.
 #
 
-include ../common.mak
-
 BACKEND ?= auto
 HAS_COMPUTE := $(or $(shell ngl-probe -l quiet -b $(BACKEND) --cap compute | tail -n1),0)
 MAX_SAMPLES := $(or $(shell ngl-probe -l quiet -b $(BACKEND) --cap max_samples | tail -n1),0)
@@ -79,7 +77,7 @@ $(REF_TESTS):
 
 $(SIMPLE_TESTS):
 	@echo $@
-	$(Q)$(PYTHON) -c 'from $(MODULE) import $(FUNC_NAME); $(FUNC_NAME)()' $(OUT)
+	$(Q)ngl-test $(MODULE).py $(FUNC_NAME) $(OUT)
 
 TESTS = $(SIMPLE_TESTS) $(REF_TESTS)
 

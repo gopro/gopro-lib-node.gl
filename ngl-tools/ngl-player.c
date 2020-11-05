@@ -84,6 +84,8 @@ static struct ngl_node *get_scene(const char *filename, int direct_rendering)
     ngl_node_param_set(quad, "height", height);
 
     ngl_node_param_set(texture, "data_src", media);
+    ngl_node_param_set(texture, "min_filter", "linear");
+    ngl_node_param_set(texture, "mag_filter", "linear");
     if (direct_rendering != -1)
         ngl_node_param_set(texture, "direct_rendering", direct_rendering);
 

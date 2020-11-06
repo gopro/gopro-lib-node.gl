@@ -558,7 +558,7 @@ static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcr
             ngli_bstr_printf(b, "#extension %s : require\n", features[i].extension);
     }
 
-    if (ngli_darray_data(&s->texture_infos)) {
+    if (ngli_darray_count(&s->texture_infos) > 0) {
         if (s->has_modern_texture_picking)
             ngli_bstr_print(b, "#define ngl_tex2d   texture\n"
                                "#define ngl_tex3d   texture\n"

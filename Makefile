@@ -23,7 +23,7 @@ PREFIX ?= $(PWD)/nodegl-env
 
 include common.mak
 
-SXPLAYER_VERSION ?= 9.5.1
+SXPLAYER_VERSION ?= 9.6.0
 
 # Prevent headers from being rewritten, which would cause unecessary
 # recompilations between `make` calls.
@@ -34,7 +34,18 @@ ACTIVATE = $(PREFIX)/bin/activate
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX)/lib
 ifeq ($(TARGET_OS),Darwin)
 	LIBNODEGL_EXTRA_LDFLAGS   = -Wl,-install_name,@rpath/libnodegl.dylib
-	LIBSXPLAYER_EXTRA_LDFLAGS = -Wl,-install_name,@rpath/libsxplayer.dylib
+endif
+
+MESON_SETUP   = meson setup --prefix=$(PREFIX) --pkg-config-path=$(PREFIX)/lib/pkgconfig -Drpath=true
+MESON_COMPILE = meson compile
+MESON_INSTALL = meson install
+ifeq ($(DEBUG),yes)
+MESON_SETUP += --buildtype=debugoptimized
+else
+MESON_SETUP += --buildtype=release
+endif
+ifneq ($(V),)
+MESON_COMPILE += -v
 endif
 
 all: ngl-tools-install pynodegl-utils-install
@@ -81,7 +92,7 @@ nodegl-install: sxplayer-install
 	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS="$(RPATH_LDFLAGS) $(LIBNODEGL_EXTRA_LDFLAGS)" $(MAKE) -C libnodegl install PREFIX=$(PREFIX) DEBUG=$(DEBUG) SHARED=yes INSTALL="$(INSTALL)"
 
 sxplayer-install: sxplayer $(PREFIX)
-	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS="$(RPATH_LDFLAGS) $(LIBSXPLAYER_EXTRA_LDFLAGS)" $(MAKE) -C sxplayer install PREFIX=$(PREFIX) DEBUG=$(DEBUG) SHARED=yes INSTALL="$(INSTALL)"
+	(. $(ACTIVATE) && $(MESON_SETUP) sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 
 # Note for developers: in order to customize the sxplayer you're building
 # against, you can use your own sources post-install:
@@ -104,6 +115,7 @@ sxplayer-$(SXPLAYER_VERSION).tar.gz:
 
 $(PREFIX):
 	$(PYTHON) -m venv $(PREFIX)
+	(. $(ACTIVATE) && pip install meson ninja)
 
 tests: ngl-tools-install pynodegl-utils-install nodegl-tests
 	(. $(ACTIVATE) && $(MAKE) -C tests)
@@ -126,6 +138,7 @@ clean_gcx:
 	$(RM) ngl-tools/*.gcda ngl-tools/*.gcno
 
 clean: clean_gcx clean_py
+	$(RM) -r builddir/sxplayer
 	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig $(MAKE) -C libnodegl clean
 	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig $(MAKE) -C ngl-tools clean
 

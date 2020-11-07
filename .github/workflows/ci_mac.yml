@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build_libs:
+  macos:
 
     runs-on: macos-latest
 

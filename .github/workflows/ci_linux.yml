@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  build_libs:
+  linux:
 
     runs-on: ubuntu-20.04
 

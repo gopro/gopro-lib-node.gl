@@ -334,6 +334,10 @@ static const char *get_cap_string_id(unsigned cap_id)
     case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X: return "max_compute_group_count_x";
     case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y: return "max_compute_group_count_y";
     case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z: return "max_compute_group_count_z";
+    case NGL_CAP_MAX_COMPUTE_GROUP_INVOCATIONS: return "max_compute_group_invocations";
+    case NGL_CAP_MAX_COMPUTE_GROUP_SIZE_X:  return "max_compute_group_size_x";
+    case NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y:  return "max_compute_group_size_y";
+    case NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z:  return "max_compute_group_size_z";
     case NGL_CAP_MAX_SAMPLES:               return "max_samples";
     case NGL_CAP_NPOT_TEXTURE:              return "npot_texture";
     case NGL_CAP_TEXTURE_3D:                return "texture_3d";
@@ -362,6 +366,10 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X,  limits->max_compute_work_group_counts[0]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y,  limits->max_compute_work_group_counts[1]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z,  limits->max_compute_work_group_counts[2]),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_INVOCATIONS, limits->max_compute_work_group_invocations),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_X,   limits->max_compute_work_group_sizes[0]),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y,   limits->max_compute_work_group_sizes[1]),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z,   limits->max_compute_work_group_sizes[2]),
         CAP(NGL_CAP_INSTANCED_DRAW,             has_instanced_draw),
         CAP(NGL_CAP_MAX_SAMPLES,                limits->max_samples),
         CAP(NGL_CAP_NPOT_TEXTURE,               has_npot_texture),

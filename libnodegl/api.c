@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <string.h>
 
 #if defined(TARGET_ANDROID)
 #include <jni.h>
@@ -324,6 +325,59 @@ static void stop_thread(struct ngl_ctx *s)
     pthread_mutex_destroy(&s->lock);
 }
 
+static const char *get_cap_string_id(unsigned cap_id)
+{
+    switch (cap_id) {
+    case NGL_CAP_BLOCK:                     return "block";
+    case NGL_CAP_COMPUTE:                   return "compute";
+    case NGL_CAP_INSTANCED_DRAW:            return "instanced_draw";
+    case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X: return "max_compute_group_count_x";
+    case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y: return "max_compute_group_count_y";
+    case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z: return "max_compute_group_count_z";
+    case NGL_CAP_MAX_SAMPLES:               return "max_samples";
+    case NGL_CAP_NPOT_TEXTURE:              return "npot_texture";
+    case NGL_CAP_TEXTURE_3D:                return "texture_3d";
+    case NGL_CAP_TEXTURE_CUBE:              return "texture_cube";
+    }
+    ngli_assert(0);
+}
+
+#define CAP(cap_id, value) {cap_id, get_cap_string_id(cap_id), value}
+#define ALL_FEATURES(features, mask) ((features & (mask)) == mask)
+#define ANY_FEATURES(features, mask) ((features & (mask)) != 0)
+
+static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
+{
+    const int has_block          = ANY_FEATURES(gctx->features, NGLI_FEATURE_BUFFER_OBJECTS_ALL);
+    const int has_compute        = ALL_FEATURES(gctx->features, NGLI_FEATURE_COMPUTE_SHADER_ALL);
+    const int has_instanced_draw = ALL_FEATURES(gctx->features, NGLI_FEATURE_INSTANCED_ARRAY);
+    const int has_npot_texture   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_NPOT);
+    const int has_texture_3d     = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_3D);
+    const int has_texture_cube   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_CUBE_MAP);
+
+    const struct limits *limits = &gctx->limits;
+    const struct ngl_cap caps[] = {
+        CAP(NGL_CAP_BLOCK,                      has_block),
+        CAP(NGL_CAP_COMPUTE,                    has_compute),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X,  limits->max_compute_work_group_counts[0]),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y,  limits->max_compute_work_group_counts[1]),
+        CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z,  limits->max_compute_work_group_counts[2]),
+        CAP(NGL_CAP_INSTANCED_DRAW,             has_instanced_draw),
+        CAP(NGL_CAP_MAX_SAMPLES,                limits->max_samples),
+        CAP(NGL_CAP_NPOT_TEXTURE,               has_npot_texture),
+        CAP(NGL_CAP_TEXTURE_3D,                 has_texture_3d),
+        CAP(NGL_CAP_TEXTURE_CUBE,               has_texture_cube),
+    };
+
+    backend->nb_caps = NGLI_ARRAY_NB(caps);
+    backend->caps = ngli_calloc(backend->nb_caps, sizeof(*backend->caps));
+    if (!backend->caps)
+        return NGL_ERROR_MEMORY;
+    memcpy(backend->caps, caps, sizeof(caps));
+
+    return 0;
+}
+
 static int backend_probe(struct ngl_backend *backend, const struct ngl_config *config)
 {
     struct gctx *gctx = ngli_gctx_create(config);
@@ -337,6 +391,10 @@ static int backend_probe(struct ngl_backend *backend, const struct ngl_config *c
     backend->id         = config->backend;
     backend->string_id  = gctx->backend_str;
     backend->name       = gctx->class->name;
+
+    ret = load_caps(backend, gctx);
+    if (ret < 0)
+        goto end;
 
 end:
     ngli_gctx_freep(&gctx);
@@ -393,6 +451,9 @@ int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, 
 
 void ngl_backends_freep(struct ngl_backend **backendsp)
 {
+    struct ngl_backend *backends = *backendsp;
+    for (int i = 0; i < NGLI_ARRAY_NB(backend_ids); i++)
+        ngli_free(backends[i].caps);
     ngli_freep(backendsp);
 }
 

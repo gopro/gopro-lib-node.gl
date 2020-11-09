@@ -64,4 +64,7 @@
                                          NGLI_FEATURE_SHADER_IMAGE_SIZE        | \
                                          NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)
 
+#define NGLI_FEATURE_BUFFER_OBJECTS_ALL (NGLI_FEATURE_UNIFORM_BUFFER_OBJECT | \
+                                         NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)
+
 #endif

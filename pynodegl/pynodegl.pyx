@@ -61,11 +61,29 @@ cdef extern from "nodegl.h":
     cdef int NGL_BACKEND_OPENGL
     cdef int NGL_BACKEND_OPENGLES
 
+    cdef int NGL_CAP_BLOCK
+    cdef int NGL_CAP_COMPUTE
+    cdef int NGL_CAP_INSTANCED_DRAW
+    cdef int NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X
+    cdef int NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y
+    cdef int NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z
+    cdef int NGL_CAP_MAX_SAMPLES
+    cdef int NGL_CAP_NPOT_TEXTURE
+    cdef int NGL_CAP_TEXTURE_3D
+    cdef int NGL_CAP_TEXTURE_CUBE
+
+    cdef struct ngl_cap:
+        unsigned id
+        const char *string_id
+        int value
+
     cdef struct ngl_backend:
         int id
         const char *string_id
         const char *name
         int is_default
+        ngl_cap *caps
+        int nb_caps
 
     cdef struct ngl_ctx
 
@@ -110,6 +128,17 @@ PLATFORM_WINDOWS = NGL_PLATFORM_WINDOWS
 BACKEND_AUTO      = NGL_BACKEND_AUTO
 BACKEND_OPENGL    = NGL_BACKEND_OPENGL
 BACKEND_OPENGLES  = NGL_BACKEND_OPENGLES
+
+CAP_BLOCK                     = NGL_CAP_BLOCK
+CAP_COMPUTE                   = NGL_CAP_COMPUTE
+CAP_INSTANCED_DRAW            = NGL_CAP_INSTANCED_DRAW
+CAP_MAX_COMPUTE_GROUP_COUNT_X = NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X
+CAP_MAX_COMPUTE_GROUP_COUNT_Y = NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y
+CAP_MAX_COMPUTE_GROUP_COUNT_Z = NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z
+CAP_MAX_SAMPLES               = NGL_CAP_MAX_SAMPLES
+CAP_NPOT_TEXTURE              = NGL_CAP_NPOT_TEXTURE
+CAP_TEXTURE_3D                = NGL_CAP_TEXTURE_3D
+CAP_TEXTURE_CUBE              = NGL_CAP_TEXTURE_CUBE
 
 LOG_VERBOSE = NGL_LOG_VERBOSE
 LOG_DEBUG   = NGL_LOG_DEBUG
@@ -187,17 +216,27 @@ def probe_backends(**kwargs):
     cdef int nb_backends = 0
     cdef ngl_backend *backend = NULL
     cdef ngl_backend *backends = NULL
+    cdef ngl_cap *cap = NULL
     cdef int ret = ngl_backends_probe(configp, &nb_backends, &backends)
     if ret < 0:
         raise Exception("Error probing backends")
     backend_set = []
     for i in range(nb_backends):
         backend = &backends[i]
+        caps = []
+        for j in range(backend.nb_caps):
+            cap = &backend.caps[j];
+            caps.append(dict(
+                id=cap.id,
+                string_id=cap.string_id,
+                value=cap.value,
+            ))
         backend_set.append(dict(
             id=backend.id,
             string_id=backend.string_id,
             name=backend.name,
             is_default=True if backend.is_default else False,
+            caps=caps,
         ))
     ngl_backends_freep(&backends)
     return backend_set

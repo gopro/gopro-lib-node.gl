@@ -285,8 +285,14 @@ int ngli_program_gl_init(struct program *s, const char *vertex, const char *frag
         ngli_glShaderSource(gl, shader, 1, &shaders[i].src, NULL);
         ngli_glCompileShader(gl, shader);
         ret = program_check_status(gl, shader, GL_COMPILE_STATUS);
-        if (ret < 0)
+        if (ret < 0) {
+            char *s_with_numbers = ngli_numbered_lines(shaders[i].src);
+            if (s_with_numbers) {
+                LOG(ERROR, "failed to compile:\n%s", s_with_numbers);
+                ngli_free(s_with_numbers);
+            }
             goto fail;
+        }
         ngli_glAttachShader(gl, s_priv->id, shader);
     }
 

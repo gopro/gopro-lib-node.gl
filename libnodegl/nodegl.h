@@ -404,20 +404,20 @@ struct ngl_config {
                                 bytes. */
 };
 
-#define NGL_CAP_BLOCK                       NGL_NODE_BLOCK
-#define NGL_CAP_COMPUTE                     NGL_NODE_COMPUTE
-#define NGL_CAP_INSTANCED_DRAW              NGLI_FOURCC('I','D','r','w')
-#define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X   NGLI_FOURCC('C','G','c','x')
-#define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y   NGLI_FOURCC('C','G','c','y')
-#define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z   NGLI_FOURCC('C','G','c','z')
+#define NGL_CAP_BLOCK                         NGL_NODE_BLOCK
+#define NGL_CAP_COMPUTE                       NGL_NODE_COMPUTE
+#define NGL_CAP_INSTANCED_DRAW                NGLI_FOURCC('I','D','r','w')
+#define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X     NGLI_FOURCC('C','G','c','x')
+#define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y     NGLI_FOURCC('C','G','c','y')
+#define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z     NGLI_FOURCC('C','G','c','z')
 #define NGL_CAP_MAX_COMPUTE_GROUP_INVOCATIONS NGLI_FOURCC('C','G','i','v')
-#define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_X    NGLI_FOURCC('C','G','s','x')
-#define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y    NGLI_FOURCC('C','G','s','y')
-#define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z    NGLI_FOURCC('C','G','s','z')
-#define NGL_CAP_MAX_SAMPLES                 NGLI_FOURCC('M','S','A','A')
-#define NGL_CAP_NPOT_TEXTURE                NGLI_FOURCC('N','P','O','T')
-#define NGL_CAP_TEXTURE_3D                  NGL_NODE_TEXTURE3D
-#define NGL_CAP_TEXTURE_CUBE                NGL_NODE_TEXTURECUBE
+#define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_X      NGLI_FOURCC('C','G','s','x')
+#define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y      NGLI_FOURCC('C','G','s','y')
+#define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z      NGLI_FOURCC('C','G','s','z')
+#define NGL_CAP_MAX_SAMPLES                   NGLI_FOURCC('M','S','A','A')
+#define NGL_CAP_NPOT_TEXTURE                  NGLI_FOURCC('N','P','O','T')
+#define NGL_CAP_TEXTURE_3D                    NGL_NODE_TEXTURE3D
+#define NGL_CAP_TEXTURE_CUBE                  NGL_NODE_TEXTURECUBE
 
 struct ngl_cap {
     unsigned id;            /* any of NGL_CAP_* */

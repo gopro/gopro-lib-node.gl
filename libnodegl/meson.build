@@ -518,11 +518,11 @@ test_progs = {
   },
   'Hash map': {
     'exe': 'test_hmap',
-    'src': files('test_hmap.c', 'log.c', 'utils.c', 'memory.c'),
+    'src': files('test_hmap.c', 'bstr.c', 'log.c', 'utils.c', 'memory.c'),
   },
   'Utils': {
     'exe': 'test_utils',
-    'src': files('test_utils.c', 'log.c', 'utils.c', 'memory.c'),
+    'src': files('test_utils.c', 'bstr.c', 'log.c', 'utils.c', 'memory.c'),
   },
 }
 

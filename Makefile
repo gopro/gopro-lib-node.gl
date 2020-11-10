@@ -21,7 +21,21 @@
 
 PREFIX ?= $(PWD)/nodegl-env
 
-include common.mak
+PYTHON_MAJOR = 3
+
+#
+# User configuration
+#
+DEBUG      ?= no
+COVERAGE   ?= no
+CURL       ?= curl
+PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYTHON_MAJOR),)
+TAR        ?= tar
+TARGET_OS  ?= $(shell uname -s)
+
+ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON_MAJOR))
+$(error "Python $(PYTHON_MAJOR) not found")
+endif
 
 SXPLAYER_VERSION ?= 9.6.0
 

@@ -103,20 +103,21 @@ static const char *image_glsl_format_map[NGLI_FORMAT_NB] = {
 enum {
     TYPE_FLAG_IS_SAMPLER_OR_IMAGE = 1 << 0,
     TYPE_FLAG_HAS_PRECISION       = 1 << 1,
+    TYPE_FLAG_IS_INT              = 1 << 2,
 };
 
 static const struct {
     int flags;
     const char *glsl_type;
 } type_info_map[NGLI_TYPE_NB] = {
-    [NGLI_TYPE_INT]                         = {TYPE_FLAG_HAS_PRECISION, "int"},
-    [NGLI_TYPE_IVEC2]                       = {TYPE_FLAG_HAS_PRECISION, "ivec2"},
-    [NGLI_TYPE_IVEC3]                       = {TYPE_FLAG_HAS_PRECISION, "ivec3"},
-    [NGLI_TYPE_IVEC4]                       = {TYPE_FLAG_HAS_PRECISION, "ivec4"},
-    [NGLI_TYPE_UINT]                        = {TYPE_FLAG_HAS_PRECISION, "uint"},
-    [NGLI_TYPE_UIVEC2]                      = {TYPE_FLAG_HAS_PRECISION, "uvec2"},
-    [NGLI_TYPE_UIVEC3]                      = {TYPE_FLAG_HAS_PRECISION, "uvec3"},
-    [NGLI_TYPE_UIVEC4]                      = {TYPE_FLAG_HAS_PRECISION, "uvec4"},
+    [NGLI_TYPE_INT]                         = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "int"},
+    [NGLI_TYPE_IVEC2]                       = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "ivec2"},
+    [NGLI_TYPE_IVEC3]                       = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "ivec3"},
+    [NGLI_TYPE_IVEC4]                       = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "ivec4"},
+    [NGLI_TYPE_UINT]                        = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "uint"},
+    [NGLI_TYPE_UIVEC2]                      = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "uvec2"},
+    [NGLI_TYPE_UIVEC3]                      = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "uvec3"},
+    [NGLI_TYPE_UIVEC4]                      = {TYPE_FLAG_HAS_PRECISION|TYPE_FLAG_IS_INT, "uvec4"},
     [NGLI_TYPE_FLOAT]                       = {TYPE_FLAG_HAS_PRECISION, "float"},
     [NGLI_TYPE_VEC2]                        = {TYPE_FLAG_HAS_PRECISION, "vec2"},
     [NGLI_TYPE_VEC3]                        = {TYPE_FLAG_HAS_PRECISION, "vec3"},
@@ -143,6 +144,11 @@ static int is_sampler_or_image(int type)
 static int type_has_precision(int type)
 {
     return type_info_map[type].flags & TYPE_FLAG_HAS_PRECISION;
+}
+
+static int type_is_int(int type)
+{
+    return type_info_map[type].flags & TYPE_FLAG_IS_INT;
 }
 
 static const char *get_glsl_type(int type)
@@ -796,6 +802,8 @@ static int inject_iovars(struct pgcraft *s, struct bstr *b, int stage)
                               ? get_precision_qualifier(s, iovar->type, iovar->precision_out, "highp")
                               : get_precision_qualifier(s, iovar->type, iovar->precision_in, "highp");
         const char *type = get_glsl_type(iovar->type);
+        if (type_is_int(iovar->type))
+            ngli_bstr_print(b, "flat ");
         ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, iovar->name);
     }
     return 0;

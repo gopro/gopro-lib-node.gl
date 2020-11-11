@@ -318,3 +318,23 @@ def data_streamed_buffer_vec4(cfg, show_dbg_points=False):
 @scene(show_dbg_points=scene.Bool())
 def data_streamed_buffer_vec4_time_anim(cfg, show_dbg_points=False):
     return _get_data_streamed_buffer_vec4_scene(cfg, 2, show_dbg_points)
+
+
+@test_cuepoints(points={'c': (0, 0)}, tolerance=1)
+@scene()
+def data_integer_iovars(cfg):
+    cfg.aspect_ratio = (1, 1)
+    vert = '''void main() {
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    var_color_u32 = color_u32;
+}
+'''
+    frag = '''void main() {
+    ngl_out_color = vec4(var_color_u32) / 255.;
+}'''
+    program = ngl.Program(vertex=vert, fragment=frag)
+    program.update_vert_out_vars(var_color_u32=ngl.IOIVec4())
+    geometry = ngl.Quad(corner=(-1, -1, 0), width=(2, 0, 0), height=(0, 2, 0))
+    render = ngl.Render(geometry, program)
+    render.update_vert_resources(color_u32=ngl.UniformIVec4(value=(0x50, 0x80, 0xa0, 0xff)))
+    return render

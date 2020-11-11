@@ -140,6 +140,10 @@ foreach backend : backends
     tests_data += test_name + '_uniform'
   endforeach
 
+  if has_uint_uniforms
+    tests_data += 'integer_iovars'
+  endif
+
   if has_block
     tests_data += [
       'streamed_buffer_vec4',

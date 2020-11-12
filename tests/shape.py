@@ -227,12 +227,6 @@ def shape_geometry_rtt(cfg):
 
 @test_fingerprint()
 @scene()
-def shape_geometry_rtt_depth(cfg):
-    return _shape_geometry_rtt(cfg, depth=True)
-
-
-@test_fingerprint()
-@scene()
 def shape_geometry_rtt_samples(cfg):
     return _shape_geometry_rtt(cfg, samples=4)
 

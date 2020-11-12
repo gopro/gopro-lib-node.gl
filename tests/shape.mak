@@ -37,7 +37,6 @@ SHAPE_TEST_NAMES =              \
     geometry_indices            \
     geometry_normals_indices    \
     geometry_rtt                \
-    geometry_rtt_depth          \
     morphing                    \
     cropboard                   \
     cropboard_indices           \

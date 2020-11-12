@@ -95,7 +95,16 @@ void main()
 '''
 
 
-def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mipmap_filter='none'):
+_RENDER_DEPTH = '''
+void main()
+{
+    float depth = ngl_texvideo(tex0, var_tex0_coord).r;
+    ngl_out_color = vec4(depth, depth, depth, 1.0);
+}
+'''
+
+
+def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mipmap_filter='none', sample_depth=False):
     cfg.duration = 10
     cfg.aspect_ratio = (1, 1)
     cube = _get_cube()
@@ -144,10 +153,16 @@ def _get_rtt_scene(cfg, features='depth', texture_ds_format=None, samples=0, mip
     )
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
-    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
-    render = ngl.Render(quad, program)
-    render.update_frag_resources(tex0=texture)
+    if sample_depth:
+        program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=_RENDER_DEPTH)
+        program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+        render = ngl.Render(quad, program)
+        render.update_frag_resources(tex0=texture_depth)
+    else:
+        program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+        program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+        render = ngl.Render(quad, program)
+        render.update_frag_resources(tex0=texture)
     return ngl.Group(children=(rtt, render))
 
 
@@ -165,6 +180,7 @@ _rtt_tests = dict(
     feature_depth_msaa=dict(features='depth', samples=4),
     feature_depth_stencil_msaa=dict(features='depth+stencil', samples=4),
     mipmap=dict(features='depth', mipmap_filter='linear'),
+    sample_depth=dict(texture_ds_format='auto_depth', sample_depth=True),
     texture_depth=dict(texture_ds_format='auto_depth'),
     texture_depth_stencil=dict(texture_ds_format='auto_depth_stencil'),
     texture_depth_msaa=dict(texture_ds_format='auto_depth', samples=4),

@@ -24,6 +24,7 @@ RTT_TEST_NAMES =                         \
     feature_depth                        \
     feature_depth_stencil                \
     mipmap                               \
+    sample_depth                         \
     texture_depth                        \
     texture_depth_stencil                \
     clear_attachment_with_timeranges     \

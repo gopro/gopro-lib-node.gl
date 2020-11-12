@@ -183,54 +183,6 @@ def shape_diamond_colormask(cfg):
     return autogrid_simple(scenes)
 
 
-def _shape_geometry_rtt(cfg, depth=False, samples=0):
-    w, h = 640, 480
-
-    scene = _shape_geometry(cfg, set_normals=True)
-
-    if depth:
-        scene = ngl.GraphicConfig(scene, depth_test=True)
-
-    texture = ngl.Texture2D()
-    texture.set_width(w)
-    texture.set_height(h)
-
-    rtt = ngl.RenderToTexture(scene)
-    rtt.add_color_textures(texture)
-
-    if depth:
-        texture = ngl.Texture2D()
-        texture.set_format('auto_depth')
-        texture.set_width(w)
-        texture.set_height(h)
-        rtt.set_depth_texture(texture)
-    else:
-        rtt.set_clear_color(*COLORS['cgreen'])
-
-    if samples:
-        rtt.set_samples(samples)
-
-    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
-    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
-    render = ngl.Render(quad, program)
-    render.update_frag_resources(tex0=texture)
-
-    return ngl.Group(children=(rtt, render))
-
-
-@test_fingerprint()
-@scene()
-def shape_geometry_rtt(cfg):
-    return _shape_geometry_rtt(cfg)
-
-
-@test_fingerprint()
-@scene()
-def shape_geometry_rtt_samples(cfg):
-    return _shape_geometry_rtt(cfg, samples=4)
-
-
 def _get_morphing_coordinates(n, x_off, y_off):
     coords = [(random.uniform(0, 1) + x_off,
                random.uniform(0, 1) + y_off, 0) for i in range(n - 1)]

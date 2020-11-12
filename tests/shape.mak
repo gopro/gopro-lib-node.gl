@@ -36,14 +36,12 @@ SHAPE_TEST_NAMES =              \
     geometry_normals            \
     geometry_indices            \
     geometry_normals_indices    \
-    geometry_rtt                \
     morphing                    \
     cropboard                   \
     cropboard_indices           \
 
 ifneq ($(MAX_SAMPLES),$(filter $(MAX_SAMPLES),0 1))
-SHAPE_TEST_NAMES += geometry_rtt_samples \
-                    triangle_msaa        \
+SHAPE_TEST_NAMES += triangle_msaa        \
 
 endif
 

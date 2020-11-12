@@ -61,7 +61,7 @@ static void update_trf_matrix(struct ngl_node *node, float deg_angle)
 static int rotate_init(struct ngl_node *node)
 {
     struct rotate_priv *s = node->priv_data;
-    static const float zvec[3] = {0};
+    static const float zvec[3];
     if (!memcmp(s->axis, zvec, sizeof(s->axis))) {
         LOG(ERROR, "(0.0, 0.0, 0.0) is not a valid axis");
         return NGL_ERROR_INVALID_ARG;

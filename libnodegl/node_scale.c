@@ -57,7 +57,7 @@ static void update_trf_matrix(struct ngl_node *node, const float *f)
 static int scale_init(struct ngl_node *node)
 {
     struct scale_priv *s = node->priv_data;
-    static const float zero_anchor[3] = {0};
+    static const float zero_anchor[3];
     s->use_anchor = memcmp(s->anchor, zero_anchor, sizeof(s->anchor));
     if (!s->anim)
         update_trf_matrix(node, s->factors);

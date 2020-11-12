@@ -114,7 +114,7 @@ static int camera_init(struct ngl_node *node)
         return NGL_ERROR_INVALID_ARG;
     }
 
-    static const float zvec[4] = {0};
+    static const float zvec[4];
     s->use_perspective = memcmp(s->perspective, zvec, sizeof(s->perspective));
     s->use_orthographic = memcmp(s->orthographic, zvec, sizeof(s->orthographic));
 

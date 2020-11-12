@@ -58,7 +58,7 @@ static void update_trf_matrix(struct ngl_node *node, const float *quat)
 static int rotatequat_init(struct ngl_node *node)
 {
     struct rotatequat_priv *s = node->priv_data;
-    static const float zvec[3] = {0};
+    static const float zvec[3];
     s->use_anchor = memcmp(s->anchor, zvec, sizeof(zvec));
     if (!s->anim)
         update_trf_matrix(node, s->quat);

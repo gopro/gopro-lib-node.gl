@@ -127,7 +127,11 @@ sxplayer-install: sxplayer $(PREFIX)
 # than the prerequisite directory of the sxplayer rule. If this isn't true, the
 # symlink will be re-recreated on the next `make` call
 sxplayer: sxplayer-$(SXPLAYER_VERSION)
+ifneq ($(TARGET_OS),MinGW-w64)
 	ln -snf $< $@
+else
+	cp -r $< $@
+endif
 
 sxplayer-$(SXPLAYER_VERSION): sxplayer-$(SXPLAYER_VERSION).tar.gz
 	$(TAR) xf $<

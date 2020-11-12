@@ -55,7 +55,7 @@ endif
 ifeq ($(DEBUG),yes)
 MESON_SETUP += --buildtype=debugoptimized
 else
-MESON_SETUP += --buildtype=release
+MESON_SETUP += --buildtype=release -Db_lto=true
 endif
 ifneq ($(V),)
 MESON_COMPILE += -v

@@ -142,8 +142,8 @@ static int wgl_init(struct glcontext *ctx, uintptr_t display, uintptr_t window, 
         WGL_DEPTH_BITS_ARB, 24,
         WGL_STENCIL_BITS_ARB, 8,
         WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-        WGL_SAMPLE_BUFFERS_ARB, ctx->samples > 0 ? GL_TRUE : GL_FALSE,
-        WGL_SAMPLES_ARB, ctx->samples,
+        WGL_SAMPLE_BUFFERS_ARB, ctx->offscreen ? 0 : (ctx->samples > 0),
+        WGL_SAMPLES_ARB, ctx->offscreen ? 0 : ctx->samples,
         0
     };
 

@@ -272,7 +272,9 @@ def _get_data_streamed_buffer_vec4_scene(cfg, scale, show_dbg_points):
         ]
         time_anim = ngl.AnimatedTime(kfs)
 
-    pts_data = array.array('l')
+    pts_data = array.array('q')
+    assert pts_data.itemsize == 8
+
     for i in range(duration):
         offset = 10000 if i == 0 else 0
         pts_data.extend([i * 1000000 + offset])

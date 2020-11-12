@@ -64,6 +64,18 @@ _EXTERNAL_DEPS = dict(
         url=f'https://renderdoc.org/stable/@VERSION@/renderdoc_@VERSION@.tar.gz',
         sha256='6b0bffa937e606dd94ed7ef786a65ab6a6e148110a33a22195594f0e0486b143',
     ),
+    shaderc=dict(
+        version='2020.5',
+        dst_file='shaderc-@VERSION@.tar.gz',
+        url='https://github.com/google/shaderc/archive/v@VERSION@.tar.gz',
+        sha256='e96d8cb208b796cecb9e6cce437c7d1116343158ef3ea26277eb13b62cf56834',
+    ),
+    moltenvk=dict(
+        version='1.1.3',
+        dst_file='moltenvk-@VERSION@.tar.gz',
+        url='https://github.com/KhronosGroup/MoltenVK/archive/v@VERSION@.tar.gz',
+        sha256='c20758bc19a46060aaf6e0949b47d29824b70b9ec0e22fb73a3feeef4c73a0ef',
+    ),
 )
 
 
@@ -75,6 +87,8 @@ def _get_external_deps(args):
         if _SYSTEM not in {'Windows', 'Linux'}:
             raise Exception(f'Renderdoc is not supported on {_SYSTEM}')
         deps.append(_RENDERDOC_ID)
+    if _SYSTEM == 'Darwin':
+        deps += ['shaderc', 'moltenvk']
     return {dep: _EXTERNAL_DEPS[dep] for dep in deps}
 
 
@@ -338,9 +352,12 @@ def _clean_py(cfg):
 @_block('clean', [_clean_py])
 def _clean(cfg):
     return [
-        _rd(op.join('builddir', 'sxplayer')),
         _rd(op.join('builddir', 'libnodegl')),
+        _rd(op.join('builddir', 'moltenvk')),
         _rd(op.join('builddir', 'ngl-tools')),
+        _rd(op.join('builddir', 'pkgconf')),  # XXX backport
+        _rd(op.join('builddir', 'shaderc')),
+        _rd(op.join('builddir', 'sxplayer')),
         _rd(op.join('builddir', 'tests')),
     ]
 
@@ -366,6 +383,46 @@ def _tests(cfg):
     return [_cmd_join('meson', 'test', '-C', op.join('builddir', 'tests'))]
 
 
+@_block('shaderc-setup')
+def _shaderc_setup(cfg):
+    srcdir = cfg.externals['shaderc']
+    builddir = op.join('builddir', 'shaderc')
+    return [
+        f'cd {srcdir} && ./utils/git-sync-deps',
+        f'$(CMAKE_SETUP) -S {srcdir} -B {builddir}',
+    ]
+
+@_block('shaderc-install', [_shaderc_setup])
+def _shaderc_install(cfg):
+    lib_filename = 'libshaderc_shared.1.dylib'
+    builddir = op.join('builddir', 'shaderc')
+    return [
+        f'cmake --build {builddir} --target install',
+        f'install_name_tool -id @rpath/{lib_filename} {cfg.prefix}/lib/{lib_filename}',
+    ]
+
+
+@_block('moltenvk-setup')
+def _moltenvk_setup(cfg):
+    srcdir = cfg.externals['moltenvk']
+    builddir = op.join('builddir', 'moltenvk')
+    return [
+        f'cd {srcdir} && ./fetchDependencies -v --macos',
+    ]
+
+
+# Note: somehow xcodebuild sets name @rpath/libMoltenVK.dylib automatically
+# (according to otool -l) so we don't have to do anything special
+@_block('moltenvk-install', [_moltenvk_setup])
+def _moltenvk_install(cfg):
+    srcdir = cfg.externals['moltenvk']   # XXX working in the sources directly might not be a good idea
+    return [
+        f'make -C {srcdir} macos',
+        f'cp -v {srcdir}/Package/Latest/MoltenVK/dylib/macOS/libMoltenVK.dylib {cfg.prefix}/lib',
+        f'cp -vr {srcdir}/Package/Latest/MoltenVK/include/. {cfg.prefix}/include',
+    ]
+
+
 def _quote(s):
     if not s or ' ' in s:
         return f'"{s}"'
@@ -381,6 +438,8 @@ def _cmd_join(*cmds):
 
 
 def _get_make_vars(cfg):
+    debug = cfg.args.coverage or cfg.args.buildtype == 'debug'
+
     # We don't want Python to fallback on one found in the PATH so we explicit
     # it to the one in the venv.
     python = op.join(cfg.bin_path, 'python')
@@ -396,18 +455,24 @@ def _get_make_vars(cfg):
     #
     meson = 'MAKEFLAGS= meson' if _SYSTEM != 'Windows' else 'meson'
 
-    buildtype = 'debugoptimized' if cfg.args.coverage or cfg.args.buildtype == 'debug' else 'release'
     meson_setup = [
         'setup',
         '--prefix', cfg.prefix,
         '-Drpath=true',
         '--pkg-config-path', cfg.pkg_config_path,
-        '--buildtype', buildtype,
+        '--buildtype', 'debugoptimized' if debug else 'release',
     ]
     if cfg.args.coverage:
         meson_setup += ['-Db_coverage=true']
     if _SYSTEM != 'MinGW':
         meson_setup += ['-Db_lto=true']
+
+    cmake_builddtype = 'Debug' if debug else 'Release'
+    cmake_setup = [
+        f'-DCMAKE_INSTALL_PREFIX={cfg.prefix}',
+        f'-DCMAKE_BUILD_TYPE={cmake_builddtype}',
+        '-GNinja',
+    ]
 
     if _SYSTEM == 'Windows':
         meson_setup += ['--bindir=Scripts', '--libdir=Lib', '--includedir=Include']
@@ -424,6 +489,7 @@ def _get_make_vars(cfg):
     # Our tests/meson.build logic is not well supported with the VS backend so
     # we need to fallback on Ninja
     ret['MESON_SETUP_TESTS'] = '$(MESON) ' + _cmd_join(*meson_setup, '--backend=ninja')
+    ret['CMAKE_SETUP'] = 'cmake ' + _cmd_join(*cmake_setup)
 
     return ret
 
@@ -571,6 +637,8 @@ def _run():
         _all, _tests, _clean,
         _nodegl_updatedoc, _nodegl_updatespecs, _nodegl_updateglwrappers,
     ]
+    if _SYSTEM == 'Darwin':
+        blocks += [_shaderc_install, _moltenvk_install]
     if args.coverage:
         blocks += [_coverage_html, _coverage_xml]
     makefile = _get_makefile(cfg, blocks)

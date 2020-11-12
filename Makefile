@@ -92,7 +92,8 @@ pynodegl-utils-install: pynodegl-utils-deps-install
 #
 # We do not pull the requirements on Windows because of various issues:
 # - PySide2 can't be pulled
-# - Pillow fails to find zlib
+# - Pillow fails to find zlib (required to be installed by the user outside the
+#   Python virtualenv)
 # - ngl-control can not currently work because of temporary files handling
 #
 # Still, we want the module to be installed so we can access the scene()
@@ -139,8 +140,10 @@ sxplayer-$(SXPLAYER_VERSION).tar.gz:
 # Pillow and PySide2. We require the users to have it on their system.
 #
 $(PREFIX):
+ifeq ($(TARGET_OS),MinGW-w64)
+	$(PYTHON) -m venv --system-site-packages $(PREFIX)
+else
 	$(PYTHON) -m venv $(PREFIX)
-ifneq ($(TARGET_OS),MinGW-w64)
 	(. $(ACTIVATE) && pip install meson ninja)
 endif
 

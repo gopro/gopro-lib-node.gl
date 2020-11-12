@@ -49,7 +49,7 @@ On Windows, the bootstrap is slightly more complex:
 pacman -Syuu  # and restart the shell
 pacman -S git make
 pacman -S mingw-w64-x86_64-{toolchain,ffmpeg,python}
-pacman -S mingw-w64-x86_64-python3-pip
+pacman -S mingw-w64-x86_64-python3-{pillow,pip}
 pacman -S mingw-w64-x86_64-meson
 make TARGET_OS=MinGW-w64
 ```

@@ -230,6 +230,32 @@ endif
 
 external-download:
 	$(MAKE) -C external
+ifeq ($(TARGET_OS),Darwin)
+	$(MAKE) -C external MoltenVK shaderc
+endif
+
+ifeq ($(TARGET_OS),Darwin)
+external-install: sxplayer-install MoltenVK-install shaderc-install
+else
+external-install: sxplayer-install
+endif
+
+shaderc-install: SHADERC_LIB_FILENAME = libshaderc_shared.1.dylib
+shaderc-install: external-download $(PREFIX)
+	cd external/shaderc && ./utils/git-sync-deps
+	cmake -B builddir/shaderc -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) external/shaderc
+	ninja -C builddir/shaderc install
+	install_name_tool -id @rpath/$(SHADERC_LIB_FILENAME) $(PREFIX)/lib/$(SHADERC_LIB_FILENAME)
+
+# Note: somehow xcodebuild sets name @rpath/libMoltenVK.dylib automatically
+# (according to otool -l) so we don't have to do anything special
+MoltenVK-install: external-download $(PREFIX)
+	cd external/MoltenVK && ./fetchDependencies -v --macos
+	$(MAKE) -C external/MoltenVK macos
+	install -d $(PREFIX)/include
+	install -d $(PREFIX)/lib
+	cp -v external/MoltenVK/Package/Latest/MoltenVK/dylib/macOS/libMoltenVK.dylib $(PREFIX)/lib
+	cp -vr external/MoltenVK/Package/Latest/MoltenVK/include $(PREFIX)
 
 #
 # We do not pull meson from pip on MinGW for the same reasons we don't pull
@@ -305,7 +331,9 @@ coverage-xml:
 .PHONY: pynodegl-install pynodegl-deps-install
 .PHONY: nodegl-install nodegl-setup
 .PHONY: sxplayer-install
+.PHONY: shaderc-install
+.PHONY: MoltenVK-install
 .PHONY: tests tests-setup
 .PHONY: clean clean_py
 .PHONY: coverage-html coverage-xml
-.PHONY: external-download
+.PHONY: external-download external-install

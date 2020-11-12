@@ -22,6 +22,8 @@
 TAR  ?= tar
 CURL ?= curl
 
+MOLTENVK_VERSION ?= 1.1.1
+SHADERC_VERSION  ?= 2020.3
 SXPLAYER_VERSION ?= 9.7.0
 PKGCONF_VERSION ?= 1.7.3
 
@@ -31,6 +33,24 @@ DEPENDENCIES += pkgconf
 endif
 
 all: $(DEPENDENCIES)
+
+MoltenVK: MoltenVK-$(MOLTENVK_VERSION)
+	ln -snf $< $@
+
+MoltenVK-$(MOLTENVK_VERSION): MoltenVK-$(MOLTENVK_VERSION).tar.gz
+	$(TAR) xf $<
+
+MoltenVK-$(MOLTENVK_VERSION).tar.gz:
+	$(CURL) -L https://github.com/KhronosGroup/MoltenVK/archive/v$(MOLTENVK_VERSION).tar.gz -o $@
+
+shaderc: shaderc-$(SHADERC_VERSION)
+	ln -snf $< $@
+
+shaderc-$(SHADERC_VERSION): shaderc-$(SHADERC_VERSION).tar.gz
+	$(TAR) xf $<
+
+shaderc-$(SHADERC_VERSION).tar.gz:
+	$(CURL) -L https://github.com/google/shaderc/archive/v$(SHADERC_VERSION).tar.gz -o $@
 
 # Note for developers: in order to customize the sxplayer you're building
 # against, you can use your own sources post-install:

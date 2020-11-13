@@ -356,6 +356,7 @@ foreach conf_key, conf_value : conf_data_dict
   endif
 endforeach
 add_project_arguments(c_args, language: 'c')
+add_project_arguments(c_args, language: 'c', native: true)
 
 # See https://github.com/mesonbuild/meson/pull/4747 to follow advancement on
 # the native support for symbol visibility

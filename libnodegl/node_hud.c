@@ -95,7 +95,6 @@ static const struct node_param hud_params[] = {
 
 enum {
     LATENCY_UPDATE_CPU,
-    LATENCY_UPDATE_GPU,
     LATENCY_DRAW_CPU,
     LATENCY_DRAW_GPU,
     LATENCY_TOTAL_CPU,
@@ -169,7 +168,6 @@ static const struct {
     char unit;
 } latency_specs[] = {
     [LATENCY_UPDATE_CPU] = {"update CPU", 0xF43DF4FF, 'u'},
-    [LATENCY_UPDATE_GPU] = {"update GPU", 0x3D3DF4FF, 'n'},
     [LATENCY_DRAW_CPU]   = {"draw   CPU", 0x3DF4F4FF, 'u'},
     [LATENCY_DRAW_GPU]   = {"draw   GPU", 0x3DF43DFF, 'n'},
     [LATENCY_TOTAL_CPU]  = {"total  CPU", 0xF4F43DFF, 'u'},
@@ -448,15 +446,11 @@ static int widget_latency_update(struct hud *s, struct widget *widget, double t)
     struct ngl_node *child = s->child;
     struct widget_latency *priv = widget->priv_data;
 
-    ngli_gtimer_start(priv->timer);
     int64_t update_start = ngli_gettime_relative();
     ret = ngli_node_update(child, t);
     int64_t update_end = ngli_gettime_relative();
-    ngli_gtimer_stop(priv->timer);
 
-    const int64_t gpu_tupdate = ngli_gtimer_read(priv->timer);
     register_time(s, &priv->measures[LATENCY_UPDATE_CPU], update_end - update_start);
-    register_time(s, &priv->measures[LATENCY_UPDATE_GPU], gpu_tupdate);
 
     return ret;
 }
@@ -479,13 +473,10 @@ static void widget_latency_make_stats(struct hud *s, struct widget *widget)
     register_time(s, &priv->measures[LATENCY_DRAW_GPU], gpu_tdraw);
 
     const struct latency_measure *cpu_up = &priv->measures[LATENCY_UPDATE_CPU];
-    const struct latency_measure *gpu_up = &priv->measures[LATENCY_UPDATE_GPU];
     const int last_cpu_up_pos = (cpu_up->pos ? cpu_up->pos : s->measure_window) - 1;
-    const int last_gpu_up_pos = (gpu_up->pos ? gpu_up->pos : s->measure_window) - 1;
     const int64_t cpu_tupdate = cpu_up->times[last_cpu_up_pos];
-    const int64_t gpu_tupdate = gpu_up->times[last_gpu_up_pos];
     register_time(s, &priv->measures[LATENCY_TOTAL_CPU], cpu_tdraw + cpu_tupdate);
-    register_time(s, &priv->measures[LATENCY_TOTAL_GPU], gpu_tdraw + gpu_tupdate);
+    register_time(s, &priv->measures[LATENCY_TOTAL_GPU], gpu_tdraw);
 }
 
 static void widget_memory_make_stats(struct hud *s, struct widget *widget)

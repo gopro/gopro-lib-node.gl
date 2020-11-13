@@ -47,7 +47,7 @@
 
 #if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
 #if defined(BACKEND_GL)
-#include "gctx_gl.h"
+#include "backends/gl/gctx_gl.h"
 #endif
 #endif
 

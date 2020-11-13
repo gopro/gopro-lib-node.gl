@@ -261,42 +261,42 @@ endif
 gbackends_cfg = {
   'gl': {
     'src': files(
-      'buffer_gl.c',
-      'format_gl.c',
-      'gctx_gl.c',
-      'glcontext.c',
-      'glstate.c',
-      'gtimer_gl.c',
-      'pipeline_gl.c',
-      'program_gl.c',
-      'rendertarget_gl.c',
-      'texture_gl.c',
-      'topology_gl.c',
-      'type_gl.c',
+      'backends/gl/buffer_gl.c',
+      'backends/gl/format_gl.c',
+      'backends/gl/gctx_gl.c',
+      'backends/gl/glcontext.c',
+      'backends/gl/glstate.c',
+      'backends/gl/gtimer_gl.c',
+      'backends/gl/pipeline_gl.c',
+      'backends/gl/program_gl.c',
+      'backends/gl/rendertarget_gl.c',
+      'backends/gl/texture_gl.c',
+      'backends/gl/topology_gl.c',
+      'backends/gl/type_gl.c',
     ),
     'cfg': 'BACKEND_GL',
     'hosts_cfg': {
       'linux': {
-        'src': files('glcontext_egl.c'),
+        'src': files('backends/gl/glcontext_egl.c'),
         'cfg': 'HAVE_GLPLATFORM_EGL',
         'deps': ['gl', 'egl'],
       },
       'darwin': {
-        'src': files('glcontext_nsgl.m', 'hwupload_videotoolbox_darwin_gl.c'),
+        'src': files('backends/gl/glcontext_nsgl.m', 'backends/gl/hwupload_videotoolbox_darwin_gl.c'),
         'cfg': 'HAVE_GLPLATFORM_NSGL',
         'frameworks': ['OpenGL'],
       },
       'android': {
-        'src': files('glcontext_egl.c', 'hwupload_mediacodec_gl.c'),
+        'src': files('backends/gl/glcontext_egl.c', 'backends/gl/hwupload_mediacodec_gl.c'),
         'cfg': 'HAVE_GLPLATFORM_EGL',
         'libs': ['EGL'],
       },
       'iphone': {
-        'src': files('glcontext_eagl.m', 'hwupload_videotoolbox_ios_gl.c'),
+        'src': files('backends/gl/glcontext_eagl.m', 'backends/gl/hwupload_videotoolbox_ios_gl.c'),
         'cfg': 'HAVE_GLPLATFORM_EAGL',
       },
       'windows': {
-        'src': files('glcontext_wgl.c'),
+        'src': files('backends/gl/glcontext_wgl.c'),
         'cfg': 'HAVE_GLPLATFORM_WGL',
         'libs': ['opengl32', 'gdi32'],
       },
@@ -331,7 +331,7 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   if all_dep_found
 
     if gbackend_name == 'gl' and vaapi_enabled
-      lib_src += files('hwupload_vaapi_gl.c')
+      lib_src += files('backends/gl/hwupload_vaapi_gl.c')
     endif
 
     lib_src += gbackend_cfg.get('src')
@@ -475,7 +475,7 @@ run_target(
     gl_generated_files[0].full_path(),
     gl_generated_files[1].full_path(),
     gl_generated_files[2].full_path(),
-    meson.current_source_dir()
+    meson.current_source_dir() / 'backends/gl'
   ],
   depends: gl_generated_files,
 )

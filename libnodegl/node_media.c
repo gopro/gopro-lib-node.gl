@@ -35,7 +35,7 @@
 
 #if defined(TARGET_ANDROID)
 #include "gctx.h"
-#include "texture_gl.h"
+#include "backends/gl/texture_gl.h"
 #endif
 
 static const struct param_choices sxplayer_log_level_choices = {

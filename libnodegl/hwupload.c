@@ -24,6 +24,7 @@
 #include <string.h>
 #include <sxplayer.h>
 
+#include "config.h"
 #include "hwupload.h"
 #include "log.h"
 #include "math_utils.h"

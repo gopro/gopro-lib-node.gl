@@ -22,6 +22,8 @@
 #ifndef GCTX_GL_H
 #define GCTX_GL_H
 
+#include "config.h"
+
 #if defined(TARGET_IPHONE)
 #include <CoreVideo/CoreVideo.h>
 #endif

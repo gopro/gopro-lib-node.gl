@@ -26,6 +26,8 @@
 #include <sxplayer.h>
 #include <pthread.h>
 
+#include "config.h"
+
 #if defined(HAVE_VAAPI_X11)
 #include <X11/Xlib.h>
 #endif

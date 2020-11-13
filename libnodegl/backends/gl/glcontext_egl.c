@@ -23,6 +23,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#include "config.h"
+
 #if defined(TARGET_LINUX)
 #include <X11/Xlib.h>
 #endif

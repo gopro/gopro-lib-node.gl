@@ -21,6 +21,7 @@
 
 #include <string.h>
 
+#include "config.h"
 #include "rendertarget_gl.h"
 #include "format.h"
 #include "gctx_gl.h"

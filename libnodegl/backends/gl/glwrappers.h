@@ -2,6 +2,8 @@
 
 /* WARNING: this file must only be included once */
 
+#include "config.h"
+
 #ifdef DEBUG_GL
 # define check_error_code ngli_glcontext_check_gl_error
 #else

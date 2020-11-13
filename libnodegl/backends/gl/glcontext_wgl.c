@@ -26,6 +26,7 @@
 #include <GL/glcorearb.h>
 #include <GL/wglext.h>
 
+#include "config.h"
 #include "glcontext.h"
 #include "nodegl.h"
 #include "log.h"

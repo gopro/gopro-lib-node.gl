@@ -21,6 +21,8 @@
 
 #include <string.h>
 
+#include "config.h"
+
 #if defined(TARGET_IPHONE)
 #include <CoreVideo/CoreVideo.h>
 #endif

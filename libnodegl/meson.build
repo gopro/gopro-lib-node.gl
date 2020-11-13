@@ -55,16 +55,15 @@ endif
 install_rpath = get_option('rpath') ? get_option('prefix') / get_option('libdir') : ''
 
 debug_opts = get_option('debug_opts')
-conf_data_dict = {
-  'TARGET_' + host_system.to_upper(): true,
-  'ARCH_' + cpu_family.to_upper(): true,
-  'CONFIG_SMALL': get_option('small'),
-  'DEBUG_GL': 'gl' in debug_opts,
-  'DEBUG_MEM': 'mem' in debug_opts,
-  'DEBUG_SCENE': 'scene' in debug_opts,
-}
+conf_data.set10('TARGET_' + host_system.to_upper(), true)
+conf_data.set10('ARCH_' + cpu_family.to_upper(), true)
+conf_data.set10('CONFIG_SMALL', get_option('small'))
+conf_data.set10('DEBUG_GL', 'gl' in debug_opts)
+conf_data.set10('DEBUG_MEM', 'mem' in debug_opts)
+conf_data.set10('DEBUG_SCENE', 'scene' in debug_opts)
+
 if host_system == 'windows' and cc.get_id() != 'msvc'
-  conf_data_dict += {'TARGET_MINGW_W64': true}
+  conf_data.set10('TARGET_MINGW_W64', true)
 endif
 
 # This trim prefix is used to make __FILE__ starts from the source dir with
@@ -227,7 +226,7 @@ dep_wayland_client = dependency('wayland-client', required: opt_wayland)
 dep_wayland_egl    = dependency('wayland-egl',    required: opt_wayland)
 if dep_wayland_client.found() and dep_wayland_egl.found()
   lib_deps += [dep_wayland_client, dep_wayland_egl]
-  conf_data_dict += {'HAVE_WAYLAND': true}
+  conf_data.set10('HAVE_WAYLAND', true)
 endif
 
 opt_vaapi_x11 = get_option('vaapi-x11')
@@ -236,7 +235,7 @@ dep_libva_x11_drm = dependency('libva-drm', version: libva_version, required: op
 if dep_libva_x11.found() and dep_libva_x11_drm.found()
   vaapi_enabled = true
   lib_deps += [dep_libva_x11, dep_libva_x11_drm]
-  conf_data_dict += {'HAVE_VAAPI_X11': true}
+  conf_data.set10('HAVE_VAAPI_X11', true)
 endif
 
 opt_vaapi_wayland = get_option('vaapi-wayland')
@@ -245,12 +244,12 @@ dep_libva_wayland_drm = dependency('libva-drm', version: libva_version, required
 if dep_libva_wayland.found() and dep_libva_wayland_drm.found()
   vaapi_enabled = true
   lib_deps += [dep_libva_wayland, dep_libva_wayland_drm]
-  conf_data_dict += {'HAVE_VAAPI_WAYLAND': true}
+  conf_data.set10('HAVE_VAAPI_WAYLAND', true)
 endif
 
 if vaapi_enabled
   lib_src += files('vaapi.c')
-  conf_data_dict += {'HAVE_VAAPI': true}
+  conf_data.set10('HAVE_VAAPI', true)
 endif
 
 
@@ -337,8 +336,8 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
     lib_src += gbackend_cfg.get('src')
     lib_src += host_backend_cfg.get('src')
     lib_deps += gbackend_deps
-    conf_data_dict += {gbackend_cfg.get('cfg'): true}
-    conf_data_dict += {host_backend_cfg.get('cfg') : true}
+    conf_data.set10(gbackend_cfg.get('cfg'), true)
+    conf_data.set10(host_backend_cfg.get('cfg'), true)
   endif
 endforeach
 
@@ -347,16 +346,7 @@ endforeach
 # Library
 #
 
-summary(conf_data_dict)
-
-c_args = []
-foreach conf_key, conf_value : conf_data_dict
-  if conf_value
-    c_args += ['-D' + conf_key]
-  endif
-endforeach
-add_project_arguments(c_args, language: 'c')
-add_project_arguments(c_args, language: 'c', native: true)
+configure_file(output: 'config.h', configuration: conf_data)
 
 # See https://github.com/mesonbuild/meson/pull/4747 to follow advancement on
 # the native support for symbol visibility

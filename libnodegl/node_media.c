@@ -24,6 +24,8 @@
 #include <string.h>
 #include <sxplayer.h>
 
+#include "config.h"
+
 #if defined(TARGET_ANDROID)
 #include <libavcodec/mediacodec.h>
 #include "android_imagereader.h"

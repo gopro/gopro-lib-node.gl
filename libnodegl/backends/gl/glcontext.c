@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "bstr.h"
+#include "config.h"
 #include "glcontext.h"
 #include "limit.h"
 #include "log.h"

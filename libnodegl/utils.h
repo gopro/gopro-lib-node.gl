@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "config.h"
+
 #ifdef __GNUC__
 # define ngli_printf_format(fmtpos, attrpos) __attribute__((__format__(__printf__, fmtpos, attrpos)))
 #else

@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "config.h"
+
 #if defined(TARGET_ANDROID)
 #include <jni.h>
 

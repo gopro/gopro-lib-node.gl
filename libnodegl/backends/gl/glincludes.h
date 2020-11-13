@@ -22,6 +22,8 @@
 #ifndef GLINCLUDES_H
 #define GLINCLUDES_H
 
+#include "config.h"
+
 #if __APPLE__
 # include <TargetConditionals.h>
 # if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR

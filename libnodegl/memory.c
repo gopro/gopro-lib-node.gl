@@ -19,6 +19,8 @@
  * under the License.
  */
 
+#include "config.h"
+
 #ifndef TARGET_MINGW_W64
 #define _POSIX_C_SOURCE 200809L // posix_memalign()
 #endif

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "log.h"
 
 static void default_callback(void *arg, int level, const char *filename, int ln,

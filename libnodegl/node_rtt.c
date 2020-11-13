@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "config.h"
 #include "rendertarget.h"
 #include "format.h"
 #include "gctx.h"

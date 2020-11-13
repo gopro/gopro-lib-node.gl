@@ -271,6 +271,8 @@ def gen(gl_xml, func_file, def_file, wrap_file):
     glwrappers = do_not_edit + '''
 /* WARNING: this file must only be included once */
 
+#include "config.h"
+
 #ifdef DEBUG_GL
 # define check_error_code ngli_glcontext_check_gl_error
 #else

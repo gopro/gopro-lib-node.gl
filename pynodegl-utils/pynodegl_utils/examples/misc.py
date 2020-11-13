@@ -273,6 +273,7 @@ def particules(cfg, particules=32):
     uduration = ngl.UniformFloat(cfg.duration)
 
     cp = ngl.ComputeProgram(compute_shader)
+    cp.update_properties(opositions=ngl.ResourceProps(writable=True))
 
     c = ngl.Compute(x, particules, 1, cp)
     c.update_resources(
@@ -512,6 +513,7 @@ def histogram(cfg):
     g.add_children(rtt)
 
     compute_program = ngl.ComputeProgram(cfg.get_comp('histogram-clear'))
+    compute_program.update_properties(hist=ngl.ResourceProps(writable=True))
     compute = ngl.Compute(256, 1, 1, compute_program, label='histogram-clear')
     compute.update_resources(hist=h)
     g.add_children(compute)
@@ -522,6 +524,7 @@ def histogram(cfg):
     compute_program = ngl.ComputeProgram(compute_shader)
     compute = ngl.Compute(group_size, group_size, 1, compute_program, label='histogram-exec')
     compute.update_resources(hist=h, source=proxy)
+    compute_program.update_properties(hist=ngl.ResourceProps(writable=True))
     compute_program.update_properties(source=ngl.ResourceProps(as_image=True))
     g.add_children(compute)
 

@@ -160,7 +160,7 @@ tests: ngl-tools-install pynodegl-utils-install nodegl-tests
 nodegl-tests: nodegl-install
 	(. $(ACTIVATE) && meson test -C builddir/libnodegl)
 
-nodegl-%: nodegl-install
+nodegl-%: nodegl-setup
 	(. $(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl $(subst nodegl-,,$@))
 
 clean_py:

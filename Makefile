@@ -110,8 +110,11 @@ pynodegl-install: pynodegl-deps-install
 pynodegl-deps-install: $(PREFIX) nodegl-install
 	(. $(ACTIVATE) && pip install -r ./pynodegl/requirements.txt)
 
-nodegl-install: sxplayer-install
-	(. $(ACTIVATE) && $(MESON_SETUP) libnodegl builddir/libnodegl && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
+nodegl-install: nodegl-setup
+	(. $(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
+
+nodegl-setup: sxplayer-install
+	(. $(ACTIVATE) && $(MESON_SETUP) libnodegl builddir/libnodegl)
 
 sxplayer-install: sxplayer $(PREFIX)
 	(. $(ACTIVATE) && $(MESON_SETUP) sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
@@ -188,7 +191,7 @@ coverage-xml:
 .PHONY: ngl-tools-install
 .PHONY: pynodegl-utils-install pynodegl-utils-deps-install
 .PHONY: pynodegl-install pynodegl-deps-install
-.PHONY: nodegl-install
+.PHONY: nodegl-install nodegl-setup
 .PHONY: sxplayer-install
 .PHONY: tests
 .PHONY: clean clean_py

@@ -22,6 +22,8 @@
 #ifndef GCTX_H
 #define GCTX_H
 
+#include <stdint.h>
+
 #include "buffer.h"
 #include "feature.h"
 #include "gtimer.h"
@@ -39,6 +41,7 @@ struct gctx_class {
     int (*resize)(struct gctx *s, int width, int height, const int *viewport);
     int (*begin_draw)(struct gctx *s, double t);
     int (*end_draw)(struct gctx *s, double t);
+    int (*query_draw_time)(struct gctx *s, int64_t *time);
     void (*destroy)(struct gctx *s);
 
     int (*transform_cull_mode)(struct gctx *s, int cull_mode);
@@ -114,6 +117,7 @@ struct gctx *ngli_gctx_create(const struct ngl_config *config);
 int ngli_gctx_init(struct gctx *s);
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport);
 int ngli_gctx_begin_draw(struct gctx *s, double t);
+int ngli_gctx_query_draw_time(struct gctx *s, int64_t *time);
 int ngli_gctx_end_draw(struct gctx *s, double t);
 void ngli_gctx_freep(struct gctx **sp);
 

@@ -63,6 +63,12 @@ struct gctx_gl {
     CVPixelBufferRef capture_cvbuffer;
     CVOpenGLESTextureRef capture_cvtexture;
 #endif
+    /* Timer */
+    GLuint queries[2];
+    void (*glGenQueries)(const struct glcontext *gl, GLsizei n, GLuint * ids);
+    void (*glDeleteQueries)(const struct glcontext *gl, GLsizei n, const GLuint *ids);
+    void (*glQueryCounter)(const struct glcontext *gl, GLuint id, GLenum target);
+    void (*glGetQueryObjectui64v)(const struct glcontext *gl, GLuint id, GLenum pname, GLuint64 *params);
 };
 
 #endif

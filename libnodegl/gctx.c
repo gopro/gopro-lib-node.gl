@@ -91,6 +91,11 @@ int ngli_gctx_end_draw(struct gctx *s, double t)
     return s->class->end_draw(s, t);
 }
 
+int ngli_gctx_query_draw_time(struct gctx *s, int64_t *time)
+{
+    return s->class->query_draw_time(s, time);
+}
+
 void ngli_gctx_freep(struct gctx **sp)
 {
     if (!*sp)

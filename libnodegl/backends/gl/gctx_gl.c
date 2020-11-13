@@ -259,6 +259,45 @@ static void rendertarget_reset(struct gctx *s)
     s_priv->capture_func = NULL;
 }
 
+static void noop(const struct glcontext *gl, ...)
+{
+}
+
+static int timer_init(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+
+    if (gl->features & NGLI_FEATURE_TIMER_QUERY) {
+        s_priv->glGenQueries          = ngli_glGenQueries;
+        s_priv->glDeleteQueries       = ngli_glDeleteQueries;
+        s_priv->glQueryCounter        = ngli_glQueryCounter;
+        s_priv->glGetQueryObjectui64v = ngli_glGetQueryObjectui64v;
+    } else if (gl->features & NGLI_FEATURE_EXT_DISJOINT_TIMER_QUERY) {
+        s_priv->glGenQueries          = ngli_glGenQueriesEXT;
+        s_priv->glDeleteQueries       = ngli_glDeleteQueriesEXT;
+        s_priv->glQueryCounter        = ngli_glQueryCounterEXT;
+        s_priv->glGetQueryObjectui64v = ngli_glGetQueryObjectui64vEXT;
+    } else {
+        s_priv->glGenQueries          = (void *)noop;
+        s_priv->glDeleteQueries       = (void *)noop;
+        s_priv->glQueryCounter        = (void *)noop;
+        s_priv->glGetQueryObjectui64v = (void *)noop;
+    }
+    s_priv->glGenQueries(gl, 2, s_priv->queries);
+
+    return 0;
+}
+
+static void timer_reset(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+
+    if (s_priv->glDeleteQueries)
+        s_priv->glDeleteQueries(gl, 2, s_priv->queries);
+}
+
 static struct gctx *gl_create(const struct ngl_config *config)
 {
     struct gctx_gl *s = ngli_calloc(1, sizeof(*s));
@@ -305,6 +344,10 @@ static int gl_init(struct gctx *s)
 #endif
 
     ret = gl->offscreen ? offscreen_rendertarget_init(s) : onscreen_rendertarget_init(s);
+    if (ret < 0)
+        return ret;
+
+    ret = timer_init(s);
     if (ret < 0)
         return ret;
 
@@ -376,6 +419,9 @@ static int gl_begin_draw(struct gctx *s, double t)
     struct glcontext *gl = s_priv->glcontext;
     const struct ngl_config *config = &s->config;
 
+    if (config->hud)
+        s_priv->glQueryCounter(gl, s_priv->queries[0], GL_TIMESTAMP);
+
     ngli_gctx_begin_render_pass(s, s_priv->rt);
 
     const float *color = config->clear_color;
@@ -409,9 +455,31 @@ static int gl_end_draw(struct gctx *s, double t)
     return ret;
 }
 
+static int gl_query_draw_time(struct gctx *s, int64_t *time)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+
+    const struct ngl_config *config = &s->config;
+    if (!config->hud)
+        return NGL_ERROR_INVALID_USAGE;
+
+    s_priv->glQueryCounter(gl, s_priv->queries[1], GL_TIMESTAMP);
+
+    GLuint64 start_time = 0;
+    s_priv->glGetQueryObjectui64v(gl, s_priv->queries[0], GL_QUERY_RESULT, &start_time);
+
+    GLuint64 end_time = 0;
+    s_priv->glGetQueryObjectui64v(gl, s_priv->queries[1], GL_QUERY_RESULT, &end_time);
+
+    *time = end_time - start_time;
+    return 0;
+}
+
 static void gl_destroy(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    timer_reset(s);
     rendertarget_reset(s);
     ngli_glcontext_freep(&s_priv->glcontext);
 }
@@ -542,6 +610,7 @@ const struct gctx_class ngli_gctx_gl = {
     .resize       = gl_resize,
     .begin_draw   = gl_begin_draw,
     .end_draw     = gl_end_draw,
+    .query_draw_time = gl_query_draw_time,
     .destroy      = gl_destroy,
 
     .transform_cull_mode              = gl_transform_cull_mode,

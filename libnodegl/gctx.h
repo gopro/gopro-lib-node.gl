@@ -26,7 +26,6 @@
 
 #include "buffer.h"
 #include "feature.h"
-#include "gtimer.h"
 #include "limit.h"
 #include "nodegl.h"
 #include "pipeline.h"
@@ -65,13 +64,6 @@ struct gctx_class {
     int (*buffer_init)(struct buffer *s, int size, int usage);
     int (*buffer_upload)(struct buffer *s, const void *data, int size);
     void (*buffer_freep)(struct buffer **sp);
-
-    struct gtimer *(*gtimer_create)(struct gctx *ctx);
-    int (*gtimer_init)(struct gtimer *s);
-    int (*gtimer_start)(struct gtimer *s);
-    int (*gtimer_stop)(struct gtimer *s);
-    int64_t (*gtimer_read)(struct gtimer *s);
-    void (*gtimer_freep)(struct gtimer **sp);
 
     struct pipeline *(*pipeline_create)(struct gctx *ctx);
     int (*pipeline_init)(struct pipeline *s, const struct pipeline_params *params);

@@ -34,7 +34,6 @@
 #include "rendertarget.h"
 #include "pgcache.h"
 #include "pipeline.h"
-#include "gtimer.h"
 #include "gctx.h"
 
 struct ngl_ctx;
@@ -51,7 +50,6 @@ struct gctx_gl {
     struct rendertarget *rendertarget;
     int viewport[4];
     int scissor[4];
-    int timer_active;
     struct rendertarget *rt;
     /* Offscreen render target resources */
     struct texture *color;

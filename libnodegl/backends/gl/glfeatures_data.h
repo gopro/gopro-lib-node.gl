@@ -135,6 +135,7 @@ static const struct glfeature {
                                            OFFSET(EndQueryEXT),
                                            OFFSET(GenQueriesEXT),
                                            OFFSET(DeleteQueriesEXT),
+                                           OFFSET(QueryCounterEXT),
                                            OFFSET(GetQueryObjectui64vEXT),
                                            -1}
     }, {

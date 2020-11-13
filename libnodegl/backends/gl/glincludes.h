@@ -207,6 +207,7 @@ typedef void (NGLI_GL_APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint 
 # define GL_WRITE_ONLY                         0x88B9
 # define GL_READ_WRITE                         0x88BA
 # define GL_TIME_ELAPSED                       0x88BF
+# define GL_TIMESTAMP                          0x8E28
 # define GL_STREAM_READ                        0x88E1
 # define GL_STREAM_COPY                        0x88E2
 # define GL_STATIC_READ                        0x88E5

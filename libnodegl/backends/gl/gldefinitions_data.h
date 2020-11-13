@@ -119,6 +119,8 @@ static const struct gldefinition {
     {"glMemoryBarrier", offsetof(struct glfunctions, MemoryBarrier), 0},
     {"glPixelStorei", offsetof(struct glfunctions, PixelStorei), M},
     {"glPolygonMode", offsetof(struct glfunctions, PolygonMode), 0},
+    {"glQueryCounter", offsetof(struct glfunctions, QueryCounter), 0},
+    {"glQueryCounterEXT", offsetof(struct glfunctions, QueryCounterEXT), 0},
     {"glReadBuffer", offsetof(struct glfunctions, ReadBuffer), 0},
     {"glReadPixels", offsetof(struct glfunctions, ReadPixels), M},
     {"glReleaseShaderCompiler", offsetof(struct glfunctions, ReleaseShaderCompiler), M},

@@ -71,6 +71,7 @@ cmds_optional = [
     'glEndQuery',
     'glGenQueries',
     'glDeleteQueries',
+    'glQueryCounter',
     'glGetQueryObjectui64v',
 
     # Debug
@@ -81,6 +82,7 @@ cmds_optional = [
     'glEndQueryEXT',
     'glGenQueriesEXT',
     'glDeleteQueriesEXT',
+    'glQueryCounterEXT',
     'glGetQueryObjectui64vEXT',
 
     # Instancing

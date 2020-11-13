@@ -657,6 +657,18 @@ static inline void ngli_glPolygonMode(const struct glcontext *gl, GLenum face, G
     check_error_code(gl, "glPolygonMode");
 }
 
+static inline void ngli_glQueryCounter(const struct glcontext *gl, GLuint id, GLenum target)
+{
+    gl->funcs.QueryCounter(id, target);
+    check_error_code(gl, "glQueryCounter");
+}
+
+static inline void ngli_glQueryCounterEXT(const struct glcontext *gl, GLuint id, GLenum target)
+{
+    gl->funcs.QueryCounterEXT(id, target);
+    check_error_code(gl, "glQueryCounterEXT");
+}
+
 static inline void ngli_glReadBuffer(const struct glcontext *gl, GLenum src)
 {
     gl->funcs.ReadBuffer(src);

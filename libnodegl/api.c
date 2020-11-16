@@ -235,8 +235,28 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         return ret;
 
+    ret = ngli_gctx_begin_draw(s->gctx, t);
+    if (ret < 0)
+        goto end;
+
+    struct rendertarget *rt = ngli_gctx_get_default_rendertarget(s->gctx);
+    s->available_rendertargets[0] = rt;
+    s->available_rendertargets[1] = rt;
+    s->current_rendertarget = rt;
+    s->begin_render_pass = 0;
+
     struct ngl_node *scene = s->scene;
-    return ngli_gctx_draw(s->gctx, scene, t);
+    if (scene) {
+        LOG(DEBUG, "draw scene %s @ t=%f", scene->label, t);
+        ngli_node_draw(scene);
+    }
+
+end:;
+    int end_ret = ngli_gctx_end_draw(s->gctx, t);
+    if (end_ret < 0)
+        return end_ret;
+
+    return ret;
 }
 
 static int dispatch_cmd(struct ngl_ctx *s, cmd_func_type cmd_func, void *arg)

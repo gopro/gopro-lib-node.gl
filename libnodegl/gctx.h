@@ -113,7 +113,8 @@ struct gctx {
 struct gctx *ngli_gctx_create(const struct ngl_config *config);
 int ngli_gctx_init(struct gctx *s);
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport);
-int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t);
+int ngli_gctx_begin_draw(struct gctx *s, double t);
+int ngli_gctx_end_draw(struct gctx *s, double t);
 void ngli_gctx_freep(struct gctx **sp);
 
 int ngli_gctx_transform_cull_mode(struct gctx *s, int cull_mode);

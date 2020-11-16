@@ -81,31 +81,14 @@ int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport)
     return class->resize(s, width, height, viewport);
 }
 
-int ngli_gctx_draw(struct gctx *s, struct ngl_node *scene, double t)
+int ngli_gctx_begin_draw(struct gctx *s, double t)
 {
-    const struct gctx_class *class = s->class;
+    return s->class->begin_draw(s, t);
+}
 
-    int ret = class->begin_draw(s, t);
-    if (ret < 0)
-        goto end;
-
-    if (scene) {
-        struct ngl_ctx *ctx = scene->ctx;
-        struct rendertarget *rt = ngli_gctx_get_default_rendertarget(s);
-        ctx->available_rendertargets[0] = rt;
-        ctx->available_rendertargets[1] = rt;
-        ctx->current_rendertarget = rt;
-        ctx->begin_render_pass = 0;
-        LOG(DEBUG, "draw scene %s @ t=%f", scene->label, t);
-        ngli_node_draw(scene);
-    }
-
-end:;
-    int end_ret = class->end_draw(s, t);
-    if (end_ret < 0)
-        return end_ret;
-
-    return ret;
+int ngli_gctx_end_draw(struct gctx *s, double t)
+{
+    return s->class->end_draw(s, t);
 }
 
 void ngli_gctx_freep(struct gctx **sp)

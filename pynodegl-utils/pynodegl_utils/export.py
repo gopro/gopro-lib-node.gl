@@ -21,14 +21,13 @@
 
 import os
 import os.path as op
-import tempfile
 import subprocess
 
 import pynodegl as ngl
 from PySide2 import QtGui, QtCore
 
 from .com import query_inplace
-from .misc import get_backend, get_viewport
+from .misc import get_backend, get_viewport, get_nodegl_tempdir
 
 
 class Exporter(QtCore.QThread):
@@ -51,7 +50,7 @@ class Exporter(QtCore.QThread):
         filename, width, height = self._filename, self._width, self._height
 
         if filename.endswith('gif'):
-            palette_filename = op.join(tempfile.gettempdir(), 'palette.png')
+            palette_filename = op.join(get_nodegl_tempdir(), 'palette.png')
             pass1_args = ['-vf', 'palettegen']
             pass2_args = self._extra_enc_args + ['-i', palette_filename, '-lavfi', 'paletteuse']
             ok = self._export(palette_filename, width, height, pass1_args)

@@ -271,16 +271,22 @@ static int timer_init(struct gctx *s)
     if (gl->features & NGLI_FEATURE_TIMER_QUERY) {
         s_priv->glGenQueries          = ngli_glGenQueries;
         s_priv->glDeleteQueries       = ngli_glDeleteQueries;
+        s_priv->glBeginQuery          = ngli_glBeginQuery;
+        s_priv->glEndQuery            = ngli_glEndQuery;
         s_priv->glQueryCounter        = ngli_glQueryCounter;
         s_priv->glGetQueryObjectui64v = ngli_glGetQueryObjectui64v;
     } else if (gl->features & NGLI_FEATURE_EXT_DISJOINT_TIMER_QUERY) {
         s_priv->glGenQueries          = ngli_glGenQueriesEXT;
         s_priv->glDeleteQueries       = ngli_glDeleteQueriesEXT;
+        s_priv->glBeginQuery          = ngli_glBeginQueryEXT;
+        s_priv->glEndQuery            = ngli_glEndQueryEXT;
         s_priv->glQueryCounter        = ngli_glQueryCounterEXT;
         s_priv->glGetQueryObjectui64v = ngli_glGetQueryObjectui64vEXT;
     } else {
         s_priv->glGenQueries          = (void *)noop;
         s_priv->glDeleteQueries       = (void *)noop;
+        s_priv->glBeginQuery          = (void *)noop;
+        s_priv->glEndQuery            = (void *)noop;
         s_priv->glQueryCounter        = (void *)noop;
         s_priv->glGetQueryObjectui64v = (void *)noop;
     }
@@ -420,7 +426,11 @@ static int gl_begin_draw(struct gctx *s, double t)
     const struct ngl_config *config = &s->config;
 
     if (config->hud)
+#if defined(TARGET_DARWIN)
+        s_priv->glBeginQuery(gl, GL_TIME_ELAPSED, s_priv->queries[0]);
+#else
         s_priv->glQueryCounter(gl, s_priv->queries[0], GL_TIMESTAMP);
+#endif
 
     ngli_gctx_begin_render_pass(s, s_priv->rt);
 
@@ -464,6 +474,12 @@ static int gl_query_draw_time(struct gctx *s, int64_t *time)
     if (!config->hud)
         return NGL_ERROR_INVALID_USAGE;
 
+#if defined(TARGET_DARWIN)
+    GLuint64 time_elapsed = 0;
+    s_priv->glEndQuery(gl, GL_TIME_ELAPSED);
+    s_priv->glGetQueryObjectui64v(gl, s_priv->queries[0], GL_QUERY_RESULT, &time_elapsed);
+    *time = time_elapsed;
+#else
     s_priv->glQueryCounter(gl, s_priv->queries[1], GL_TIMESTAMP);
 
     GLuint64 start_time = 0;
@@ -473,6 +489,7 @@ static int gl_query_draw_time(struct gctx *s, int64_t *time)
     s_priv->glGetQueryObjectui64v(gl, s_priv->queries[1], GL_QUERY_RESULT, &end_time);
 
     *time = end_time - start_time;
+#endif
     return 0;
 }
 

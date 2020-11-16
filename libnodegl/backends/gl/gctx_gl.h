@@ -67,6 +67,8 @@ struct gctx_gl {
     GLuint queries[2];
     void (*glGenQueries)(const struct glcontext *gl, GLsizei n, GLuint * ids);
     void (*glDeleteQueries)(const struct glcontext *gl, GLsizei n, const GLuint *ids);
+    void (*glBeginQuery)(const struct glcontext *gl, GLenum target, GLuint id);
+    void (*glEndQuery)(const struct glcontext *gl, GLenum target);
     void (*glQueryCounter)(const struct glcontext *gl, GLuint id, GLenum target);
     void (*glGetQueryObjectui64v)(const struct glcontext *gl, GLuint id, GLenum pname, GLuint64 *params);
 };

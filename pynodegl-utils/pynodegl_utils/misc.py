@@ -19,6 +19,7 @@
 # under the License.
 #
 
+import os
 import os.path as op
 import tempfile
 import platform
@@ -132,9 +133,16 @@ class Media:
         return self._framerate[0] / float(self._framerate[1])
 
 
+def get_nodegl_tempdir():
+    tmpdir = op.join(tempfile.gettempdir(), 'nodegl')
+    if not op.exists(tmpdir):
+        os.makedirs(tmpdir)
+    return tmpdir
+
+
 class SceneCfg:
 
-    _DEFAULT_MEDIA_FILE = op.join(tempfile.gettempdir(), 'ngl-media.mp4')
+    _DEFAULT_MEDIA_FILE = op.join(get_nodegl_tempdir(), 'ngl-media.mp4')
     _DEFAULT_FIELDS = {
         'aspect_ratio': (16, 9),
         'duration': 30.0,

@@ -126,3 +126,4 @@ Key           | Action
 `f`           | toggle windowed/fullscreen
 `s`           | take a screenshot
 `k`           | kill the current scene
+`h`           | toggle the HUD

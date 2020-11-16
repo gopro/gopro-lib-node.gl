@@ -221,6 +221,14 @@ static void reset_running_time(void)
     p->clock_off = gettime_relative() - p->frame_ts;
 }
 
+static int toggle_hud(void)
+{
+    struct player *p = g_player;
+    struct ngl_config *config = &p->ngl_config;
+    config->hud ^= 1;
+    return ngl_configure(p->ngl, config);
+}
+
 static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
 {
     struct player *p = g_player;
@@ -238,6 +246,8 @@ static int key_callback(SDL_Window *window, SDL_KeyboardEvent *event)
         p->fullscreen ^= 1;
         SDL_SetWindowFullscreen(window, p->fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
         break;
+    case SDLK_h:
+        return toggle_hud();
     case SDLK_s:
         screenshot();
         break;
@@ -480,6 +490,16 @@ int player_init(struct player *p, const char *win_title, struct ngl_node *scene,
         p->ngl_config.viewport[2] = cfg->width;
         p->ngl_config.viewport[3] = cfg->height;
     }
+
+    static const int refresh_rate[2] = {1, 60};
+    p->ngl_config.hud_refresh_rate[0] = refresh_rate[0];
+    p->ngl_config.hud_refresh_rate[1] = refresh_rate[1];
+    p->ngl_config.hud_measure_window = refresh_rate[1] / (4 * refresh_rate[0]); /* 1/4-second measurement window */
+
+    int ww, wh, dw, dh;
+    SDL_GetWindowSize(p->window, &ww, &wh);
+    SDL_GL_GetDrawableSize(p->window, &dw, &dh);
+    p->ngl_config.hud_scale = dw / ww;
 
     int ret = wsi_set_ngl_config(&p->ngl_config, p->window);
     if (ret < 0)

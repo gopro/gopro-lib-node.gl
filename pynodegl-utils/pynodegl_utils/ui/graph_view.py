@@ -21,7 +21,6 @@
 #
 
 import os.path as op
-import tempfile
 import subprocess
 from PySide2 import QtCore, QtGui, QtWidgets, QtSvg
 
@@ -189,7 +188,7 @@ class GraphView(QtWidgets.QWidget):
         )
 
     def _update_graph(self, dot_scene):
-        basename = op.join(tempfile.gettempdir(), 'ngl_scene.')
+        basename = op.join(misc.get_nodegl_tempdir(), 'ngl_scene.')
         dotfile = basename + 'dot'
         svgfile = basename + 'svg'
         with open(dotfile, 'w') as f:

@@ -72,7 +72,6 @@ class CompareSceneBase(CompareBase):
                  clear_color=(0.0, 0.0, 0.0, 1.0),
                  exercise_serialization=True,
                  exercise_dot=True,
-                 scene_wrap=None,
                  samples=0,
                  **scene_kwargs):
         self._width = width
@@ -84,7 +83,6 @@ class CompareSceneBase(CompareBase):
         self._scene_kwargs = scene_kwargs
         self._exercise_serialization = exercise_serialization
         self._exercise_dot = exercise_dot
-        self._scene_wrap = scene_wrap
         self._samples = samples
         self._hud = 0
         self._hud_export_filename = None
@@ -114,9 +112,6 @@ class CompareSceneBase(CompareBase):
                              hud=self._hud,
                              hud_export_filename=self._hud_export_filename) == 0
         timescale = duration / float(self._nb_keyframes)
-
-        if self._scene_wrap:
-            scene = self._scene_wrap(scene)
 
         if self._exercise_dot:
             assert scene.dot()

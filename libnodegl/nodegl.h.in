@@ -144,7 +144,6 @@ struct ngl_node;
 #define NGL_NODE_GEOMETRY               NGLI_FOURCC('G','e','o','m')
 #define NGL_NODE_GRAPHICCONFIG          NGLI_FOURCC('G','r','C','f')
 #define NGL_NODE_GROUP                  NGLI_FOURCC('G','r','p',' ')
-#define NGL_NODE_HUD                    NGLI_FOURCC('H','U','D',' ')
 #define NGL_NODE_IDENTITY               NGLI_FOURCC('I','d',' ',' ')
 #define NGL_NODE_IOINT                  NGLI_FOURCC('I','O','i','1')
 #define NGL_NODE_IOIVEC2                NGLI_FOURCC('I','O','i','2')
@@ -402,6 +401,17 @@ struct ngl_config {
     uint8_t *capture_buffer; /* RGBA offscreen capture buffer. If allocated,
                                 its size must be at least width * height * 4
                                 bytes. */
+
+    int hud;                 /* Enable the debug HUD */
+
+    int hud_measure_window;  /* Window size for the latency measures displayed by the HUD.
+                                Defaults to 60 */
+
+    int hud_refresh_rate[2]; /* HUD refresh rate */
+
+    const char *hud_export_filename; /* Path to the HUD export file (CSV). Disables display if enabled. */
+
+    int hud_scale;           /* Scaling applied to the HUD, useful for high DPI displays */
 };
 
 #define NGL_CAP_BLOCK                         NGL_NODE_BLOCK

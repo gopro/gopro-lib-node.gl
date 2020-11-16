@@ -39,7 +39,6 @@ class Toolbar(QtWidgets.QWidget):
     logLevelChanged = QtCore.Signal(str)
     clearColorChanged = QtCore.Signal(tuple)
     backendChanged = QtCore.Signal(str)
-    hudChanged = QtCore.Signal(bool)
 
     def __init__(self, config):
         super().__init__()
@@ -201,7 +200,6 @@ class Toolbar(QtWidgets.QWidget):
                 'framerate': choices['framerate'][self._fr_cbbox.currentIndex()],
                 'samples': choices['samples'][self._samples_cbbox.currentIndex()],
                 'extra_args': self._scene_extra_args,
-                'hud_scale': round(self.devicePixelRatioF()),
                 'clear_color': self._clear_color,
                 'backend': choices['backend'][self._backend_cbbox.currentIndex()],
         }

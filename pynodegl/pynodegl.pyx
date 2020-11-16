@@ -102,6 +102,11 @@ cdef extern from "nodegl.h":
         int  set_surface_pts
         float clear_color[4]
         uint8_t *capture_buffer
+        int hud
+        int hud_measure_window
+        int hud_refresh_rate[2]
+        const char *hud_export_filename
+        int hud_scale
 
     ngl_ctx *ngl_create()
     int ngl_backends_probe(const ngl_config *user_config, int *nb_backendsp, ngl_backend **backendsp)
@@ -245,6 +250,7 @@ def probe_backends(**kwargs):
 cdef class Context:
     cdef ngl_ctx *ctx
     cdef object capture_buffer
+    cdef object hud_export_filename
 
     def __cinit__(self):
         self.ctx = ngl_create()
@@ -274,9 +280,19 @@ cdef class Context:
         capture_buffer = kwargs.get('capture_buffer')
         if capture_buffer is not None:
             config.capture_buffer = capture_buffer
+        config.hud = kwargs.get('hud', 0)
+        config.hud_measure_window = kwargs.get('hud_measure_window', 0)
+        hud_refresh_rate = kwargs.get('hud_refresh_rate', (0, 0))
+        config.hud_refresh_rate[0] = hud_refresh_rate[0]
+        config.hud_refresh_rate[1] = hud_refresh_rate[1]
+        hud_export_filename = kwargs.get('hud_export_filename')
+        if hud_export_filename is not None:
+            config.hud_export_filename = hud_export_filename
+        config.hud_scale = kwargs.get('hud_scale', 0)
 
     def configure(self, **kwargs):
         self.capture_buffer = kwargs.get('capture_buffer')
+        self.hud_export_filename = kwargs.get('hud_export_filename')
         cdef ngl_config config
         Context._init_ngl_config_from_dict(&config, kwargs)
         return ngl_configure(self.ctx, &config)

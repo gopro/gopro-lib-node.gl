@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "config.h"
@@ -86,6 +87,8 @@ static int cmd_stop(struct ngl_ctx *s, void *arg)
 #endif
     ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_pgcache_reset(&s->pgcache);
+    ngli_hud_freep(&s->hud);
+    ngli_gtimer_freep(&s->gpu_timer);
     ngli_gctx_freep(&s->gctx);
 
     return 0;
@@ -160,6 +163,24 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         }
     }
 
+    if (config->hud) {
+        s->gpu_timer = ngli_gtimer_create(s->gctx);
+        if (!s->gpu_timer)
+            return NGL_ERROR_MEMORY;
+
+        ret = ngli_gtimer_init(s->gpu_timer);
+        if (ret < 0)
+            return ret;
+
+        s->hud = ngli_hud_create(s);
+        if (!s->hud)
+            return NGL_ERROR_MEMORY;
+
+        ret = ngli_hud_init(s->hud);
+        if (ret < 0)
+            return ret;
+    }
+
     return 0;
 }
 
@@ -197,6 +218,20 @@ static int cmd_set_scene(struct ngl_ctx *s, void *arg)
     }
 
     s->scene = ngl_node_ref(scene);
+
+    const struct ngl_config *config = &s->config;
+    if (config->hud) {
+        ngli_hud_freep(&s->hud);
+
+        s->hud = ngli_hud_create(s);
+        if (!s->hud)
+            return NGL_ERROR_MEMORY;
+
+        ret = ngli_hud_init(s->hud);
+        if (ret < 0)
+            return ret;
+    }
+
     return 0;
 }
 
@@ -211,6 +246,8 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
 
     LOG(DEBUG, "prepare scene %s @ t=%f", scene->label, t);
 
+    const int64_t start_time = s->hud ? ngli_gettime_relative() : 0;
+
     ngli_darray_clear(&s->activitycheck_nodes);
     int ret = ngli_node_visit(scene, 1, t);
     if (ret < 0)
@@ -223,6 +260,8 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
     ret = ngli_node_update(scene, t);
     if (ret < 0)
         return ret;
+
+    s->cpu_update_time = s->hud ? ngli_gettime_relative() - start_time : 0;
 
     return 0;
 }
@@ -239,6 +278,12 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         goto end;
 
+    int64_t cpu_start_time = 0;
+    if (s->hud) {
+        ngli_gtimer_start(s->gpu_timer);
+        cpu_start_time = ngli_gettime_relative();
+    }
+
     struct rendertarget *rt = ngli_gctx_get_default_rendertarget(s->gctx);
     s->available_rendertargets[0] = rt;
     s->available_rendertargets[1] = rt;
@@ -249,6 +294,13 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
     if (scene) {
         LOG(DEBUG, "draw scene %s @ t=%f", scene->label, t);
         ngli_node_draw(scene);
+    }
+
+    if (s->hud) {
+        s->cpu_draw_time = ngli_gettime_relative() - cpu_start_time;
+        ngli_gtimer_stop(s->gpu_timer);
+        s->gpu_draw_time = ngli_gtimer_read(s->gpu_timer);
+        ngli_hud_draw(s->hud);
     }
 
 end:;

@@ -77,7 +77,6 @@
     action(NGL_NODE_GEOMETRY,               ngli_geometry_class)                \
     action(NGL_NODE_GRAPHICCONFIG,          ngli_graphicconfig_class)           \
     action(NGL_NODE_GROUP,                  ngli_group_class)                   \
-    action(NGL_NODE_HUD,                    ngli_hud_class)                     \
     action(NGL_NODE_IDENTITY,               ngli_identity_class)                \
     action(NGL_NODE_IOINT,                  ngli_ioint_class)                   \
     action(NGL_NODE_IOIVEC2,                ngli_ioivec2_class)                 \

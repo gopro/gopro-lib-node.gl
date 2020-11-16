@@ -337,20 +337,6 @@ Parameter | Live-chg. | Type | Description | Default
 **Source**: [node_group.c](/libnodegl/node_group.c)
 
 
-## HUD
-
-Parameter | Live-chg. | Type | Description | Default
---------- | :-------: | ---- | ----------- | :-----:
-`child` |  | [`Node`](#parameter-types) | scene to benchmark | 
-`measure_window` |  | [`int`](#parameter-types) | window size for latency measures | `60`
-`refresh_rate` |  | [`rational`](#parameter-types) | refresh data buffer every `update_rate` second | 
-`export_filename` |  | [`string`](#parameter-types) | path to export file (CSV), disable display if enabled | 
-`scale` |  | [`int`](#parameter-types) | scaling applied to the HUD, useful for high DPI displays | `0`
-
-
-**Source**: [node_hud.c](/libnodegl/node_hud.c)
-
-
 ## Identity
 
 **Source**: [node_identity.c](/libnodegl/node_identity.c)

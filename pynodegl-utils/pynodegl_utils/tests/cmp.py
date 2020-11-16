@@ -86,6 +86,8 @@ class CompareSceneBase(CompareBase):
         self._exercise_dot = exercise_dot
         self._scene_wrap = scene_wrap
         self._samples = samples
+        self._hud = 0
+        self._hud_export_filename = None
 
     def render_frames(self):
         # We make sure the lists of medias is explicitely empty. If we don't a
@@ -108,7 +110,9 @@ class CompareSceneBase(CompareBase):
                              backend=get_backend(backend) if backend else ngl.BACKEND_AUTO,
                              samples=self._samples,
                              clear_color=self._clear_color,
-                             capture_buffer=capture_buffer) == 0
+                             capture_buffer=capture_buffer,
+                             hud=self._hud,
+                             hud_export_filename=self._hud_export_filename) == 0
         timescale = duration / float(self._nb_keyframes)
 
         if self._scene_wrap:

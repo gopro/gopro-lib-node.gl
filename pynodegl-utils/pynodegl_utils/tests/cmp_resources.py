@@ -47,17 +47,16 @@ _COLS = (
 class _CompareResources(CompareSceneBase):
 
     def __init__(self, scene_func, columns=_COLS, **kwargs):
-        super().__init__(scene_func, width=320, height=240,
-                                                scene_wrap=self._scene_wrap,
-                                                **kwargs)
-        self._columns = columns
+        super().__init__(scene_func, width=320, height=240, **kwargs)
 
-    def _scene_wrap(self, scene):
         # We can't use NamedTemporaryFile because we may not be able to open it
         # twice on some systems
         fd, self._csvfile = tempfile.mkstemp(suffix='.csv', prefix='ngl-test-resources-')
         os.close(fd)
-        return ngl.HUD(scene, export_filename=self._csvfile)
+
+        self._columns = columns
+        self._hud = 1
+        self._hud_export_filename = self._csvfile
 
     def get_out_data(self, debug=False, debug_func=None):
         for frame in self.render_frames():

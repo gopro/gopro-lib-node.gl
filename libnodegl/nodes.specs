@@ -217,13 +217,6 @@
 - Group:
     - [children, NodeList]
 
-- HUD:
-    - [child, Node]
-    - [measure_window, int]
-    - [refresh_rate, rational]
-    - [export_filename, string]
-    - [scale, int]
-
 - Identity:
 
 - _IOVar:

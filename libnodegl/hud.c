@@ -22,7 +22,6 @@
 #include <fcntl.h>
 #include <inttypes.h>
 #include <math.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -41,15 +40,15 @@
 #include "pipeline.h"
 #include "type.h"
 #include "topology.h"
-#include "gtimer.h"
 #include "graphicstate.h"
+#include "hud.h"
 
 struct hud {
     struct ngl_ctx *ctx;
-    struct ngl_node *child;
+
     int measure_window;
     int refresh_rate[2];
-    char *export_filename;
+    const char *export_filename;
     int scale;
 
     struct darray widgets;
@@ -68,21 +67,6 @@ struct hud {
 
     int modelview_matrix_index;
     int projection_matrix_index;
-};
-
-#define OFFSET(x) offsetof(struct hud, x)
-static const struct node_param hud_params[] = {
-    {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
-              .desc=NGLI_DOCSTRING("scene to benchmark")},
-    {"measure_window", PARAM_TYPE_INT, OFFSET(measure_window), {.i64=60},
-                       .desc=NGLI_DOCSTRING("window size for latency measures")},
-    {"refresh_rate",   PARAM_TYPE_RATIONAL, OFFSET(refresh_rate),
-                       .desc=NGLI_DOCSTRING("refresh data buffer every `update_rate` second")},
-    {"export_filename", PARAM_TYPE_STR, OFFSET(export_filename),
-                        .desc=NGLI_DOCSTRING("path to export file (CSV), disable display if enabled")},
-    {"scale",           PARAM_TYPE_INT, OFFSET(scale),
-                        .desc=NGLI_DOCSTRING("scaling applied to the HUD, useful for high DPI displays")},
-    {NULL}
 };
 
 #define WIDGET_PADDING 4
@@ -280,7 +264,6 @@ struct latency_measure {
 
 struct widget_latency {
     struct latency_measure measures[NB_LATENCY];
-    struct gtimer *timer;
 };
 
 struct widget_memory {
@@ -327,14 +310,6 @@ static int widget_latency_init(struct hud *s, struct widget *widget)
 {
     struct widget_latency *priv = widget->priv_data;
 
-    priv->timer = ngli_gtimer_create(s->ctx->gctx);
-    if (!priv->timer)
-        return NGL_ERROR_MEMORY;
-
-    int ret = ngli_gtimer_init(priv->timer);
-    if (ret < 0)
-        return ret;
-
     ngli_assert(NB_LATENCY == NGLI_ARRAY_NB(priv->measures));
 
     s->measure_window = NGLI_MAX(s->measure_window, 1);
@@ -373,6 +348,9 @@ static int track_children_per_types(struct hmap *map, struct ngl_node *node, int
 
 static int make_nodes_set(struct ngl_node *scene, struct darray *nodes_list, const int *node_types)
 {
+    if (!scene)
+        return 0;
+
     /* construct a set of the nodes of a given type(s) */
     struct hmap *nodes_set = ngli_hmap_create();
     if (!nodes_set)
@@ -401,11 +379,13 @@ static int make_nodes_set(struct ngl_node *scene, struct darray *nodes_list, con
 
 static int widget_memory_init(struct hud *s, struct widget *widget)
 {
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_node *scene = ctx->scene;
     struct widget_memory *priv = widget->priv_data;
 
     for (int i = 0; i < NB_MEMORY; i++) {
         const int *node_types = memory_specs[i].node_types;
-        int ret = make_nodes_set(s->child, &priv->nodes[i], node_types);
+        int ret = make_nodes_set(scene, &priv->nodes[i], node_types);
         if (ret < 0)
             return ret;
     }
@@ -414,18 +394,22 @@ static int widget_memory_init(struct hud *s, struct widget *widget)
 
 static int widget_activity_init(struct hud *s, struct widget *widget)
 {
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_node *scene = ctx->scene;
     const struct activity_spec *spec = widget->user_data;
     struct widget_activity *priv = widget->priv_data;
     const int *node_types = spec->node_types;
-    return make_nodes_set(s->child, &priv->nodes, node_types);
+    return make_nodes_set(scene, &priv->nodes, node_types);
 }
 
 static int widget_drawcall_init(struct hud *s, struct widget *widget)
 {
+    struct ngl_ctx *ctx = s->ctx;
+    struct ngl_node *scene = ctx->scene;
     const struct drawcall_spec *spec = widget->user_data;
     struct widget_drawcall *priv = widget->priv_data;
     const int *node_types = spec->node_types;
-    return make_nodes_set(s->child, &priv->nodes, node_types);
+    return make_nodes_set(scene, &priv->nodes, node_types);
 }
 
 /* Widget update */
@@ -438,43 +422,17 @@ static void register_time(struct hud *s, struct latency_measure *m, int64_t t)
     m->count = NGLI_MIN(m->count + 1, s->measure_window);
 }
 
-static int widget_latency_update(struct hud *s, struct widget *widget, double t)
-{
-    int ret;
-    struct ngl_node *child = s->child;
-    struct widget_latency *priv = widget->priv_data;
-
-    int64_t update_start = ngli_gettime_relative();
-    ret = ngli_node_update(child, t);
-    int64_t update_end = ngli_gettime_relative();
-
-    register_time(s, &priv->measures[LATENCY_UPDATE_CPU], update_end - update_start);
-
-    return ret;
-}
-
 /* Widget make stats */
 
 static void widget_latency_make_stats(struct hud *s, struct widget *widget)
 {
+    struct ngl_ctx *ctx = s->ctx;
     struct widget_latency *priv = widget->priv_data;
 
-    ngli_gtimer_start(priv->timer);
-    const int64_t draw_start = ngli_gettime_relative();
-    ngli_node_draw(s->child);
-    const int64_t draw_end = ngli_gettime_relative();
-    ngli_gtimer_stop(priv->timer);
-
-    int64_t cpu_tdraw = draw_end - draw_start;
-    register_time(s, &priv->measures[LATENCY_DRAW_CPU], cpu_tdraw);
-
-    const struct latency_measure *cpu_up = &priv->measures[LATENCY_UPDATE_CPU];
-    const int last_cpu_up_pos = (cpu_up->pos ? cpu_up->pos : s->measure_window) - 1;
-    const int64_t cpu_tupdate = cpu_up->times[last_cpu_up_pos];
-    register_time(s, &priv->measures[LATENCY_TOTAL_CPU], cpu_tdraw + cpu_tupdate);
-
-    int64_t gpu_tdraw = ngli_gtimer_read(priv->timer);
-    register_time(s, &priv->measures[LATENCY_DRAW_GPU], gpu_tdraw);
+    register_time(s, &priv->measures[LATENCY_UPDATE_CPU], ctx->cpu_update_time);
+    register_time(s, &priv->measures[LATENCY_DRAW_CPU],   ctx->cpu_draw_time);
+    register_time(s, &priv->measures[LATENCY_TOTAL_CPU],  ctx->cpu_update_time + ctx->cpu_draw_time);
+    register_time(s, &priv->measures[LATENCY_DRAW_GPU],   ctx->gpu_draw_time);
 }
 
 static void widget_memory_make_stats(struct hud *s, struct widget *widget)
@@ -839,7 +797,6 @@ static void widget_latency_uninit(struct hud *s, struct widget *widget)
     struct widget_latency *priv = widget->priv_data;
     for (int i = 0; i < NB_LATENCY; i++)
         ngli_free(priv->measures[i].times);
-    ngli_gtimer_freep(&priv->timer);
 }
 
 static void widget_memory_uninit(struct hud *s, struct widget *widget)
@@ -1074,20 +1031,19 @@ static void widget_drawcall_reset_draws(struct widget *widget)
 
 static void widgets_make_stats(struct hud *s)
 {
-    /* HACK: reset drawcall draw counts before calling
-     * widget_latency_make_stats(). This is needed here because several draws
-     * can happen without update (for instance in case of a resize). */
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
+    for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
+        struct widget *widget = &widgets[i];
+        widget_specs[widget->type].make_stats(s, widget);
+    }
+    /* HACK: reset drawcall draw counts after calling
+     * widget_latency_make_stats(). This is needed here because several draws
+     * can happen without update (for instance in case of a resize). */
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         struct widget *w = &widgets[i];
         if (w->type == WIDGET_DRAWCALL)
             widget_drawcall_reset_draws(w);
-    }
-
-    for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
-        struct widget *widget = &widgets[i];
-        widget_specs[widget->type].make_stats(s, widget);
     }
 }
 
@@ -1135,11 +1091,14 @@ static int widgets_csv_header(struct hud *s)
     return 0;
 }
 
-static void widgets_csv_report(struct hud *s, double t)
+static void widgets_csv_report(struct hud *s)
 {
+    const struct ngl_ctx *ctx = s->ctx;
+    const struct ngl_node *scene = ctx->scene;
+
     ngli_bstr_clear(s->csv_line);
     /* Quoting to prevent locale issues with float printing */
-    ngli_bstr_printf(s->csv_line, "\"%f\"", t);
+    ngli_bstr_printf(s->csv_line, "\"%f\"", scene ? scene->last_update_time : 0);
 
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
@@ -1193,21 +1152,38 @@ static const struct pgcraft_iovar vert_out_vars[] = {
     {.name = "var_tex_coord", .type = NGLI_TYPE_VEC2},
 };
 
-static int hud_init(struct ngl_node *node)
+struct hud *ngli_hud_create(struct ngl_ctx *ctx)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
-    struct hud *s = node->priv_data;
-
+    struct hud *s = ngli_calloc(1, sizeof(*s));
+    if (!s)
+        return NULL;
     s->ctx = ctx;
+    return s;
+}
 
-    int ret = widgets_init(s);
-    if (ret < 0)
-        return ret;
+int ngli_hud_init(struct hud *s)
+{
+    struct ngl_ctx *ctx = s->ctx;
+    const struct ngl_config *config = &ctx->config;
+    struct gctx *gctx = ctx->gctx;
+
+    s->scale = config->hud_scale;
+    s->measure_window = config->hud_measure_window;
+    s->refresh_rate[0] = config->hud_refresh_rate[0];
+    s->refresh_rate[1] = config->hud_refresh_rate[1];
+    s->export_filename = config->hud_export_filename;
+    s->scale = config->hud_scale;
+
+    if (!s->measure_window)
+        s->measure_window = 60;
 
     if (s->refresh_rate[1])
         s->refresh_rate_interval = s->refresh_rate[0] / (double)s->refresh_rate[1];
     s->last_refresh_time = -1;
+
+    int ret = widgets_init(s);
+    if (ret < 0)
+        return ret;
 
     if (s->export_filename)
         return widgets_csv_header(s);
@@ -1335,23 +1311,14 @@ static int hud_init(struct ngl_node *node)
     return 0;
 }
 
-static int hud_update(struct ngl_node *node, double t)
+void ngli_hud_draw(struct hud *s)
 {
-    struct hud *s = node->priv_data;
-    struct darray *widgets_array = &s->widgets;
-    struct widget *widgets = ngli_darray_data(widgets_array);
-    return widget_latency_update(s, &widgets[0], t);
-}
-
-static void hud_draw(struct ngl_node *node)
-{
-    struct ngl_ctx *ctx = node->ctx;
+    struct ngl_ctx *ctx = s->ctx;
     struct gctx *gctx = ctx->gctx;
-    struct hud *s = node->priv_data;
 
     widgets_make_stats(s);
     if (s->export_filename) {
-        widgets_csv_report(s, node->last_update_time);
+        widgets_csv_report(s);
         return;
     }
 
@@ -1398,9 +1365,11 @@ static void hud_draw(struct ngl_node *node)
     ngli_pipeline_draw(s->pipeline, 4, 1);
 }
 
-static void hud_uninit(struct ngl_node *node)
+void ngli_hud_freep(struct hud **sp)
 {
-    struct hud *s = node->priv_data;
+    struct hud *s = *sp;
+    if (!s)
+        return;
 
     ngli_pipeline_freep(&s->pipeline);
     ngli_pgcraft_freep(&s->crafter);
@@ -1413,16 +1382,6 @@ static void hud_uninit(struct ngl_node *node)
         close(s->fd_export);
         ngli_bstr_freep(&s->csv_line);
     }
-}
 
-const struct node_class ngli_hud_class = {
-    .id        = NGL_NODE_HUD,
-    .name      = "HUD",
-    .init      = hud_init,
-    .update    = hud_update,
-    .draw      = hud_draw,
-    .uninit    = hud_uninit,
-    .priv_size = sizeof(struct hud),
-    .params    = hud_params,
-    .file      = __FILE__,
-};
+    ngli_freep(sp);
+}

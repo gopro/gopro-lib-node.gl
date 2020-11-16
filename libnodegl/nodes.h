@@ -56,6 +56,7 @@
 #include "drawutils.h"
 #include "graphicstate.h"
 #include "hmap.h"
+#include "hud.h"
 #include "hwconv.h"
 #include "hwupload.h"
 #include "image.h"
@@ -106,6 +107,11 @@ struct ngl_ctx {
 #if defined(TARGET_ANDROID)
     struct android_ctx android_ctx;
 #endif
+    struct hud *hud;
+    struct gtimer *gpu_timer;
+    int64_t cpu_update_time;
+    int64_t cpu_draw_time;
+    int64_t gpu_draw_time;
 
     /* Shared fields */
     pthread_mutex_t lock;

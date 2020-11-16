@@ -135,9 +135,8 @@ def api_capture_buffer_lifetime(width=1024, height=1024):
 # just for blind coverage and similar code instrumentalization.
 def api_hud(width=234, height=123):
     ctx = ngl.Context()
-    assert ctx.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
-    render = _get_scene()
-    scene = ngl.HUD(render)
+    assert ctx.configure(offscreen=1, width=width, height=height, backend=_backend, hud=1) == 0
+    scene = _get_scene()
     assert ctx.set_scene(scene) == 0
     for i in range(60 * 3):
         assert ctx.draw(i / 60.) == 0

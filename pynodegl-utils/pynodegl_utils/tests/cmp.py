@@ -24,8 +24,7 @@ import os
 import os.path as op
 import difflib
 import pynodegl as ngl
-from pynodegl_utils.misc import get_backend
-import tempfile
+from pynodegl_utils.misc import get_backend, get_nodegl_tempdir
 
 
 class CompareBase:
@@ -55,7 +54,10 @@ class CompareBase:
 
     @staticmethod
     def dump_image(img, dump_index, func_name=None):
-        filename = op.join(get_temp_dir(), f'{func_name}_{dump_index:03}.png')
+        test_tmpdir = op.join(get_nodegl_tempdir(), 'tests')
+        if not op.exists(test_tmpdir):
+            os.makedirs(test_tmpdir)
+        filename = op.join(test_tmpdir, f'{func_name}_{dump_index:03}.png')
         print(f'Dumping output image to {filename}')
         img.save(filename)
         dump_index += 1
@@ -141,10 +143,3 @@ def get_test_decorator(cls):
             return user_func
         return test_decorator
     return test_func
-
-
-def get_temp_dir():
-    dir = op.join(tempfile.gettempdir(), 'nodegl/tests')
-    if not op.exists(dir):
-        os.makedirs(dir)
-    return dir

@@ -69,8 +69,6 @@ class Config(QtCore.QObject):
             'framerate': (60, 1),
             'log_level': 'info',
             'clear_color': (0.0, 0.0, 0.0, 1.0),
-            'enable_hud': False,
-            'hud_scale': 1,
             'backend': 'opengl',
 
             # Export
@@ -183,10 +181,6 @@ class Config(QtCore.QObject):
     @QtCore.Slot(str)
     def set_log_level(self, level):
         self._set_cfg('log_level', level)
-
-    @QtCore.Slot(bool)
-    def set_hud(self, hud):
-        self._set_cfg('enable_hud', hud)
 
     @QtCore.Slot(str)
     def set_backend(self, backend):

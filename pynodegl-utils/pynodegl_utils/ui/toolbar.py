@@ -56,9 +56,6 @@ class Toolbar(QtWidgets.QWidget):
 
         self._current_scene_data = None
 
-        self._hud_chkbox = QtWidgets.QCheckBox('Enable HUD')
-        self._hud_chkbox.setChecked(config.get('enable_hud'))
-
         all_ar = config.CHOICES['aspect_ratio']
         default_ar = config.get('aspect_ratio')
         self._ar_cbbox = QtWidgets.QComboBox()
@@ -146,7 +143,6 @@ class Toolbar(QtWidgets.QWidget):
         self.reload_btn = QtWidgets.QPushButton('Force scripts reload')
 
         self._scene_toolbar_layout = QtWidgets.QVBoxLayout(self)
-        self._scene_toolbar_layout.addWidget(self._hud_chkbox)
         self._scene_toolbar_layout.addLayout(ar_hbox)
         self._scene_toolbar_layout.addLayout(far_hbox)
         self._scene_toolbar_layout.addLayout(samples_hbox)
@@ -159,7 +155,6 @@ class Toolbar(QtWidgets.QWidget):
 
         self._scn_view.clicked.connect(self._scn_view_selected)
         self._scn_view.activated.connect(self._scn_view_selected)
-        self._hud_chkbox.stateChanged.connect(self._hud_chkbox_changed)
         self._ar_cbbox.currentIndexChanged.connect(self._set_aspect_ratio)
         self._samples_cbbox.currentIndexChanged.connect(self._set_samples)
         self._fr_cbbox.currentIndexChanged.connect(self._set_frame_rate)
@@ -206,7 +201,6 @@ class Toolbar(QtWidgets.QWidget):
                 'framerate': choices['framerate'][self._fr_cbbox.currentIndex()],
                 'samples': choices['samples'][self._samples_cbbox.currentIndex()],
                 'extra_args': self._scene_extra_args,
-                'enable_hud': self._hud_chkbox.isChecked(),
                 'hud_scale': round(self.devicePixelRatioF()),
                 'clear_color': self._clear_color,
                 'backend': choices['backend'][self._backend_cbbox.currentIndex()],
@@ -288,11 +282,6 @@ class Toolbar(QtWidgets.QWidget):
                 self._far_lbl2.setVisible(False)
         except ValueError:
             pass
-
-    @QtCore.Slot()
-    def _hud_chkbox_changed(self):
-        self.hudChanged.emit(self._hud_chkbox.isChecked())
-        self._load_current_scene()
 
     @QtCore.Slot(int)
     def _set_loglevel(self, index):

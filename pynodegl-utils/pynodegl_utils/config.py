@@ -22,9 +22,9 @@
 
 import os
 import os.path as op
-import tempfile
 import json
 from PySide2 import QtCore
+from .misc import get_nodegl_tempdir
 
 
 class Config(QtCore.QObject):
@@ -74,7 +74,7 @@ class Config(QtCore.QObject):
             # Export
             'export_width': 1280,
             'export_height': 720,
-            'export_filename': op.join(tempfile.gettempdir(), 'ngl-export.mp4'),
+            'export_filename': op.join(get_nodegl_tempdir(), 'ngl-export.mp4'),
             'export_extra_enc_args': '',
 
             # Medias

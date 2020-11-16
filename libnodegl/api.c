@@ -88,7 +88,6 @@ static int cmd_stop(struct ngl_ctx *s, void *arg)
     ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_pgcache_reset(&s->pgcache);
     ngli_hud_freep(&s->hud);
-    ngli_gtimer_freep(&s->gpu_timer);
     ngli_gctx_freep(&s->gctx);
 
     return 0;
@@ -164,14 +163,6 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     }
 
     if (config->hud) {
-        s->gpu_timer = ngli_gtimer_create(s->gctx);
-        if (!s->gpu_timer)
-            return NGL_ERROR_MEMORY;
-
-        ret = ngli_gtimer_init(s->gpu_timer);
-        if (ret < 0)
-            return ret;
-
         s->hud = ngli_hud_create(s);
         if (!s->hud)
             return NGL_ERROR_MEMORY;
@@ -278,11 +269,7 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         goto end;
 
-    int64_t cpu_start_time = 0;
-    if (s->hud) {
-        ngli_gtimer_start(s->gpu_timer);
-        cpu_start_time = ngli_gettime_relative();
-    }
+    const int64_t cpu_start_time = s->hud ? ngli_gettime_relative() : 0;
 
     struct rendertarget *rt = ngli_gctx_get_default_rendertarget(s->gctx);
     s->available_rendertargets[0] = rt;
@@ -298,8 +285,14 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
 
     if (s->hud) {
         s->cpu_draw_time = ngli_gettime_relative() - cpu_start_time;
-        ngli_gtimer_stop(s->gpu_timer);
-        s->gpu_draw_time = ngli_gtimer_read(s->gpu_timer);
+
+        if (!s->begin_render_pass) {
+            ngli_gctx_end_render_pass(s->gctx);
+            s->current_rendertarget = s->available_rendertargets[1];
+            s->begin_render_pass = 1;
+        }
+        ngli_gctx_query_draw_time(s->gctx, &s->gpu_draw_time);
+
         ngli_hud_draw(s->hud);
     }
 

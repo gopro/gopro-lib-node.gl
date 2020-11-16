@@ -108,7 +108,6 @@ struct ngl_ctx {
     struct android_ctx android_ctx;
 #endif
     struct hud *hud;
-    struct gtimer *gpu_timer;
     int64_t cpu_update_time;
     int64_t cpu_draw_time;
     int64_t gpu_draw_time;

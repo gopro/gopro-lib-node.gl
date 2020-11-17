@@ -317,19 +317,18 @@ struct widget_spec {
     int graph_w, graph_h;
     int nb_data_graph;
     size_t priv_size;
-    int (*init)(struct ngl_node *node, struct widget *widget);
-    void (*make_stats)(struct ngl_node *node, struct widget *widget);
-    void (*draw)(struct ngl_node *node, struct widget *widget);
-    void (*csv_header)(struct ngl_node *node, struct widget *widget, struct bstr *dst);
-    void (*csv_report)(struct ngl_node *node, struct widget *widget, struct bstr *dst);
-    void (*uninit)(struct ngl_node *node, struct widget *widget);
+    int (*init)(struct hud_priv *s, struct widget *widget);
+    void (*make_stats)(struct hud_priv *s, struct widget *widget);
+    void (*draw)(struct hud_priv *s, struct widget *widget);
+    void (*csv_header)(struct hud_priv *s, struct widget *widget, struct bstr *dst);
+    void (*csv_report)(struct hud_priv *s, struct widget *widget, struct bstr *dst);
+    void (*uninit)(struct hud_priv *s, struct widget *widget);
 };
 
 /* Widget init */
 
-static int widget_latency_init(struct ngl_node *node, struct widget *widget)
+static int widget_latency_init(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
     priv->timer = ngli_gtimer_create(s->ctx->gctx);
@@ -404,9 +403,8 @@ static int make_nodes_set(struct ngl_node *scene, struct darray *nodes_list, con
     return 0;
 }
 
-static int widget_memory_init(struct ngl_node *node, struct widget *widget)
+static int widget_memory_init(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_memory *priv = widget->priv_data;
 
     for (int i = 0; i < NB_MEMORY; i++) {
@@ -418,18 +416,16 @@ static int widget_memory_init(struct ngl_node *node, struct widget *widget)
     return 0;
 }
 
-static int widget_activity_init(struct ngl_node *node, struct widget *widget)
+static int widget_activity_init(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     const struct activity_spec *spec = widget->user_data;
     struct widget_activity *priv = widget->priv_data;
     const int *node_types = spec->node_types;
     return make_nodes_set(s->child, &priv->nodes, node_types);
 }
 
-static int widget_drawcall_init(struct ngl_node *node, struct widget *widget)
+static int widget_drawcall_init(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     const struct drawcall_spec *spec = widget->user_data;
     struct widget_drawcall *priv = widget->priv_data;
     const int *node_types = spec->node_types;
@@ -446,10 +442,9 @@ static void register_time(struct hud_priv *s, struct latency_measure *m, int64_t
     m->count = NGLI_MIN(m->count + 1, s->measure_window);
 }
 
-static int widget_latency_update(struct ngl_node *node, struct widget *widget, double t)
+static int widget_latency_update(struct hud_priv *s, struct widget *widget, double t)
 {
     int ret;
-    struct hud_priv *s = node->priv_data;
     struct ngl_node *child = s->child;
     struct widget_latency *priv = widget->priv_data;
 
@@ -468,9 +463,8 @@ static int widget_latency_update(struct ngl_node *node, struct widget *widget, d
 
 /* Widget make stats */
 
-static void widget_latency_make_stats(struct ngl_node *node, struct widget *widget)
+static void widget_latency_make_stats(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
     ngli_gtimer_start(priv->timer);
@@ -494,7 +488,7 @@ static void widget_latency_make_stats(struct ngl_node *node, struct widget *widg
     register_time(s, &priv->measures[LATENCY_TOTAL_GPU], gpu_tdraw + gpu_tupdate);
 }
 
-static void widget_memory_make_stats(struct ngl_node *node, struct widget *widget)
+static void widget_memory_make_stats(struct hud_priv *s, struct widget *widget)
 {
     struct widget_memory *priv = widget->priv_data;
 
@@ -545,7 +539,7 @@ static void widget_memory_make_stats(struct ngl_node *node, struct widget *widge
     }
 }
 
-static void widget_activity_make_stats(struct ngl_node *node, struct widget *widget)
+static void widget_activity_make_stats(struct hud_priv *s, struct widget *widget)
 {
     struct widget_activity *priv = widget->priv_data;
     struct darray *nodes_array = &priv->nodes;
@@ -555,7 +549,7 @@ static void widget_activity_make_stats(struct ngl_node *node, struct widget *wid
         priv->nb_actives += nodes[i]->is_active;
 }
 
-static void widget_drawcall_make_stats(struct ngl_node *node, struct widget *widget)
+static void widget_drawcall_make_stats(struct hud_priv *s, struct widget *widget)
 {
     struct widget_drawcall *priv = widget->priv_data;
     struct darray *nodes_array = &priv->nodes;
@@ -694,9 +688,8 @@ static int64_t get_latency_avg(const struct widget_latency *priv, int id)
     return m->total_times / m->count / (latency_specs[id].unit == 'u' ? 1 : 1000);
 }
 
-static void widget_latency_draw(struct ngl_node *node, struct widget *widget)
+static void widget_latency_draw(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
     char buf[LATENCY_WIDGET_TEXT_LEN + 1];
@@ -723,9 +716,8 @@ static void widget_latency_draw(struct ngl_node *node, struct widget *widget)
     }
 }
 
-static void widget_memory_draw(struct ngl_node *node, struct widget *widget)
+static void widget_memory_draw(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_memory *priv = widget->priv_data;
     char buf[MEMORY_WIDGET_TEXT_LEN + 1];
 
@@ -761,9 +753,8 @@ static void widget_memory_draw(struct ngl_node *node, struct widget *widget)
     }
 }
 
-static void widget_activity_draw(struct ngl_node *node, struct widget *widget)
+static void widget_activity_draw(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_activity *priv = widget->priv_data;
     const struct activity_spec *spec = widget->user_data;
     const uint32_t color = 0x3df4f4ff;
@@ -778,9 +769,8 @@ static void widget_activity_draw(struct ngl_node *node, struct widget *widget)
     draw_block_graph(s, d, &widget->graph_rect, d->amin, d->amax, color);
 }
 
-static void widget_drawcall_draw(struct ngl_node *node, struct widget *widget)
+static void widget_drawcall_draw(struct hud_priv *s, struct widget *widget)
 {
-    struct hud_priv *s = node->priv_data;
     struct widget_drawcall *priv = widget->priv_data;
     const struct drawcall_spec *spec = widget->user_data;
     const uint32_t color = 0x3df43dff;
@@ -797,25 +787,25 @@ static void widget_drawcall_draw(struct ngl_node *node, struct widget *widget)
 
 /* Widget CSV header */
 
-static void widget_latency_csv_header(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_latency_csv_header(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     for (int i = 0; i < NB_LATENCY; i++)
         ngli_bstr_printf(dst, "%s%s", i ? "," : "", latency_specs[i].label);
 }
 
-static void widget_memory_csv_header(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_memory_csv_header(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     for (int i = 0; i < NB_MEMORY; i++)
         ngli_bstr_printf(dst, "%s%s memory", i ? "," : "", memory_specs[i].label);
 }
 
-static void widget_activity_csv_header(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_activity_csv_header(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     const struct activity_spec *spec = widget->user_data;
     ngli_bstr_printf(dst, "%s count,%s total", spec->label, spec->label);
 }
 
-static void widget_drawcall_csv_header(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_drawcall_csv_header(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     const struct drawcall_spec *spec = widget->user_data;
     ngli_bstr_print(dst, spec->label);
@@ -823,7 +813,7 @@ static void widget_drawcall_csv_header(struct ngl_node *node, struct widget *wid
 
 /* Widget CSV report */
 
-static void widget_latency_csv_report(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_latency_csv_report(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     const struct widget_latency *priv = widget->priv_data;
     for (int i = 0; i < NB_LATENCY; i++) {
@@ -832,7 +822,7 @@ static void widget_latency_csv_report(struct ngl_node *node, struct widget *widg
     }
 }
 
-static void widget_memory_csv_report(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_memory_csv_report(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     const struct widget_memory *priv = widget->priv_data;
     for (int i = 0; i < NB_MEMORY; i++) {
@@ -841,13 +831,13 @@ static void widget_memory_csv_report(struct ngl_node *node, struct widget *widge
     }
 }
 
-static void widget_activity_csv_report(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_activity_csv_report(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     const struct widget_activity *priv = widget->priv_data;
     ngli_bstr_printf(dst, "%d,%d", priv->nb_actives, priv->nodes.count);
 }
 
-static void widget_drawcall_csv_report(struct ngl_node *node, struct widget *widget, struct bstr *dst)
+static void widget_drawcall_csv_report(struct hud_priv *s, struct widget *widget, struct bstr *dst)
 {
     const struct widget_drawcall *priv = widget->priv_data;
     ngli_bstr_printf(dst, "%d", priv->nb_draws);
@@ -855,7 +845,7 @@ static void widget_drawcall_csv_report(struct ngl_node *node, struct widget *wid
 
 /* Widget uninit */
 
-static void widget_latency_uninit(struct ngl_node *node, struct widget *widget)
+static void widget_latency_uninit(struct hud_priv *s, struct widget *widget)
 {
     struct widget_latency *priv = widget->priv_data;
     for (int i = 0; i < NB_LATENCY; i++)
@@ -863,20 +853,20 @@ static void widget_latency_uninit(struct ngl_node *node, struct widget *widget)
     ngli_gtimer_freep(&priv->timer);
 }
 
-static void widget_memory_uninit(struct ngl_node *node, struct widget *widget)
+static void widget_memory_uninit(struct hud_priv *s, struct widget *widget)
 {
     struct widget_memory *priv = widget->priv_data;
     for (int i = 0; i < NB_MEMORY; i++)
         ngli_darray_reset(&priv->nodes[i]);
 }
 
-static void widget_activity_uninit(struct ngl_node *node, struct widget *widget)
+static void widget_activity_uninit(struct hud_priv *s, struct widget *widget)
 {
     struct widget_activity *priv = widget->priv_data;
     ngli_darray_reset(&priv->nodes);
 }
 
-static void widget_drawcall_uninit(struct ngl_node *node, struct widget *widget)
+static void widget_drawcall_uninit(struct hud_priv *s, struct widget *widget)
 {
     struct widget_drawcall *priv = widget->priv_data;
     ngli_darray_reset(&priv->nodes);
@@ -1014,10 +1004,8 @@ static int create_widget(struct hud_priv *s, enum widget_type type, const void *
     return 0;
 }
 
-static int widgets_init(struct ngl_node *node)
+static int widgets_init(struct hud_priv *s)
 {
-    struct hud_priv *s = node->priv_data;
-
     ngli_darray_init(&s->widgets, sizeof(struct widget), 0);
 
     /* Smallest dimensions possible (in pixels) */
@@ -1076,7 +1064,7 @@ static int widgets_init(struct ngl_node *node)
     struct widget *widgets = ngli_darray_data(widgets_array);
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         struct widget *widget = &widgets[i];
-        int ret = widget_specs[widget->type].init(node, widget);
+        int ret = widget_specs[widget->type].init(s, widget);
         if (ret < 0)
             return ret;
     }
@@ -1095,10 +1083,8 @@ static void widget_drawcall_reset_draws(struct widget *widget)
     }
 }
 
-static void widgets_make_stats(struct ngl_node *node)
+static void widgets_make_stats(struct hud_priv *s)
 {
-    struct hud_priv *s = node->priv_data;
-
     /* HACK: reset drawcall draw counts before calling
      * widget_latency_make_stats(). This is needed here because several draws
      * can happen without update (for instance in case of a resize). */
@@ -1112,25 +1098,22 @@ static void widgets_make_stats(struct ngl_node *node)
 
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         struct widget *widget = &widgets[i];
-        widget_specs[widget->type].make_stats(node, widget);
+        widget_specs[widget->type].make_stats(s, widget);
     }
 }
 
-static void widgets_draw(struct ngl_node *node)
+static void widgets_draw(struct hud_priv *s)
 {
-    struct hud_priv *s = node->priv_data;
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         struct widget *widget = &widgets[i];
-        widget_specs[widget->type].draw(node, widget);
+        widget_specs[widget->type].draw(s, widget);
     }
 }
 
-static int widgets_csv_header(struct ngl_node *node)
+static int widgets_csv_header(struct hud_priv *s)
 {
-    struct hud_priv *s = node->priv_data;
-
     s->fd_export = open(s->export_filename, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (s->fd_export == -1) {
         LOG(ERROR, "unable to open \"%s\" for writing", s->export_filename);
@@ -1148,7 +1131,7 @@ static int widgets_csv_header(struct ngl_node *node)
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         struct widget *widget = &widgets[i];
         ngli_bstr_print(s->csv_line, i ? "," : "");
-        widget_specs[widget->type].csv_header(node, widget, s->csv_line);
+        widget_specs[widget->type].csv_header(s, widget, s->csv_line);
     }
 
     ngli_bstr_print(s->csv_line, "\n");
@@ -1176,7 +1159,7 @@ static void widgets_csv_report(struct ngl_node *node)
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         ngli_bstr_print(s->csv_line, ",");
         struct widget *widget = &widgets[i];
-        widget_specs[widget->type].csv_report(node, widget, s->csv_line);
+        widget_specs[widget->type].csv_report(s, widget, s->csv_line);
     }
     ngli_bstr_print(s->csv_line, "\n");
 
@@ -1192,14 +1175,13 @@ static void free_widget(struct widget *widget)
     ngli_free(widget->data_graph);
 }
 
-static void widgets_uninit(struct ngl_node *node)
+static void widgets_uninit(struct hud_priv *s)
 {
-    struct hud_priv *s = node->priv_data;
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
     for (int i = 0; i < ngli_darray_count(widgets_array); i++) {
         struct widget *widget = &widgets[i];
-        widget_specs[widget->type].uninit(node, widget);
+        widget_specs[widget->type].uninit(s, widget);
         free_widget(widget);
     }
     ngli_darray_reset(&s->widgets);
@@ -1232,7 +1214,7 @@ static int hud_init(struct ngl_node *node)
 
     s->ctx = ctx;
 
-    int ret = widgets_init(node);
+    int ret = widgets_init(s);
     if (ret < 0)
         return ret;
 
@@ -1241,7 +1223,7 @@ static int hud_init(struct ngl_node *node)
     s->last_refresh_time = -1;
 
     if (s->export_filename)
-        return widgets_csv_header(node);
+        return widgets_csv_header(s);
 
     s->canvas.buf = ngli_calloc(s->canvas.w * s->canvas.h, 4);
     if (!s->canvas.buf)
@@ -1372,7 +1354,7 @@ static int hud_update(struct ngl_node *node, double t)
     struct hud_priv *s = node->priv_data;
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
-    return widget_latency_update(node, &widgets[0], t);
+    return widget_latency_update(s, &widgets[0], t);
 }
 
 static void hud_draw(struct ngl_node *node)
@@ -1381,7 +1363,7 @@ static void hud_draw(struct ngl_node *node)
     struct gctx *gctx = ctx->gctx;
     struct hud_priv *s = node->priv_data;
 
-    widgets_make_stats(node);
+    widgets_make_stats(s);
     if (s->export_filename) {
         widgets_csv_report(node);
         return;
@@ -1392,7 +1374,7 @@ static void hud_draw(struct ngl_node *node)
     if (need_refresh) {
         s->last_refresh_time = t;
         widgets_clear(s);
-        widgets_draw(node);
+        widgets_draw(s);
     }
 
     int viewport[4];
@@ -1439,7 +1421,7 @@ static void hud_uninit(struct ngl_node *node)
     ngli_texture_freep(&s->texture);
     ngli_buffer_freep(&s->coords);
 
-    widgets_uninit(node);
+    widgets_uninit(s);
     ngli_free(s->canvas.buf);
     if (s->export_filename) {
         close(s->fd_export);

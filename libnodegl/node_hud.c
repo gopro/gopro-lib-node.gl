@@ -1146,13 +1146,11 @@ static int widgets_csv_header(struct hud *s)
     return 0;
 }
 
-static void widgets_csv_report(struct ngl_node *node)
+static void widgets_csv_report(struct hud *s, double t)
 {
-    struct hud *s = node->priv_data;
-
     ngli_bstr_clear(s->csv_line);
     /* Quoting to prevent locale issues with float printing */
-    ngli_bstr_printf(s->csv_line, "\"%f\"", node->last_update_time);
+    ngli_bstr_printf(s->csv_line, "\"%f\"", t);
 
     struct darray *widgets_array = &s->widgets;
     struct widget *widgets = ngli_darray_data(widgets_array);
@@ -1365,7 +1363,7 @@ static void hud_draw(struct ngl_node *node)
 
     widgets_make_stats(s);
     if (s->export_filename) {
-        widgets_csv_report(node);
+        widgets_csv_report(s, node->last_update_time);
         return;
     }
 

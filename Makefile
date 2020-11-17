@@ -60,6 +60,12 @@ endif
 ifneq ($(V),)
 MESON_COMPILE += -v
 endif
+NODEGL_DEBUG_OPTS-$(DEBUG_GL)    += gl
+NODEGL_DEBUG_OPTS-$(DEBUG_MEM)   += mem
+NODEGL_DEBUG_OPTS-$(DEBUG_SCENE) += scene
+ifneq ($(NODEGL_DEBUG_OPTS-yes),)
+NODEGL_DEBUG_OPTS = -Ddebug_opts=$(shell echo $(NODEGL_DEBUG_OPTS-yes) | tr ' ' ',')
+endif
 
 # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
 ifeq ($(TARGET_OS),Linux)
@@ -114,7 +120,7 @@ nodegl-install: nodegl-setup
 	(. $(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
 
 nodegl-setup: sxplayer-install
-	(. $(ACTIVATE) && $(MESON_SETUP) libnodegl builddir/libnodegl)
+	(. $(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 
 sxplayer-install: sxplayer $(PREFIX)
 	(. $(ACTIVATE) && $(MESON_SETUP) sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)

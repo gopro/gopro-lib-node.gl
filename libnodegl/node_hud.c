@@ -96,8 +96,8 @@ static const struct node_param hud_params[] = {
 enum {
     LATENCY_UPDATE_CPU,
     LATENCY_DRAW_CPU,
-    LATENCY_DRAW_GPU,
     LATENCY_TOTAL_CPU,
+    LATENCY_DRAW_GPU,
     NB_LATENCY
 };
 
@@ -168,8 +168,8 @@ static const struct {
 } latency_specs[] = {
     [LATENCY_UPDATE_CPU] = {"update CPU", 0xF43DF4FF, 'u'},
     [LATENCY_DRAW_CPU]   = {"draw   CPU", 0x3DF4F4FF, 'u'},
-    [LATENCY_DRAW_GPU]   = {"draw   GPU", 0x3DF43DFF, 'n'},
     [LATENCY_TOTAL_CPU]  = {"total  CPU", 0xF4F43DFF, 'u'},
+    [LATENCY_DRAW_GPU]   = {"draw   GPU", 0x3DF43DFF, 'n'},
 };
 
 static const struct {
@@ -466,14 +466,15 @@ static void widget_latency_make_stats(struct hud *s, struct widget *widget)
     ngli_gtimer_stop(priv->timer);
 
     int64_t cpu_tdraw = draw_end - draw_start;
-    int64_t gpu_tdraw = ngli_gtimer_read(priv->timer);
     register_time(s, &priv->measures[LATENCY_DRAW_CPU], cpu_tdraw);
-    register_time(s, &priv->measures[LATENCY_DRAW_GPU], gpu_tdraw);
 
     const struct latency_measure *cpu_up = &priv->measures[LATENCY_UPDATE_CPU];
     const int last_cpu_up_pos = (cpu_up->pos ? cpu_up->pos : s->measure_window) - 1;
     const int64_t cpu_tupdate = cpu_up->times[last_cpu_up_pos];
     register_time(s, &priv->measures[LATENCY_TOTAL_CPU], cpu_tdraw + cpu_tupdate);
+
+    int64_t gpu_tdraw = ngli_gtimer_read(priv->timer);
+    register_time(s, &priv->measures[LATENCY_DRAW_GPU], gpu_tdraw);
 }
 
 static void widget_memory_make_stats(struct hud *s, struct widget *widget)

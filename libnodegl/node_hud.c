@@ -45,6 +45,7 @@
 #include "graphicstate.h"
 
 struct hud_priv {
+    struct ngl_ctx *ctx;
     struct ngl_node *child;
     int measure_window;
     int refresh_rate[2];
@@ -328,12 +329,10 @@ struct widget_spec {
 
 static int widget_latency_init(struct ngl_node *node, struct widget *widget)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
     struct hud_priv *s = node->priv_data;
     struct widget_latency *priv = widget->priv_data;
 
-    priv->timer = ngli_gtimer_create(gctx);
+    priv->timer = ngli_gtimer_create(s->ctx->gctx);
     if (!priv->timer)
         return NGL_ERROR_MEMORY;
 
@@ -1230,6 +1229,8 @@ static int hud_init(struct ngl_node *node)
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
     struct hud_priv *s = node->priv_data;
+
+    s->ctx = ctx;
 
     int ret = widgets_init(node);
     if (ret < 0)

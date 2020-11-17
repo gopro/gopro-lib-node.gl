@@ -98,7 +98,6 @@ enum {
     LATENCY_DRAW_CPU,
     LATENCY_DRAW_GPU,
     LATENCY_TOTAL_CPU,
-    LATENCY_TOTAL_GPU,
     NB_LATENCY
 };
 
@@ -171,7 +170,6 @@ static const struct {
     [LATENCY_DRAW_CPU]   = {"draw   CPU", 0x3DF4F4FF, 'u'},
     [LATENCY_DRAW_GPU]   = {"draw   GPU", 0x3DF43DFF, 'n'},
     [LATENCY_TOTAL_CPU]  = {"total  CPU", 0xF4F43DFF, 'u'},
-    [LATENCY_TOTAL_GPU]  = {"total  GPU", 0xF43D3DFF, 'n'},
 };
 
 static const struct {
@@ -476,7 +474,6 @@ static void widget_latency_make_stats(struct hud *s, struct widget *widget)
     const int last_cpu_up_pos = (cpu_up->pos ? cpu_up->pos : s->measure_window) - 1;
     const int64_t cpu_tupdate = cpu_up->times[last_cpu_up_pos];
     register_time(s, &priv->measures[LATENCY_TOTAL_CPU], cpu_tdraw + cpu_tupdate);
-    register_time(s, &priv->measures[LATENCY_TOTAL_GPU], gpu_tdraw);
 }
 
 static void widget_memory_make_stats(struct hud *s, struct widget *widget)

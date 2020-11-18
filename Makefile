@@ -75,6 +75,10 @@ MESON_SETUP += --libdir lib
 endif
 endif
 
+ifneq ($(TESTS_SUITE),)
+MESON_TESTS_SUITE_OPTS += --suite $(TESTS_SUITE)
+endif
+
 all: ngl-tools-install pynodegl-utils-install
 	@echo
 	@echo "    Install completed."
@@ -160,8 +164,11 @@ else
 	(. $(ACTIVATE) && pip install meson ninja)
 endif
 
-tests: ngl-tools-install pynodegl-utils-install nodegl-tests
-	(. $(ACTIVATE) && $(MAKE) -C tests)
+tests: nodegl-tests tests-setup
+	(. $(ACTIVATE) && meson test $(MESON_TESTS_SUITE_OPTS) -C builddir/tests)
+
+tests-setup: ngl-tools-install pynodegl-utils-install
+	(. $(ACTIVATE) && $(MESON_SETUP) builddir/tests tests)
 
 nodegl-tests: nodegl-install
 	(. $(ACTIVATE) && meson test -C builddir/libnodegl)
@@ -183,6 +190,7 @@ clean: clean_py
 	$(RM) -r builddir/sxplayer
 	$(RM) -r builddir/libnodegl
 	$(RM) -r builddir/ngl-tools
+	$(RM) -r builddir/tests
 
 # You need to build and run with COVERAGE set to generate data.
 # For example: `make clean && make -j8 tests COVERAGE=yes`
@@ -199,6 +207,6 @@ coverage-xml:
 .PHONY: pynodegl-install pynodegl-deps-install
 .PHONY: nodegl-install nodegl-setup
 .PHONY: sxplayer-install
-.PHONY: tests
+.PHONY: tests tests-setup
 .PHONY: clean clean_py
 .PHONY: coverage-html coverage-xml

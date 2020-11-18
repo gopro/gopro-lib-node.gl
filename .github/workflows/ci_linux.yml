@@ -31,9 +31,6 @@ jobs:
     - name: Build
       run: |
         make -j$(($(nproc)+1))
-    - name: Run tests with GL backend
+    - name: Run tests
       run: |
-        BACKEND=opengl DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests
-    - name: Run tests with GLES backend
-      run: |
-        BACKEND=opengles DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests
+        DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests

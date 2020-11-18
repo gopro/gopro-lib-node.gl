@@ -156,7 +156,12 @@ static int create_fbo(struct rendertarget *s, int resolve)
             }
             break;
         case GL_TEXTURE_2D:
-            ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index, GL_TEXTURE_2D, texture_gl->id, 0);
+            if (gl->backend == NGL_BACKEND_OPENGLES && gl->version < 300 && attachment_index == GL_DEPTH_STENCIL_ATTACHMENT) {
+                ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture_gl->id, 0);
+                ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture_gl->id, 0);
+            } else {
+                ngli_glFramebufferTexture2D(gl, GL_FRAMEBUFFER, attachment_index, GL_TEXTURE_2D, texture_gl->id, 0);
+            }
             break;
         default:
             ngli_assert(0);

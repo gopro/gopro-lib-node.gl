@@ -56,7 +56,7 @@ _ARRAY_TPL = '''
 vec3 get_color_%(field_name)s(float w, float h, float x, float y)
 {
     float amount = 0.0;
-    int len = %(fields_prefix)s%(field_name)s.length();
+    int len = %(field_len)d;
     for (int i = 0; i < len; i++) {
         %(amount_code)s
     }
@@ -103,10 +103,11 @@ _TYPE_SPEC = dict(
 )
 
 
-def _get_display_glsl_func(layout, field_name, field_type, is_array=False):
+def _get_display_glsl_func(layout, field_name, field_type, field_len=None):
     rows, cols, scale = _TYPE_SPEC[field_type]
     nb_comp = rows * cols
 
+    is_array = field_len is not None
     tpl = _ARRAY_TPL if is_array else _SINGLE_TPL
     rect_tpl = _RECT_ARRAY_TPL if is_array else _RECT_SINGLE_TPL
     amount_tpl = _COMMON_INT_TPL if scale is not None else _COMMON_FLT_TPL
@@ -115,6 +116,7 @@ def _get_display_glsl_func(layout, field_name, field_type, is_array=False):
         colors_prefix='color_' if layout == 'uniform' else 'colors.',
         fields_prefix='field_' if layout == 'uniform' else 'fields.',
         field_name=field_name,
+        field_len=field_len,
         nb_comp=nb_comp,
     )
 
@@ -207,9 +209,9 @@ def get_render(cfg, quad, fields, block_definition, color_definition, block_fiel
     func_calls = []
     func_definitions = []
     for i, field in enumerate(fields):
-        is_array = 'len' in field
+        field_len = field.get('len')
         func_calls.append('get_color_%s(w, h, 0.0, %f * h)' % (field['name'], i))
-        func_definitions.append(_get_display_glsl_func(layout, field['name'], field['type'], is_array=is_array))
+        func_definitions.append(_get_display_glsl_func(layout, field['name'], field['type'], field_len=field_len))
 
     frag_data = dict(
         func_definitions='\n'.join(func_definitions),

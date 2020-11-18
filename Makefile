@@ -33,6 +33,12 @@ PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYT
 TAR        ?= tar
 TARGET_OS  ?= $(shell uname -s)
 
+DEBUG_GL    ?= no
+DEBUG_MEM   ?= no
+DEBUG_SCENE ?= no
+TESTS_SUITE ?=
+V           ?=
+
 ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON_MAJOR))
 $(error "Python $(PYTHON_MAJOR) not found")
 endif

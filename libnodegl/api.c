@@ -430,6 +430,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
     const struct ngl_cap caps[] = {
         CAP(NGL_CAP_BLOCK,                         has_block),
         CAP(NGL_CAP_COMPUTE,                       has_compute),
+        CAP(NGL_CAP_INSTANCED_DRAW,                has_instanced_draw),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X,     limits->max_compute_work_group_counts[0]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y,     limits->max_compute_work_group_counts[1]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z,     limits->max_compute_work_group_counts[2]),
@@ -437,7 +438,6 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_X,      limits->max_compute_work_group_sizes[0]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y,      limits->max_compute_work_group_sizes[1]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z,      limits->max_compute_work_group_sizes[2]),
-        CAP(NGL_CAP_INSTANCED_DRAW,                has_instanced_draw),
         CAP(NGL_CAP_MAX_SAMPLES,                   limits->max_samples),
         CAP(NGL_CAP_NPOT_TEXTURE,                  has_npot_texture),
         CAP(NGL_CAP_TEXTURE_3D,                    has_texture_3d),

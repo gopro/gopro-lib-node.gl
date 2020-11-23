@@ -30,11 +30,25 @@ foreach backend : backends
   # ngl-probe may display garbage on stdout: typically Mesa does this on
   # offscreen at initialization, this is why we have .split()[-1] to read the
   # last word in the output.
-  has_compute = run_command(cap_cmd + ['compute']).stdout().split()[-1].to_int() == 1 ? true : false
-  max_samples = run_command(cap_cmd + ['max_samples']).stdout().split()[-1].to_int()
+  has_block              = run_command(cap_cmd + ['block']).stdout().split()[-1].to_int() == 1 ? true : false
+  has_compute            = run_command(cap_cmd + ['compute']).stdout().split()[-1].to_int() == 1 ? true : false
+  has_instanced_draw     = run_command(cap_cmd + ['instanced_draw']).stdout().split()[-1].to_int() == 1 ? true : false
+  has_shader_texture_lod = run_command(cap_cmd + ['shader_texture_lod']).stdout().split()[-1].to_int() == 1 ? true : false
+  has_texture_3d         = run_command(cap_cmd + ['texture_3d']).stdout().split()[-1].to_int() == 1 ? true : false
+  has_texture_cube       = run_command(cap_cmd + ['texture_cube']).stdout().split()[-1].to_int() == 1 ? true : false
+  has_uint_uniforms      = run_command(cap_cmd + ['uint_uniforms']).stdout().split()[-1].to_int() == 1 ? true : false
+  max_color_attachments  = run_command(cap_cmd + ['max_color_attachments']).stdout().split()[-1].to_int()
+  max_samples            = run_command(cap_cmd + ['max_samples']).stdout().split()[-1].to_int()
 
   message('Backend: ' + backend)
+  message('- Block: @0@'.format(has_block))
   message('- Compute: @0@'.format(has_compute))
+  message('- Instanced draw: @0@'.format(has_instanced_draw))
+  message('- Shader texture lod: @0@'.format(has_shader_texture_lod))
+  message('- Texture 3D: @0@'.format(has_texture_3d))
+  message('- Texture Cube: @0@'.format(has_texture_cube))
+  message('- Unsigned int uniforms: @0@'.format(has_uint_uniforms))
+  message('- Max color attachments: @0@'.format(max_color_attachments))
   message('- Max samples: @0@'.format(max_samples))
 
   tests_anim = [
@@ -86,10 +100,6 @@ foreach backend : backends
     'single_ivec2',
     'single_ivec3',
     'single_ivec4',
-    'single_uint',
-    'single_uvec2',
-    'single_uvec3',
-    'single_uvec4',
     'single_mat4',
     'single_quat_mat4',
     'single_quat_vec4',
@@ -103,6 +113,14 @@ foreach backend : backends
     'array_vec3',
     'array_vec4',
   ]
+  if has_uint_uniforms
+    uniform_names += [
+      'single_uint',
+      'single_uvec2',
+      'single_uvec3',
+      'single_uvec4',
+    ]
+  endif
 
   block_names = uniform_names + [
     'animated_buffer_float',
@@ -116,20 +134,24 @@ foreach backend : backends
     'array_mat4',
   ]
 
-  tests_data = [
-    'streamed_buffer_vec4',
-    'streamed_buffer_vec4_time_anim',
-  ]
+  tests_data = []
   foreach test_name : uniform_names
     tests_data += test_name + '_uniform'
   endforeach
-  foreach test_name : block_names
-    tests_data += test_name + '_std140'
-  endforeach
-  if has_compute
+
+  if has_block
+    tests_data += [
+      'streamed_buffer_vec4',
+      'streamed_buffer_vec4_time_anim',
+    ]
     foreach test_name : block_names
-      tests_data += test_name + '_std430'
+      tests_data += test_name + '_std140'
     endforeach
+    if has_compute
+      foreach test_name : block_names
+        tests_data += test_name + '_std430'
+      endforeach
+    endif
   endif
 
   live_names = [
@@ -149,13 +171,15 @@ foreach backend : backends
   foreach test_name : live_names
     tests_live += test_name + '_uniform'
   endforeach
-  foreach test_name : live_names
-    tests_live += test_name + '_std140'
-  endforeach
-  if has_compute
+  if has_block
     foreach test_name : live_names
-      tests_live += test_name + '_std430'
+      tests_live += test_name + '_std140'
     endforeach
+    if has_compute
+      foreach test_name : live_names
+        tests_live += test_name + '_std430'
+      endforeach
+    endif
   endif
 
   tests_media = [
@@ -188,7 +212,6 @@ foreach backend : backends
     'triangle',
     'triangle_cull_back',
     'triangle_cull_front',
-    'triangles_mat4_attribute',
     'quad',
     'quad_cull_back',
     'quad_cull_front',
@@ -201,9 +224,15 @@ foreach backend : backends
     'geometry_indices',
     'geometry_normals_indices',
     'morphing',
-    'cropboard',
-    'cropboard_indices',
   ]
+
+  if has_instanced_draw
+    tests_shape += [
+      'cropboard',
+      'cropboard_indices',
+      'triangles_mat4_attribute',
+    ]
+  endif
 
   if max_samples >= 4
     tests_shape += [
@@ -226,21 +255,29 @@ foreach backend : backends
   ]
 
   tests_texture = [
-    '3d',
     'clear_and_scissor',
-    'cubemap',
-    'cubemap_from_mrt',
     'data',
     'data_animated',
     'data_unaligned_row',
-    'mipmap',
     'scissor',
   ]
 
-  if max_samples >= 4
-    tests_texture += [
-      'cubemap_from_mrt_msaa',
-    ]
+  if has_shader_texture_lod
+    tests_texture += 'mipmap'
+  endif
+
+  if has_texture_3d
+    tests_texture += '3d'
+  endif
+
+  if has_texture_cube
+    tests_texture += 'cubemap'
+    if max_color_attachments >= 6
+      tests_texture += 'cubemap_from_mrt'
+      if max_samples >= 4
+        tests_texture += 'cubemap_from_mrt_msaa'
+      endif
+    endif
   endif
 
   tests_transform = [

@@ -411,6 +411,7 @@ static const char *get_cap_string_id(unsigned cap_id)
     case NGL_CAP_SHADER_TEXTURE_LOD:            return "shader_texture_lod";
     case NGL_CAP_TEXTURE_3D:                    return "texture_3d";
     case NGL_CAP_TEXTURE_CUBE:                  return "texture_cube";
+    case NGL_CAP_UINT_UNIFORMS:                 return "uint_uniforms";
     }
     ngli_assert(0);
 }
@@ -428,6 +429,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
     const int has_shader_texture_lod = ALL_FEATURES(gctx->features, NGLI_FEATURE_SHADER_TEXTURE_LOD);
     const int has_texture_3d     = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_3D);
     const int has_texture_cube   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_CUBE_MAP);
+    const int has_uint_uniforms  = ALL_FEATURES(gctx->features, NGLI_FEATURE_UINT_UNIFORMS);
 
     const struct limits *limits = &gctx->limits;
     const struct ngl_cap caps[] = {
@@ -447,6 +449,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
         CAP(NGL_CAP_SHADER_TEXTURE_LOD,            has_shader_texture_lod),
         CAP(NGL_CAP_TEXTURE_3D,                    has_texture_3d),
         CAP(NGL_CAP_TEXTURE_CUBE,                  has_texture_cube),
+        CAP(NGL_CAP_UINT_UNIFORMS,                 has_uint_uniforms),
     };
 
     backend->nb_caps = NGLI_ARRAY_NB(caps);

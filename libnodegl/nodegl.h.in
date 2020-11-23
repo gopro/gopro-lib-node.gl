@@ -430,6 +430,7 @@ struct ngl_config {
 #define NGL_CAP_SHADER_TEXTURE_LOD            NGLI_FOURCC('S','T','L','d')
 #define NGL_CAP_TEXTURE_3D                    NGL_NODE_TEXTURE3D
 #define NGL_CAP_TEXTURE_CUBE                  NGL_NODE_TEXTURECUBE
+#define NGL_CAP_UINT_UNIFORMS                 NGLI_FOURCC('U','i','n','t')
 
 struct ngl_cap {
     unsigned id;            /* any of NGL_CAP_* */

@@ -21,6 +21,8 @@
 
 /* WARNING: this file must only be included once */
 
+#include <stddef.h>
+
 #include "glcontext.h"
 
 #define OFFSET(x) offsetof(struct glfunctions, x)

@@ -531,6 +531,7 @@ static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcr
     const int require_image_external_feature       = ngli_darray_count(&s->texture_infos) > 0 && s->glsl_version  < 300;
     const int require_image_external_essl3_feature = ngli_darray_count(&s->texture_infos) > 0 && s->glsl_version >= 300;
 #endif
+    const int enable_shader_texture_lod = (gctx->features & NGLI_FEATURE_SHADER_TEXTURE_LOD) == NGLI_FEATURE_SHADER_TEXTURE_LOD;
 
     const struct {
         int backend;
@@ -550,6 +551,7 @@ static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcr
         {NGL_BACKEND_OPENGLES, "GL_OES_EGL_image_external",       INT_MAX, require_image_external_feature},
         {NGL_BACKEND_OPENGLES, "GL_OES_EGL_image_external_essl3", INT_MAX, require_image_external_essl3_feature},
 #endif
+        {NGL_BACKEND_OPENGLES, "GL_EXT_shader_texture_lod",           300, enable_shader_texture_lod},
     };
 
     for (int i = 0; i < NGLI_ARRAY_NB(features); i++) {
@@ -568,6 +570,15 @@ static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcr
             ngli_bstr_print(b, "#define ngl_tex2d   texture2D\n"
                                "#define ngl_tex3d   texture3D\n"
                                "#define ngl_texcube textureCube\n");
+
+        if (config->backend == NGL_BACKEND_OPENGLES && s->glsl_version < 300)
+            ngli_bstr_print(b, "#define ngl_tex2dlod   texture2DLodEXT\n"
+                               "#define ngl_tex3dlod   texture3DLodEXT\n"
+                               "#define ngl_texcubelod textureCubeLodEXT\n");
+        else
+            ngli_bstr_print(b, "#define ngl_tex2dlod   textureLod\n"
+                               "#define ngl_tex3dlod   textureLod\n"
+                               "#define ngl_texcubelod textureLod\n");
     }
 
     ngli_bstr_print(b, "\n");

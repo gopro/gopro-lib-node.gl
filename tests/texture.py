@@ -278,7 +278,7 @@ void main()
 _RENDER_TEXTURE_LOD_FRAG = '''
 void main()
 {
-    ngl_out_color = textureLod(tex0, var_uvcoord, 0.5);
+    ngl_out_color = ngl_tex2dlod(tex0, var_uvcoord, 0.5);
 }
 '''
 

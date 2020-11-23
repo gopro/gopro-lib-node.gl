@@ -57,6 +57,7 @@
 #define NGLI_FEATURE_CLEAR_BUFFER                 (1ULL << 32)
 #define NGLI_FEATURE_SHADER_IMAGE_SIZE            (1ULL << 33)
 #define NGLI_FEATURE_SHADING_LANGUAGE_420PACK     (1ULL << 34)
+#define NGLI_FEATURE_SHADER_TEXTURE_LOD           (1ULL << 35)
 
 #define NGLI_FEATURE_COMPUTE_SHADER_ALL (NGLI_FEATURE_COMPUTE_SHADER           | \
                                          NGLI_FEATURE_PROGRAM_INTERFACE_QUERY  | \

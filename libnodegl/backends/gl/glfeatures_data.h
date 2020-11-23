@@ -280,5 +280,11 @@ static const struct glfeature {
         .flag           = NGLI_FEATURE_SHADING_LANGUAGE_420PACK,
         .version        = 420,
         .extensions     = (const char*[]){"GL_ARB_shading_language_420pack", NULL},
+    }, {
+        .name           = "shader_texture_lod",
+        .flag           = NGLI_FEATURE_SHADER_TEXTURE_LOD,
+        .version        = 300,
+        .es_version     = 300,
+        .es_extensions  = (const char*[]){"GL_EXT_shader_texture_lod", NULL},
     }
 };

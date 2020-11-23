@@ -52,6 +52,7 @@ static const struct glfeature {
         .flag           = NGLI_FEATURE_TEXTURE_3D,
         .version        = 200,
         .es_version     = 300,
+        .es_extensions  = (const char*[]){"GL_OES_texture_3D", NULL},
         .funcs_offsets  = (const size_t[]){OFFSET(TexImage3D),
                                            OFFSET(TexSubImage3D),
                                            -1}

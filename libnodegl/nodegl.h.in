@@ -417,6 +417,7 @@ struct ngl_config {
 #define NGL_CAP_BLOCK                         NGL_NODE_BLOCK
 #define NGL_CAP_COMPUTE                       NGL_NODE_COMPUTE
 #define NGL_CAP_INSTANCED_DRAW                NGLI_FOURCC('I','D','r','w')
+#define NGL_CAP_MAX_COLOR_ATTACHMENTS         NGLI_FOURCC('M','C','A','t')
 #define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X     NGLI_FOURCC('C','G','c','x')
 #define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y     NGLI_FOURCC('C','G','c','y')
 #define NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z     NGLI_FOURCC('C','G','c','z')

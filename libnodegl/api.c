@@ -398,6 +398,7 @@ static const char *get_cap_string_id(unsigned cap_id)
     case NGL_CAP_BLOCK:                         return "block";
     case NGL_CAP_COMPUTE:                       return "compute";
     case NGL_CAP_INSTANCED_DRAW:                return "instanced_draw";
+    case NGL_CAP_MAX_COLOR_ATTACHMENTS:         return "max_color_attachments";
     case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X:     return "max_compute_group_count_x";
     case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y:     return "max_compute_group_count_y";
     case NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z:     return "max_compute_group_count_z";
@@ -433,6 +434,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
         CAP(NGL_CAP_BLOCK,                         has_block),
         CAP(NGL_CAP_COMPUTE,                       has_compute),
         CAP(NGL_CAP_INSTANCED_DRAW,                has_instanced_draw),
+        CAP(NGL_CAP_MAX_COLOR_ATTACHMENTS,         limits->max_color_attachments),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_X,     limits->max_compute_work_group_counts[0]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Y,     limits->max_compute_work_group_counts[1]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_COUNT_Z,     limits->max_compute_work_group_counts[2]),

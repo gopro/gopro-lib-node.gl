@@ -426,6 +426,7 @@ struct ngl_config {
 #define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z      NGLI_FOURCC('C','G','s','z')
 #define NGL_CAP_MAX_SAMPLES                   NGLI_FOURCC('M','S','A','A')
 #define NGL_CAP_NPOT_TEXTURE                  NGLI_FOURCC('N','P','O','T')
+#define NGL_CAP_SHADER_TEXTURE_LOD            NGLI_FOURCC('S','T','L','d')
 #define NGL_CAP_TEXTURE_3D                    NGL_NODE_TEXTURE3D
 #define NGL_CAP_TEXTURE_CUBE                  NGL_NODE_TEXTURECUBE
 

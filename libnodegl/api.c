@@ -407,6 +407,7 @@ static const char *get_cap_string_id(unsigned cap_id)
     case NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z:      return "max_compute_group_size_z";
     case NGL_CAP_MAX_SAMPLES:                   return "max_samples";
     case NGL_CAP_NPOT_TEXTURE:                  return "npot_texture";
+    case NGL_CAP_SHADER_TEXTURE_LOD:            return "shader_texture_lod";
     case NGL_CAP_TEXTURE_3D:                    return "texture_3d";
     case NGL_CAP_TEXTURE_CUBE:                  return "texture_cube";
     }
@@ -423,6 +424,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
     const int has_compute        = ALL_FEATURES(gctx->features, NGLI_FEATURE_COMPUTE_SHADER_ALL);
     const int has_instanced_draw = ALL_FEATURES(gctx->features, NGLI_FEATURE_INSTANCED_ARRAY);
     const int has_npot_texture   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_NPOT);
+    const int has_shader_texture_lod = ALL_FEATURES(gctx->features, NGLI_FEATURE_SHADER_TEXTURE_LOD);
     const int has_texture_3d     = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_3D);
     const int has_texture_cube   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_CUBE_MAP);
 
@@ -440,6 +442,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z,      limits->max_compute_work_group_sizes[2]),
         CAP(NGL_CAP_MAX_SAMPLES,                   limits->max_samples),
         CAP(NGL_CAP_NPOT_TEXTURE,                  has_npot_texture),
+        CAP(NGL_CAP_SHADER_TEXTURE_LOD,            has_shader_texture_lod),
         CAP(NGL_CAP_TEXTURE_3D,                    has_texture_3d),
         CAP(NGL_CAP_TEXTURE_CUBE,                  has_texture_cube),
     };

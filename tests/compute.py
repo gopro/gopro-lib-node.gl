@@ -93,10 +93,10 @@ def compute_particules(cfg):
     time = ngl.AnimatedFloat(animkf)
     duration = ngl.UniformFloat(cfg.duration)
 
-    group_size = nb_particules / local_size
+    group_size = nb_particules / local_size**2
     program = ngl.ComputeProgram(_PARTICULES_COMPUTE % dict(local_size=local_size))
     program.update_properties(odata=ngl.ResourceProps(writable=True))
-    compute = ngl.Compute(nb_particules, 1, 1, program)
+    compute = ngl.Compute(group_size, 1, 1, program)
     compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
 
     circle = ngl.Circle(radius=0.05)

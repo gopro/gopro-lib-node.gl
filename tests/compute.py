@@ -64,7 +64,7 @@ void main()
 def compute_particules(cfg):
     random.seed(0)
     cfg.duration = 10
-    workgroups = (8, 1, 1)
+    workgroups = (2, 1, 4)
     local_size = (4, 4, 1)
     nb_particules = workgroups[0] * workgroups[1] * workgroups[2] \
                   * local_size[0] * local_size[1] * local_size[2]

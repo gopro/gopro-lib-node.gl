@@ -31,7 +31,7 @@ from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 
 
 _PARTICULES_COMPUTE = '''
-layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
+layout(local_size_x = %(local_size_x)d, local_size_y = %(local_size_y)d, local_size_z = %(local_size_z)d) in;
 
 void main()
 {
@@ -61,8 +61,10 @@ void main()
 def compute_particules(cfg):
     random.seed(0)
     cfg.duration = 10
-    local_size = 4
-    nb_particules = 128
+    group_size = (8, 1, 1)
+    local_size = (4, 4, 1)
+    nb_particules = group_size[0] * group_size[1] * group_size[2] \
+                  * local_size[0] * local_size[1] * local_size[2]
 
     positions = array.array('f')
     velocities = array.array('f')
@@ -93,10 +95,12 @@ def compute_particules(cfg):
     time = ngl.AnimatedFloat(animkf)
     duration = ngl.UniformFloat(cfg.duration)
 
-    group_size = nb_particules / local_size**2
-    program = ngl.ComputeProgram(_PARTICULES_COMPUTE % dict(local_size=local_size))
+    program = ngl.ComputeProgram(_PARTICULES_COMPUTE % dict(
+        local_size_x=local_size[0],
+        local_size_y=local_size[1],
+        local_size_z=local_size[2]))
     program.update_properties(odata=ngl.ResourceProps(writable=True))
-    compute = ngl.Compute(group_size, 1, 1, program)
+    compute = ngl.Compute(group_size[0], group_size[1], group_size[2], program)
     compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
 
     circle = ngl.Circle(radius=0.05)

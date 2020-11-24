@@ -35,7 +35,10 @@ layout(local_size_x = %(local_size_x)d, local_size_y = %(local_size_y)d, local_s
 
 void main()
 {
-    uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * gl_WorkGroupSize.y + gl_LocalInvocationIndex;
+    uvec3 total_size = gl_WorkGroupSize * gl_NumWorkGroups;
+    uint i = gl_GlobalInvocationID.z * total_size.x * total_size.y
+           + gl_GlobalInvocationID.y * total_size.x
+           + gl_GlobalInvocationID.x;
     vec3 iposition = idata.positions[i];
     vec2 ivelocity = idata.velocities[i];
     vec3 position;

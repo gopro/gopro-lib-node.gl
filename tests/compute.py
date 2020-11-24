@@ -61,9 +61,9 @@ void main()
 def compute_particules(cfg):
     random.seed(0)
     cfg.duration = 10
-    group_size = (8, 1, 1)
+    workgroups = (8, 1, 1)
     local_size = (4, 4, 1)
-    nb_particules = group_size[0] * group_size[1] * group_size[2] \
+    nb_particules = workgroups[0] * workgroups[1] * workgroups[2] \
                   * local_size[0] * local_size[1] * local_size[2]
 
     positions = array.array('f')
@@ -100,7 +100,7 @@ def compute_particules(cfg):
         local_size_y=local_size[1],
         local_size_z=local_size[2]))
     program.update_properties(odata=ngl.ResourceProps(writable=True))
-    compute = ngl.Compute(group_size[0], group_size[1], group_size[2], program)
+    compute = ngl.Compute(workgroups[0], workgroups[1], workgroups[2], program)
     compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
 
     circle = ngl.Circle(radius=0.05)

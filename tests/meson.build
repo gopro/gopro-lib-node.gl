@@ -89,7 +89,7 @@ foreach backend : backends
     tests_compute += [
       'animation',
       'histogram',
-      'particules',
+      'particles',
     ]
   endif
 

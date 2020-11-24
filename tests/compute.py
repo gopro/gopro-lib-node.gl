@@ -61,17 +61,17 @@ void main()
 
 @test_fingerprint(nb_keyframes=10, tolerance=1)
 @scene()
-def compute_particules(cfg):
+def compute_particles(cfg):
     random.seed(0)
     cfg.duration = 10
     workgroups = (2, 1, 4)
     local_size = (4, 4, 1)
-    nb_particules = workgroups[0] * workgroups[1] * workgroups[2] \
-                  * local_size[0] * local_size[1] * local_size[2]
+    nb_particles = workgroups[0] * workgroups[1] * workgroups[2] \
+                 * local_size[0] * local_size[1] * local_size[2]
 
     positions = array.array('f')
     velocities = array.array('f')
-    for i in range(nb_particules):
+    for i in range(nb_particles):
         positions.extend([
             random.uniform(-2.0, 1.0),
             random.uniform(-1.0, 1.0),
@@ -89,7 +89,7 @@ def compute_particules(cfg):
         ],
         layout='std430',
     )
-    opositions = ngl.Block(fields=[ngl.BufferVec3(count=nb_particules, label='positions')], layout='std140')
+    opositions = ngl.Block(fields=[ngl.BufferVec3(count=nb_particles, label='positions')], layout='std140')
 
     animkf = [
         ngl.AnimKeyFrameFloat(0, 0),
@@ -108,7 +108,7 @@ def compute_particules(cfg):
 
     circle = ngl.Circle(radius=0.05)
     program = ngl.Program(vertex=_PARTICULES_VERT, fragment=cfg.get_frag('color'))
-    render = ngl.Render(circle, program, nb_instances=nb_particules)
+    render = ngl.Render(circle, program, nb_instances=nb_particles)
     render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
     render.update_vert_resources(data=opositions)
 

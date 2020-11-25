@@ -101,8 +101,8 @@ static int compute_init(struct ngl_node *node)
         LOG(ERROR, "number of group must be > 0 for x, y and z");
         return NGL_ERROR_INVALID_ARG;
     }
-    struct gctx *gctx = ctx->gctx;
-    struct limits *limits = &gctx->limits;
+    const struct gctx *gctx = ctx->gctx;
+    const struct limits *limits = &gctx->limits;
 
     if (s->workgroup_count[0] > limits->max_compute_work_group_counts[0] ||
         s->workgroup_count[1] > limits->max_compute_work_group_counts[1] ||

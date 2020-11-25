@@ -415,6 +415,7 @@ run_target(
 # Doc
 #
 
+if not get_option('small')
 gen_doc = executable(
   'gen_doc',
   lib_src + files('gen_doc.c'),
@@ -432,6 +433,7 @@ run_target(
   'updatedoc',
   command: [cp, doc_file, meson.current_source_dir() / 'doc'],
 )
+endif
 
 
 #

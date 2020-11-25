@@ -281,6 +281,7 @@ struct program_priv {
     const char *vertex;
     const char *fragment;
     const char *compute;
+    int workgroup_size[3];
     struct hmap *properties;
     struct hmap *vert_out_vars;
     int nb_frag_output;

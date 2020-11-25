@@ -476,6 +476,7 @@ int ngli_pass_prepare(struct pass *s)
         .vert_out_vars     = s->params.vert_out_vars,
         .nb_vert_out_vars  = s->params.nb_vert_out_vars,
         .nb_frag_output    = s->params.nb_frag_output,
+        .workgroup_size    = {NGLI_ARG_VEC3(s->params.workgroup_size)},
     };
 
     struct pipeline_desc *desc = ngli_darray_push(&s->pipeline_descs, NULL);

@@ -883,6 +883,10 @@ static int craft_comp(struct pgcraft *s, const struct pgcraft_params *params)
 
     set_glsl_header(s, b, params, NGLI_PROGRAM_SHADER_COMP);
 
+    const int *wg_size = params->workgroup_size;
+    ngli_assert(wg_size[0] >= 0 && wg_size[1] >= 0 && wg_size[2] >= 0);
+    ngli_bstr_printf(b, "layout(local_size_x=%d, local_size_y=%d, local_size_z=%d) in;\n", NGLI_ARG_VEC3(wg_size));
+
     int ret;
     if ((ret = inject_uniforms(s, b, params, NGLI_PROGRAM_SHADER_COMP)) < 0 ||
         (ret = inject_texture_infos(s, params, NGLI_PROGRAM_SHADER_COMP)) < 0 ||

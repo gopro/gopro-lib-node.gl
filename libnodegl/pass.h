@@ -52,6 +52,7 @@ struct pass_params {
     int nb_group_x;
     int nb_group_y;
     int nb_group_z;
+    int workgroup_size[3];
 };
 
 enum {

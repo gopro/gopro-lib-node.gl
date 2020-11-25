@@ -1,5 +1,3 @@
-layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
-
 void main()
 {
     uint x = gl_GlobalInvocationID.x;

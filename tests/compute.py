@@ -31,8 +31,6 @@ from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 
 
 _PARTICULES_COMPUTE = '''
-layout(local_size_x = %(local_size_x)d, local_size_y = %(local_size_y)d, local_size_z = %(local_size_z)d) in;
-
 void main()
 {
     uvec3 total_size = gl_WorkGroupSize * gl_NumWorkGroups;
@@ -98,10 +96,7 @@ def compute_particles(cfg):
     time = ngl.AnimatedFloat(animkf)
     duration = ngl.UniformFloat(cfg.duration)
 
-    program = ngl.ComputeProgram(_PARTICULES_COMPUTE % dict(
-        local_size_x=local_size[0],
-        local_size_y=local_size[1],
-        local_size_z=local_size[2]))
+    program = ngl.ComputeProgram(_PARTICULES_COMPUTE, workgroup_size=local_size)
     program.update_properties(odata=ngl.ResourceProps(writable=True))
     compute = ngl.Compute(workgroups, program)
     compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
@@ -118,8 +113,6 @@ def compute_particles(cfg):
 
 
 _COMPUTE_HISTOGRAM_CLEAR = '''
-layout(local_size_x = %(local_size)d, local_size_y = 1, local_size_z = 1) in;
-
 void main()
 {
     uint i = gl_GlobalInvocationID.x;
@@ -134,8 +127,6 @@ void main()
 
 
 _COMPUTE_HISTOGRAM_EXEC = '''
-layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
-
 void main()
 {
     uint x = gl_GlobalInvocationID.x;
@@ -218,7 +209,7 @@ def compute_histogram(cfg, show_dbg_points=False):
 
     group_size = hsize // local_size
     clear_histogram_shader = _COMPUTE_HISTOGRAM_CLEAR % shader_params
-    clear_histogram_program = ngl.ComputeProgram(clear_histogram_shader)
+    clear_histogram_program = ngl.ComputeProgram(clear_histogram_shader, workgroup_size=(local_size, 1, 1))
     clear_histogram_program.update_properties(hist=ngl.ResourceProps(writable=True))
     clear_histogram = ngl.Compute(
         workgroup_count=(group_size, 1, 1),
@@ -229,7 +220,7 @@ def compute_histogram(cfg, show_dbg_points=False):
 
     group_size = size // local_size
     exec_histogram_shader = _COMPUTE_HISTOGRAM_EXEC % shader_params
-    exec_histogram_program = ngl.ComputeProgram(exec_histogram_shader)
+    exec_histogram_program = ngl.ComputeProgram(exec_histogram_shader, workgroup_size=(local_size, local_size, 1))
     exec_histogram_program.update_properties(hist=ngl.ResourceProps(writable=True))
     exec_histogram = ngl.Compute(
         workgroup_count=(group_size, group_size, 1),
@@ -256,8 +247,6 @@ def compute_histogram(cfg, show_dbg_points=False):
 
 
 _ANIMATION_COMPUTE = '''
-layout(local_size_x = %(local_size)d, local_size_y = %(local_size)d, local_size_z = 1) in;
-
 void main()
 {
     uint i = gl_WorkGroupID.x * gl_WorkGroupSize.x * gl_WorkGroupSize.y + gl_LocalInvocationIndex;
@@ -272,8 +261,6 @@ def compute_animation(cfg):
     cfg.duration = 5
     cfg.aspect_ratio = (1, 1)
     local_size = 2
-
-    compute_shader = _ANIMATION_COMPUTE % dict(local_size=local_size)
 
     vertices_data = array.array('f', [
         -0.5, -0.5, 0.0,
@@ -293,7 +280,7 @@ def compute_animation(cfg):
     rotate = ngl.Rotate(ngl.Identity(), axis=(0, 0, 1), anim=ngl.AnimatedFloat(rotate_animkf))
     transform = ngl.UniformMat4(transform=rotate)
 
-    program = ngl.ComputeProgram(compute_shader)
+    program = ngl.ComputeProgram(_ANIMATION_COMPUTE, workgroup_size=(local_size, local_size, 1))
     program.update_properties(dst=ngl.ResourceProps(writable=True))
     compute = ngl.Compute(workgroup_count=(nb_vertices / (local_size ** 2), 1, 1), program=program)
     compute.update_resources(transform=transform, src=input_block, dst=output_block)

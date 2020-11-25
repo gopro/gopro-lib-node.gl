@@ -272,7 +272,7 @@ def particles(cfg, particles=32):
     utime = ngl.AnimatedFloat(animkf)
     uduration = ngl.UniformFloat(cfg.duration)
 
-    cp = ngl.ComputeProgram(compute_shader)
+    cp = ngl.ComputeProgram(compute_shader, workgroup_size=(1, 1, 1))
     cp.update_properties(opositions=ngl.ResourceProps(writable=True))
 
     c = ngl.Compute(workgroup_count=(x, particles, 1), program=cp)
@@ -512,7 +512,7 @@ def histogram(cfg):
     rtt.add_color_textures(proxy)
     g.add_children(rtt)
 
-    compute_program = ngl.ComputeProgram(cfg.get_comp('histogram-clear'))
+    compute_program = ngl.ComputeProgram(cfg.get_comp('histogram-clear'), workgroup_size=(1, 1, 1))
     compute_program.update_properties(hist=ngl.ResourceProps(writable=True))
     compute = ngl.Compute(workgroup_count=(256, 1, 1), program=compute_program, label='histogram-clear')
     compute.update_resources(hist=h)
@@ -520,8 +520,7 @@ def histogram(cfg):
 
     local_size = 8
     group_size = proxy_size / local_size
-    compute_shader = cfg.get_comp('histogram-exec') % {'local_size': local_size}
-    compute_program = ngl.ComputeProgram(compute_shader)
+    compute_program = ngl.ComputeProgram(cfg.get_comp('histogram-exec'), workgroup_size=(local_size, local_size, 1))
     compute = ngl.Compute(workgroup_count=(group_size, group_size, 1), program=compute_program, label='histogram-exec')
     compute.update_resources(hist=h, source=proxy)
     compute_program.update_properties(hist=ngl.ResourceProps(writable=True))

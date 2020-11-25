@@ -178,6 +178,7 @@
 
 - ComputeProgram:
     - [compute, string]
+    - [workgroup_size, ivec3]
     - [properties, NodeDict]
 
 - Geometry:

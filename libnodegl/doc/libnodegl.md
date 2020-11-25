@@ -273,6 +273,7 @@ Parameter | Live-chg. | Type | Description | Default
 Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
 `compute` |  | [`string`](#parameter-types) | compute shader | 
+`workgroup_size` |  | [`ivec3`](#parameter-types) | number of local compute instances in a work group | (`0`,`0`,`0`)
 `properties` |  | [`NodeDict`](#parameter-types) ([ResourceProps](#resourceprops)) | resource properties | 
 
 

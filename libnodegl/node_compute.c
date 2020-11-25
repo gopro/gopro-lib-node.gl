@@ -123,6 +123,7 @@ static int compute_init(struct ngl_node *node)
         .nb_group_x = s->workgroup_count[0],
         .nb_group_y = s->workgroup_count[1],
         .nb_group_z = s->workgroup_count[2],
+        .workgroup_size = {NGLI_ARG_VEC3(program->workgroup_size)},
     };
     return ngli_pass_init(&s->pass, ctx, &params);
 }

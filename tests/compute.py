@@ -103,7 +103,7 @@ def compute_particles(cfg):
         local_size_y=local_size[1],
         local_size_z=local_size[2]))
     program.update_properties(odata=ngl.ResourceProps(writable=True))
-    compute = ngl.Compute(workgroups[0], workgroups[1], workgroups[2], program)
+    compute = ngl.Compute(workgroups, program)
     compute.update_resources(time=time, duration=duration, idata=ipositions, odata=opositions)
 
     circle = ngl.Circle(radius=0.05)
@@ -221,10 +221,8 @@ def compute_histogram(cfg, show_dbg_points=False):
     clear_histogram_program = ngl.ComputeProgram(clear_histogram_shader)
     clear_histogram_program.update_properties(hist=ngl.ResourceProps(writable=True))
     clear_histogram = ngl.Compute(
-        group_size,
-        1,
-        1,
-        clear_histogram_program,
+        workgroup_count=(group_size, 1, 1),
+        program=clear_histogram_program,
         label='clear_histogram',
     )
     clear_histogram.update_resources(hist=histogram_block)
@@ -234,10 +232,8 @@ def compute_histogram(cfg, show_dbg_points=False):
     exec_histogram_program = ngl.ComputeProgram(exec_histogram_shader)
     exec_histogram_program.update_properties(hist=ngl.ResourceProps(writable=True))
     exec_histogram = ngl.Compute(
-        group_size,
-        group_size,
-        1,
-        exec_histogram_program,
+        workgroup_count=(group_size, group_size, 1),
+        program=exec_histogram_program,
         label='compute_histogram'
     )
     exec_histogram.update_resources(hist=histogram_block, source=texture)
@@ -299,7 +295,7 @@ def compute_animation(cfg):
 
     program = ngl.ComputeProgram(compute_shader)
     program.update_properties(dst=ngl.ResourceProps(writable=True))
-    compute = ngl.Compute(nb_vertices / (local_size ** 2), 1, 1, program)
+    compute = ngl.Compute(workgroup_count=(nb_vertices / (local_size ** 2), 1, 1), program=program)
     compute.update_resources(transform=transform, src=input_block, dst=output_block)
 
     quad_buffer = ngl.BufferVec3(block=output_block, block_field=0)

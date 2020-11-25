@@ -260,9 +260,7 @@ Parameter | Live-chg. | Type | Description | Default
 
 Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
-`nb_group_x` |  | [`int`](#parameter-types) | number of work groups to be executed in the x dimension | `0`
-`nb_group_y` |  | [`int`](#parameter-types) | number of work groups to be executed in the y dimension | `0`
-`nb_group_z` |  | [`int`](#parameter-types) | number of work groups to be executed in the z dimension | `0`
+`workgroup_count` |  | [`ivec3`](#parameter-types) | number of work groups to be executed | (`0`,`0`,`0`)
 `program` |  | [`Node`](#parameter-types) ([ComputeProgram](#computeprogram)) | compute program to be executed | 
 `resources` |  | [`NodeDict`](#parameter-types) ([Texture2D](#texture2d), [Block](#block), [UniformFloat](#uniformfloat), [UniformVec2](#uniformvec2), [UniformVec3](#uniformvec3), [UniformVec4](#uniformvec4), [UniformQuat](#uniformquat), [UniformBool](#uniformbool), [UniformInt](#uniformint), [UniformIVec2](#uniformivec2), [UniformIVec3](#uniformivec3), [UniformIVec4](#uniformivec4), [UniformUInt](#uniformuint), [UniformUIVec2](#uniformuivec2), [UniformUIVec3](#uniformuivec3), [UniformUIVec4](#uniformuivec4), [UniformMat4](#uniformmat4), [AnimatedFloat](#animatedfloat), [AnimatedVec2](#animatedvec2), [AnimatedVec3](#animatedvec3), [AnimatedVec4](#animatedvec4), [AnimatedQuat](#animatedquat), [StreamedInt](#streamedint), [StreamedIVec2](#streamedivec2), [StreamedIVec3](#streamedivec3), [StreamedIVec4](#streamedivec4), [StreamedUInt](#streameduint), [StreamedUIVec2](#streameduivec2), [StreamedUIVec3](#streameduivec3), [StreamedUIVec4](#streameduivec4), [StreamedFloat](#streamedfloat), [StreamedVec2](#streamedvec2), [StreamedVec3](#streamedvec3), [StreamedVec4](#streamedvec4), [StreamedMat4](#streamedmat4), [Time](#time)) | resources made accessible to the compute `program` | 
 

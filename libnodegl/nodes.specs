@@ -172,9 +172,7 @@
     - [npoints, int]
 
 - Compute:
-    - [nb_group_x, int]
-    - [nb_group_y, int]
-    - [nb_group_z, int]
+    - [workgroup_count, ivec3]
     - [program, Node]
     - [resources, NodeDict]
 

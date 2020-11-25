@@ -275,7 +275,7 @@ def particles(cfg, particles=32):
     cp = ngl.ComputeProgram(compute_shader)
     cp.update_properties(opositions=ngl.ResourceProps(writable=True))
 
-    c = ngl.Compute(x, particles, 1, cp)
+    c = ngl.Compute(workgroup_count=(x, particles, 1), program=cp)
     c.update_resources(
         time=utime,
         duration=uduration,
@@ -514,7 +514,7 @@ def histogram(cfg):
 
     compute_program = ngl.ComputeProgram(cfg.get_comp('histogram-clear'))
     compute_program.update_properties(hist=ngl.ResourceProps(writable=True))
-    compute = ngl.Compute(256, 1, 1, compute_program, label='histogram-clear')
+    compute = ngl.Compute(workgroup_count=(256, 1, 1), program=compute_program, label='histogram-clear')
     compute.update_resources(hist=h)
     g.add_children(compute)
 
@@ -522,7 +522,7 @@ def histogram(cfg):
     group_size = proxy_size / local_size
     compute_shader = cfg.get_comp('histogram-exec') % {'local_size': local_size}
     compute_program = ngl.ComputeProgram(compute_shader)
-    compute = ngl.Compute(group_size, group_size, 1, compute_program, label='histogram-exec')
+    compute = ngl.Compute(workgroup_count=(group_size, group_size, 1), program=compute_program, label='histogram-exec')
     compute.update_resources(hist=h, source=proxy)
     compute_program.update_properties(hist=ngl.ResourceProps(writable=True))
     compute_program.update_properties(source=ngl.ResourceProps(as_image=True))

@@ -311,7 +311,7 @@ static struct gctx *gl_create(const struct ngl_config *config)
     return (struct gctx *)s;
 }
 
-#ifdef DEBUG_GL
+#if DEBUG_GL
 #define GL_DEBUG_LOG(log_level, ...) ngli_log_print(log_level, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 static void NGLI_GL_APIENTRY gl_debug_message_callback(GLenum source,
@@ -341,7 +341,7 @@ static int gl_init(struct gctx *s)
     struct glcontext *gl = s_priv->glcontext;
     s->features = gl->features;
 
-#ifdef DEBUG_GL
+#if DEBUG_GL
     if ((gl->features & NGLI_FEATURE_KHR_DEBUG)) {
         ngli_glEnable(gl, GL_DEBUG_OUTPUT_SYNCHRONOUS);
         ngli_glDebugMessageCallback(gl, gl_debug_message_callback, NULL);

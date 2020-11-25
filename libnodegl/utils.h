@@ -56,7 +56,7 @@
 #define NGLI_ALIGNED_VEC(vname) float __attribute__ ((aligned (NGLI_ALIGN_VAL))) vname[4]
 #define NGLI_ALIGNED_MAT(mname) float __attribute__ ((aligned (NGLI_ALIGN_VAL))) mname[4*4]
 
-#ifdef CONFIG_SMALL
+#if CONFIG_SMALL
 #define NGLI_DOCSTRING(s) (NULL)
 #else
 #define NGLI_DOCSTRING(s) (s)

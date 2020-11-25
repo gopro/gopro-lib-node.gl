@@ -602,7 +602,7 @@ int ngli_glcontext_check_gl_error(const struct glcontext *glcontext, const char 
     else
         LOG(ERROR, "GL error in %s: %04x", context, error);
 
-#ifdef DEBUG_GL
+#if DEBUG_GL
     ngli_assert(0);
 #endif
 

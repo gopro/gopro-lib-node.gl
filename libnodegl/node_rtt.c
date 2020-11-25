@@ -143,7 +143,7 @@ static int rtt_prepare(struct ngl_node *node)
     struct renderpass_children_info info = {0};
     get_renderpass_children_info(s->child, &info);
     if (info.render_counts[0] && info.render_counts[1]) {
-#ifdef DEBUG_SCENE
+#if DEBUG_SCENE
         LOG(WARNING, "the underlying render pass might not be optimal as it contains a rtt or compute node in the middle of it");
 #endif
         s->use_rt_resume = 1;

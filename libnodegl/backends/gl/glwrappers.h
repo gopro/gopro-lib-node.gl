@@ -4,7 +4,7 @@
 
 #include "config.h"
 
-#ifdef DEBUG_GL
+#if DEBUG_GL
 # define check_error_code ngli_glcontext_check_gl_error
 #else
 # define check_error_code(gl, glfuncname) do { } while (0)

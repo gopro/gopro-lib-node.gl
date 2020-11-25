@@ -31,7 +31,7 @@
 #include "memory.h"
 #include "utils.h"
 
-#ifdef DEBUG_MEM
+#if DEBUG_MEM
 static int failure_requested(void)
 {
     static int alloc_counter;

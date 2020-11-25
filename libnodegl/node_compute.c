@@ -33,9 +33,7 @@
 #include "utils.h"
 
 struct compute_priv {
-    int nb_group_x;
-    int nb_group_y;
-    int nb_group_z;
+    int workgroup_count[3];
     struct ngl_node *program;
     struct hmap *resources;
 
@@ -85,7 +83,7 @@ struct compute_priv {
 
 #define OFFSET(x) offsetof(struct compute_priv, x)
 static const struct node_param compute_params[] = {
-    {"workgroup_count", PARAM_TYPE_IVEC3,      OFFSET(nb_group_x),
+    {"workgroup_count", PARAM_TYPE_IVEC3,      OFFSET(workgroup_count),
                         .desc=NGLI_DOCSTRING("number of work groups to be executed")},
     {"program",    PARAM_TYPE_NODE,     OFFSET(program),    .flags=PARAM_FLAG_NON_NULL, .node_types=PROGRAMS_TYPES_LIST,
                    .desc=NGLI_DOCSTRING("compute program to be executed")},
@@ -99,19 +97,21 @@ static int compute_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct compute_priv *s = node->priv_data;
-    if (s->nb_group_x <= 0 || s->nb_group_y <= 0 || s->nb_group_z <= 0) {
+    if (s->workgroup_count[0] <= 0 || s->workgroup_count[1] <= 0 || s->workgroup_count[2] <= 0) {
         LOG(ERROR, "number of group must be > 0 for x, y and z");
         return NGL_ERROR_INVALID_ARG;
     }
     struct gctx *gctx = ctx->gctx;
     struct limits *limits = &gctx->limits;
 
-    if (s->nb_group_x > limits->max_compute_work_group_counts[0] ||
-        s->nb_group_y > limits->max_compute_work_group_counts[1] ||
-        s->nb_group_z > limits->max_compute_work_group_counts[2]) {
+    if (s->workgroup_count[0] > limits->max_compute_work_group_counts[0] ||
+        s->workgroup_count[1] > limits->max_compute_work_group_counts[1] ||
+        s->workgroup_count[2] > limits->max_compute_work_group_counts[2]) {
         LOG(ERROR,
             "compute work group counts (%d, %d, %d) exceed device limits (%d, %d, %d)",
-            s->nb_group_x, s->nb_group_y, s->nb_group_z,
+            s->workgroup_count[0],
+            s->workgroup_count[1],
+            s->workgroup_count[2],
             limits->max_compute_work_group_counts[0],
             limits->max_compute_work_group_counts[1],
             limits->max_compute_work_group_counts[2]);
@@ -124,9 +124,9 @@ static int compute_init(struct ngl_node *node)
         .comp_base = program->compute,
         .compute_resources = s->resources,
         .properties = program->properties,
-        .nb_group_x = s->nb_group_x,
-        .nb_group_y = s->nb_group_y,
-        .nb_group_z = s->nb_group_z,
+        .nb_group_x = s->workgroup_count[0],
+        .nb_group_y = s->workgroup_count[1],
+        .nb_group_z = s->workgroup_count[2],
     };
     return ngli_pass_init(&s->pass, ctx, &params);
 }

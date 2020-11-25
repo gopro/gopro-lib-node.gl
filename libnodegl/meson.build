@@ -416,23 +416,23 @@ run_target(
 #
 
 if not get_option('small')
-gen_doc = executable(
-  'gen_doc',
-  lib_src + files('gen_doc.c'),
-  dependencies: lib_deps,
-  build_by_default: false,
-  native: true,
-)
-doc_file = custom_target(
-  'libnodegl.md',
-  command: gen_doc,
-  capture: true,
-  output: 'libnodegl.md',
-)
-run_target(
-  'updatedoc',
-  command: [cp, doc_file, meson.current_source_dir() / 'doc'],
-)
+  gen_doc = executable(
+    'gen_doc',
+    lib_src + files('gen_doc.c'),
+    dependencies: lib_deps,
+    build_by_default: false,
+    native: true,
+  )
+  doc_file = custom_target(
+    'libnodegl.md',
+    command: gen_doc,
+    capture: true,
+    output: 'libnodegl.md',
+  )
+  run_target(
+    'updatedoc',
+    command: [cp, doc_file, meson.current_source_dir() / 'doc'],
+  )
 endif
 
 

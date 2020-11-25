@@ -328,7 +328,7 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   foreach dep : gbackend_deps
     all_dep_found = all_dep_found and dep.found()
   endforeach
-
+  message('backend: @0@ enabled: @1@'.format(gbackend_name, all_dep_found.to_string()))
   if all_dep_found
 
     if gbackend_name == 'gl' and vaapi_enabled

@@ -109,12 +109,8 @@ static int compute_init(struct ngl_node *node)
         s->workgroup_count[2] > limits->max_compute_work_group_counts[2]) {
         LOG(ERROR,
             "compute work group counts (%d, %d, %d) exceed device limits (%d, %d, %d)",
-            s->workgroup_count[0],
-            s->workgroup_count[1],
-            s->workgroup_count[2],
-            limits->max_compute_work_group_counts[0],
-            limits->max_compute_work_group_counts[1],
-            limits->max_compute_work_group_counts[2]);
+            NGLI_ARG_VEC3(s->workgroup_count),
+            NGLI_ARG_VEC3(limits->max_compute_work_group_counts));
 
         return NGL_ERROR_LIMIT_EXCEEDED;
     }

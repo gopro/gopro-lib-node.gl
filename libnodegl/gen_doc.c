@@ -21,12 +21,17 @@
 
 #include <inttypes.h>
 
+#include "config.h"
 #include "hmap.h"
 #include "memory.h"
 #include "nodegl.h"
 #include "nodes.h"
 #include "nodes_register.h"
 #include "utils.h"
+
+#if CONFIG_SMALL
+#error gen doc can not work with CONFIG_SMALL set
+#endif
 
 #define CLASS_LIST(type_name, class) extern const struct node_class class;
 NODE_MAP_TYPE2CLASS(CLASS_LIST)

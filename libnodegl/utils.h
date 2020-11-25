@@ -53,8 +53,14 @@
 #define NGLI_ALIGN(v, a) (((v) + (a) - 1) & ~((a) - 1))
 #define NGLI_ALIGN_VAL 16
 
-#define NGLI_ALIGNED_VEC(vname) float __attribute__ ((aligned (NGLI_ALIGN_VAL))) vname[4]
-#define NGLI_ALIGNED_MAT(mname) float __attribute__ ((aligned (NGLI_ALIGN_VAL))) mname[4*4]
+#ifdef _WIN32
+#define NGLI_ATTR_ALIGNED __declspec(align(NGLI_ALIGN_VAL))
+#else
+#define NGLI_ATTR_ALIGNED __attribute__ ((aligned (NGLI_ALIGN_VAL)))
+#endif
+
+#define NGLI_ALIGNED_VEC(vname) float NGLI_ATTR_ALIGNED vname[4]
+#define NGLI_ALIGNED_MAT(mname) float NGLI_ATTR_ALIGNED mname[4*4]
 
 #if CONFIG_SMALL
 #define NGLI_DOCSTRING(s) (NULL)

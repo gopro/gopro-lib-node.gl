@@ -101,7 +101,8 @@ cdef extern from "nodegl.h":
         int  samples
         int  set_surface_pts
         float clear_color[4]
-        uint8_t *capture_buffer
+        void *capture_buffer
+        int capture_buffer_type
         int hud
         int hud_measure_window
         int hud_refresh_rate[2]
@@ -279,7 +280,7 @@ cdef class Context:
             config.clear_color[i] = clear_color[i]
         capture_buffer = kwargs.get('capture_buffer')
         if capture_buffer is not None:
-            config.capture_buffer = capture_buffer
+            config.capture_buffer = <uint8_t *>capture_buffer
         config.hud = kwargs.get('hud', 0)
         config.hud_measure_window = kwargs.get('hud_measure_window', 0)
         hud_refresh_rate = kwargs.get('hud_refresh_rate', (0, 0))

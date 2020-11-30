@@ -58,8 +58,10 @@ static void capture_ios(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
+    struct ngl_config *config = &s->config;
 
-    ngli_glFinish(gl);
+    if (config->capture_buffer)
+        ngli_glFinish(gl);
 }
 
 #if defined(TARGET_IPHONE)
@@ -150,15 +152,34 @@ static int offscreen_rendertarget_init(struct gctx *s)
         config->samples = 0;
     }
 
-    const int ios_capture = gl->platform == NGL_PLATFORM_IOS && config->window;
-    if (ios_capture) {
+    if (config->capture_buffer_type == NGL_CAPTURE_BUFFER_TYPE_COREVIDEO) {
 #if defined(TARGET_IPHONE)
-        s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain((CVPixelBufferRef)config->window);
-        int ret = wrap_capture_cvpixelbuffer(s, s_priv->capture_cvtexture, &s_priv->color, &s_priv->capture_cvtexture);
-        if (ret < 0)
-            return ret;
+        if (config->capture_buffer) {
+            s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain(config->capture_buffer);
+            int ret = wrap_capture_cvpixelbuffer(s, s_priv->capture_cvbuffer, &s_priv->color, &s_priv->capture_cvtexture);
+            if (ret < 0)
+                return ret;
+        } else {
+            s_priv->color = ngli_texture_create(s);
+            if (!s_priv->color)
+                return NGL_ERROR_MEMORY;
+
+            struct texture_params params = {
+                .type   = NGLI_TEXTURE_TYPE_2D,
+                .format = NGLI_FORMAT_R8G8B8A8_UNORM,
+                .width  = config->width,
+                .height = config->height,
+                .usage  = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+            };
+            int ret = ngli_texture_init(s_priv->color, &params);
+            if (ret < 0)
+                return ret;
+        }
+#else
+        LOG(ERROR, "CoreVideo capture is only supported on iOS");
+        return NGL_ERROR_UNSUPPORTED;
 #endif
-    } else {
+    } else if (config->capture_buffer_type == NGL_CAPTURE_BUFFER_TYPE_CPU) {
         struct texture_params params = {
             .type   = NGLI_TEXTURE_TYPE_2D,
             .format = NGLI_FORMAT_R8G8B8A8_UNORM,
@@ -172,6 +193,9 @@ static int offscreen_rendertarget_init(struct gctx *s)
         int ret = ngli_texture_init(s_priv->color, &params);
         if (ret < 0)
             return ret;
+    } else {
+        LOG(ERROR, "unsupported capture buffer type: %d", config->capture_buffer_type);
+        return NGL_ERROR_UNSUPPORTED;
     }
 
     if (config->samples) {
@@ -234,7 +258,11 @@ static int offscreen_rendertarget_init(struct gctx *s)
     if (ret < 0)
         return ret;
 
-    s_priv->capture_func = ios_capture ? capture_ios : capture_default;
+    static const capture_func_type capture_func_map[] = {
+        [NGL_CAPTURE_BUFFER_TYPE_CPU]       = capture_default,
+        [NGL_CAPTURE_BUFFER_TYPE_COREVIDEO] = capture_ios,
+    };
+    s_priv->capture_func = capture_func_map[config->capture_buffer_type];
 
     const int vp[4] = {0, 0, config->width, config->height};
     ngli_gctx_set_viewport(s, vp);

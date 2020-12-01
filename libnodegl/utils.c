@@ -57,14 +57,6 @@ char *ngli_strdup(const char *s)
     return r;
 }
 
-int64_t ngli_gettime(void)
-{
-    struct timeval tv;
-
-    gettimeofday(&tv, NULL);
-    return 1000000 * (int64_t)tv.tv_sec + tv.tv_usec;
-}
-
 int64_t ngli_gettime_relative(void)
 {
     struct timespec ts;

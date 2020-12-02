@@ -62,6 +62,68 @@ static void capture_ios(struct gctx *s)
     ngli_glFinish(gl);
 }
 
+#if defined(TARGET_IPHONE)
+static int wrap_capture_cvpixelbuffer(struct gctx *s,
+                                      CVPixelBufferRef buffer,
+                                      struct texture **texturep,
+                                      CVOpenGLESTextureRef *cv_texturep)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+
+    CVOpenGLESTextureRef cv_texture = NULL;
+    CVOpenGLESTextureCacheRef *cache = ngli_glcontext_get_texture_cache(gl);
+    const size_t width = CVPixelBufferGetWidth(buffer);
+    const size_t height = CVPixelBufferGetHeight(buffer);
+    CVReturn cv_ret = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+                                                                   *cache,
+                                                                   buffer,
+                                                                   NULL,
+                                                                   GL_TEXTURE_2D,
+                                                                   GL_RGBA,
+                                                                   width,
+                                                                   height,
+                                                                   GL_BGRA,
+                                                                   GL_UNSIGNED_BYTE,
+                                                                   0,
+                                                                   &cv_texture);
+    if (cv_ret != kCVReturnSuccess) {
+        LOG(ERROR, "could not create CoreVideo texture from CVPixelBuffer: %d", cv_ret);
+        return NGL_ERROR_EXTERNAL;
+    }
+
+    GLuint id = CVOpenGLESTextureGetName(cv_texture);
+    ngli_glBindTexture(gl, GL_TEXTURE_2D, id);
+    ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
+
+    struct texture *texture = ngli_texture_create(s);
+    if (!texture) {
+        CFRelease(cv_texture);
+        return NGL_ERROR_MEMORY;
+    }
+
+    struct texture_params attachment_params = {
+        .type   = NGLI_TEXTURE_TYPE_2D,
+        .format = NGLI_FORMAT_B8G8R8A8_UNORM,
+        .width  = width,
+        .height = height,
+    };
+    int ret = ngli_texture_gl_wrap(texture, &attachment_params, id);
+    if (ret < 0) {
+        CFRelease(cv_texture);
+        ngli_texture_freep(&texture);
+        return ret;
+    }
+
+    *texturep = texture;
+    *cv_texturep = cv_texture;
+
+    return 0;
+}
+#endif
+
 static int offscreen_rendertarget_init(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
@@ -77,47 +139,8 @@ static int offscreen_rendertarget_init(struct gctx *s)
     const int ios_capture = gl->platform == NGL_PLATFORM_IOS && config->window;
     if (ios_capture) {
 #if defined(TARGET_IPHONE)
-        CVPixelBufferRef capture_cvbuffer = (CVPixelBufferRef)config->window;
-        s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain(capture_cvbuffer);
-        if (!s_priv->capture_cvbuffer)
-            return NGL_ERROR_MEMORY;
-
-        CVOpenGLESTextureCacheRef *cache = ngli_glcontext_get_texture_cache(gl);
-        int width = CVPixelBufferGetWidth(s_priv->capture_cvbuffer);
-        int height = CVPixelBufferGetHeight(s_priv->capture_cvbuffer);
-        CVReturn err = CVOpenGLESTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
-                                                                    *cache,
-                                                                    s_priv->capture_cvbuffer,
-                                                                    NULL,
-                                                                    GL_TEXTURE_2D,
-                                                                    GL_RGBA,
-                                                                    width,
-                                                                    height,
-                                                                    GL_BGRA,
-                                                                    GL_UNSIGNED_BYTE,
-                                                                    0,
-                                                                    &s_priv->capture_cvtexture);
-        if (err != noErr) {
-            LOG(ERROR, "could not create CoreVideo texture from CVPixelBuffer: 0x%x", err);
-            return NGL_ERROR_EXTERNAL;
-        }
-
-        GLuint id = CVOpenGLESTextureGetName(s_priv->capture_cvtexture);
-        ngli_glBindTexture(gl, GL_TEXTURE_2D, id);
-        ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        ngli_glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        ngli_glBindTexture(gl, GL_TEXTURE_2D, 0);
-
-        struct texture_params attachment_params = {
-            .type   = NGLI_TEXTURE_TYPE_2D,
-            .format = NGLI_FORMAT_B8G8R8A8_UNORM,
-            .width  = width,
-            .height = height,
-        };
-        s_priv->color = ngli_texture_create(s);
-        if (!s_priv->color)
-            return NGL_ERROR_MEMORY;
-        int ret = ngli_texture_gl_wrap(s_priv->color, &attachment_params, id);
+        s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain((CVPixelBufferRef)config->window);
+        int ret = wrap_capture_cvpixelbuffer(s, s_priv->capture_cvtexture, &s_priv->color, &s_priv->capture_cvtexture);
         if (ret < 0)
             return ret;
 #endif

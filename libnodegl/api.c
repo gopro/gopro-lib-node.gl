@@ -70,7 +70,7 @@ static int get_default_platform(void)
     return NGL_PLATFORM_MACOS;
 #elif defined(TARGET_ANDROID)
     return NGL_PLATFORM_ANDROID;
-#elif defined(TARGET_MINGW_W64)
+#elif defined(TARGET_WINDOWS)
     return NGL_PLATFORM_WINDOWS;
 #else
     return NGL_ERROR_UNSUPPORTED;

@@ -59,7 +59,6 @@ def api_reconfigure():
 
 def api_reconfigure_clearcolor(width=16, height=16):
     import zlib
-    ctx = ngl.Context()
     capture_buffer = bytearray(width * height * 4)
     ctx = ngl.Context()
     assert ctx.configure(offscreen=1, width=width, height=height, backend=_backend, capture_buffer=capture_buffer) == 0

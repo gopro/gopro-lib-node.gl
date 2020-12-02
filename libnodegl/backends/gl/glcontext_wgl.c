@@ -21,7 +21,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include <windows.h>
+#include <Windows.h>
 
 #include <GL/glcorearb.h>
 #include <GL/wglext.h>

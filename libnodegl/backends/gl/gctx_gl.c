@@ -122,6 +122,20 @@ static int wrap_capture_cvpixelbuffer(struct gctx *s,
 
     return 0;
 }
+
+static void reset_capture_cvpixelbuffer(struct gctx *s)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+
+    if (s_priv->capture_cvbuffer) {
+        CFRelease(s_priv->capture_cvbuffer);
+        s_priv->capture_cvbuffer = NULL;
+    }
+    if (s_priv->capture_cvtexture) {
+        CFRelease(s_priv->capture_cvtexture);
+        s_priv->capture_cvtexture = NULL;
+    }
+}
 #endif
 
 static int offscreen_rendertarget_init(struct gctx *s)
@@ -269,14 +283,7 @@ static void rendertarget_reset(struct gctx *s)
     ngli_texture_freep(&s_priv->ms_color);
     ngli_texture_freep(&s_priv->depth);
 #if defined(TARGET_IPHONE)
-    if (s_priv->capture_cvbuffer) {
-        CFRelease(s_priv->capture_cvbuffer);
-        s_priv->capture_cvbuffer = NULL;
-    }
-    if (s_priv->capture_cvtexture) {
-        CFRelease(s_priv->capture_cvtexture);
-        s_priv->capture_cvtexture = NULL;
-    }
+    reset_capture_cvpixelbuffer(s);
 #endif
     s_priv->capture_func = NULL;
 }

@@ -187,6 +187,26 @@ static int cmd_resize(struct ngl_ctx *s, void *arg)
     return ngli_gctx_resize(s->gctx, params->width, params->height, params->viewport);
 }
 
+static int cmd_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer)
+{
+    struct ngl_config *config = &s->config;
+
+    int ret = ngli_gctx_set_capture_buffer(s->gctx, capture_buffer);
+    if (ret < 0) {
+        if (s->scene) {
+            ngli_node_detach_ctx(s->scene, s);
+            ngl_node_unrefp(&s->scene);
+        }
+        cmd_stop(s, NULL);
+        config->capture_buffer = NULL;
+        return ret;
+    }
+
+    config->capture_buffer = capture_buffer;
+
+    return 0;
+}
+
 static int cmd_set_scene(struct ngl_ctx *s, void *arg)
 {
     if (s->scene) {
@@ -638,6 +658,27 @@ int ngl_resize(struct ngl_ctx *s, int width, int height, const int *viewport)
 #else
     return dispatch_cmd(s, cmd_resize, &params);
 #endif
+}
+
+int ngl_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer)
+{
+    if (!s->configured) {
+        LOG(ERROR, "context must be configured before setting a capture buffer");
+        return NGL_ERROR_INVALID_USAGE;
+    }
+
+    const struct ngl_config *config = &s->config;
+    if (!config->offscreen) {
+        LOG(ERROR, "capture buffers are only supported with offscreen rendering");
+        return NGL_ERROR_INVALID_USAGE;
+    }
+
+    int ret = dispatch_cmd(s, cmd_set_capture_buffer, capture_buffer);
+    if (ret < 0) {
+        s->configured = 0;
+        return ret;
+    }
+    return ret;
 }
 
 int ngl_set_scene(struct ngl_ctx *s, struct ngl_node *scene)

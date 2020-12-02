@@ -531,6 +531,21 @@ int ngl_configure(struct ngl_ctx *s, struct ngl_config *config);
 int ngl_resize(struct ngl_ctx *s, int width, int height, const int *viewport);
 
 /**
+ * Set a new buffer for offscreen capture
+ *
+ * Set a new buffer used for offscreen capture (and replace any previous one).
+ * The capture buffer type must match the ngl_config.capture_buffer_type used
+ * to configure the node.gl context.
+ *
+ * @param s               pointer to a node.gl context
+ * @params capture_buffer pointer to a capture buffer, if NULL no capture will
+ *                        be performed for the following ngl_draw() calls.
+ *
+ * @return 0 on success, NGL_ERROR_* (< 0) on error
+ */
+int ngl_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer);
+
+/**
  * Associate a scene with a node.gl context.
  *
  * The reference counter of the root node will be incremented and all its node

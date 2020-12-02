@@ -476,6 +476,116 @@ static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
     return 0;
 }
 
+#if defined(TARGET_IPHONE)
+static int update_capture_cvpixelbuffer(struct gctx *s, CVPixelBufferRef capture_buffer)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct ngl_config *config = &s->config;
+
+    struct texture *texture = NULL;
+    CVOpenGLESTextureRef cv_texture = NULL;
+    struct rendertarget *rt = NULL;
+
+    int ret = 0;
+    if (capture_buffer) {
+        ret = wrap_capture_cvpixelbuffer(s, capture_buffer, &texture, &cv_texture);
+        if (ret < 0)
+            goto fail;
+    } else {
+        texture = ngli_texture_create(s);
+        if (!texture) {
+            ret = NGL_ERROR_MEMORY;
+            goto fail;
+        }
+
+        struct texture_params params = {
+            .type   = NGLI_TEXTURE_TYPE_2D,
+            .format = NGLI_FORMAT_R8G8B8A8_UNORM,
+            .width  = config->width,
+            .height = config->height,
+            .usage  = NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY,
+        };
+        ret = ngli_texture_init(texture, &params);
+        if (ret < 0)
+            goto fail;
+    }
+
+    rt = ngli_rendertarget_create(s);
+    if (!rt) {
+        ret = NGL_ERROR_MEMORY;
+        goto fail;
+    }
+
+    struct rendertarget_params rt_params = {
+        .width = config->width,
+        .height = config->height,
+        .nb_colors = 1,
+        .colors[0] = {
+            .attachment     = config->samples ? s_priv->ms_color : texture,
+            .resolve_target = config->samples ? texture          : NULL,
+            .load_op        = NGLI_LOAD_OP_LOAD,
+            .clear_value[0] = config->clear_color[0],
+            .clear_value[1] = config->clear_color[1],
+            .clear_value[2] = config->clear_color[2],
+            .clear_value[3] = config->clear_color[3],
+            .store_op       = NGLI_STORE_OP_STORE,
+        },
+        .depth_stencil = {
+            .attachment = s_priv->depth,
+            .load_op    = NGLI_LOAD_OP_LOAD,
+            .store_op   = NGLI_STORE_OP_STORE,
+        },
+    };
+    ret = ngli_rendertarget_init(rt, &rt_params);
+    if (ret < 0)
+        goto fail;
+
+    ngli_rendertarget_freep(&s_priv->rt);
+    ngli_texture_freep(&s_priv->color);
+    reset_capture_cvpixelbuffer(s);
+
+    s_priv->rt = rt;
+    s_priv->color = texture;
+    s_priv->capture_cvbuffer = (CVPixelBufferRef)CFRetain(capture_buffer);
+    s_priv->capture_cvtexture = cv_texture;
+
+    return 0;
+
+fail:
+    ngli_rendertarget_freep(&rt);
+    ngli_texture_freep(&texture);
+    if (cv_texture)
+        CFRelease(cv_texture);
+
+    return ret;
+}
+#endif
+
+static int gl_set_capture_buffer(struct gctx *s, void *capture_buffer)
+{
+    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct glcontext *gl = s_priv->glcontext;
+
+    if (!gl->offscreen)
+        return NGL_ERROR_INVALID_USAGE;
+
+    struct ngl_config *config = &s->config;
+
+    if (config->capture_buffer_type == NGL_CAPTURE_BUFFER_TYPE_COREVIDEO) {
+#if defined(TARGET_IPHONE)
+        int ret = update_capture_cvpixelbuffer(s, capture_buffer);
+        if (ret < 0)
+            return ret;
+#else
+        return NGL_ERROR_UNSUPPORTED;
+#endif
+    }
+
+    config->capture_buffer = capture_buffer;
+
+    return 0;
+}
+
 static int gl_begin_draw(struct gctx *s, double t)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
@@ -682,6 +792,7 @@ const struct gctx_class ngli_gctx_gl = {
     .create       = gl_create,
     .init         = gl_init,
     .resize       = gl_resize,
+    .set_capture_buffer = gl_set_capture_buffer,
     .begin_draw   = gl_begin_draw,
     .end_draw     = gl_end_draw,
     .query_draw_time = gl_query_draw_time,
@@ -744,6 +855,7 @@ const struct gctx_class ngli_gctx_gles = {
     .create       = gl_create,
     .init         = gl_init,
     .resize       = gl_resize,
+    .set_capture_buffer = gl_set_capture_buffer,
     .begin_draw   = gl_begin_draw,
     .end_draw     = gl_end_draw,
     .query_draw_time = gl_query_draw_time,

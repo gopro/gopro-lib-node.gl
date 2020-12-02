@@ -81,6 +81,12 @@ int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport)
     return class->resize(s, width, height, viewport);
 }
 
+int ngli_gctx_set_capture_buffer(struct gctx *s, void *capture_buffer)
+{
+    const struct gctx_class *class = s->class;
+    return class->set_capture_buffer(s, capture_buffer);
+}
+
 int ngli_gctx_begin_draw(struct gctx *s, double t)
 {
     return s->class->begin_draw(s, t);

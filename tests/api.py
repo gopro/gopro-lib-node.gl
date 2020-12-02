@@ -85,6 +85,22 @@ def api_reconfigure_fail():
     del ctx
 
 
+def api_capture_buffer(width=16, height=16):
+    import zlib
+    ctx = ngl.Context()
+    assert ctx.configure(offscreen=1, width=width, height=height, backend=_backend) == 0
+    scene = _get_scene()
+    assert ctx.set_scene(scene) == 0
+    for i in range(2):
+        capture_buffer = bytearray(width * height * 4)
+        assert ctx.set_capture_buffer(capture_buffer) == 0
+        assert ctx.draw(0) == 0
+        assert ctx.set_capture_buffer(None) == 0
+        assert ctx.draw(0) == 0
+        assert zlib.crc32(capture_buffer) == 0xb4bd32fa
+    del ctx
+
+
 def api_ctx_ownership():
     ctx = ngl.Context()
     ctx2 = ngl.Context()

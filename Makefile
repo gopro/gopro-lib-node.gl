@@ -117,6 +117,7 @@ NODEGL_DEBUG_OPTS-$(DEBUG_GPU_CAPTURE) += gpu_capture
 ifneq ($(NODEGL_DEBUG_OPTS-yes),)
 NODEGL_DEBUG_OPTS = -Ddebug_opts=$(shell echo $(NODEGL_DEBUG_OPTS-yes) | tr ' ' ',')
 endif
+
 ifeq ($(DEBUG_GPU_CAPTURE),yes)
 ifeq ($(TARGET_OS),Windows)
 RENDERDOC_DIR = $(shell wslpath -wa .)\external\renderdoc
@@ -126,6 +127,8 @@ RENDERDOC_DIR = $(PWD)/external/renderdoc
 NODEGL_DEBUG_OPTS += -Drenderdoc_dir="$(RENDERDOC_DIR)"
 endif
 endif
+
+NODEGL_MESON_SETUP_OPTIONS = $(NODEGL_DEBUG_OPTS) --default-library shared
 
 # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
 ifeq ($(TARGET_OS),Linux)
@@ -259,7 +262,7 @@ endif
 endif
 
 nodegl-setup: $(NODEGL_DEPS)
-	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl $(BUILDDIR)/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_MESON_SETUP_OPTIONS) libnodegl $(BUILDDIR)/libnodegl)
 
 pkg-config-install: external-download $(PREFIX_DONE)
 ifeq ($(TARGET_OS),Windows)

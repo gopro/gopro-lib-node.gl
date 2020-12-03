@@ -21,6 +21,7 @@
 
 option('gbackend-gl', type: 'feature', value: 'auto')
 option('gbackend-vk', type: 'feature', value: 'auto')
+option('gbackend-ngfx', type: 'feature', value: 'auto')
 
 option('wayland', type: 'feature', value: 'auto',
        description: 'Wayland support')
@@ -39,6 +40,12 @@ option('logtrace', type: 'boolean', value: false,
        description: 'log tracing (slow and verbose)')
 option('debug_opts', type: 'array', choices: ['gl', 'vk', 'mem', 'scene', 'gpu_capture'], value: [],
        description: 'debugging options for developers')
+
+option('enable_ngfx_backend', type: 'boolean', value: true,
+        description: 'Enable ngfx backend')
+
+option('ngfx_graphics_backend', type: 'string', value: '',
+        description: 'ngfx graphics backend (VULKAN | METAL | DIRECT3D12)')
 
 option('renderdoc_dir', type: 'string',
        description: 'Renderdoc directory')

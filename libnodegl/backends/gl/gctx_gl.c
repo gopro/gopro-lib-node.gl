@@ -50,18 +50,15 @@ static void capture_cpu(struct gctx *s)
     struct ngl_config *config = &s->config;
     struct rendertarget *rt = s_priv->rt;
 
-    if (config->capture_buffer)
-        ngli_rendertarget_read_pixels(rt, config->capture_buffer);
+    ngli_rendertarget_read_pixels(rt, config->capture_buffer);
 }
 
 static void capture_corevideo(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
-    struct ngl_config *config = &s->config;
 
-    if (config->capture_buffer)
-        ngli_glFinish(gl);
+    ngli_glFinish(gl);
 }
 
 #if defined(TARGET_IPHONE)
@@ -617,7 +614,7 @@ static int gl_end_draw(struct gctx *s, double t)
 
     ngli_gctx_end_render_pass(s);
 
-    if (s_priv->capture_func)
+    if (s_priv->capture_func && config->capture_buffer)
         s_priv->capture_func(s);
 
     int ret = 0;

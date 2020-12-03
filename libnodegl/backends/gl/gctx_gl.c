@@ -44,7 +44,7 @@
 #include "vaapi.h"
 #endif
 
-static void capture_default(struct gctx *s)
+static void capture_cpu(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct ngl_config *config = &s->config;
@@ -54,7 +54,7 @@ static void capture_default(struct gctx *s)
         ngli_rendertarget_read_pixels(rt, config->capture_buffer);
 }
 
-static void capture_ios(struct gctx *s)
+static void capture_corevideo(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
@@ -259,8 +259,8 @@ static int offscreen_rendertarget_init(struct gctx *s)
         return ret;
 
     static const capture_func_type capture_func_map[] = {
-        [NGL_CAPTURE_BUFFER_TYPE_CPU]       = capture_default,
-        [NGL_CAPTURE_BUFFER_TYPE_COREVIDEO] = capture_ios,
+        [NGL_CAPTURE_BUFFER_TYPE_CPU]       = capture_cpu,
+        [NGL_CAPTURE_BUFFER_TYPE_COREVIDEO] = capture_corevideo,
     };
     s_priv->capture_func = capture_func_map[config->capture_buffer_type];
 

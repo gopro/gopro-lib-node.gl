@@ -78,9 +78,8 @@ int64_t ngli_gettime_relative(void)
     return tv_sec * 1000000 + tv_nsec / 1000;
 #else
     struct timespec ts;
-
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return 1000000 * (int64_t)ts.tv_sec + ts.tv_nsec / 1000;
+    int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ret != 0 ? 0 : ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
 #endif
 }
 

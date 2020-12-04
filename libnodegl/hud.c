@@ -19,14 +19,12 @@
  * under the License.
  */
 
-#include <fcntl.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include "gctx.h"
 #include "hmap.h"
@@ -53,7 +51,7 @@ struct hud {
 
     struct darray widgets;
     uint32_t bg_color_u32;
-    int fd_export;
+    FILE *fp_export;
     struct bstr *csv_line;
     struct canvas canvas;
     double refresh_rate_interval;
@@ -1059,8 +1057,8 @@ static void widgets_draw(struct hud *s)
 
 static int widgets_csv_header(struct hud *s)
 {
-    s->fd_export = open(s->export_filename, O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    if (s->fd_export == -1) {
+    s->fp_export = fopen(s->export_filename, "wb");
+    if (!s->fp_export) {
         LOG(ERROR, "unable to open \"%s\" for writing", s->export_filename);
         return NGL_ERROR_IO;
     }
@@ -1082,7 +1080,7 @@ static int widgets_csv_header(struct hud *s)
     ngli_bstr_print(s->csv_line, "\n");
 
     const int len = ngli_bstr_len(s->csv_line);
-    ssize_t n = write(s->fd_export, ngli_bstr_strptr(s->csv_line), len);
+    size_t n = fwrite(ngli_bstr_strptr(s->csv_line), 1, len, s->fp_export);
     if (n != len) {
         LOG(ERROR, "unable to write CSV header");
         return NGL_ERROR_IO;
@@ -1110,7 +1108,7 @@ static void widgets_csv_report(struct hud *s)
     ngli_bstr_print(s->csv_line, "\n");
 
     const int len = ngli_bstr_len(s->csv_line);
-    write(s->fd_export, ngli_bstr_strptr(s->csv_line), len);
+    fwrite(ngli_bstr_strptr(s->csv_line), 1, len, s->fp_export);
 }
 
 static void free_widget(struct widget *widget)
@@ -1378,8 +1376,8 @@ void ngli_hud_freep(struct hud **sp)
 
     widgets_uninit(s);
     ngli_free(s->canvas.buf);
-    if (s->export_filename) {
-        close(s->fd_export);
+    if (s->fp_export) {
+        fclose(s->fp_export);
         ngli_bstr_freep(&s->csv_line);
     }
 

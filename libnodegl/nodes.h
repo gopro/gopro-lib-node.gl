@@ -205,7 +205,7 @@ struct buffer_priv {
     int timebase[2];
     struct ngl_node *time_anim;
 
-    int fd;
+    FILE *fp;
     int dynamic;
     int data_type;          // any of NGLI_TYPE_*
     int last_index;

@@ -24,8 +24,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "drawutils.h"
 
@@ -36,8 +34,8 @@
 static int save_ppm(const char *filename, uint8_t *data, int width, int height)
 {
     int ret = 0;
-    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
-    if (fd == -1) {
+    FILE *fp = fopen(filename, "wb");
+    if (!fp) {
         fprintf(stderr, "Unable to open '%s'\n", filename);
         return -1;
     }
@@ -63,7 +61,7 @@ static int save_ppm(const char *filename, uint8_t *data, int width, int height)
     }
 
     const int size = header_size + width * height * 3;
-    ret = write(fd, buf, size);
+    ret = fwrite(buf, 1, size, fp);
     if (ret != size) {
         fprintf(stderr, "Failed to write PPM data\n");
         goto end;
@@ -71,7 +69,7 @@ static int save_ppm(const char *filename, uint8_t *data, int width, int height)
 
 end:
     free(buf);
-    close(fd);
+    fclose(fp);
     return ret;
 }
 

@@ -251,7 +251,7 @@ static int handle_response(struct ctx *s, const struct ipc_pkt *pkt)
     if (s->upload_fd > 0) {
         ipc_pkt_reset(s->send_pkt);
 
-        const ssize_t n = recv(s->upload_fd, s->upload_buffer, UPLOAD_CHUNK_SIZE, 0);
+        const ssize_t n = read(s->upload_fd, s->upload_buffer, UPLOAD_CHUNK_SIZE);
         if (n < 0)
             return NGL_ERROR_IO;
         int ret = ipc_pkt_add_qtag_filepart(s->send_pkt, s->upload_buffer, n);

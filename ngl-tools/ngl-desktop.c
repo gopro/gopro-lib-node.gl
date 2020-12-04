@@ -219,7 +219,7 @@ static int handle_tag_filepart(struct ctx *s, const uint8_t *data, int size)
         return ipc_pkt_add_rtag_fileend(s->send_pkt, s->upload_path);
     }
 
-    const ssize_t n = send(s->upload_fd, data, size, 0);
+    const ssize_t n = write(s->upload_fd, data, size);
     if (n < 0) {
         perror("write");
         close_upload_file(s);

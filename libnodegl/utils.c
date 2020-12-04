@@ -37,7 +37,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#define POW10_9 1000000000
+#include <Windows.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include "log.h"
 #include "memory.h"
@@ -59,10 +64,24 @@ char *ngli_strdup(const char *s)
 
 int64_t ngli_gettime_relative(void)
 {
+#ifdef _WIN32
+    // reference: https://github.com/mirror/mingw-w64/blob/master/mingw-w64-libraries/winpthreads/src/clock.c
+    LARGE_INTEGER pf, pc;
+    QueryPerformanceFrequency(&pf);
+    QueryPerformanceCounter(&pc);
+    int64_t tv_sec = pc.QuadPart / pf.QuadPart;
+    int64_t tv_nsec = (int)(((pc.QuadPart % pf.QuadPart) * POW10_9 + (pf.QuadPart >> 1)) / pf.QuadPart);
+    if (tv_nsec >= POW10_9) {
+        tv_sec++;
+        tv_nsec -= POW10_9;
+    }
+    return tv_sec * 1000000 + tv_nsec / 1000;
+#else
     struct timespec ts;
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return 1000000 * (int64_t)ts.tv_sec + ts.tv_nsec / 1000;
+#endif
 }
 
 char *ngli_asprintf(const char *fmt, ...)

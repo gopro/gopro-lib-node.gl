@@ -110,10 +110,14 @@ pynodegl-utils-install: pynodegl-utils-deps-install
 # available on PyPi.
 #
 # We do not pull the requirements on Windows because of various issues:
-# - PySide2 can't be pulled
+# - PySide2 can't be pulled (required to be installed by the user outside the
+#   Python virtualenv)
 # - Pillow fails to find zlib (required to be installed by the user outside the
 #   Python virtualenv)
-# - ngl-control can not currently work because of temporary files handling
+# - ngl-control can not currently work because of:
+#     - temporary files handling
+#     - subprocess usage, passing fd is not supported on Windows
+#     - subprocess usage, Windows cannot execute directly hooks shell scripts
 #
 # Still, we want the module to be installed so we can access the scene()
 # decorator and other related utils.

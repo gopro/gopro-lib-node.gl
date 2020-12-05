@@ -42,6 +42,10 @@
 #include "ipc.h"
 #include "opts.h"
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 #define UPLOAD_CHUNK_SIZE (1024 * 1024)
 
 struct ctx {
@@ -110,7 +114,7 @@ static int craft_packet(struct ctx *s, struct ipc_pkt *pkt)
         const size_t name_size = name_len + 1;
 
         const char *filename = s->uploadfile + name_size;
-        s->upload_fd = open(filename, O_RDONLY);
+        s->upload_fd = open(filename, O_RDONLY | O_BINARY);
         if (s->upload_fd == -1) {
             perror("open");
             return NGL_ERROR_IO;

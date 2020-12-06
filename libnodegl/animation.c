@@ -22,6 +22,7 @@
 #include <float.h>
 #include "animation.h"
 #include "log.h"
+#include "math_utils.h"
 #include "nodegl.h"
 #include "nodes.h"
 
@@ -53,12 +54,12 @@ int ngli_animation_evaluate(struct animation *s, void *dst, double t)
         const double t0 = kf0->time;
         const double t1 = kf1->time;
 
-        double tnorm = (t - t0) / (t1 - t0);
+        double tnorm = NGLI_LINEAR_INTERP(t0, t1, t);
         if (kf1->scale_boundaries)
             tnorm = (kf1->offsets[1] - kf1->offsets[0]) * tnorm + kf1->offsets[0];
         double ratio = kf1->function(tnorm, kf1->nb_args, kf1->args);
         if (kf1->scale_boundaries)
-            ratio = (ratio - kf1->boundaries[0]) / (kf1->boundaries[1] - kf1->boundaries[0]);
+            ratio = NGLI_LINEAR_INTERP(kf1->boundaries[0], kf1->boundaries[1], ratio);
 
         s->current_kf = kf_id;
         s->mix_func(s->user_arg, dst, kf0, kf1, ratio);

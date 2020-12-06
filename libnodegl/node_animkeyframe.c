@@ -159,7 +159,7 @@ DECLARE_EASINGS_WITH_RESOLUTIONS(circular, 1.0 - sqrt(1.0 - x * x), sqrt(x*(2.0 
 
 static inline easing_type exp_func(easing_type x, easing_type exp_base)
 {
-    return (pow(exp_base, x) - 1.0) / (exp_base - 1.0);
+    return NGLI_LINEAR_INTERP(1.0, exp_base, pow(exp_base, x));
 }
 
 static inline easing_type exp_resolution_func(easing_type x, easing_type exp_base)
@@ -432,7 +432,7 @@ int ngl_easing_evaluate(const char *name, double *args, int nb_args,
     if (offsets) {
         const double start_value = eval_func(offsets[0], nb_args, args);
         const double end_value   = eval_func(offsets[1], nb_args, args);
-        value = (value - start_value) / (end_value - start_value);
+        value = NGLI_LINEAR_INTERP(start_value, end_value, value);
     }
     *v = value;
     return 0;

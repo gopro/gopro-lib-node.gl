@@ -405,7 +405,7 @@ static void close_socket(int socket)
 
 static void close_conn(struct ctx *s, int conn_fd)
 {
-    close(conn_fd);
+    close_socket(conn_fd);
     fprintf(stderr, "<< client %d disconnected\n", conn_fd);
 
     /* close uploading file when the connection ends */

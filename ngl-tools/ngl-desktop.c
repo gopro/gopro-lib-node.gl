@@ -41,6 +41,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <direct.h>
+#define SHUT_RDWR SD_BOTH
 #else
 #include <sys/socket.h>
 #include <sys/utsname.h>
@@ -628,19 +629,19 @@ end:
          * of behaviour is to prevent a possible race scenario where the same
          * FD would be re-used between a close() and an accept().
          *
-         * On Windows, both shutdown() and close() won't work, we have to use a
-         * Windows specific one: closesocket().
+         * On Windows, the specific closesocket() function must be used instead of
+         * close() to close a socket.
          *
          * See https://bugzilla.kernel.org/show_bug.cgi?id=106241 for more
          * information.
          */
+        if (shutdown(s.sock_fd, SHUT_RDWR) < 0)
+            perror("shutdown");
 #if _WIN32
         closesocket(s.sock_fd);
 #else
-        if (shutdown(s.sock_fd, SHUT_RDWR) < 0)
-            perror("shutdown");
-#endif
         close(s.sock_fd);
+#endif
     }
 
     if (s.addr_info)

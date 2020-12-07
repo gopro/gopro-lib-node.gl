@@ -376,6 +376,33 @@ static int handle_commands(struct ctx *s, int fd)
     }
 }
 
+static void close_socket(int socket)
+{
+    /*
+     * On Solaris and MacOS, close() is the only way to terminate the
+     * blocking accept(). The shutdown() call will fail with errno ENOTCONN
+     * on these systems.
+     *
+     * On Linux though, shutdown() is required to terminate the blocking
+     * accept(), because close() will not. The reason for this difference
+     * of behaviour is to prevent a possible race scenario where the same
+     * FD would be re-used between a close() and an accept().
+     *
+     * On Windows, the specific closesocket() function must be used instead of
+     * close() to close a socket.
+     *
+     * See https://bugzilla.kernel.org/show_bug.cgi?id=106241 for more
+     * information.
+     */
+    if (shutdown(socket, SHUT_RDWR) < 0)
+        perror("shutdown");
+#if _WIN32
+    closesocket(socket);
+#else
+    close(socket);
+#endif
+}
+
 static void close_conn(struct ctx *s, int conn_fd)
 {
     close(conn_fd);
@@ -618,31 +645,8 @@ end:
     if (s.thread_started)
         stop_server(&s);
 
-    if (s.sock_fd != -1) {
-        /*
-         * On Solaris and MacOS, close() is the only way to terminate the
-         * blocking accept(). The shutdown() call will fail with errno ENOTCONN
-         * on these systems.
-         *
-         * On Linux though, shutdown() is required to terminate the blocking
-         * accept(), because close() will not. The reason for this difference
-         * of behaviour is to prevent a possible race scenario where the same
-         * FD would be re-used between a close() and an accept().
-         *
-         * On Windows, the specific closesocket() function must be used instead of
-         * close() to close a socket.
-         *
-         * See https://bugzilla.kernel.org/show_bug.cgi?id=106241 for more
-         * information.
-         */
-        if (shutdown(s.sock_fd, SHUT_RDWR) < 0)
-            perror("shutdown");
-#if _WIN32
-        closesocket(s.sock_fd);
-#else
-        close(s.sock_fd);
-#endif
-    }
+    if (s.sock_fd != -1)
+        close_socket(s.sock_fd);
 
     if (s.addr_info)
         freeaddrinfo(s.addr_info);

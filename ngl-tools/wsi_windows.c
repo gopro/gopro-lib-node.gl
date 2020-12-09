@@ -19,6 +19,7 @@
  * under the License.
  */
 
+#include <stdio.h>
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <nodegl.h>

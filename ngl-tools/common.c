@@ -23,27 +23,57 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#define POW10_9 1000000000
+#else
+#include <sys/time.h>
+#endif
+
 #include "common.h"
 
 int64_t gettime(void)
 {
+#ifdef _WIN32
+    FILETIME t0;
+    GetSystemTimeAsFileTime(&t0);
+    ULARGE_INTEGER t1;
+    t1.LowPart = t0.dwLowDateTime;
+    t1.HighPart = t0.dwHighDateTime;
+    int64_t t2 = t1.QuadPart;
+    return t2 / 10; // convert to microseconds
+#else
     struct timeval tv;
 
     gettimeofday(&tv, NULL);
     return 1000000 * (int64_t)tv.tv_sec + tv.tv_usec;
+#endif
 }
 
 int64_t gettime_relative(void)
 {
+#ifdef _WIN32
+    // reference: https://github.com/mirror/mingw-w64/blob/master/mingw-w64-libraries/winpthreads/src/clock.c
+    LARGE_INTEGER pf, pc;
+    QueryPerformanceFrequency(&pf);
+    QueryPerformanceCounter(&pc);
+    int64_t tv_sec = pc.QuadPart / pf.QuadPart;
+    int64_t tv_nsec = (int)(((pc.QuadPart % pf.QuadPart) * POW10_9 + (pf.QuadPart >> 1)) / pf.QuadPart);
+    if (tv_nsec >= POW10_9) {
+        tv_sec++;
+        tv_nsec -= POW10_9;
+    }
+    return tv_sec * 1000000 + tv_nsec / 1000;
+#else
     struct timespec ts;
     int ret = clock_gettime(CLOCK_MONOTONIC, &ts);
     return ret != 0 ? 0 : ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+#endif
 }
 
 double clipd(double v, double min, double max)

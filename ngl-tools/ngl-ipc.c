@@ -43,10 +43,6 @@
 #include "ipc.h"
 #include "opts.h"
 
-#ifndef O_BINARY
-#define O_BINARY 0
-#endif
-
 #define UPLOAD_CHUNK_SIZE (1024 * 1024)
 
 struct ctx {

@@ -25,8 +25,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -115,15 +113,15 @@ char *get_text_file_content(const char *filename)
 {
     char *buf = NULL;
 
-    int fd = filename ? open(filename, O_RDONLY) : STDIN_FILENO;
-    if (fd == -1) {
+    FILE *fp = filename ? fopen(filename, "rb") : stdin;
+    if (!fp) {
         fprintf(stderr, "unable to open %s\n", filename);
         goto end;
     }
 
-    ssize_t pos = 0;
+    size_t pos = 0;
     for (;;) {
-        const ssize_t needed = pos + BUF_SIZE + 1;
+        const size_t needed = pos + BUF_SIZE + 1;
         void *new_buf = realloc(buf, needed);
         if (!new_buf) {
             free(buf);
@@ -131,21 +129,21 @@ char *get_text_file_content(const char *filename)
             goto end;
         }
         buf = new_buf;
-        const ssize_t n = read(fd, buf + pos, BUF_SIZE);
-        if (n < 0) {
+        const size_t n = fread(buf + pos, 1, BUF_SIZE, fp);
+        if (ferror(fp)) {
             free(buf);
             buf = NULL;
             goto end;
         }
-        if (n == 0) {
+        pos += n;
+        if (feof(fp)) {
             buf[pos] = 0;
             break;
         }
-        pos += n;
     }
 
 end:
-    if (fd != -1 && fd != STDIN_FILENO)
-        close(fd);
+    if (fp && fp != stdin)
+        fclose(fp);
     return buf;
 }

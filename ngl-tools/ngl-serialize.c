@@ -40,9 +40,9 @@ static FILE *open_ofile(const char *output)
             close(fd);
             return NULL;
         }
-        return fdopen(fd, "w");
+        return fdopen(fd, "wb");
     }
-    return fopen(output, "w");
+    return fopen(output, "wb");
 }
 
 int main(int argc, char *argv[])

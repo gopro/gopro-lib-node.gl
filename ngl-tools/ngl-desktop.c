@@ -46,10 +46,10 @@
 #include <sys/socket.h>
 #include <sys/utsname.h>
 #include <netdb.h>
+#include <unistd.h>
 #endif
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
 

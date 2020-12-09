@@ -20,6 +20,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#if defined(_WIN32) && defined(_MSC_VER)
+#define STDOUT_FILENO _fileno(stdout)
+#define STDERR_FILENO _fileno(stderr)
+#endif
 
 #include <nodegl.h>
 #include <sxplayer.h>

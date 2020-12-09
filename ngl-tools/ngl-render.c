@@ -25,7 +25,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#if defined(_WIN32) && defined(_MSC_VER)
+#define STDOUT_FILENO _fileno(stdout)
+#define STDERR_FILENO _fileno(stderr)
+#else
 #include <unistd.h>
+#endif
 
 #include <nodegl.h>
 

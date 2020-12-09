@@ -19,12 +19,17 @@
  * under the License.
  */
 
+#if defined(_WIN32) && defined(_MSC_VER)
+#define STDOUT_FILENO _fileno(stdout)
+#define STDERR_FILENO _fileno(stderr)
+#else
 #define _POSIX_C_SOURCE 200809L // fdopen
+#include <unistd.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <nodegl.h>
 

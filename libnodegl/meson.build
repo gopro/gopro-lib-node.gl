@@ -62,8 +62,12 @@ conf_data.set10('DEBUG_GL', 'gl' in debug_opts)
 conf_data.set10('DEBUG_MEM', 'mem' in debug_opts)
 conf_data.set10('DEBUG_SCENE', 'scene' in debug_opts)
 
-if host_system == 'windows' and cc.get_id() != 'msvc'
-  conf_data.set10('TARGET_MINGW_W64', true)
+if host_system == 'windows'
+  if cc.get_id() == 'msvc'
+    conf_data.set10('TARGET_MSVC', true)
+  else
+    conf_data.set10('TARGET_MINGW_W64', true)
+  endif
 endif
 
 # This trim prefix is used to make __FILE__ starts from the source dir with
@@ -346,12 +350,10 @@ endforeach
 
 configure_file(output: 'config.h', configuration: conf_data)
 
-# See https://github.com/mesonbuild/meson/pull/4747 to follow advancement on
-# the native support for symbol visibility
-lib_link_args = cc.get_supported_link_arguments([
-  '-Wl,--version-script,@0@'.format(meson.current_source_dir() / 'libnodegl.symexport'),  # GNU ld
-  '-Wl,-exported_symbols_list,@0@'.format(meson.current_source_dir() / 'libnodegl.darwin.symexport'),  # Darwin
-])
+lib_c_args = []
+if get_option('default_library') == 'shared'
+  lib_c_args += '-DBUILD_NODEGL_SHARED_LIB'
+endif
 
 libnodegl = library(
   'nodegl',
@@ -360,7 +362,8 @@ libnodegl = library(
   install: true,
   install_rpath: install_rpath,
   version: meson.project_version(),
-  link_args: lib_link_args,
+  c_args: lib_c_args,
+  gnu_symbol_visibility: 'hidden',
 )
 lib_header = configure_file(
   input: files('nodegl.h.in'),
@@ -370,10 +373,17 @@ lib_header = configure_file(
 install_headers(lib_header)
 
 pkg = import('pkgconfig')
+pkg_extra_cflags = []
+
+if get_option('default_library') == 'static'
+  pkg_extra_cflags += '-DUSE_NODEGL_STATIC_LIB'
+endif
+
 pkg.generate(
   libnodegl,
   name: 'libnodegl',  # not specifying the name would fallback on "nodegl.pc" instead of "libnodegl.pc"
   description: 'Node/Graph based OpenGL engine',
+  extra_cflags: pkg_extra_cflags,
   variables: ['datarootdir=${prefix}/share'],
 )
 

@@ -32,6 +32,18 @@
                                               NODEGL_VERSION_MINOR, \
                                               NODEGL_VERSION_MICRO)
 
+#if defined(_WIN32)
+#  if defined(BUILD_NODEGL_SHARED_LIB)
+#    define NGL_API __declspec(dllexport) /* On Windows, we need to export the symbols while building */
+#  elif defined(USE_NODEGL_STATIC_LIB) /* Static library users don't need anything special */
+#    define NGL_API
+#  else
+#    define NGL_API __declspec(dllimport) /* Dynamic library users (default) need a DLL import spec */
+#  endif
+#else
+#  define NGL_API __attribute__((visibility("default"))) /* This cancel the hidden GNU symbol visibility attribute */
+#endif
+
 #include <stdarg.h>
 #include <stdint.h>
 
@@ -68,7 +80,7 @@ typedef void (*ngl_log_callback_type)(void *arg, int level, const char *filename
  *                  (typically a user context)
  * @param callback  callback function to be called when logging a message
  */
-void ngl_log_set_callback(void *arg, ngl_log_callback_type callback);
+NGL_API void ngl_log_set_callback(void *arg, ngl_log_callback_type callback);
 
 /**
  * Set the minimum global logging level.
@@ -78,7 +90,7 @@ void ngl_log_set_callback(void *arg, ngl_log_callback_type callback);
  *
  * @param level log level (any of NGL_LOG_*)
  */
-void ngl_log_set_min_level(int level);
+NGL_API void ngl_log_set_min_level(int level);
 
 /**
  * Opaque structure identifying a node
@@ -255,7 +267,7 @@ struct ngl_node;
  *
  * @return a new allocated node or NULL on error
  */
-struct ngl_node *ngl_node_create(int type);
+NGL_API struct ngl_node *ngl_node_create(int type);
 
 /**
  * Increment the reference counter of a given node by 1.
@@ -268,7 +280,7 @@ struct ngl_node *ngl_node_create(int type);
  *
  * @return node with its reference counter incremented.
  */
-struct ngl_node *ngl_node_ref(struct ngl_node *node);
+NGL_API struct ngl_node *ngl_node_ref(struct ngl_node *node);
 
 /**
  * Decrement the reference counter of a given node by 1, and destroy its
@@ -277,7 +289,7 @@ struct ngl_node *ngl_node_ref(struct ngl_node *node);
  *
  * @param nodep  pointer to the pointer to the target node
  */
-void ngl_node_unrefp(struct ngl_node **nodep);
+NGL_API void ngl_node_unrefp(struct ngl_node **nodep);
 
 /**
  * Add entries to a list-based parameter of an allocated node.
@@ -292,7 +304,7 @@ void ngl_node_unrefp(struct ngl_node **nodep);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_node_param_add(struct ngl_node *node, const char *key,
+NGL_API int ngl_node_param_add(struct ngl_node *node, const char *key,
                        int nb_elems, void *elems);
 
 /**
@@ -307,7 +319,7 @@ int ngl_node_param_add(struct ngl_node *node, const char *key,
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_node_param_set(struct ngl_node *node, const char *key, ...);
+NGL_API int ngl_node_param_set(struct ngl_node *node, const char *key, ...);
 
 /**
  * Serialize in Graphviz format (.dot) a node graph.
@@ -318,7 +330,7 @@ int ngl_node_param_set(struct ngl_node *node, const char *key, ...);
  *
  * @see ngl_dot()
  */
-char *ngl_node_dot(const struct ngl_node *node);
+NGL_API char *ngl_node_dot(const struct ngl_node *node);
 
 /**
  * Serialize in node.gl format (.ngl).
@@ -327,7 +339,7 @@ char *ngl_node_dot(const struct ngl_node *node);
  *
  * @return an allocated string in node.gl format or NULL on error
  */
-char *ngl_node_serialize(const struct ngl_node *node);
+NGL_API char *ngl_node_serialize(const struct ngl_node *node);
 
 /**
  * De-serialize a scene.
@@ -338,7 +350,7 @@ char *ngl_node_serialize(const struct ngl_node *node);
  *
  * @return a pointer to the de-serialized node graph or NULL on error
  */
-struct ngl_node *ngl_node_deserialize(const char *s);
+NGL_API struct ngl_node *ngl_node_deserialize(const char *s);
 
 /**
  * Platform-specific identifiers
@@ -477,9 +489,9 @@ struct ngl_backend {
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, struct ngl_backend **backendsp);
+NGL_API int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, struct ngl_backend **backendsp);
 
-void ngl_backends_freep(struct ngl_backend **backendsp);
+NGL_API void ngl_backends_freep(struct ngl_backend **backendsp);
 
 /**
  * Opaque structure identifying a node.gl context
@@ -495,7 +507,7 @@ struct ngl_ctx;
  *
  * @return a pointer to the context, or NULL on error
  */
-struct ngl_ctx *ngl_create(void);
+NGL_API struct ngl_ctx *ngl_create(void);
 
 /**
  * Configure the node.gl context.
@@ -514,7 +526,7 @@ struct ngl_ctx *ngl_create(void);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_configure(struct ngl_ctx *s, struct ngl_config *config);
+NGL_API int ngl_configure(struct ngl_ctx *s, struct ngl_config *config);
 
 /**
  * Update the swap chain buffers size.
@@ -528,7 +540,7 @@ int ngl_configure(struct ngl_ctx *s, struct ngl_config *config);
  *                 dimensions of the swap chain buffers
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_resize(struct ngl_ctx *s, int width, int height, const int *viewport);
+NGL_API int ngl_resize(struct ngl_ctx *s, int width, int height, const int *viewport);
 
 /**
  * Set a new buffer for offscreen capture
@@ -543,7 +555,7 @@ int ngl_resize(struct ngl_ctx *s, int width, int height, const int *viewport);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer);
+NGL_API int ngl_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer);
 
 /**
  * Associate a scene with a node.gl context.
@@ -565,7 +577,7 @@ int ngl_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_set_scene(struct ngl_ctx *s, struct ngl_node *scene);
+NGL_API int ngl_set_scene(struct ngl_ctx *s, struct ngl_node *scene);
 
 /**
  * Draw at the specified time.
@@ -577,7 +589,7 @@ int ngl_set_scene(struct ngl_ctx *s, struct ngl_node *scene);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_draw(struct ngl_ctx *s, double t);
+NGL_API int ngl_draw(struct ngl_ctx *s, double t);
 
 /**
  * Serialize the current scene in Graphviz format (.dot) a node graph at the
@@ -589,7 +601,7 @@ int ngl_draw(struct ngl_ctx *s, double t);
  *
  * @see ngl_node_dot()
  */
-char *ngl_dot(struct ngl_ctx *s, double t);
+NGL_API char *ngl_dot(struct ngl_ctx *s, double t);
 
 /**
  * Destroy a node.gl context. The passed context pointer will also be set to
@@ -597,7 +609,7 @@ char *ngl_dot(struct ngl_ctx *s, double t);
  *
  * @param ss    pointer to the pointer to the node.gl context
  */
-void ngl_freep(struct ngl_ctx **ss);
+NGL_API void ngl_freep(struct ngl_ctx **ss);
 
 /**
  * Evaluate an animation at a given time t.
@@ -613,7 +625,7 @@ void ngl_freep(struct ngl_ctx **ss);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_anim_evaluate(struct ngl_node *anim, void *dst, double t);
+NGL_API int ngl_anim_evaluate(struct ngl_node *anim, void *dst, double t);
 
 /**
  * Evaluate an easing at a given time t
@@ -627,7 +639,7 @@ int ngl_anim_evaluate(struct ngl_node *anim, void *dst, double t);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_easing_evaluate(const char *name, double *args, int nb_args,
+NGL_API int ngl_easing_evaluate(const char *name, double *args, int nb_args,
                         double *offsets, double t, double *v);
 
 /**
@@ -644,7 +656,7 @@ int ngl_easing_evaluate(const char *name, double *args, int nb_args,
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_easing_solve(const char *name, double *args, int nb_args,
+NGL_API int ngl_easing_solve(const char *name, double *args, int nb_args,
                      double *offsets, double v, double *t);
 
 /**
@@ -659,7 +671,7 @@ int ngl_easing_solve(const char *name, double *args, int nb_args,
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-int ngl_jni_set_java_vm(void *vm);
+NGL_API int ngl_jni_set_java_vm(void *vm);
 
 /**
  * Get the Java virtual machine pointer that has been set with
@@ -667,7 +679,7 @@ int ngl_jni_set_java_vm(void *vm);
  *
  * @return a pointer to the Java virtual machine or NULL if none has been set
  */
-void *ngl_jni_get_java_vm(void);
+NGL_API void *ngl_jni_get_java_vm(void);
 
 /**
  * Set the Android application context.
@@ -675,7 +687,7 @@ void *ngl_jni_get_java_vm(void);
  * @param application_context   JNI global reference of the Android application
  *                              context
  */
-int ngl_android_set_application_context(void *application_context);
+NGL_API int ngl_android_set_application_context(void *application_context);
 
 /**
  * Get the Android application context that has been set with
@@ -684,6 +696,6 @@ int ngl_android_set_application_context(void *application_context);
  * @return a pointer to the JNI global reference of the Android application
  *         context or NULL if none has been set
  */
-void *ngl_android_get_application_context(void);
+NGL_API void *ngl_android_get_application_context(void);
 
 #endif

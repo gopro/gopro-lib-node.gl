@@ -28,9 +28,7 @@ PYTHON_MAJOR = 3
 #
 DEBUG      ?= no
 COVERAGE   ?= no
-CURL       ?= curl
 PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYTHON_MAJOR),)
-TAR        ?= tar
 TARGET_OS  ?= $(shell uname -s)
 
 DEBUG_GL    ?= no
@@ -42,8 +40,6 @@ V           ?=
 ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON_MAJOR))
 $(error "Python $(PYTHON_MAJOR) not found")
 endif
-
-SXPLAYER_VERSION ?= 9.7.0
 
 ACTIVATE = $(PREFIX)/bin/activate
 
@@ -139,31 +135,11 @@ nodegl-install: nodegl-setup
 nodegl-setup: sxplayer-install
 	(. $(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 
-sxplayer-install: sxplayer $(PREFIX)
-	(. $(ACTIVATE) && $(MESON_SETUP) sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
+sxplayer-install: external-download $(PREFIX)
+	(. $(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 
-# Note for developers: in order to customize the sxplayer you're building
-# against, you can use your own sources post-install:
-#
-#     % unlink sxplayer
-#     % ln -snf /path/to/sxplayer.git sxplayer
-#     % touch /path/to/sxplayer.git
-#
-# The `touch` command makes sure the source target directory is more recent
-# than the prerequisite directory of the sxplayer rule. If this isn't true, the
-# symlink will be re-recreated on the next `make` call
-sxplayer: sxplayer-$(SXPLAYER_VERSION)
-ifneq ($(TARGET_OS),MinGW-w64)
-	ln -snf $< $@
-else
-	cp -r $< $@
-endif
-
-sxplayer-$(SXPLAYER_VERSION): sxplayer-$(SXPLAYER_VERSION).tar.gz
-	$(TAR) xf $<
-
-sxplayer-$(SXPLAYER_VERSION).tar.gz:
-	$(CURL) -L https://github.com/Stupeflix/sxplayer/archive/v$(SXPLAYER_VERSION).tar.gz -o $@
+external-download:
+	$(MAKE) -C external
 
 #
 # We do not pull meson from pip on Windows for the same reasons we don't pull
@@ -223,3 +199,4 @@ coverage-xml:
 .PHONY: tests tests-setup
 .PHONY: clean clean_py
 .PHONY: coverage-html coverage-xml
+.PHONY: external-download

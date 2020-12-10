@@ -43,7 +43,7 @@ ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON
 $(error "Python $(PYTHON_MAJOR) not found")
 endif
 
-SXPLAYER_VERSION ?= 9.6.0
+SXPLAYER_VERSION ?= 9.7.0
 
 ACTIVATE = $(PREFIX)/bin/activate
 

@@ -22,11 +22,11 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "config.h"
 #if !defined(TARGET_IPHONE) && !defined(TARGET_ANDROID) && !defined(TARGET_WINDOWS)
 #include <unistd.h>
 #endif
 
-#include "config.h"
 #include "log.h"
 
 static void default_callback(void *arg, int level, const char *filename, int ln,

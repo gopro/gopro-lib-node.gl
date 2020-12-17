@@ -505,7 +505,7 @@ test_progs = {
   },
   'Color convertion': {
     'exe': 'test_colorconv',
-    'src': files('test_colorconv.c', 'colorconv.c', 'log.c'),
+    'src': files('test_colorconv.c', 'colorconv.c', 'log.c', 'memory.c'),
   },
   'Dynamic array': {
     'exe': 'test_darray',

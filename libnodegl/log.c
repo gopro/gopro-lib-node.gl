@@ -28,11 +28,14 @@
 #endif
 
 #include "log.h"
+#include "memory.h"
 
 static void default_callback(void *arg, int level, const char *filename, int ln,
                              const char *fn, const char *fmt, va_list vl)
 {
     char logline[512];
+    char *logbuf = NULL;
+    const char *logp = logline;
     static const char * const log_strs[] = {
         [NGL_LOG_DEBUG]   = "DEBUG",
         [NGL_LOG_VERBOSE] = "VERBOSE",
@@ -40,7 +43,21 @@ static void default_callback(void *arg, int level, const char *filename, int ln,
         [NGL_LOG_WARNING] = "WARNING",
         [NGL_LOG_ERROR]   = "ERROR",
     };
-    vsnprintf(logline, sizeof(logline), fmt, vl);
+
+    /* we need a copy because it may be re-used a 2nd time */
+    va_list vl_copy;
+    va_copy(vl_copy, vl);
+
+    int len = vsnprintf(logline, sizeof(logline), fmt, vl);
+
+    /* handle the case where the line doesn't fit the stack buffer */
+    if (len >= sizeof(logline)) {
+        logbuf = ngli_malloc(len + 1);
+        if (!logbuf)
+            return;
+        vsnprintf(logbuf, len + 1, fmt, vl_copy);
+        logp = logbuf;
+    }
 
     const char *color_start = "", *color_end = "";
 
@@ -59,8 +76,9 @@ static void default_callback(void *arg, int level, const char *filename, int ln,
 #endif
 
     printf("%s[%s] %s:%d %s: %s%s\n", color_start,
-           log_strs[level], filename, ln, fn, logline,
+           log_strs[level], filename, ln, fn, logp,
            color_end);
+    ngli_free(logbuf);
     fflush(stdout);
 }
 

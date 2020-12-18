@@ -367,9 +367,9 @@ static int update_character_geometries(struct ngl_node *node)
         }
     }
 
-    if ((ret = ngli_buffer_upload(s->vertices, vertices, nb_vertices * sizeof(*vertices))) < 0 ||
-        (ret = ngli_buffer_upload(s->uvcoords, uvcoords, nb_uvcoords * sizeof(*uvcoords))) < 0 ||
-        (ret = ngli_buffer_upload(s->indices, indices, nb_indices * sizeof(*indices))) < 0)
+    if ((ret = ngli_buffer_upload(s->vertices, vertices, nb_vertices * sizeof(*vertices), 0)) < 0 ||
+        (ret = ngli_buffer_upload(s->uvcoords, uvcoords, nb_uvcoords * sizeof(*uvcoords), 0)) < 0 ||
+        (ret = ngli_buffer_upload(s->indices, indices, nb_indices * sizeof(*indices), 0)) < 0)
         goto end;
 
     s->nb_indices = nb_indices;
@@ -405,8 +405,8 @@ static int init_bounding_box_geometry(struct ngl_node *node)
         (ret = ngli_buffer_init(s->bg_indices,  sizeof(indices),  INDEX_USAGE_FLAGS)) < 0)
         return ret;
 
-    if ((ret = ngli_buffer_upload(s->bg_vertices, vertices, sizeof(vertices))) < 0 ||
-        (ret = ngli_buffer_upload(s->bg_indices,  indices,  sizeof(indices))) < 0)
+    if ((ret = ngli_buffer_upload(s->bg_vertices, vertices, sizeof(vertices), 0)) < 0 ||
+        (ret = ngli_buffer_upload(s->bg_indices,  indices,  sizeof(indices), 0)) < 0)
         return ret;
 
     s->nb_bg_indices = NGLI_ARRAY_NB(indices);

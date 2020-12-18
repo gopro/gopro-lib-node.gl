@@ -34,7 +34,7 @@ struct gctx;
 
 struct buffer *ngli_buffer_gl_create(struct gctx *gctx);
 int ngli_buffer_gl_init(struct buffer *s, int size, int usage);
-int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size);
+int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size, int offset);
 void ngli_buffer_gl_freep(struct buffer **sp);
 
 #endif

@@ -58,13 +58,13 @@ int ngli_buffer_gl_init(struct buffer *s, int size, int usage)
     return 0;
 }
 
-int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size)
+int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size, int offset)
 {
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
     const struct buffer_gl *s_priv = (struct buffer_gl *)s;
     ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s_priv->id);
-    ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, 0, size, data);
+    ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, offset, size, data);
     return 0;
 }
 

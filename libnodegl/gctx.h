@@ -64,7 +64,7 @@ struct gctx_class {
 
     struct buffer *(*buffer_create)(struct gctx *ctx);
     int (*buffer_init)(struct buffer *s, int size, int usage);
-    int (*buffer_upload)(struct buffer *s, const void *data, int size);
+    int (*buffer_upload)(struct buffer *s, const void *data, int size, int offset);
     void (*buffer_freep)(struct buffer **sp);
 
     struct pipeline *(*pipeline_create)(struct gctx *ctx);

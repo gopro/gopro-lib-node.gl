@@ -110,7 +110,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     if (ret < 0)
         return ret;
 
-    ret = ngli_buffer_upload(hwconv->vertices, vertices, sizeof(vertices));
+    ret = ngli_buffer_upload(hwconv->vertices, vertices, sizeof(vertices), 0);
     if (ret < 0)
         return ret;
 

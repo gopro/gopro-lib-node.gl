@@ -39,6 +39,9 @@
 #include "program_gl.h"
 #include "rendertarget_gl.h"
 #include "texture_gl.h"
+#if DEBUG_GPU_CAPTURE
+#include "gpu_capture.h"
+#endif
 
 static void capture_cpu(struct gctx *s)
 {
@@ -386,6 +389,24 @@ static int gl_init(struct gctx *s)
     const struct ngl_config *config = &s->config;
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
 
+#if DEBUG_GPU_CAPTURE
+    const char *var = getenv("NGL_GPU_CAPTURE");
+    s->gpu_capture = var && !strcmp(var, "yes");
+    if (s->gpu_capture) {
+        s->gpu_capture_ctx = gpu_capture_ctx_create();
+        if (!s->gpu_capture_ctx) {
+            LOG(ERROR, "could not create GPU capture context");
+            return NGL_ERROR_MEMORY;
+        }
+        ret = gpu_capture_init(s->gpu_capture_ctx);
+        if (ret < 0) {
+            LOG(ERROR, "could not initialize GPU capture");
+            s->gpu_capture = 0;
+            return ret;
+        }
+    }
+#endif
+
     s_priv->glcontext = ngli_glcontext_new(config);
     if (!s_priv->glcontext)
         return NGL_ERROR_MEMORY;
@@ -398,6 +419,11 @@ static int gl_init(struct gctx *s)
         ngli_glEnable(gl, GL_DEBUG_OUTPUT_SYNCHRONOUS);
         ngli_glDebugMessageCallback(gl, gl_debug_message_callback, NULL);
     }
+#endif
+
+#if DEBUG_GPU_CAPTURE
+    if (s->gpu_capture)
+        gpu_capture_begin(s->gpu_capture_ctx);
 #endif
 
     ret = gl->offscreen ? offscreen_rendertarget_init(s) : onscreen_rendertarget_init(s);
@@ -666,6 +692,11 @@ static void gl_destroy(struct gctx *s)
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
     timer_reset(s);
     rendertarget_reset(s);
+#if DEBUG_GPU_CAPTURE
+    if (s->gpu_capture)
+        gpu_capture_end(s->gpu_capture_ctx);
+    gpu_capture_freep(&s->gpu_capture_ctx);
+#endif
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 

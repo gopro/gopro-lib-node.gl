@@ -105,6 +105,10 @@ struct gctx {
     int language_version;
     uint64_t features;
     struct limits limits;
+#ifdef HAVE_GPU_CAPTURE
+    struct gpu_capture_ctx *gpu_capture_ctx;
+    int debug_capture;
+#endif
 };
 
 struct gctx *ngli_gctx_create(const struct ngl_config *config);

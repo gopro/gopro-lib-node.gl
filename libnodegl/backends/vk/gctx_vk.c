@@ -41,6 +41,9 @@
 #include "rendertarget_vk.h"
 #include "program_vk.h"
 #include "pipeline_vk.h"
+#if DEBUG_GPU_CAPTURE
+#include "gpu_capture.h"
+#endif
 
 static int get_swapchain_ngli_format(VkFormat format)
 {
@@ -538,6 +541,24 @@ static int vk_init(struct gctx *s)
 {
     const struct ngl_config *config = &s->config;
     struct gctx_vk *s_priv = (struct gctx_vk *)s;
+#if DEBUG_GPU_CAPTURE
+    const char *var = getenv("NGL_GPU_CAPTURE");
+    s->gpu_capture = var && !strcmp(var, "yes");
+    if (s->gpu_capture) {
+        s->gpu_capture_ctx = gpu_capture_ctx_create();
+        if (!s->gpu_capture_ctx) {
+            LOG(ERROR, "could not create GPU capture context");
+            return NGL_ERROR_MEMORY;
+        }
+        ret = gpu_capture_init(s->gpu_capture_ctx);
+        if (ret < 0) {
+            LOG(ERROR, "could not initialize GPU capture");
+            s->gpu_capture = 0;
+            return ret;
+        }
+    }
+#endif
+
 
     /* FIXME */
     s->features = -1;
@@ -563,6 +584,11 @@ static int vk_init(struct gctx *s)
         ngli_vkcontext_freep(&s_priv->vkcontext);
         return ret;
     }
+
+#if DEBUG_GPU_CAPTURE
+    if (s->gpu_capture)
+        gpu_capture_begin(s->gpu_capture_ctx);
+#endif
 
     struct vkcontext *vk = s_priv->vkcontext;
     const VkPhysicalDeviceLimits *limits = &vk->phy_device_props.limits;
@@ -1078,6 +1104,11 @@ static void vk_destroy(struct gctx *s)
     ngli_darray_reset(&s_priv->wait_semaphores);
     ngli_darray_reset(&s_priv->wait_stages);
     ngli_darray_reset(&s_priv->signal_semaphores);
+#if DEBUG_GPU_CAPTURE
+    if (s->gpu_capture)
+        gpu_capture_end(s->gpu_capture_ctx);
+    gpu_capture_freep(&s->gpu_capture_ctx);
+#endif
 
     ngli_vkcontext_freep(&s_priv->vkcontext);
 }

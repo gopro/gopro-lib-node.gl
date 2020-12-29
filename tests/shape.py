@@ -40,7 +40,7 @@ def shape_precision_iovar(cfg):
     vert = '''
 void main()
 {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);
     color = vec4((ngl_out_pos.xy + 1.0) * .5, 1.0 - (ngl_out_pos.x + 1.0) * .5 - (ngl_out_pos.y + 1.0) * .5, 1.0);
 }
 '''
@@ -306,7 +306,7 @@ shape_cropboard_indices = _get_cropboard_function(set_indices=True)
 TRIANGLES_MAT4_ATTRIBUTE_VERT = '''
 void main()
 {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * matrix * vec4(ngl_position, 1.0);
 }
 '''
 

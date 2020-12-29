@@ -59,7 +59,7 @@ def _get_live_shared_uniform_with_block_scene(cfg, color, layout, debug_position
     vertex = '''
 void main()
 {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);
 }
 '''
     fragment = '''

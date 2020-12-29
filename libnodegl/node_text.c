@@ -155,29 +155,29 @@ static const struct node_param text_params[] = {
 };
 
 static const char * const bg_vertex_data =
-    "void main()"                                                           "\n"
-    "{"                                                                     "\n"
-    "    ngl_out_pos = projection_matrix * modelview_matrix * position;"    "\n"
+    "void main()"                                                                       "\n"
+    "{"                                                                                 "\n"
+    "    ngl_out_pos = projection_matrix * modelview_matrix * vec4(position, 1.0);"     "\n"
     "}";
 
 static const char * const bg_fragment_data =
-    "void main()"                                                           "\n"
-    "{"                                                                     "\n"
-    "    ngl_out_color = color;"                                            "\n"
+    "void main()"                                                                       "\n"
+    "{"                                                                                 "\n"
+    "    ngl_out_color = color;"                                                        "\n"
     "}";
 
 static const char * const vertex_data =
-    "void main()"                                                           "\n"
-    "{"                                                                     "\n"
-    "    ngl_out_pos = projection_matrix * modelview_matrix * position;"    "\n"
-    "    var_tex_coord = uvcoord;"                                          "\n"
+    "void main()"                                                                       "\n"
+    "{"                                                                                 "\n"
+    "    ngl_out_pos = projection_matrix * modelview_matrix * vec4(position, 1.0);"     "\n"
+    "    var_tex_coord = uvcoord;"                                                      "\n"
     "}";
 
 static const char * const fragment_data =
-    "void main()"                                                           "\n"
-    "{"                                                                     "\n"
-    "    float v = ngl_tex2d(tex, var_tex_coord).r;"                        "\n"
-    "    ngl_out_color = vec4(color.rgb, color.a * v);"                     "\n"
+    "void main()"                                                                       "\n"
+    "{"                                                                                 "\n"
+    "    float v = ngl_tex2d(tex, var_tex_coord).r;"                                    "\n"
+    "    ngl_out_color = vec4(color.rgb, color.a * v);"                                 "\n"
     "}";
 
 static const struct pgcraft_iovar vert_out_vars[] = {
@@ -532,7 +532,7 @@ static int bg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
     const struct pgcraft_attribute attributes[] = {
         {
             .name     = "position",
-            .type     = NGLI_TYPE_VEC4,
+            .type     = NGLI_TYPE_VEC3,
             .format   = NGLI_FORMAT_R32G32B32_SFLOAT,
             .stride   = 3 * 4,
             .buffer   = s->bg_vertices,
@@ -584,7 +584,7 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
     const struct pgcraft_attribute attributes[] = {
         {
             .name     = "position",
-            .type     = NGLI_TYPE_VEC4,
+            .type     = NGLI_TYPE_VEC3,
             .format   = NGLI_FORMAT_R32G32B32_SFLOAT,
             .stride   = 3 * 4,
             .buffer   = s->vertices,

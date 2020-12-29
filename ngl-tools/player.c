@@ -320,10 +320,10 @@ static void mouse_pos_callback(SDL_Window *window, SDL_MouseMotionEvent *event)
 }
 
 static const char *pgbar_vert =
-    "void main()"                                                                       "\n"
-    "{"                                                                                 "\n"
-    "    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;"    "\n"
-    "    coord = ngl_uvcoord;"                                                          "\n"
+    "void main()"                                                                               "\n"
+    "{"                                                                                         "\n"
+    "    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);" "\n"
+    "    coord = ngl_uvcoord;"                                                                  "\n"
     "}";
 
 static const char *pgbar_frag =

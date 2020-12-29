@@ -233,7 +233,7 @@ for layout in {'std140', 'std430', 'uniform'}:
 _RENDER_STREAMEDBUFFER_VERT = '''
 void main()
 {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);
     var_uvcoord = ngl_uvcoord;
 }
 '''
@@ -335,7 +335,7 @@ data_streamed_buffer_vec4_time_anim = _get_data_streamed_buffer_function(2, Fals
 def data_integer_iovars(cfg):
     cfg.aspect_ratio = (1, 1)
     vert = '''void main() {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);
     var_color_u32 = color_u32;
 }
 '''
@@ -358,7 +358,7 @@ def data_noise_time(cfg):
     vert = '''
 void main()
 {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);
     ngl_out_pos += vec4(t - 1., signal, 0.0, 0.0);
 }
 '''
@@ -385,7 +385,7 @@ def data_noise_wiggle(cfg):
     vert = '''
 void main()
 {
-    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);
     ngl_out_pos += vec4(wiggle, 0.0, 0.0);
 }
 '''

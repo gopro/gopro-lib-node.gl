@@ -29,7 +29,7 @@ from pynodegl_utils.toolbox.grid import autogrid_simple
 _backend_str = os.environ.get('BACKEND')
 _backend = get_backend(_backend_str) if _backend_str else ngl.BACKEND_AUTO
 
-_vert = 'void main() { ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position; }'
+_vert = 'void main() { ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0); }'
 _frag = 'void main() { ngl_out_color = color; }'
 
 def _get_scene(geometry=None):

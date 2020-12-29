@@ -57,10 +57,10 @@ static const struct opt options[] = {
 };
 
 static const char *media_vertex =
-"void main()"                                                                       "\n"
-"{"                                                                                 "\n"
-"    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;"    "\n"
-"    var_tex0_coord = (tex0_coord_matrix * vec4(ngl_uvcoord, 0.0, 1.0)).xy;"        "\n"
+"void main()"                                                                               "\n"
+"{"                                                                                         "\n"
+"    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * vec4(ngl_position, 1.0);" "\n"
+"    var_tex0_coord = (tex0_coord_matrix * vec4(ngl_uvcoord, 0.0, 1.0)).xy;"                "\n"
 "}";
 
 static const char *media_fragment =

@@ -19,7 +19,7 @@ provides the following inputs to the vertex stage:
 
 Type   | Name           | Description
 -------|----------------|------------
-`vec4` | `ngl_position` | geometry vertices, always available
+`vec3` | `ngl_position` | geometry vertices, always available
 `vec2` | `ngl_uvcoord`  | geometry uv coordinates, if provided by the geometry
 `vec3` | `ngl_normal`   | geometry normals, if provided by the geometry
 `int`  | `ngl_vertex_index`   | index of the current vertex
@@ -66,7 +66,7 @@ variables is controlled by a parent `Camera` node.
 
 A typical vertex shader will do the following computation to obtain the
 appropriate vertex position: `ngl_projection_matrix * ngl_modelview_matrix *
-ngl_position`.
+vec4(ngl_position, 1.0)`.
 
 Similarly, the normal vector is generally obtained using `ngl_normal_matrix *
 ngl_normal`.

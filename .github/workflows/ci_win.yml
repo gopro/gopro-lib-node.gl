@@ -30,3 +30,42 @@ jobs:
         run: |
           $env:CHERE_INVOKING = 'yes'  # Preserve the current working directory
           C:\msys64\usr\bin\bash -lc "make -j$(($(nproc)+1)) TARGET_OS=MinGW-w64"
+
+  msvc:
+
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: wsl-bash {0}
+
+    steps:
+      - uses: Vampire/setup-wsl@v1
+        with:
+          distribution: Ubuntu-20.04
+
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt -y update
+          sudo apt -y install build-essential
+          pip.exe install meson
+
+      - name: Restore from cache and install vcpkg
+        uses: lukka/run-vcpkg@v6
+        with:
+          vcpkgGitCommitId: 595777db2332a3442b73f9af9f656355f207aec9
+          vcpkgTriplet: x64-windows
+          vcpkgArguments: pthreads opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
+          cleanAfterBuild: false
+
+      - name: vcpkg integrate install
+        run: |
+          cd vcpkg && ./vcpkg.exe integrate install
+
+      - name: Build
+        run: |
+          make -j$(($(nproc)+1)) TARGET_OS=Windows \
+          VCPKG_DIR='D:\\a\\gopro-lib-node.gl\\gopro-lib-node.gl\\vcpkg' \
+          VCVARS64='"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'

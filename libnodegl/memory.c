@@ -85,7 +85,7 @@ void *ngli_malloc_aligned(size_t size)
         return NULL;
 
     void *ptr;
-#ifdef TARGET_MINGW_W64
+#ifdef TARGET_WINDOWS
     ptr = _aligned_malloc(size, NGLI_ALIGN_VAL);
 #else
     if (posix_memalign(&ptr, NGLI_ALIGN_VAL, size))
@@ -114,7 +114,7 @@ void ngli_freep(void *ptr)
 
 void ngli_free_aligned(void *ptr)
 {
-#ifdef TARGET_MINGW_W64
+#ifdef TARGET_WINDOWS
     _aligned_free(ptr);
 #else
     free(ptr);

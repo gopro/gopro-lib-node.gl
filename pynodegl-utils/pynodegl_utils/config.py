@@ -121,8 +121,7 @@ class Config(QtCore.QObject):
 
         config_filepath = self._get_config_filepath()
         config_dir = op.dirname(config_filepath)
-        if not op.exists(config_dir):
-            os.makedirs(config_dir)
+        os.makedirs(config_dir, exist_ok=True)
 
         config_file = open(config_filepath, 'w')
         json.dump(self._cfg, config_file, indent=4)

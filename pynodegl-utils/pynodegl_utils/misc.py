@@ -135,10 +135,7 @@ class Media:
 
 def get_nodegl_tempdir():
     tmpdir = op.join(tempfile.gettempdir(), 'nodegl')
-    try:
-        os.makedirs(tmpdir)
-    except FileExistsError:
-        pass
+    os.makedirs(tmpdir, exist_ok=True)
     return tmpdir
 
 

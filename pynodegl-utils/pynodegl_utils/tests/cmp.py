@@ -55,8 +55,7 @@ class CompareBase:
     @staticmethod
     def dump_image(img, dump_index, func_name=None):
         test_tmpdir = op.join(get_nodegl_tempdir(), 'tests')
-        if not op.exists(test_tmpdir):
-            os.makedirs(test_tmpdir)
+        os.makedirs(test_tmpdir, exist_ok=True)
         filename = op.join(test_tmpdir, f'{func_name}_{dump_index:03}.png')
         print(f'Dumping output image to {filename}')
         img.save(filename)

@@ -346,7 +346,7 @@ static const struct gldefinition {
                 'flags': '0' if funcname in cmds_optional else 'M',
         }
 
-        glfunctions   += '    NGLI_GL_APIENTRY %(func_ret)s (*%(func_name_nogl)s)(%(func_args_specs)s);\n' % data
+        glfunctions   += '    %(func_ret)s (NGLI_GL_APIENTRY *%(func_name_nogl)s)(%(func_args_specs)s);\n' % data
         gldefinitions += '    {"%(func_name)s", offsetof(struct glfunctions, %(func_name_nogl)s), %(flags)s},\n' % data
         if funcname == 'glGetError':
             glwrappers += '''

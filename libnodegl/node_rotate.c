@@ -45,7 +45,7 @@ static void update_trf_matrix(struct ngl_node *node, float deg_angle)
     struct transform_priv *trf = &s->trf;
     float *matrix = trf->matrix;
 
-    const float angle = deg_angle * (2.0f * M_PI / 360.0f);
+    const float angle = NGLI_DEG2RAD(deg_angle);
     ngli_mat4_rotate(matrix, angle, s->normed_axis);
 
     if (s->use_anchor) {

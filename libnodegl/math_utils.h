@@ -28,6 +28,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define NGLI_DEG2RAD(x) ((x) * (2.f * M_PI / 360.f))
 #define NGLI_MIX(x, y, a) ((x)*(1.-(a)) + (y)*(a))
 
 float ngli_vec3_length(const float *v);

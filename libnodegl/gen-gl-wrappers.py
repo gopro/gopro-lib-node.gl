@@ -374,11 +374,11 @@ static inline %(func_ret)s ngli_%(func_name)s(%(wrapper_args_specs)s)
     glfunctions   += '};\n\n#endif\n'
     gldefinitions += '};\n'
 
-    with open(func_file, 'w') as f:
+    with open(func_file, 'w', newline='\n') as f:
         f.write(glfunctions)
-    with open(def_file, 'w') as f:
+    with open(def_file, 'w', newline='\n') as f:
         f.write(gldefinitions)
-    with open(wrap_file, 'w') as f:
+    with open(wrap_file, 'w', newline='\n') as f:
         f.write(glwrappers)
 
 if __name__ == '__main__':

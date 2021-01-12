@@ -57,6 +57,7 @@
 #endif
 
 #if _WIN32
+# include <Windows.h>
 # include <GL/gl.h>
 # include <GL/glcorearb.h>
 # include <GL/glext.h>

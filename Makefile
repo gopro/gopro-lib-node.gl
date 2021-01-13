@@ -29,7 +29,7 @@ PYTHON_MAJOR = 3
 DEBUG      ?= no
 COVERAGE   ?= no
 PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYTHON_MAJOR),)
-TARGET_OS  ?= $(shell uname -s)
+export TARGET_OS ?= $(shell uname -s)
 
 DEBUG_GL    ?= no
 DEBUG_MEM   ?= no

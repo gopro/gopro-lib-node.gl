@@ -574,7 +574,14 @@ static int makedirs(const char *path, int mode)
 
 static int setup_paths(struct ctx *s)
 {
-    int ret = snprintf(s->root_dir, sizeof(s->root_dir), "/tmp/ngl-desktop/%s-%s/", s->host, s->port);
+#ifdef _WIN32
+    TCHAR tmp_dir[MAX_PATH + 1];
+    if (GetTempPath(sizeof(tmp_dir), tmp_dir) == 0)
+        return NGL_ERROR_EXTERNAL;
+#else
+    static const char *tmp_dir = "/tmp";
+#endif
+    int ret = snprintf(s->root_dir, sizeof(s->root_dir), "%s/ngl-desktop/%s-%s/", tmp_dir, s->host, s->port);
     if (ret < 0 || ret >= sizeof(s->root_dir))
         return ret;
     ret = snprintf(s->files_dir, sizeof(s->files_dir), "%sfiles/", s->root_dir);

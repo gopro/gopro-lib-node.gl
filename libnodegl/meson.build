@@ -405,7 +405,7 @@ pkg.generate(
 # Specifications
 #
 
-cp = find_program('cp')
+copyfile = find_program('scripts/copyfile.py')
 specs_filename = 'nodes.specs'
 dest_datadir = get_option('datadir') / 'nodegl'
 install_data(files(specs_filename), install_dir: dest_datadir)
@@ -430,7 +430,7 @@ specs_file = custom_target(
 )
 run_target(
   'updatespecs',
-  command: [cp, specs_file, meson.current_source_dir()],
+  command: [copyfile, specs_file, meson.current_source_dir()],
 )
 
 
@@ -454,7 +454,7 @@ if not get_option('small')
   )
   run_target(
     'updatedoc',
-    command: [cp, doc_file, meson.current_source_dir() / 'doc'],
+    command: [copyfile, doc_file, meson.current_source_dir() / 'doc'],
   )
 endif
 
@@ -479,7 +479,7 @@ gl_generated_files = custom_target(
 run_target(
   'updateglwrappers',
   command: [
-    cp,
+    copyfile,
     # FIXME: In 0.56.0, we get "WARNING: custom_target 'gl_generated_files' has
     # more than one output!  Using the first one.", so we need to do this
     # instead of just using gl_generated_files. It also requires the "depends:"

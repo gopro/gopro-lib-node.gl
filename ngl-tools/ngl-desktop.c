@@ -289,6 +289,7 @@ static int handle_tag_info(const uint8_t *data, int size, int fd, struct ctx *s)
         [NGL_BACKEND_OPENGL]   = "opengl",
         [NGL_BACKEND_OPENGLES] = "opengles",
         [NGL_BACKEND_VULKAN]   = "vulkan",
+        [NGL_BACKEND_NGFX]     = "ngfx",
     };
     /* Note: we use the player ngl_config and not the local config because the
      * former contains the backend in use after the configure call */

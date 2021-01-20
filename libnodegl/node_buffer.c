@@ -82,8 +82,10 @@ void ngli_node_buffer_unref(struct ngl_node *node)
 {
     struct buffer_priv *s = node->priv_data;
 
-    if (s->block)
-        return ngli_node_block_unref(s->block);
+    if (s->block) {
+        ngli_node_block_unref(s->block);
+        return;
+    }
 
     ngli_assert(s->buffer_refcount);
     if (s->buffer_refcount-- == 1)

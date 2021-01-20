@@ -116,7 +116,7 @@ static void mix_vec##len(void *user_arg, void *dst,             \
                          const struct animkeyframe_priv *kf1,   \
                          double ratio)                          \
 {                                                               \
-    return mix_vector(user_arg, dst, kf0, kf1, ratio, len);     \
+    mix_vector(user_arg, dst, kf0, kf1, ratio, len);            \
 }                                                               \
                                                                 \
 static void cpy_vec##len(void *user_arg, void *dst,             \

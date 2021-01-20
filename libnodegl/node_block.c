@@ -249,7 +249,7 @@ static int cmp_str(const void *a, const void *b)
 
 static int check_dup_labels(const char *block_name, struct ngl_node * const *nodes, int nb_nodes)
 {
-    const char **labels = ngli_calloc(nb_nodes, sizeof(*labels));
+    char **labels = ngli_calloc(nb_nodes, sizeof(*labels));
     if (!labels)
         return NGL_ERROR_MEMORY;
     for (int i = 0; i < nb_nodes; i++) {

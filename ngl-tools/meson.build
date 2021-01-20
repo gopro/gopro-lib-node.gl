@@ -87,31 +87,31 @@ endif
 tools_specs = {
   'ngl-desktop': {
     'src': files('ngl-desktop.c', 'ipc.c', 'player.c', 'opts.c') + wsi_src,
-    'deps': tool_deps + net_deps + wsi_deps + [threads_dep],
+    'deps': net_deps + wsi_deps + [threads_dep],
   },
   'ngl-ipc': {
     'src': files('ngl-ipc.c', 'ipc.c', 'opts.c'),
-    'deps': tool_deps + net_deps,
+    'deps': net_deps,
   },
   'ngl-player': {
     'src': files('ngl-player.c', 'player.c', 'opts.c') + wsi_src,
-    'deps': tool_deps + wsi_deps + [sxplayer_dep],
+    'deps': wsi_deps + [sxplayer_dep],
   },
   'ngl-probe': {
     'src': files('ngl-probe.c', 'opts.c'),
-    'deps': tool_deps,
+    'deps': [],
   },
   'ngl-python': {
     'src': files('ngl-python.c', 'player.c', 'python_utils.c', 'opts.c') + wsi_src,
-    'deps': tool_deps + wsi_deps + [python_dep],
+    'deps': wsi_deps + [python_dep],
   },
   'ngl-render': {
     'src': files('ngl-render.c', 'opts.c') + wsi_src,
-    'deps': tool_deps + wsi_deps,
+    'deps': wsi_deps,
   },
   'ngl-serialize': {
     'src': files('ngl-serialize.c', 'python_utils.c'),
-    'deps': tool_deps + [python_dep],
+    'deps': [python_dep],
   },
 }
 
@@ -125,7 +125,7 @@ foreach tool_name, tool_info : tools_specs
     exe = executable(
       tool_name,
       tool_info.get('src') + files('common.c'),
-      dependencies: tool_info.get('deps'),
+      dependencies: tool_deps + tool_info.get('deps'),
       install: true,
       install_rpath: get_option('rpath') ? get_option('prefix') / 'lib' : '',
     )

@@ -29,6 +29,9 @@
 
 int init_window(void)
 {
+#ifdef SDL_MAIN_HANDLED
+    SDL_SetMainReady();
+#endif
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "Failed to initialize SDL");
         return -1;

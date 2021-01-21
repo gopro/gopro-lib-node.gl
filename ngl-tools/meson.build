@@ -37,7 +37,10 @@ add_project_arguments(
   language: 'c',
 )
 
+c_args = []
+
 if cc.get_id() == 'msvc'
+  c_args += ['-DSDL_MAIN_HANDLED']
   msvc_args = [
       # Ignore several spurious warnings
       '/wd4018', # comparaison between signed and unsigned numbers
@@ -143,6 +146,7 @@ foreach tool_name, tool_info : tools_specs
       dependencies: tool_deps + tool_info.get('deps'),
       install: true,
       install_rpath: get_option('rpath') ? get_option('prefix') / 'lib' : '',
+      c_args: c_args,
     )
   endif
 endforeach

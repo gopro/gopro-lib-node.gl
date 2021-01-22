@@ -367,7 +367,7 @@ static struct gctx *gl_create(const struct ngl_config *config)
 }
 
 #if DEBUG_GL
-#define GL_DEBUG_LOG(log_level, ...) ngli_log_print(log_level, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#define GL_DEBUG_LOG(log_level, ...) ngli_log_print(log_level, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 static void NGLI_GL_APIENTRY gl_debug_message_callback(GLenum source,
                                                        GLenum type,
@@ -618,7 +618,7 @@ static int gl_end_draw(struct gctx *s, double t)
         s_priv->capture_func(s);
 
     int ret = 0;
-    if (ngli_glcontext_check_gl_error(gl, __FUNCTION__))
+    if (ngli_glcontext_check_gl_error(gl, __func__))
         ret = -1;
 
     if (config->set_surface_pts)

@@ -98,7 +98,7 @@ static void callback_sxplayer_log(void *arg, int level, const char *filename, in
     char buf[512];
     vsnprintf(buf, sizeof(buf), fmt, vl);
     if (buf[0])
-        ngli_log_print(log_levels[level], __FILE__, __LINE__, __FUNCTION__,
+        ngli_log_print(log_levels[level], __FILE__, __LINE__, __func__,
                        "[SXPLAYER %s:%d %s] %s", filename, ln, fn, buf);
 }
 

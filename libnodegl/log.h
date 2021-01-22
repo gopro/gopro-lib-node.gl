@@ -26,7 +26,7 @@
 #include "utils.h"
 
 #ifndef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ __FUNCTION__
+#define __PRETTY_FUNCTION__ __func__
 #endif
 
 #define LOG(log_level, ...) ngli_log_print(NGL_LOG_##log_level, __FILE__, __LINE__, __PRETTY_FUNCTION__, __VA_ARGS__)

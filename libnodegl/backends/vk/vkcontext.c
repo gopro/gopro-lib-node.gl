@@ -30,7 +30,7 @@
 # define VK_USE_PLATFORM_MACOS_MVK
 #elif defined(TARGET_IPHONE)
 # define VK_USE_PLATFORM_IOS_MVK
-#elif defined(TARGET_MINGW_W64)
+#elif defined(TARGET_WINDOWS)
 # define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
@@ -341,7 +341,21 @@ static VkResult create_window_surface(struct vkcontext *s, const struct ngl_conf
             return res;
 #endif
     } else if (platform == NGL_PLATFORM_WINDOWS) {
-        ngli_assert(0);
+#if defined(TARGET_WINDOWS)
+        const VkWin32SurfaceCreateInfoKHR surface_create_info = {
+            .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+            .hwnd = config->window,
+        };
+
+        VK_LOAD_FUN(s->instance, CreateWin32SurfaceKHR);
+        if (!CreateWin32SurfaceKHR) {
+            return VK_ERROR_EXTENSION_NOT_PRESENT;
+        }
+
+        VkResult res = CreateWin32SurfaceKHR(s->instance, &surface_create_info, NULL, &s->surface);
+        if (res != VK_SUCCESS)
+            return res;
+#endif
     } else if (platform == NGL_PLATFORM_WAYLAND) {
 #if defined(HAVE_WAYLAND)
         const VkWaylandSurfaceCreateInfoKHR surface_create_info = {

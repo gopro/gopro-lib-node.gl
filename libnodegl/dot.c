@@ -59,6 +59,13 @@ static int vec_is_set(uint8_t *base_ptr, const struct node_param *par)
     return memcmp(v, par->def_value.vec, n * sizeof(*v));
 }
 
+static int ivec_is_set(uint8_t *base_ptr, const struct node_param *par)
+{
+    const int n = par->type - PARAM_TYPE_IVEC2 + 2;
+    const int *v = (const int *)(base_ptr + par->offset);
+    return memcmp(v, par->def_value.ivec, n * sizeof(*v));
+}
+
 static int mat_is_set(uint8_t *base_ptr, const struct node_param *par)
 {
     const float *v = (const float *)(base_ptr + par->offset);
@@ -95,6 +102,10 @@ static int should_print_par(uint8_t *priv, const struct node_param *par)
         case PARAM_TYPE_VEC3:
         case PARAM_TYPE_VEC4:
             return vec_is_set(priv, par);
+        case PARAM_TYPE_IVEC2:
+        case PARAM_TYPE_IVEC3:
+        case PARAM_TYPE_IVEC4:
+            return ivec_is_set(priv, par);
         case PARAM_TYPE_MAT4:
             return mat_is_set(priv, par);
     }

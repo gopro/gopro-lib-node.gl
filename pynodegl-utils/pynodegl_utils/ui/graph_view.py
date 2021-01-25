@@ -192,7 +192,7 @@ class GraphView(QtWidgets.QWidget):
         dotfile = basename + 'dot'
         svgfile = basename + 'svg'
         with open(dotfile, 'w') as f:
-            f.write(dot_scene.decode('ascii'))
+            f.write(dot_scene.decode())
         try:
             subprocess.call(['dot', '-Tsvg', dotfile, '-o' + svgfile])
         except OSError as e:

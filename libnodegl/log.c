@@ -33,7 +33,7 @@
 static void default_callback(void *arg, int level, const char *filename, int ln,
                              const char *fn, const char *fmt, va_list vl)
 {
-    char logline[512];
+    char logline[128];
     char *logbuf = NULL;
     const char *logp = logline;
     static const char * const log_strs[] = {

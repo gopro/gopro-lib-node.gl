@@ -112,10 +112,10 @@ static int geometry_init(struct ngl_node *node)
 {
     struct geometry_priv *s = node->priv_data;
 
-    struct buffer_priv *vertices = s->vertices_buffer->priv_data;
+    const struct buffer_priv *vertices = s->vertices_buffer->priv_data;
 
     if (s->uvcoords_buffer) {
-        struct buffer_priv *uvcoords = s->uvcoords_buffer->priv_data;
+        const struct buffer_priv *uvcoords = s->uvcoords_buffer->priv_data;
         if (uvcoords->count != vertices->count) {
             LOG(ERROR,
                 "uvcoords count (%d) does not match vertices count (%d)",
@@ -126,7 +126,7 @@ static int geometry_init(struct ngl_node *node)
     }
 
     if (s->normals_buffer) {
-        struct buffer_priv *normals = s->normals_buffer->priv_data;
+        const struct buffer_priv *normals = s->normals_buffer->priv_data;
         if (normals->count != vertices->count) {
             LOG(ERROR,
                 "normals count (%d) does not match vertices count (%d)",

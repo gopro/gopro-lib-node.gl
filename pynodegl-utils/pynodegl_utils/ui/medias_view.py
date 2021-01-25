@@ -68,7 +68,7 @@ class MediasView(QtWidgets.QWidget):
         self._add_medias(*config.get('medias_list'))
 
     def _add_medias(self, *paths):
-        for path in paths:
+        for path in paths[::-1]:
             try:
                 media = Media(path)
             except:
@@ -77,7 +77,7 @@ class MediasView(QtWidgets.QWidget):
                 self._config.set_medias_last_dir(op.dirname(path))
                 item = QtGui.QStandardItem(path)
                 item.setData(media)
-                self._model.appendRow(item)
+                self._model.insertRow(0, item)
         self._update_cfg()
 
     def _update_cfg(self):

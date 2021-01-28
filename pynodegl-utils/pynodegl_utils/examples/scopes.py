@@ -3,73 +3,7 @@ import array
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
 from pynodegl_utils.toolbox.colors import COLORS
-
-
-def _canvas(cfg, media):
-    q = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    m = ngl.Media(media.filename)
-    t = ngl.Texture2D(data_src=m, mag_filter='linear', min_filter='linear')
-    # XXX: doesn't work without proxy RTT and VAAPI
-    #t.set_direct_rendering(False)
-    p = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
-    p.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
-    r = ngl.Render(q, p)
-    r.update_frag_resources(tex0=t)
-    return r, t
-
-
-def fit(dst_zone, disp_ar, src_ar):
-    '''
-    find the largest box of display aspect ratio `src_ar` that can fit into
-    `dst_zone` with a global display AR `disp_ar`
-    '''
-    zw, zh = dst_zone
-    ar = (src_ar[0] * disp_ar[1]) / (src_ar[1] * disp_ar[0])
-    ret = (zh * ar, zh) if zw / zh > ar else (zw, zw / ar)
-    return int(ret[0]), int(ret[1])
-
-
-def _gradient(cfg, colors):
-    q = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-
-    vert = '''
-    void main()
-    {
-        ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
-        color = vertex_color;
-    }
-    '''
-
-    frag = '''
-    void main()
-    {
-        ngl_out_color = color;
-    }
-    '''
-
-    bl, br, tl, tr = colors
-    p = ngl.Program(vertex=vert, fragment=frag)
-    p.update_vert_out_vars(color=ngl.IOVec4())
-    r = ngl.Render(q, p)
-    r.update_attributes(vertex_color=ngl.BufferVec4(data=array.array('f', bl + br + tl + tr)))
-    return r
-
-
-def blend(*nodes):
-    group = ngl.Group(children=nodes)
-    return ngl.GraphicConfig(group, blend=True,
-                             blend_src_factor='src_alpha',
-                             blend_dst_factor='one_minus_src_alpha',
-                             blend_src_factor_a='zero',
-                             blend_dst_factor_a='one')
-
-
-def _proxy(cfg, scene, box=(320, 320)):
-    proxy_w, proxy_h = fit(box, (1, 1), cfg.aspect_ratio)
-    proxy_texture = ngl.Texture2D(width=proxy_w, height=proxy_h, label='proxy texture')
-    proxy_texture_write = ngl.RenderToTexture(scene, label='proxy')
-    proxy_texture_write.add_color_textures(proxy_texture)
-    return proxy_w, proxy_h, proxy_texture_write, proxy_texture
+from pynodegl_utils.toolbox.utils import blend, canvas
 
 
 @scene(alpha=scene.Range(range=[0, 1], unit_base=100))
@@ -79,13 +13,13 @@ def histogram(cfg, alpha=0.8):
     cfg.aspect_ratio = (m.width, m.height)
 
     source_w, source_h = m.width, m.height
-    canvas, source_texture = _canvas(cfg, m)
+    c, source_texture = canvas(cfg, m)
 
     # Proxy
     use_proxy = True
     source_write = None
     if use_proxy:
-        source_w, source_h, source_write, source_texture = _proxy(cfg, canvas)
+        source_w, source_h, source_write, source_texture = proxy(cfg, c)
 
     # Histogram data
     hdata = ngl.Block()
@@ -156,15 +90,13 @@ def waveform(cfg, alpha=1.0, parade=True):
     cfg.aspect_ratio = (m.width, m.height)
 
     source_w, source_h = m.width, m.height
-    canvas, source_texture = _canvas(cfg, m)
-    #canvas = _gradient(cfg, (COLORS['red'], COLORS['green'], COLORS['blue'], COLORS['white']))
-    #canvas = _gradient(cfg, (COLORS['black'], COLORS['white'], COLORS['black'], COLORS['white']))
+    c, source_texture = canvas(cfg, m)
 
     # Proxy
     use_proxy = True
     source_write = None
     if use_proxy:
-        source_w, source_h, source_write, source_texture = _proxy(cfg, canvas)
+        source_w, source_h, source_write, source_texture = proxy(cfg, c)
 
     # Waveform data
     data_w, data_h = source_w, 256
@@ -242,7 +174,7 @@ def waveform(cfg, alpha=1.0, parade=True):
     )
 
     # Blend the media and the histogram together
-    display = blend(canvas, render)
+    display = blend(c, render)
 
     root = ngl.Group()
     if source_write is not None:

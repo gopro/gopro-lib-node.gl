@@ -82,6 +82,8 @@ static int get_default_platform(void)
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
+    if (s->gctx)
+        ngli_gctx_wait_idle(s->gctx);
     if (s->scene) {
         ngli_node_detach_ctx(s->scene, s);
         if (*(int *)arg == UNREF_SCENE)
@@ -214,6 +216,8 @@ static int cmd_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer)
 
 static int cmd_set_scene(struct ngl_ctx *s, void *arg)
 {
+    ngli_gctx_wait_idle(s->gctx);
+
     if (s->scene) {
         ngli_node_detach_ctx(s->scene, s);
         ngl_node_unrefp(&s->scene);

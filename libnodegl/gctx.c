@@ -102,6 +102,11 @@ int ngli_gctx_query_draw_time(struct gctx *s, int64_t *time)
     return s->class->query_draw_time(s, time);
 }
 
+void ngli_gctx_wait_idle(struct gctx *s)
+{
+    s->class->wait_idle(s);
+}
+
 void ngli_gctx_freep(struct gctx **sp)
 {
     if (!*sp)

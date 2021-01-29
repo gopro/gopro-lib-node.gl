@@ -42,6 +42,7 @@ struct gctx_class {
     int (*begin_draw)(struct gctx *s, double t);
     int (*end_draw)(struct gctx *s, double t);
     int (*query_draw_time)(struct gctx *s, int64_t *time);
+    void (*wait_idle)(struct gctx *s);
     void (*destroy)(struct gctx *s);
 
     int (*transform_cull_mode)(struct gctx *s, int cull_mode);
@@ -113,6 +114,7 @@ int ngli_gctx_set_capture_buffer(struct gctx *s, void *capture_buffer);
 int ngli_gctx_begin_draw(struct gctx *s, double t);
 int ngli_gctx_query_draw_time(struct gctx *s, int64_t *time);
 int ngli_gctx_end_draw(struct gctx *s, double t);
+void ngli_gctx_wait_idle(struct gctx *s);
 void ngli_gctx_freep(struct gctx **sp);
 
 int ngli_gctx_transform_cull_mode(struct gctx *s, int cull_mode);

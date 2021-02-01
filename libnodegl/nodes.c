@@ -64,12 +64,12 @@ static void *aligned_allocz(size_t size)
     return ptr;
 }
 
-static struct ngl_node *node_create(const struct node_class *class)
+static struct ngl_node *node_create(const struct node_class *cls)
 {
     struct ngl_node *node;
     const size_t node_size = NGLI_ALIGN(sizeof(*node), NGLI_ALIGN_VAL);
 
-    node = aligned_allocz(node_size + class->priv_size);
+    node = aligned_allocz(node_size + cls->priv_size);
     if (!node)
         return NULL;
     node->priv_data = ((uint8_t *)node) + node_size;
@@ -78,7 +78,7 @@ static struct ngl_node *node_create(const struct node_class *class)
     ngli_assert((((uintptr_t)node)            & ~(NGLI_ALIGN_VAL - 1)) == (uintptr_t)node);
     ngli_assert((((uintptr_t)node->priv_data) & ~(NGLI_ALIGN_VAL - 1)) == (uintptr_t)node->priv_data);
 
-    node->class = class;
+    node->cls = cls;
     node->last_update_time = -1.;
     node->visit_time = -1.;
 
@@ -112,11 +112,11 @@ int ngli_is_default_label(const char *class_name, const char *str)
     return 1;
 }
 
-#define REGISTER_NODE(type_name, class)         \
+#define REGISTER_NODE(type_name, cls)           \
     case type_name: {                           \
-        extern const struct node_class class;   \
-        ngli_assert(class.id == type_name);     \
-        return &class;                          \
+        extern const struct node_class cls;     \
+        ngli_assert(cls.id == type_name);       \
+        return &cls;                            \
     }                                           \
 
 static const struct node_class *get_node_class(int type)
@@ -129,23 +129,23 @@ static const struct node_class *get_node_class(int type)
 
 struct ngl_node *ngl_node_create(int type)
 {
-    const struct node_class *class = get_node_class(type);
-    if (!class) {
+    const struct node_class *cls = get_node_class(type);
+    if (!cls) {
         LOG(ERROR, "unknown node type 0x%x", type);
         return NULL;
     }
 
-    struct ngl_node *node = node_create(class);
+    struct ngl_node *node = node_create(cls);
     if (!node)
         return NULL;
 
     if (ngli_params_set_defaults((uint8_t *)node, ngli_base_node_params) < 0 ||
-        ngli_params_set_defaults(node->priv_data, node->class->params) < 0) {
+        ngli_params_set_defaults(node->priv_data, node->cls->params) < 0) {
         ngl_node_unrefp(&node);
         return NULL;
     }
 
-    node->label = ngli_node_default_label(node->class->name);
+    node->label = ngli_node_default_label(node->cls->name);
     if (!node->label) {
         ngl_node_unrefp(&node);
         return NULL;
@@ -162,9 +162,9 @@ static void node_release(struct ngl_node *node)
         return;
 
     ngli_assert(node->ctx);
-    if (node->class->release) {
+    if (node->cls->release) {
         TRACE("RELEASE %s @ %p", node->label, node);
-        node->class->release(node);
+        node->cls->release(node);
     }
     node->state = STATE_INITIALIZED;
     node->last_update_time = -1.;
@@ -177,7 +177,7 @@ static void node_release(struct ngl_node *node)
 static void reset_non_params(struct ngl_node *node)
 {
     size_t cur_offset = 0;
-    const struct node_param *par = node->class->params;
+    const struct node_param *par = node->cls->params;
     uint8_t *base_ptr = node->priv_data;
 
     while (par && par->key) {
@@ -187,7 +187,7 @@ static void reset_non_params(struct ngl_node *node)
         cur_offset = offset + ngli_params_specs[par->type].size;
         par++;
     }
-    memset(base_ptr + cur_offset, 0, node->class->priv_size - cur_offset);
+    memset(base_ptr + cur_offset, 0, node->cls->priv_size - cur_offset);
 }
 
 static void node_uninit(struct ngl_node *node)
@@ -200,9 +200,9 @@ static void node_uninit(struct ngl_node *node)
     ngli_darray_reset(&node->parents);
     node_release(node);
 
-    if (node->class->uninit) {
+    if (node->cls->uninit) {
         LOG(VERBOSE, "UNINIT %s @ %p", node->label, node);
-        node->class->uninit(node);
+        node->cls->uninit(node);
     }
     reset_non_params(node);
     node->state = STATE_UNINITIALIZED;
@@ -212,7 +212,7 @@ static void node_uninit(struct ngl_node *node)
 static int track_children(struct ngl_node *node)
 {
     uint8_t *base_ptr = node->priv_data;
-    const struct node_param *par = node->class->params;
+    const struct node_param *par = node->cls->params;
 
     if (!par)
         return 0;
@@ -266,7 +266,7 @@ static int track_children(struct ngl_node *node)
 static int check_params_sanity(struct ngl_node *node)
 {
     const uint8_t *base_ptr = node->priv_data;
-    const struct node_param *par = node->class->params;
+    const struct node_param *par = node->cls->params;
 
     if (!par)
         return 0;
@@ -296,9 +296,9 @@ static int node_init(struct ngl_node *node)
     ngli_darray_init(&node->parents, sizeof(struct ngl_node *), 0);
 
     ngli_assert(node->ctx);
-    if (node->class->init) {
+    if (node->cls->init) {
         LOG(VERBOSE, "INIT %s @ %p", node->label, node);
-        int ret = node->class->init(node);
+        int ret = node->cls->init(node);
         if (ret < 0) {
             LOG(ERROR, "initializing node %s failed: %s", node->label, NGLI_RET_STR(ret));
             node->state = STATE_INIT_FAILED;
@@ -314,7 +314,7 @@ static int node_init(struct ngl_node *node)
         return ret;
     }
 
-    if (node->class->prefetch)
+    if (node->cls->prefetch)
         node->state = STATE_INITIALIZED;
     else
         node->state = STATE_READY;
@@ -394,7 +394,7 @@ static int node_set_ctx(struct ngl_node *node, struct ngl_ctx *ctx, struct ngl_c
         ngli_assert(node->ctx_refcount >= 0);
     }
 
-    if ((ret = node_set_children_ctx(node->priv_data, node->class->params, ctx, pctx)) < 0 ||
+    if ((ret = node_set_children_ctx(node->priv_data, node->cls->params, ctx, pctx)) < 0 ||
         (ret = node_set_children_ctx((uint8_t *)node, ngli_base_node_params, ctx, pctx)) < 0)
         return ret;
 
@@ -432,9 +432,9 @@ void ngli_node_detach_ctx(struct ngl_node *node, struct ngl_ctx *ctx)
 
 int ngli_node_prepare(struct ngl_node *node)
 {
-    if (node->class->prepare) {
+    if (node->cls->prepare) {
         TRACE("PREPARE %s @ %p", node->label, node);
-        int ret = node->class->prepare(node);
+        int ret = node->cls->prepare(node);
         if (ret < 0) {
             LOG(ERROR, "preparing node %s failed: %s", node->label, NGLI_RET_STR(ret));
             return ret;
@@ -486,8 +486,8 @@ int ngli_node_visit(struct ngl_node *node, int is_active, double t)
         node->is_active |= is_active;
     }
 
-    if (node->class->visit) {
-        int ret = node->class->visit(node, is_active, t);
+    if (node->cls->visit) {
+        int ret = node->cls->visit(node, is_active, t);
         if (ret < 0)
             return ret;
     } else {
@@ -512,15 +512,15 @@ static int node_prefetch(struct ngl_node *node)
     if (node->state == STATE_READY)
         return 0;
 
-    if (node->class->prefetch) {
+    if (node->cls->prefetch) {
         TRACE("PREFETCH %s @ %p", node->label, node);
-        int ret = node->class->prefetch(node);
+        int ret = node->cls->prefetch(node);
         if (ret < 0) {
             LOG(ERROR, "prefetching node %s failed: %s", node->label, NGLI_RET_STR(ret));
             node->visit_time = -1.;
-            if (node->class->release) {
+            if (node->cls->release) {
                 LOG(VERBOSE, "RELEASE %s @ %p", node->label, node);
-                node->class->release(node);
+                node->cls->release(node);
             }
             return ret;
         }
@@ -550,10 +550,10 @@ int ngli_node_honor_release_prefetch(struct darray *nodes_array)
 int ngli_node_update(struct ngl_node *node, double t)
 {
     ngli_assert(node->state == STATE_READY);
-    if (node->class->update) {
+    if (node->cls->update) {
         if (node->last_update_time != t) {
             TRACE("UPDATE %s @ %p with t=%g", node->label, node, t);
-            int ret = node->class->update(node, t);
+            int ret = node->cls->update(node, t);
             if (ret < 0) {
                 LOG(ERROR, "updating node %s failed: %s", node->label, NGLI_RET_STR(ret));
                 return ret;
@@ -570,9 +570,9 @@ int ngli_node_update(struct ngl_node *node, double t)
 
 void ngli_node_draw(struct ngl_node *node)
 {
-    if (node->class->draw) {
+    if (node->cls->draw) {
         TRACE("DRAW %s @ %p", node->label, node);
-        node->class->draw(node);
+        node->cls->draw(node);
         node->draw_count++;
     }
 }
@@ -584,11 +584,11 @@ const struct node_param *ngli_node_param_find(const struct ngl_node *node, const
     *base_ptrp = (uint8_t *)node;
 
     if (!par) {
-        par = ngli_params_find(node->class->params, key);
+        par = ngli_params_find(node->cls->params, key);
         *base_ptrp = (uint8_t *)node->priv_data;
     }
     if (!par)
-        LOG(ERROR, "parameter %s not found in %s", key, node->class->name);
+        LOG(ERROR, "parameter %s not found in %s", key, node->cls->name);
     return par;
 }
 
@@ -622,8 +622,8 @@ int ngl_node_param_add(struct ngl_node *node, const char *key,
 static int node_invalidate_branch(struct ngl_node *node)
 {
     node->last_update_time = -1;
-    if (node->class->invalidate) {
-        int ret = node->class->invalidate(node);
+    if (node->cls->invalidate) {
+        int ret = node->cls->invalidate(node);
         if (ret < 0)
             return ret;
     }
@@ -691,7 +691,7 @@ void ngl_node_unrefp(struct ngl_node **nodep)
         LOG(VERBOSE, "DELETE %s @ %p", node->label, node);
         ngli_assert(!node->ctx);
         ngli_params_free((uint8_t *)node, ngli_base_node_params);
-        ngli_params_free(node->priv_data, node->class->params);
+        ngli_params_free(node->priv_data, node->cls->params);
         ngli_free_aligned(node);
     }
     *nodep = NULL;

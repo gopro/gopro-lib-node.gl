@@ -340,29 +340,29 @@ static int animkeyframe_init(struct ngl_node *node)
     const int easing_id = s->easing;
     const char *easing_name = ngli_params_get_select_str(easing_choices.consts, easing_id);
 
-    if (node->class->id == NGL_NODE_ANIMKEYFRAMEVEC2)
+    if (node->cls->id == NGL_NODE_ANIMKEYFRAMEVEC2)
         LOG(VERBOSE, "%s of type %s starting at (%f,%f) for t=%f",
-            node->class->name, easing_name,
+            node->cls->name, easing_name,
             s->value[0], s->value[1], s->time);
-    else if (node->class->id == NGL_NODE_ANIMKEYFRAMEVEC3)
+    else if (node->cls->id == NGL_NODE_ANIMKEYFRAMEVEC3)
         LOG(VERBOSE, "%s of type %s starting at (%f,%f,%f) for t=%f",
-            node->class->name, easing_name,
+            node->cls->name, easing_name,
             s->value[0], s->value[1], s->value[2], s->time);
-    else if (node->class->id == NGL_NODE_ANIMKEYFRAMEVEC4)
+    else if (node->cls->id == NGL_NODE_ANIMKEYFRAMEVEC4)
         LOG(VERBOSE, "%s of type %s starting at (%f,%f,%f,%f) for t=%f",
-            node->class->name, easing_name,
+            node->cls->name, easing_name,
             s->value[0], s->value[1], s->value[2], s->value[3], s->time);
-    else if (node->class->id == NGL_NODE_ANIMKEYFRAMEQUAT)
+    else if (node->cls->id == NGL_NODE_ANIMKEYFRAMEQUAT)
         LOG(VERBOSE, "%s of type %s starting at (%f,%f,%f,%f) for t=%f",
-            node->class->name, easing_name,
+            node->cls->name, easing_name,
             s->value[0], s->value[1], s->value[2], s->value[3], s->time);
-    else if (node->class->id == NGL_NODE_ANIMKEYFRAMEFLOAT)
+    else if (node->cls->id == NGL_NODE_ANIMKEYFRAMEFLOAT)
         LOG(VERBOSE, "%s of type %s starting at %f for t=%f",
-            node->class->name, easing_name,
+            node->cls->name, easing_name,
             s->scalar, s->time);
-    else if (node->class->id == NGL_NODE_ANIMKEYFRAMEBUFFER)
+    else if (node->cls->id == NGL_NODE_ANIMKEYFRAMEBUFFER)
         LOG(VERBOSE, "%s of type %s starting with t=%f (data size: %d)",
-            node->class->name, easing_name,
+            node->cls->name, easing_name,
             s->time, s->data_size);
     else
         return NGL_ERROR_BUG;
@@ -382,7 +382,7 @@ static int animkeyframe_init(struct ngl_node *node)
 static char *animkeyframe_info_str(const struct ngl_node *node)
 {
     const struct animkeyframe_priv *s = node->priv_data;
-    const struct node_param *params = node->class->params;
+    const struct node_param *params = node->cls->params;
     struct bstr *b = ngli_bstr_create();
 
     if (!b)
@@ -402,9 +402,9 @@ static char *animkeyframe_info_str(const struct ngl_node *node)
         ngli_bstr_printf(b, "on (%g,%g) ", s->offsets[0], s->offsets[1]);
     }
 
-    if (node->class->id == NGL_NODE_ANIMKEYFRAMEBUFFER) {
+    if (node->cls->id == NGL_NODE_ANIMKEYFRAMEBUFFER) {
         ngli_bstr_printf(b, "with data size of %dB", s->data_size);
-    } else if (node->class->id == NGL_NODE_ANIMKEYFRAMEQUAT) {
+    } else if (node->cls->id == NGL_NODE_ANIMKEYFRAMEQUAT) {
         ngli_bstr_printf(b, "with quat=(%g,%g,%g,%g)", NGLI_ARG_VEC4(s->value));
     } else {
         ngli_bstr_print(b, "with v=");

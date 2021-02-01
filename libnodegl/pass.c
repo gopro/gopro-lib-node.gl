@@ -60,12 +60,12 @@ static int register_uniform(struct pass *s, const char *name, struct ngl_node *u
     struct pgcraft_uniform crafter_uniform = {.stage = stage};
     snprintf(crafter_uniform.name, sizeof(crafter_uniform.name), "%s", name);
 
-    if (uniform->class->category == NGLI_NODE_CATEGORY_BUFFER) {
+    if (uniform->cls->category == NGLI_NODE_CATEGORY_BUFFER) {
         struct buffer_priv *buffer_priv = uniform->priv_data;
         crafter_uniform.type  = buffer_priv->data_type;
         crafter_uniform.count = buffer_priv->count;
         crafter_uniform.data  = buffer_priv->data;
-    } else if (uniform->class->category == NGLI_NODE_CATEGORY_UNIFORM) {
+    } else if (uniform->cls->category == NGLI_NODE_CATEGORY_UNIFORM) {
         struct variable_priv *variable_priv = uniform->priv_data;
         crafter_uniform.type  = variable_priv->data_type;
         crafter_uniform.data  = variable_priv->data;
@@ -124,7 +124,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     };
     snprintf(crafter_texture.name, sizeof(crafter_texture.name), "%s", name);
 
-    switch (texture->class->id) {
+    switch (texture->cls->id) {
     case NGL_NODE_TEXTURE2D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D; break;
     case NGL_NODE_TEXTURE3D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D; break;
     case NGL_NODE_TEXTURECUBE: crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE;      break;
@@ -138,7 +138,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
         if (resprops_node) {
             const struct resourceprops_priv *resprops = resprops_node->priv_data;
             if (resprops->as_image) {
-                if (texture->class->id != NGL_NODE_TEXTURE2D) {
+                if (texture->cls->id != NGL_NODE_TEXTURE2D) {
                     LOG(ERROR, "\"%s\" can not be accessed as an image; only Texture2D is supported as image", name);
                     return NGL_ERROR_UNSUPPORTED;
                 }
@@ -333,7 +333,7 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
 
 static int register_resource(struct pass *s, const char *name, struct ngl_node *node, int stage)
 {
-    switch (node->class->category) {
+    switch (node->cls->category) {
     case NGLI_NODE_CATEGORY_UNIFORM:
     case NGLI_NODE_CATEGORY_BUFFER:  return register_uniform(s, name, node, stage);
     case NGLI_NODE_CATEGORY_TEXTURE: return register_texture(s, name, node, stage);

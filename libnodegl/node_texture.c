@@ -261,7 +261,7 @@ static int texture_prefetch(struct ngl_node *node)
     const uint8_t *data = NULL;
 
     if (s->data_src) {
-        switch (s->data_src->class->id) {
+        switch (s->data_src->cls->id) {
         case NGL_NODE_MEDIA:
             return 0;
         case NGL_NODE_ANIMATEDBUFFERFLOAT:
@@ -370,7 +370,7 @@ static int texture_update(struct ngl_node *node, double t)
     if (ret < 0)
         return ret;
 
-    switch (s->data_src->class->id) {
+    switch (s->data_src->cls->id) {
         case NGL_NODE_MEDIA:
             handle_media_frame(node);
             break;

@@ -24,37 +24,37 @@
 
 struct texture *ngli_texture_create(struct gctx *gctx)
 {
-    return gctx->class->texture_create(gctx);
+    return gctx->cls->texture_create(gctx);
 }
 
 int ngli_texture_init(struct texture *s, const struct texture_params *params)
 {
-    return s->gctx->class->texture_init(s, params);
+    return s->gctx->cls->texture_init(s, params);
 }
 
 int ngli_texture_has_mipmap(const struct texture *s)
 {
-    return s->gctx->class->texture_has_mipmap(s);
+    return s->gctx->cls->texture_has_mipmap(s);
 }
 
 int ngli_texture_match_dimensions(const struct texture *s, int width, int height, int depth)
 {
-    return s->gctx->class->texture_match_dimensions(s, width, height, depth);
+    return s->gctx->cls->texture_match_dimensions(s, width, height, depth);
 }
 
 int ngli_texture_upload(struct texture *s, const uint8_t *data, int linesize)
 {
-    return s->gctx->class->texture_upload(s, data, linesize);
+    return s->gctx->cls->texture_upload(s, data, linesize);
 }
 
 int ngli_texture_generate_mipmap(struct texture *s)
 {
-    return s->gctx->class->texture_generate_mipmap(s);
+    return s->gctx->cls->texture_generate_mipmap(s);
 }
 
 void ngli_texture_freep(struct texture **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->class->texture_freep(sp);
+    (*sp)->gctx->cls->texture_freep(sp);
 }

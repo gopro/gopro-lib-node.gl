@@ -100,7 +100,7 @@ struct gctx_class {
 struct gctx {
     struct ngl_config config;
     const char *backend_str;
-    const struct gctx_class *class;
+    const struct gctx_class *cls;
     int version;
     int language_version;
     uint64_t features;

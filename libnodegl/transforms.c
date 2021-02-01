@@ -28,7 +28,7 @@
 const float *ngli_get_last_transformation_matrix(const struct ngl_node *node)
 {
     while (node) {
-        const int id = node->class->id;
+        const int id = node->cls->id;
         switch (id) {
             case NGL_NODE_ROTATE:
             case NGL_NODE_ROTATEQUAT:
@@ -46,7 +46,7 @@ const float *ngli_get_last_transformation_matrix(const struct ngl_node *node)
             }
             default:
                 LOG(ERROR, "%s (%s) is not an allowed type for a camera transformation",
-                    node->label, node->class->name);
+                    node->label, node->cls->name);
                 break;
         }
     }

@@ -24,17 +24,17 @@
 
 struct program *ngli_program_create(struct gctx *gctx)
 {
-    return gctx->class->program_create(gctx);
+    return gctx->cls->program_create(gctx);
 }
 
 int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute)
 {
-    return s->gctx->class->program_init(s, vertex, fragment, compute);
+    return s->gctx->cls->program_init(s, vertex, fragment, compute);
 }
 
 void ngli_program_freep(struct program **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->class->program_freep(sp);
+    (*sp)->gctx->cls->program_freep(sp);
 }

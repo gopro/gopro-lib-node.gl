@@ -33,7 +33,7 @@ struct glcontext_class;
 
 struct glcontext {
     /* GL context */
-    const struct glcontext_class *class;
+    const struct glcontext_class *cls;
     void *priv_data;
 
     /* User options */

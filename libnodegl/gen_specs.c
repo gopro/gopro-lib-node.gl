@@ -25,7 +25,7 @@
 #include "nodes.h"
 #include "nodes_register.h"
 
-#define CLASS_LIST(type_name, class) extern const struct node_class class;
+#define CLASS_LIST(type_name, cls) extern const struct node_class cls;
 NODE_MAP_TYPE2CLASS(CLASS_LIST)
 
 extern const struct node_param ngli_base_node_params[];
@@ -43,7 +43,7 @@ static void print_node_params(const char *name, const struct node_param *p)
     printf("\n");
 }
 
-#define CLASS_COMMALIST(type_name, class) &class,
+#define CLASS_COMMALIST(type_name, cls) &cls,
 
 int main(void)
 {

@@ -119,7 +119,7 @@ static int update_rr_state(struct timerangefilter_priv *s, double t)
             // We leave our current render range, so we reset the "Once" flag
             // for next time we may come in again (seek back)
             struct ngl_node *cur_rr = s->ranges[s->current_range];
-            if (cur_rr->class->id == NGL_NODE_TIMERANGEMODEONCE) {
+            if (cur_rr->cls->id == NGL_NODE_TIMERANGEMODEONCE) {
                 struct timerangemode_priv *rro = cur_rr->priv_data;
                 rro->updated = 0;
             }
@@ -149,7 +149,7 @@ static int timerangefilter_visit(struct ngl_node *node, int is_active, double t)
 
             s->current_range = rr_id;
 
-            if (rr->class->id == NGL_NODE_TIMERANGEMODENOOP) {
+            if (rr->cls->id == NGL_NODE_TIMERANGEMODENOOP) {
                 is_active = 0;
 
                 if (rr_id < s->nb_ranges - 1) {
@@ -177,7 +177,7 @@ static int timerangefilter_visit(struct ngl_node *node, int is_active, double t)
                         is_active = 1;
                     }
                 }
-            } else if (rr->class->id == NGL_NODE_TIMERANGEMODEONCE) {
+            } else if (rr->cls->id == NGL_NODE_TIMERANGEMODEONCE) {
                 // If the child of the current once range is inactive, meaning
                 // it has been previously released, we need to force an update
                 // otherwise the child will stay uninitialized.
@@ -202,10 +202,10 @@ static int timerangefilter_update(struct ngl_node *node, double t)
     if (rr_id >= 0) {
         struct ngl_node *rr = s->ranges[rr_id];
 
-        if (rr->class->id == NGL_NODE_TIMERANGEMODENOOP)
+        if (rr->cls->id == NGL_NODE_TIMERANGEMODENOOP)
             return 0;
 
-        if (rr->class->id == NGL_NODE_TIMERANGEMODEONCE) {
+        if (rr->cls->id == NGL_NODE_TIMERANGEMODEONCE) {
             struct timerangemode_priv *rro = rr->priv_data;
             if (rro->updated)
                 return 0;

@@ -193,7 +193,7 @@ static int serialize_options(struct hmap *nlist,
                 if (!s || (p->def_value.str && !strcmp(s, p->def_value.str)))
                     break;
                 if (!strcmp(p->key, "label") &&
-                    ngli_is_default_label(node->class->name, s))
+                    ngli_is_default_label(node->cls->name, s))
                     break;
                 ngli_bstr_printf(b, " %s:", p->key);
                 for (int i = 0; s[i]; i++)
@@ -385,16 +385,16 @@ static int serialize(struct hmap *nlist,
     int ret;
 
     if ((ret = serialize_children(nlist, b, node, (uint8_t *)node, ngli_base_node_params)) < 0 ||
-        (ret = serialize_children(nlist, b, node, node->priv_data, node->class->params)) < 0)
+        (ret = serialize_children(nlist, b, node, node->priv_data, node->cls->params)) < 0)
         return ret;
 
-    const uint32_t tag = node->class->id;
+    const uint32_t tag = node->cls->id;
     ngli_bstr_printf(b, "%c%c%c%c",
                     tag >> 24 & 0xff,
                     tag >> 16 & 0xff,
                     tag >>  8 & 0xff,
                     tag       & 0xff);
-    if ((ret = serialize_options(nlist, b, node, node->priv_data, node->class->params)) < 0 ||
+    if ((ret = serialize_options(nlist, b, node, node->priv_data, node->cls->params)) < 0 ||
         (ret = serialize_options(nlist, b, node, (uint8_t *)node, ngli_base_node_params)) < 0)
         return ret;
 

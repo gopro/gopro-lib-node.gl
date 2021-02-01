@@ -392,10 +392,10 @@ struct glcontext *ngli_glcontext_new(const struct ngl_config *config)
     struct glcontext *glcontext = ngli_calloc(1, sizeof(*glcontext));
     if (!glcontext)
         return NULL;
-    glcontext->class = glcontext_class_map[glplatform];
+    glcontext->cls = glcontext_class_map[glplatform];
 
-    if (glcontext->class->priv_size) {
-        glcontext->priv_data = ngli_calloc(1, glcontext->class->priv_size);
+    if (glcontext->cls->priv_size) {
+        glcontext->priv_data = ngli_calloc(1, glcontext->cls->priv_size);
         if (!glcontext->priv_data) {
             ngli_free(glcontext);
             return NULL;
@@ -409,8 +409,8 @@ struct glcontext *ngli_glcontext_new(const struct ngl_config *config)
     glcontext->height = config->height;
     glcontext->samples = config->samples;
 
-    if (glcontext->class->init) {
-        int ret = glcontext->class->init(glcontext, config->display, config->window, config->handle);
+    if (glcontext->cls->init) {
+        int ret = glcontext->cls->init(glcontext, config->display, config->window, config->handle);
         if (ret < 0)
             goto fail;
     }
@@ -444,30 +444,30 @@ fail:
 
 int ngli_glcontext_make_current(struct glcontext *glcontext, int current)
 {
-    if (glcontext->class->make_current)
-        return glcontext->class->make_current(glcontext, current);
+    if (glcontext->cls->make_current)
+        return glcontext->cls->make_current(glcontext, current);
 
     return 0;
 }
 
 int ngli_glcontext_set_swap_interval(struct glcontext *glcontext, int interval)
 {
-    if (glcontext->class->set_swap_interval)
-        return glcontext->class->set_swap_interval(glcontext, interval);
+    if (glcontext->cls->set_swap_interval)
+        return glcontext->cls->set_swap_interval(glcontext, interval);
 
     return 0;
 }
 
 void ngli_glcontext_swap_buffers(struct glcontext *glcontext)
 {
-    if (glcontext->class->swap_buffers)
-        glcontext->class->swap_buffers(glcontext);
+    if (glcontext->cls->swap_buffers)
+        glcontext->cls->swap_buffers(glcontext);
 }
 
 void ngli_glcontext_set_surface_pts(struct glcontext *glcontext, double t)
 {
-    if (glcontext->class->set_surface_pts)
-        glcontext->class->set_surface_pts(glcontext, t);
+    if (glcontext->cls->set_surface_pts)
+        glcontext->cls->set_surface_pts(glcontext, t);
 }
 
 int ngli_glcontext_resize(struct glcontext *glcontext, int width, int height)
@@ -477,8 +477,8 @@ int ngli_glcontext_resize(struct glcontext *glcontext, int width, int height)
         return NGL_ERROR_INVALID_USAGE;
     }
 
-    if (glcontext->class->resize)
-        return glcontext->class->resize(glcontext, width, height);
+    if (glcontext->cls->resize)
+        return glcontext->cls->resize(glcontext, width, height);
 
     return NGL_ERROR_UNSUPPORTED;
 }
@@ -492,8 +492,8 @@ void ngli_glcontext_freep(struct glcontext **glcontextp)
 
     glcontext = *glcontextp;
 
-    if (glcontext->class->uninit)
-        glcontext->class->uninit(glcontext);
+    if (glcontext->cls->uninit)
+        glcontext->cls->uninit(glcontext);
 
     ngli_free(glcontext->priv_data);
     ngli_freep(glcontextp);
@@ -503,8 +503,8 @@ void *ngli_glcontext_get_proc_address(struct glcontext *glcontext, const char *n
 {
     void *ptr = NULL;
 
-    if (glcontext->class->get_proc_address)
-        ptr = glcontext->class->get_proc_address(glcontext, name);
+    if (glcontext->cls->get_proc_address)
+        ptr = glcontext->cls->get_proc_address(glcontext, name);
 
     return ptr;
 }
@@ -513,8 +513,8 @@ void *ngli_glcontext_get_texture_cache(struct glcontext *glcontext)
 {
     void *texture_cache = NULL;
 
-    if (glcontext->class->get_texture_cache)
-        texture_cache = glcontext->class->get_texture_cache(glcontext);
+    if (glcontext->cls->get_texture_cache)
+        texture_cache = glcontext->cls->get_texture_cache(glcontext);
 
     return texture_cache;
 }
@@ -523,8 +523,8 @@ uintptr_t ngli_glcontext_get_display(struct glcontext *glcontext)
 {
     uintptr_t handle = 0;
 
-    if (glcontext->class->get_display)
-        handle = glcontext->class->get_display(glcontext);
+    if (glcontext->cls->get_display)
+        handle = glcontext->cls->get_display(glcontext);
 
     return handle;
 }
@@ -533,8 +533,8 @@ uintptr_t ngli_glcontext_get_handle(struct glcontext *glcontext)
 {
     uintptr_t handle = 0;
 
-    if (glcontext->class->get_handle)
-        handle = glcontext->class->get_handle(glcontext);
+    if (glcontext->cls->get_handle)
+        handle = glcontext->cls->get_handle(glcontext);
 
     return handle;
 }
@@ -543,8 +543,8 @@ GLuint ngli_glcontext_get_default_framebuffer(struct glcontext *glcontext)
 {
     GLuint fbo_id = 0;
 
-    if (glcontext->class->get_default_framebuffer)
-        fbo_id = glcontext->class->get_default_framebuffer(glcontext);
+    if (glcontext->cls->get_default_framebuffer)
+        fbo_id = glcontext->cls->get_default_framebuffer(glcontext);
 
     return fbo_id;
 }

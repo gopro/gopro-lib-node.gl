@@ -169,18 +169,18 @@ static ngli_animation_cpy_func_type get_cpy_func(int node_class)
 
 int ngl_anim_evaluate(struct ngl_node *node, void *dst, double t)
 {
-    if (node->class->id != NGL_NODE_ANIMATEDFLOAT &&
-        node->class->id != NGL_NODE_ANIMATEDVEC2 &&
-        node->class->id != NGL_NODE_ANIMATEDVEC3 &&
-        node->class->id != NGL_NODE_ANIMATEDVEC4 &&
-        node->class->id != NGL_NODE_ANIMATEDQUAT)
+    if (node->cls->id != NGL_NODE_ANIMATEDFLOAT &&
+        node->cls->id != NGL_NODE_ANIMATEDVEC2 &&
+        node->cls->id != NGL_NODE_ANIMATEDVEC3 &&
+        node->cls->id != NGL_NODE_ANIMATEDVEC4 &&
+        node->cls->id != NGL_NODE_ANIMATEDQUAT)
         return NGL_ERROR_INVALID_ARG;
 
     struct variable_priv *s = node->priv_data;
     if (!s->nb_animkf)
         return NGL_ERROR_INVALID_ARG;
 
-    if (node->class->id == NGL_NODE_ANIMATEDQUAT && s->as_mat4) {
+    if (node->cls->id == NGL_NODE_ANIMATEDQUAT && s->as_mat4) {
         LOG(ERROR, "evaluating an AnimatedQuat to a mat4 is not supported");
         return NGL_ERROR_UNSUPPORTED;
     }
@@ -188,8 +188,8 @@ int ngl_anim_evaluate(struct ngl_node *node, void *dst, double t)
     if (!s->anim_eval.kfs) {
         int ret = ngli_animation_init(&s->anim_eval, NULL,
                                       s->animkf, s->nb_animkf,
-                                      get_mix_func(node->class->id),
-                                      get_cpy_func(node->class->id));
+                                      get_mix_func(node->cls->id),
+                                      get_cpy_func(node->cls->id));
         if (ret < 0)
             return ret;
     }
@@ -197,7 +197,7 @@ int ngl_anim_evaluate(struct ngl_node *node, void *dst, double t)
     struct animkeyframe_priv *kf0 = s->animkf[0]->priv_data;
     if (!kf0->function) {
         for (int i = 0; i < s->nb_animkf; i++) {
-            int ret = s->animkf[i]->class->init(s->animkf[i]);
+            int ret = s->animkf[i]->cls->init(s->animkf[i]);
             if (ret < 0)
                 return ret;
         }
@@ -212,8 +212,8 @@ static int animation_init(struct ngl_node *node)
     s->dynamic = 1;
     return ngli_animation_init(&s->anim, NULL,
                                s->animkf, s->nb_animkf,
-                               get_mix_func(node->class->id),
-                               get_cpy_func(node->class->id));
+                               get_mix_func(node->cls->id),
+                               get_cpy_func(node->cls->id));
 }
 
 #define DECLARE_INIT_FUNC(suffix, class_data, class_data_size, class_data_type) \

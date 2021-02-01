@@ -214,9 +214,9 @@ static int buffer_init_from_block(struct ngl_node *node)
     }
 
     struct ngl_node *buffer_target = block->fields[s->block_field];
-    if (buffer_target->class->id != node->class->id) {
+    if (buffer_target->cls->id != node->cls->id) {
         LOG(ERROR, "%s[%d] of type %s mismatches %s local type",
-            s->block->label, s->block_field, buffer_target->class->name, node->class->name);
+            s->block->label, s->block_field, buffer_target->cls->name, node->cls->name);
         return NGL_ERROR_INVALID_ARG;
     }
 
@@ -249,7 +249,7 @@ static int buffer_init(struct ngl_node *node)
         return NGL_ERROR_INVALID_ARG;
     }
 
-    if (node->class->id == NGL_NODE_BUFFERMAT4) {
+    if (node->cls->id == NGL_NODE_BUFFERMAT4) {
         s->data_comp = 4 * 4;
         s->data_stride = s->data_comp * sizeof(float);
     } else {

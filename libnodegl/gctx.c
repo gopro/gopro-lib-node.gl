@@ -60,51 +60,51 @@ struct gctx *ngli_gctx_create(const struct ngl_config *config)
             backend_map[config->backend].string_id);
         return NULL;
     }
-    const struct gctx_class *class = backend_map[config->backend].cls;
-    struct gctx *s = class->create(config);
+    const struct gctx_class *cls = backend_map[config->backend].cls;
+    struct gctx *s = cls->create(config);
     if (!s)
         return NULL;
     s->config = *config;
     s->backend_str = backend_map[config->backend].string_id;
-    s->class = class;
+    s->cls = cls;
     return s;
 }
 
 int ngli_gctx_init(struct gctx *s)
 {
-    return s->class->init(s);
+    return s->cls->init(s);
 }
 
 int ngli_gctx_resize(struct gctx *s, int width, int height, const int *viewport)
 {
-    const struct gctx_class *class = s->class;
-    return class->resize(s, width, height, viewport);
+    const struct gctx_class *cls = s->cls;
+    return cls->resize(s, width, height, viewport);
 }
 
 int ngli_gctx_set_capture_buffer(struct gctx *s, void *capture_buffer)
 {
-    const struct gctx_class *class = s->class;
-    return class->set_capture_buffer(s, capture_buffer);
+    const struct gctx_class *cls = s->cls;
+    return cls->set_capture_buffer(s, capture_buffer);
 }
 
 int ngli_gctx_begin_draw(struct gctx *s, double t)
 {
-    return s->class->begin_draw(s, t);
+    return s->cls->begin_draw(s, t);
 }
 
 int ngli_gctx_end_draw(struct gctx *s, double t)
 {
-    return s->class->end_draw(s, t);
+    return s->cls->end_draw(s, t);
 }
 
 int ngli_gctx_query_draw_time(struct gctx *s, int64_t *time)
 {
-    return s->class->query_draw_time(s, time);
+    return s->cls->query_draw_time(s, time);
 }
 
 void ngli_gctx_wait_idle(struct gctx *s)
 {
-    s->class->wait_idle(s);
+    s->cls->wait_idle(s);
 }
 
 void ngli_gctx_freep(struct gctx **sp)
@@ -113,74 +113,74 @@ void ngli_gctx_freep(struct gctx **sp)
         return;
 
     struct gctx *s = *sp;
-    const struct gctx_class *class = s->class;
-    if (class)
-        class->destroy(s);
+    const struct gctx_class *cls = s->cls;
+    if (cls)
+        cls->destroy(s);
 
     ngli_freep(sp);
 }
 
 int ngli_gctx_transform_cull_mode(struct gctx *s, int cull_mode)
 {
-    return s->class->transform_cull_mode(s, cull_mode);
+    return s->cls->transform_cull_mode(s, cull_mode);
 }
 
 void ngli_gctx_transform_projection_matrix(struct gctx *s, float *dst)
 {
-    s->class->transform_projection_matrix(s, dst);
+    s->cls->transform_projection_matrix(s, dst);
 }
 
 void ngli_gctx_begin_render_pass(struct gctx *s, struct rendertarget *rt)
 {
-    s->class->begin_render_pass(s, rt);
+    s->cls->begin_render_pass(s, rt);
 }
 
 void ngli_gctx_end_render_pass(struct gctx *s)
 {
-    s->class->end_render_pass(s);
+    s->cls->end_render_pass(s);
 }
 
 void ngli_gctx_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
 {
-    s->class->get_rendertarget_uvcoord_matrix(s, dst);
+    s->cls->get_rendertarget_uvcoord_matrix(s, dst);
 }
 
 struct rendertarget *ngli_gctx_get_default_rendertarget(struct gctx *s)
 {
-    return s->class->get_default_rendertarget(s);
+    return s->cls->get_default_rendertarget(s);
 }
 
 const struct rendertarget_desc *ngli_gctx_get_default_rendertarget_desc(struct gctx *s)
 {
-    return s->class->get_default_rendertarget_desc(s);
+    return s->cls->get_default_rendertarget_desc(s);
 }
 
 void ngli_gctx_set_viewport(struct gctx *s, const int *viewport)
 {
-    s->class->set_viewport(s, viewport);
+    s->cls->set_viewport(s, viewport);
 }
 
 void ngli_gctx_get_viewport(struct gctx *s, int *viewport)
 {
-    s->class->get_viewport(s, viewport);
+    s->cls->get_viewport(s, viewport);
 }
 
 void ngli_gctx_set_scissor(struct gctx *s, const int *scissor)
 {
-    s->class->set_scissor(s, scissor);
+    s->cls->set_scissor(s, scissor);
 }
 
 void ngli_gctx_get_scissor(struct gctx *s, int *scissor)
 {
-    s->class->get_scissor(s, scissor);
+    s->cls->get_scissor(s, scissor);
 }
 
 int ngli_gctx_get_preferred_depth_format(struct gctx *s)
 {
-    return s->class->get_preferred_depth_format(s);
+    return s->cls->get_preferred_depth_format(s);
 }
 
 int ngli_gctx_get_preferred_depth_stencil_format(struct gctx *s)
 {
-    return s->class->get_preferred_depth_stencil_format(s);
+    return s->cls->get_preferred_depth_stencil_format(s);
 }

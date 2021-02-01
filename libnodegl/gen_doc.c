@@ -33,16 +33,16 @@
 #error gen doc can not work with CONFIG_SMALL set
 #endif
 
-#define CLASS_LIST(type_name, class) extern const struct node_class class;
+#define CLASS_LIST(type_name, cls) extern const struct node_class cls;
 NODE_MAP_TYPE2CLASS(CLASS_LIST)
 
 extern const struct node_param ngli_base_node_params[];
 extern const struct param_specs ngli_params_specs[];
 
-#define TYPE2CLASS(type_name, class)            \
+#define TYPE2CLASS(type_name, cls)              \
     case type_name: {                           \
-        extern const struct node_class class;   \
-        return &class;                          \
+        extern const struct node_class cls;     \
+        return &cls;                            \
     }                                           \
 
 static const struct node_class *get_node_class(int type)
@@ -55,11 +55,11 @@ static const struct node_class *get_node_class(int type)
 
 #define LOWER(c) (((c) >= 'A' && (c) <= 'Z') ? (c) ^ 0x20 : (c))
 
-static void print_node_type(struct bstr *b, const struct node_class *class)
+static void print_node_type(struct bstr *b, const struct node_class *cls)
 {
-    const char *class_ref = class->params_id ? class->params_id : class->name;
+    const char *class_ref = cls->params_id ? cls->params_id : cls->name;
 
-    ngli_bstr_printf(b, "[%s](#", class->name);
+    ngli_bstr_printf(b, "[%s](#", cls->name);
     for (int i = 0; class_ref[i]; i++)
         ngli_bstr_printf(b, "%c", LOWER(class_ref[i]));
     ngli_bstr_print(b, ")");
@@ -185,7 +185,7 @@ static void print_choices(const struct param_choices *choices)
     }
 }
 
-#define CLASS_COMMALIST(type_name, class) &class,
+#define CLASS_COMMALIST(type_name, cls) &cls,
 
 static void print_source(const char *cfile)
 {

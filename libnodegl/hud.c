@@ -323,7 +323,7 @@ static int widget_latency_init(struct hud *s, struct widget *widget)
 
 static int track_children_per_types(struct hmap *map, struct ngl_node *node, int node_type)
 {
-    if (node->class->id == node_type) {
+    if (node->cls->id == node_type) {
         char key[32];
         int ret = snprintf(key, sizeof(key), "%p", node);
         if (ret < 0)

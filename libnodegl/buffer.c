@@ -26,22 +26,22 @@
 
 struct buffer *ngli_buffer_create(struct gctx *gctx)
 {
-    return gctx->class->buffer_create(gctx);
+    return gctx->cls->buffer_create(gctx);
 }
 
 int ngli_buffer_init(struct buffer *s, int size, int usage)
 {
-    return s->gctx->class->buffer_init(s, size, usage);
+    return s->gctx->cls->buffer_init(s, size, usage);
 }
 
 int ngli_buffer_upload(struct buffer *s, const void *data, int size, int offset)
 {
-    return s->gctx->class->buffer_upload(s, data, size, offset);
+    return s->gctx->cls->buffer_upload(s, data, size, offset);
 }
 
 void ngli_buffer_freep(struct buffer **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->class->buffer_freep(sp);
+    (*sp)->gctx->cls->buffer_freep(sp);
 }

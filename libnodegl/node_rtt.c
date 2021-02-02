@@ -153,8 +153,9 @@ static int rtt_prepare(struct ngl_node *node)
         .samples = s->samples,
     };
     for (int i = 0; i < s->nb_color_textures; i++) {
-        const struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
-        const struct texture_params *params = &texture_priv->params;
+        struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
+        struct texture_params *params = &texture_priv->params;
+        params->usage |= NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
         const int faces = params->type == NGLI_TEXTURE_TYPE_CUBE ? 6 : 1;
         for (int j = 0; j < faces; j++) {
             desc.colors[desc.nb_colors].format = params->format;
@@ -163,8 +164,9 @@ static int rtt_prepare(struct ngl_node *node)
         }
     }
     if (s->depth_texture) {
-        const struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
-        const struct texture_params *depth_texture_params = &depth_texture_priv->params;
+        struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
+        struct texture_params *depth_texture_params = &depth_texture_priv->params;
+        depth_texture_params->usage |= NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         desc.depth_stencil.format = depth_texture_params->format;
         desc.depth_stencil.resolve = s->samples > 1;
     } else {

@@ -174,9 +174,6 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     struct gctx *gctx = ctx->gctx;
     const struct limits *limits = &gctx->limits;
 
-    struct pgcraft_block crafter_block = {.stage = stage};
-    snprintf(crafter_block.name, sizeof(crafter_block.name), "%s", name);
-
     struct block_priv *block_priv = block_node->priv_data;
     struct block *block = &block_priv->block;
 
@@ -194,6 +191,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
         type = NGLI_TYPE_STORAGE_BUFFER;
     }
 
+    int writable = 0;
     const struct pass_params *params = &s->params;
     if (params->properties) {
         const struct ngl_node *resprops_node = ngli_hmap_get(params->properties, name);
@@ -201,7 +199,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
             const struct resourceprops_priv *resprops = resprops_node->priv_data;
             if (resprops->variadic || resprops->writable)
                 type = NGLI_TYPE_STORAGE_BUFFER;
-            crafter_block.writable = resprops->writable;
+            writable = resprops->writable;
         }
     }
 
@@ -216,8 +214,14 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
      * time.
      */
     block->type = type;
-    crafter_block.block = block;
-    crafter_block.buffer = block_priv->buffer;
+
+    struct pgcraft_block crafter_block = {
+        .stage    = stage,
+        .writable = writable,
+        .block    = block,
+        .buffer   = block_priv->buffer,
+    };
+    snprintf(crafter_block.name, sizeof(crafter_block.name), "%s", name);
 
     if (!ngli_darray_push(&s->crafter_blocks, &crafter_block))
         return NGL_ERROR_MEMORY;

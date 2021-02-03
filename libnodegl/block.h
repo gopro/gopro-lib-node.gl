@@ -46,7 +46,6 @@ struct block_field {
 void ngli_block_field_copy(const struct block_field *fi, uint8_t *dst, const uint8_t *src);
 
 struct block {
-    int type; // NGLI_TYPE_UNIFORM_BUFFER or NGLI_TYPE_STORAGE_BUFFER
     enum block_layout layout;
     struct darray fields; // block_field
     int size;

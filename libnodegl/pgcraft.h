@@ -63,6 +63,7 @@ struct pgcraft_texture {
 struct pgcraft_block {
     char name[MAX_ID_LEN];
     const char *instance_name;
+    int type;
     int stage;
     int variadic;
     int writable;

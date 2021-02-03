@@ -181,7 +181,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
      * Select buffer type. We prefer UBO over SSBO, but in the following
      * situations, UBO is not possible.
      */
-    int type = block->type == NGLI_TYPE_NONE ? NGLI_TYPE_UNIFORM_BUFFER : block->type;
+    int type = NGLI_TYPE_UNIFORM_BUFFER;
     if (block->layout == NGLI_BLOCK_LAYOUT_STD430) {
         LOG(DEBUG, "block %s has a std430 layout, declaring it as SSBO", name);
         type = NGLI_TYPE_STORAGE_BUFFER;
@@ -203,19 +203,8 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
         }
     }
 
-    /*
-     * Warning: the block type may be adjusted by another pass if the block
-     * node is shared between them. This means shared crafter blocks must
-     * point to the same block: pgcraft_block struct can not contain a copy of
-     * the block.
-     *
-     * Also note that the program crafting happens in the pass prepare, which
-     * happens after all pass inits, so all blocks will be registered by this
-     * time.
-     */
-    block->type = type;
-
     struct pgcraft_block crafter_block = {
+        .type     = type,
         .stage    = stage,
         .writable = writable,
         .block    = block,

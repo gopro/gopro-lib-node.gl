@@ -31,7 +31,6 @@ void ngli_block_init(struct block *s, enum block_layout layout)
 {
     ngli_darray_init(&s->fields, sizeof(struct block_field), 0);
     s->layout = layout;
-    s->type = NGLI_TYPE_NONE;
 }
 
 static const int strides_map[NGLI_BLOCK_NB_LAYOUTS][NGLI_TYPE_NB] = {

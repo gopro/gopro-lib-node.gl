@@ -394,7 +394,7 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
     const struct block *block = named_block->block;
 
     struct pipeline_buffer_desc pl_buffer_desc = {
-        .type    = block->type,
+        .type    = named_block->type,
         .binding = -1,
         .access  = named_block->writable ? NGLI_ACCESS_READ_WRITE : NGLI_ACCESS_READ_BIT,
     };
@@ -405,7 +405,7 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
     }
 
     const char *layout = glsl_layout_str_map[block->layout];
-    const int bind_type = block->type == NGLI_TYPE_UNIFORM_BUFFER ? NGLI_BINDING_TYPE_UBO : NGLI_BINDING_TYPE_SSBO;
+    const int bind_type = named_block->type == NGLI_TYPE_UNIFORM_BUFFER ? NGLI_BINDING_TYPE_UBO : NGLI_BINDING_TYPE_SSBO;
     int *next_bind = s->next_bindings[BIND_ID(stage, bind_type)];
     if (next_bind) {
         pl_buffer_desc.binding = (*next_bind)++;
@@ -414,10 +414,10 @@ static int inject_block(struct pgcraft *s, struct bstr *b,
         ngli_bstr_printf(b, "layout(%s)", layout);
     }
 
-    if (block->type == NGLI_TYPE_STORAGE_BUFFER && !named_block->writable)
+    if (named_block->type == NGLI_TYPE_STORAGE_BUFFER && !named_block->writable)
         ngli_bstr_print(b, " readonly");
 
-    const char *keyword = get_glsl_type(block->type);
+    const char *keyword = get_glsl_type(named_block->type);
     ngli_bstr_printf(b, " %s %s_block {\n", keyword, named_block->name);
     const struct block_field *field_info = ngli_darray_data(&block->fields);
     for (int i = 0; i < ngli_darray_count(&block->fields); i++) {
@@ -501,8 +501,7 @@ static int params_have_ssbos(struct pgcraft *s, const struct pgcraft_params *par
 {
     for (int i = 0; i < params->nb_blocks; i++) {
         const struct pgcraft_block *pgcraft_block = &params->blocks[i];
-        const struct block *block = pgcraft_block->block;
-        if (pgcraft_block->stage == stage && block->type == NGLI_TYPE_STORAGE_BUFFER)
+        if (pgcraft_block->stage == stage && pgcraft_block->type == NGLI_TYPE_STORAGE_BUFFER)
             return 1;
     }
     return 0;

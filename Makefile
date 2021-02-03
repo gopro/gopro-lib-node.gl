@@ -41,7 +41,7 @@ ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON
 $(error "Python $(PYTHON_MAJOR) not found")
 endif
 
-ACTIVATE = $(PREFIX)/bin/activate
+ACTIVATE = . $(PREFIX)/bin/activate
 
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX)/lib
 
@@ -89,14 +89,14 @@ all: ngl-tools-install pynodegl-utils-install
 	@echo "    Install completed."
 	@echo
 	@echo "    You can now enter the venv with:"
-	@echo "        . $(ACTIVATE)"
+	@echo "        $(ACTIVATE)"
 	@echo
 
 ngl-tools-install: nodegl-install
-	(. $(ACTIVATE) && $(MESON_SETUP) ngl-tools builddir/ngl-tools && $(MESON_COMPILE) -C builddir/ngl-tools && $(MESON_INSTALL) -C builddir/ngl-tools)
+	($(ACTIVATE) && $(MESON_SETUP) ngl-tools builddir/ngl-tools && $(MESON_COMPILE) -C builddir/ngl-tools && $(MESON_INSTALL) -C builddir/ngl-tools)
 
 pynodegl-utils-install: pynodegl-utils-deps-install
-	(. $(ACTIVATE) && pip -v install -e ./pynodegl-utils)
+	($(ACTIVATE) && pip -v install -e ./pynodegl-utils)
 
 #
 # pynodegl-install is in dependency to prevent from trying to install pynodegl
@@ -120,23 +120,23 @@ pynodegl-utils-install: pynodegl-utils-deps-install
 #
 pynodegl-utils-deps-install: pynodegl-install
 ifneq ($(TARGET_OS),MinGW-w64)
-	(. $(ACTIVATE) && pip install -r ./pynodegl-utils/requirements.txt)
+	($(ACTIVATE) && pip install -r ./pynodegl-utils/requirements.txt)
 endif
 
 pynodegl-install: pynodegl-deps-install
-	(. $(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
+	($(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
 
 pynodegl-deps-install: $(PREFIX) nodegl-install
-	(. $(ACTIVATE) && pip install -r ./pynodegl/requirements.txt)
+	($(ACTIVATE) && pip install -r ./pynodegl/requirements.txt)
 
 nodegl-install: nodegl-setup
-	(. $(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
 
 nodegl-setup: sxplayer-install
-	(. $(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 
 sxplayer-install: external-download $(PREFIX)
-	(. $(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
+	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 
 external-download:
 	$(MAKE) -C external
@@ -150,20 +150,20 @@ ifeq ($(TARGET_OS),MinGW-w64)
 	$(PYTHON) -m venv --system-site-packages $(PREFIX)
 else
 	$(PYTHON) -m venv $(PREFIX)
-	(. $(ACTIVATE) && pip install meson ninja)
+	($(ACTIVATE) && pip install meson ninja)
 endif
 
 tests: nodegl-tests tests-setup
-	(. $(ACTIVATE) && meson test $(MESON_TESTS_SUITE_OPTS) -C builddir/tests)
+	($(ACTIVATE) && meson test $(MESON_TESTS_SUITE_OPTS) -C builddir/tests)
 
 tests-setup: ngl-tools-install pynodegl-utils-install
-	(. $(ACTIVATE) && $(MESON_SETUP) builddir/tests tests)
+	($(ACTIVATE) && $(MESON_SETUP) builddir/tests tests)
 
 nodegl-tests: nodegl-install
-	(. $(ACTIVATE) && meson test -C builddir/libnodegl)
+	($(ACTIVATE) && meson test -C builddir/libnodegl)
 
 nodegl-%: nodegl-setup
-	(. $(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl $(subst nodegl-,,$@))
+	($(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl $(subst nodegl-,,$@))
 
 clean_py:
 	$(RM) pynodegl/nodes_def.pyx
@@ -186,9 +186,9 @@ clean: clean_py
 # We don't use `meson coverage` here because of
 # https://github.com/mesonbuild/meson/issues/7895
 coverage-html:
-	(. $(ACTIVATE) && ninja -C builddir/libnodegl coverage-html)
+	($(ACTIVATE) && ninja -C builddir/libnodegl coverage-html)
 coverage-xml:
-	(. $(ACTIVATE) && ninja -C builddir/libnodegl coverage-xml)
+	($(ACTIVATE) && ninja -C builddir/libnodegl coverage-xml)
 
 .PHONY: all
 .PHONY: ngl-tools-install

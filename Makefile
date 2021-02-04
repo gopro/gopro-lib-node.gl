@@ -127,7 +127,7 @@ endif
 pynodegl-install: pynodegl-deps-install
 	($(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX_FULLPATH)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
 
-pynodegl-deps-install: $(PREFIX_FULLPATH) nodegl-install
+pynodegl-deps-install: $(PREFIX) nodegl-install
 	($(ACTIVATE) && pip install -r ./pynodegl/requirements.txt)
 
 nodegl-install: nodegl-setup
@@ -136,7 +136,7 @@ nodegl-install: nodegl-setup
 nodegl-setup: sxplayer-install
 	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 
-sxplayer-install: external-download $(PREFIX_FULLPATH)
+sxplayer-install: external-download $(PREFIX)
 	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 
 external-download:
@@ -146,7 +146,7 @@ external-download:
 # We do not pull meson from pip on Windows for the same reasons we don't pull
 # Pillow and PySide2. We require the users to have it on their system.
 #
-$(PREFIX_FULLPATH):
+$(PREFIX):
 ifeq ($(TARGET_OS),MinGW-w64)
 	$(PYTHON) -m venv --system-site-packages $@
 else

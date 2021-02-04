@@ -275,18 +275,22 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
 
     struct buffer_priv *attribute_priv = attribute->priv_data;
     const int format = attribute_priv->data_format;
-    int stride = attribute_priv->data_stride;
-    int offset = 0;
-    struct buffer *buffer = attribute_priv->buffer;
-
+    int stride;
+    int offset;
+    struct buffer *buffer;
     if (attribute_priv->block) {
-        struct block_priv *block_priv = attribute_priv->block->priv_data;
+        struct ngl_node *block_node = attribute_priv->block;
+        struct block_priv *block_priv = block_node->priv_data;
         const struct block *block = &block_priv->block;
         const struct block_field *fields = ngli_darray_data(&block->fields);
         const struct block_field *fi = &fields[attribute_priv->block_field];
         stride = fi->stride;
         offset = fi->offset;
         buffer = block_priv->buffer;
+    } else {
+        stride = attribute_priv->data_stride;
+        offset = 0;
+        buffer = attribute_priv->buffer;
     }
 
     /*

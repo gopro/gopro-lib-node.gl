@@ -147,9 +147,9 @@ external-download:
 #
 $(PREFIX):
 ifeq ($(TARGET_OS),MinGW-w64)
-	$(PYTHON) -m venv --system-site-packages $(PREFIX)
+	$(PYTHON) -m venv --system-site-packages $@
 else
-	$(PYTHON) -m venv $(PREFIX)
+	$(PYTHON) -m venv $@
 	($(ACTIVATE) && pip install meson ninja)
 endif
 

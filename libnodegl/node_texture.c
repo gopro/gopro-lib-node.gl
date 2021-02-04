@@ -284,6 +284,10 @@ static int texture_prefetch(struct ngl_node *node)
         case NGL_NODE_BUFFERVEC2:
         case NGL_NODE_BUFFERVEC4: {
             struct buffer_priv *buffer = s->data_src->priv_data;
+            if (buffer->block) {
+                LOG(ERROR, "buffers used as a texture data source referencing a block are not supported");
+                return NGL_ERROR_UNSUPPORTED;
+            }
 
             if (params->type == NGLI_TEXTURE_TYPE_2D) {
                 if (buffer->count != params->width * params->height) {

@@ -105,7 +105,8 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     hwconv->vertices = ngli_buffer_create(gctx);
     if (!hwconv->vertices)
         return NGL_ERROR_MEMORY;
-    ret = ngli_buffer_init(hwconv->vertices, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC);
+    ret = ngli_buffer_init(hwconv->vertices, sizeof(vertices), NGLI_BUFFER_USAGE_TRANSFER_DST_BIT |
+                                                               NGLI_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     if (ret < 0)
         return ret;
 

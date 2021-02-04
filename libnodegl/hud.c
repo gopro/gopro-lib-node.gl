@@ -1205,7 +1205,10 @@ int ngli_hud_init(struct hud *s)
     if (!s->coords)
         return NGL_ERROR_MEMORY;
 
-    ret = ngli_buffer_init(s->coords, sizeof(coords), NGLI_BUFFER_USAGE_DYNAMIC);
+
+    ret = ngli_buffer_init(s->coords, sizeof(coords), NGLI_BUFFER_USAGE_DYNAMIC_BIT      |
+                                                      NGLI_BUFFER_USAGE_TRANSFER_DST_BIT |
+                                                      NGLI_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     if (ret < 0)
         return ret;
 

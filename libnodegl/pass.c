@@ -182,13 +182,16 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
      * situations, UBO is not possible.
      */
     int type = NGLI_TYPE_UNIFORM_BUFFER;
+    int usage = NGLI_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     if (block->layout == NGLI_BLOCK_LAYOUT_STD430) {
         LOG(DEBUG, "block %s has a std430 layout, declaring it as SSBO", name);
         type = NGLI_TYPE_STORAGE_BUFFER;
+        usage = NGLI_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     } else if (block->size > limits->max_uniform_block_size) {
         LOG(DEBUG, "block %s is larger than the max UBO size (%d > %d), declaring it as SSBO",
             name, block->size, limits->max_uniform_block_size);
         type = NGLI_TYPE_STORAGE_BUFFER;
+        usage = NGLI_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     }
 
     int writable = 0;
@@ -202,6 +205,8 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
             writable = resprops->writable;
         }
     }
+
+    block_priv->usage |= usage;
 
     struct pgcraft_block crafter_block = {
         .type     = type,
@@ -287,10 +292,12 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
         stride = fi->stride;
         offset = fi->offset;
         buffer = block_priv->buffer;
+        block_priv->usage |= NGLI_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     } else {
         stride = attribute_priv->data_stride;
         offset = 0;
         buffer = attribute_priv->buffer;
+        attribute_priv->usage |= NGLI_BUFFER_USAGE_VERTEX_BUFFER_BIT;
     }
 
     /*
@@ -377,6 +384,7 @@ static int pass_graphics_init(struct pass *s)
         s->indices_buffer = indices_priv->buffer;
         s->indices_format = indices_priv->data_format;
         s->nb_indices = indices_priv->count;
+        indices_priv->usage |= NGLI_BUFFER_USAGE_INDEX_BUFFER_BIT;
     } else {
         struct ngl_node *vertices = geometry_priv->vertices_buffer;
         struct buffer_priv *buffer_priv = vertices->priv_data;

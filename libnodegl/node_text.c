@@ -36,6 +36,15 @@
 #include "topology.h"
 #include "utils.h"
 
+
+#define VERTEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_DYNAMIC_BIT      | \
+                            NGLI_BUFFER_USAGE_TRANSFER_DST_BIT | \
+                            NGLI_BUFFER_USAGE_VERTEX_BUFFER_BIT) \
+
+#define INDEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_DYNAMIC_BIT      | \
+                           NGLI_BUFFER_USAGE_TRANSFER_DST_BIT | \
+                           NGLI_BUFFER_USAGE_INDEX_BUFFER_BIT)  \
+
 struct pipeline_subdesc {
     struct pgcraft *crafter;
     struct pipeline *pipeline;
@@ -343,9 +352,9 @@ static int update_character_geometries(struct ngl_node *node)
             goto end;
         }
 
-        if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
-            (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), NGLI_BUFFER_USAGE_DYNAMIC)) < 0 ||
-            (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  NGLI_BUFFER_USAGE_DYNAMIC)) < 0)
+        if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), VERTEX_USAGE_FLAGS)) < 0 ||
+            (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), VERTEX_USAGE_FLAGS)) < 0 ||
+            (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  INDEX_USAGE_FLAGS)) < 0)
             goto end;
 
         struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);
@@ -392,8 +401,8 @@ static int init_bounding_box_geometry(struct ngl_node *node)
         return NGL_ERROR_MEMORY;
 
     int ret;
-    if ((ret = ngli_buffer_init(s->bg_vertices, sizeof(vertices), NGLI_BUFFER_USAGE_STATIC)) < 0 ||
-        (ret = ngli_buffer_init(s->bg_indices,  sizeof(indices),  NGLI_BUFFER_USAGE_STATIC)) < 0)
+    if ((ret = ngli_buffer_init(s->bg_vertices, sizeof(vertices), VERTEX_USAGE_FLAGS)) < 0 ||
+        (ret = ngli_buffer_init(s->bg_indices,  sizeof(indices),  INDEX_USAGE_FLAGS)) < 0)
         return ret;
 
     if ((ret = ngli_buffer_upload(s->bg_vertices, vertices, sizeof(vertices))) < 0 ||

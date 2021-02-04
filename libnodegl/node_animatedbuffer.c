@@ -71,7 +71,7 @@ static int animatedbuffer_init(struct ngl_node *node)
     struct buffer_priv *s = node->priv_data;
 
     s->dynamic = 1;
-    s->usage = NGLI_BUFFER_USAGE_DYNAMIC;
+    s->usage = NGLI_BUFFER_USAGE_DYNAMIC_BIT | NGLI_BUFFER_USAGE_TRANSFER_DST_BIT;
     s->data_comp = ngli_format_get_nb_comp(s->data_format);
     s->data_stride = ngli_format_get_bytes_per_pixel(s->data_format);
 

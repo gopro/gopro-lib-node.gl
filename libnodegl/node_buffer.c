@@ -257,7 +257,7 @@ static int buffer_init(struct ngl_node *node)
         s->data_stride = ngli_format_get_bytes_per_pixel(s->data_format);
     }
 
-    s->usage = NGLI_BUFFER_USAGE_STATIC;
+    s->usage = NGLI_BUFFER_USAGE_TRANSFER_DST_BIT;
 
     if (s->data)
         return buffer_init_from_data(node);

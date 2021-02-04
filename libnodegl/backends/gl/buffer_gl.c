@@ -28,14 +28,11 @@
 #include "memory.h"
 #include "nodes.h"
 
-static const GLenum gl_usage_map[NGLI_BUFFER_USAGE_NB] = {
-    [NGLI_BUFFER_USAGE_STATIC]  = GL_STATIC_DRAW,
-    [NGLI_BUFFER_USAGE_DYNAMIC] = GL_DYNAMIC_DRAW,
-};
-
 static GLenum get_gl_usage(int usage)
 {
-    return gl_usage_map[usage];
+    if (usage & NGLI_BUFFER_USAGE_DYNAMIC_BIT)
+        return GL_DYNAMIC_DRAW;
+    return GL_STATIC_DRAW;
 }
 
 struct buffer *ngli_buffer_gl_create(struct gctx *gctx)

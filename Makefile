@@ -19,7 +19,8 @@
 # under the License.
 #
 
-PREFIX ?= $(PWD)/venv
+PREFIX          ?= venv
+PREFIX_FULLPATH  = $(PWD)/$(PREFIX)
 
 PYTHON_MAJOR = 3
 
@@ -41,11 +42,11 @@ ifneq ($(shell $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON
 $(error "Python $(PYTHON_MAJOR) not found")
 endif
 
-ACTIVATE = . $(PREFIX)/bin/activate
+ACTIVATE = . $(PREFIX_FULLPATH)/bin/activate
 
-RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX)/lib
+RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX_FULLPATH)/lib
 
-MESON_SETUP   = meson setup --prefix=$(PREFIX) --pkg-config-path=$(PREFIX)/lib/pkgconfig -Drpath=true
+MESON_SETUP   = meson setup --prefix=$(PREFIX_FULLPATH) --pkg-config-path=$(PREFIX_FULLPATH)/lib/pkgconfig -Drpath=true
 # MAKEFLAGS= is a workaround for the issue described here:
 # https://github.com/ninja-build/ninja/issues/1139#issuecomment-724061270
 MESON_COMPILE = MAKEFLAGS= meson compile
@@ -124,9 +125,9 @@ ifneq ($(TARGET_OS),MinGW-w64)
 endif
 
 pynodegl-install: pynodegl-deps-install
-	($(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
+	($(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX_FULLPATH)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
 
-pynodegl-deps-install: $(PREFIX) nodegl-install
+pynodegl-deps-install: $(PREFIX_FULLPATH) nodegl-install
 	($(ACTIVATE) && pip install -r ./pynodegl/requirements.txt)
 
 nodegl-install: nodegl-setup
@@ -135,7 +136,7 @@ nodegl-install: nodegl-setup
 nodegl-setup: sxplayer-install
 	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 
-sxplayer-install: external-download $(PREFIX)
+sxplayer-install: external-download $(PREFIX_FULLPATH)
 	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 
 external-download:
@@ -145,7 +146,7 @@ external-download:
 # We do not pull meson from pip on Windows for the same reasons we don't pull
 # Pillow and PySide2. We require the users to have it on their system.
 #
-$(PREFIX):
+$(PREFIX_FULLPATH):
 ifeq ($(TARGET_OS),MinGW-w64)
 	$(PYTHON) -m venv --system-site-packages $@
 else

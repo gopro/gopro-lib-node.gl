@@ -49,9 +49,7 @@ struct pass_params {
     /* compute */
     const char *comp_base;
     struct hmap *compute_resources;
-    int nb_group_x;
-    int nb_group_y;
-    int nb_group_z;
+    int workgroup_count[3];
     int workgroup_size[3];
 };
 

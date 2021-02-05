@@ -721,7 +721,7 @@ int ngli_pass_exec(struct pass *s)
             ctx->begin_render_pass = 1;
         }
 
-        ngli_pipeline_dispatch(pipeline, params->nb_group_x, params->nb_group_y, params->nb_group_z);
+        ngli_pipeline_dispatch(pipeline, NGLI_ARG_VEC3(params->workgroup_count));
     }
 
     return 0;

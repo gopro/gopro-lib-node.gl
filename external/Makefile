@@ -23,8 +23,14 @@ TAR  ?= tar
 CURL ?= curl
 
 SXPLAYER_VERSION ?= 9.7.0
+PKGCONF_VERSION ?= 1.7.3
 
-all: sxplayer
+DEPENDENCIES = sxplayer
+ifeq ($(TARGET_OS),Windows)
+DEPENDENCIES += pkgconf
+endif
+
+all: $(DEPENDENCIES)
 
 # Note for developers: in order to customize the sxplayer you're building
 # against, you can use your own sources post-install:
@@ -37,7 +43,7 @@ all: sxplayer
 # than the prerequisite directory of the sxplayer rule. If this isn't true, the
 # symlink will be re-recreated on the next `make` call
 sxplayer: sxplayer-$(SXPLAYER_VERSION)
-ifneq ($(TARGET_OS),MinGW-w64)
+ifneq ($(TARGET_OS),$(filter $(TARGET_OS),MinGW-w64 Windows))
 	ln -snf $< $@
 else
 	cp -r $< $@
@@ -48,5 +54,14 @@ sxplayer-$(SXPLAYER_VERSION): sxplayer-$(SXPLAYER_VERSION).tar.gz
 
 sxplayer-$(SXPLAYER_VERSION).tar.gz:
 	$(CURL) -L https://github.com/Stupeflix/sxplayer/archive/v$(SXPLAYER_VERSION).tar.gz -o $@
+
+pkgconf: pkgconf-$(PKGCONF_VERSION)
+	cp -r $< $@
+
+pkgconf-$(PKGCONF_VERSION): pkgconf-$(PKGCONF_VERSION).tar.gz
+	$(TAR) -xf $<
+
+pkgconf-$(PKGCONF_VERSION).tar.gz:
+	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/pkgconf-$(PKGCONF_VERSION).tar.gz -o $@
 
 .PHONY: all

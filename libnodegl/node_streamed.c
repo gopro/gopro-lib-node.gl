@@ -148,7 +148,7 @@ static int check_timestamps_buffer(const struct ngl_node *node)
             return NGL_ERROR_INVALID_ARG;
         }
         if (ts < last_ts) {
-            LOG(ERROR, "timestamps must be monotically increasing: %" PRId64 " < %" PRId64, ts, last_ts);
+            LOG(ERROR, "timestamps must be monotonically increasing: %" PRId64 " < %" PRId64, ts, last_ts);
             return NGL_ERROR_INVALID_ARG;
         }
         last_ts = ts;

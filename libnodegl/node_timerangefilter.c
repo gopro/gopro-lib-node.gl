@@ -68,7 +68,7 @@ static int timerangefilter_init(struct ngl_node *node)
         const struct timerangemode_priv *trm = s->ranges[i]->priv_data;
 
         if (trm->start_time < prev_start_time) {
-            LOG(ERROR, "time ranges must be monotically increasing: %g < %g",
+            LOG(ERROR, "time ranges must be monotonically increasing: %g < %g",
                 trm->start_time, prev_start_time);
             return NGL_ERROR_INVALID_ARG;
         }

@@ -247,7 +247,7 @@ static int animatedtime_init(struct ngl_node *node)
             return NGL_ERROR_INVALID_ARG;
         }
         if (kf->scalar < prev_time) {
-            LOG(ERROR, "times must be positive and monotically increasing: %g < %g",
+            LOG(ERROR, "times must be positive and monotonically increasing: %g < %g",
                 kf->scalar, prev_time);
             return NGL_ERROR_INVALID_ARG;
         }

@@ -42,7 +42,7 @@ enum {
     STATE_READY         = 2, /* post prefetch() */
 };
 
-/* We depend on the monotically incrementing by 1 property of these fields */
+/* We depend on the monotonically incrementing by 1 property of these fields */
 NGLI_STATIC_ASSERT(node_uniform_vec_flt, NGL_NODE_UNIFORMVEC4      - NGL_NODE_UNIFORMFLOAT       == 3);
 NGLI_STATIC_ASSERT(node_animkf_vec_flt,  NGL_NODE_ANIMKEYFRAMEVEC4 - NGL_NODE_ANIMKEYFRAMEFLOAT  == 3);
 NGLI_STATIC_ASSERT(node_anim_vec_flt,    NGL_NODE_ANIMATEDVEC4     - NGL_NODE_ANIMATEDFLOAT      == 3);

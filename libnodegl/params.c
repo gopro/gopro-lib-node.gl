@@ -31,7 +31,7 @@
 #include "params.h"
 #include "utils.h"
 
-/* We depend on the monotically incrementing by 1 property of these fields */
+/* We depend on the monotonically incrementing by 1 property of these fields */
 NGLI_STATIC_ASSERT(param_vec,   PARAM_TYPE_VEC4   - PARAM_TYPE_VEC2 == 2);
 NGLI_STATIC_ASSERT(param_ivec,  PARAM_TYPE_IVEC4  - PARAM_TYPE_INT  == 3);
 NGLI_STATIC_ASSERT(param_uivec, PARAM_TYPE_UIVEC4 - PARAM_TYPE_UINT == 3);
@@ -559,7 +559,7 @@ int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params)
     for (int i = 0; params[i].key; i++) {
         const struct node_param *par = &params[i];
 
-        // The offset must be monotically incrementing to make the reset of the
+        // The offset must be monotonically incrementing to make the reset of the
         // non-params much simpler in the node uninit.
         if (par->offset < last_offset) {
             LOG(ERROR, "offset inconsistency detected around %s", par->key);

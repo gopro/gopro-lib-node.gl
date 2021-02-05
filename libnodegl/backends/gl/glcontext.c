@@ -329,17 +329,17 @@ static int glcontext_probe_settings(struct glcontext *glcontext)
     }
 
     if (glcontext->features & NGLI_FEATURE_COMPUTE_SHADER) {
-        for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_counts); i++) {
+        for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_count); i++) {
             ngli_glGetIntegeri_v(glcontext, GL_MAX_COMPUTE_WORK_GROUP_COUNT,
-                                 i, &limits->max_compute_work_group_counts[i]);
+                                 i, &limits->max_compute_work_group_count[i]);
         }
 
         ngli_glGetIntegerv(glcontext, GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,
                            &limits->max_compute_work_group_invocations);
 
-        for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_sizes); i++) {
+        for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_size); i++) {
             ngli_glGetIntegeri_v(glcontext, GL_MAX_COMPUTE_WORK_GROUP_SIZE,
-                                 i, &limits->max_compute_work_group_sizes[i]);
+                                 i, &limits->max_compute_work_group_size[i]);
         }
     }
 

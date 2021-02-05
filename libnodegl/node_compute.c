@@ -104,13 +104,13 @@ static int compute_init(struct ngl_node *node)
     const struct gctx *gctx = ctx->gctx;
     const struct limits *limits = &gctx->limits;
 
-    if (s->workgroup_count[0] > limits->max_compute_work_group_counts[0] ||
-        s->workgroup_count[1] > limits->max_compute_work_group_counts[1] ||
-        s->workgroup_count[2] > limits->max_compute_work_group_counts[2]) {
+    if (s->workgroup_count[0] > limits->max_compute_work_group_count[0] ||
+        s->workgroup_count[1] > limits->max_compute_work_group_count[1] ||
+        s->workgroup_count[2] > limits->max_compute_work_group_count[2]) {
         LOG(ERROR,
             "compute work group counts (%d, %d, %d) exceed device limits (%d, %d, %d)",
             NGLI_ARG_VEC3(s->workgroup_count),
-            NGLI_ARG_VEC3(limits->max_compute_work_group_counts));
+            NGLI_ARG_VEC3(limits->max_compute_work_group_count));
 
         return NGL_ERROR_LIMIT_EXCEEDED;
     }

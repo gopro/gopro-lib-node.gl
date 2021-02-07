@@ -166,6 +166,7 @@ lib_src = files(
   'node_uniform.c',
   'node_userswitch.c',
   'nodes.c',
+  'noise.c',
   'params.c',
   'pass.c',
   'pgcache.c',
@@ -519,6 +520,10 @@ test_progs = {
   'Hash map': {
     'exe': 'test_hmap',
     'src': files('test_hmap.c', 'bstr.c', 'log.c', 'utils.c', 'memory.c'),
+  },
+  'Noise': {
+    'exe': 'test_noise',
+    'src': files('test_noise.c', 'noise.c', 'log.c', 'memory.c'),
   },
   'Utils': {
     'exe': 'test_utils',

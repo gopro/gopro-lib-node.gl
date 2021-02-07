@@ -144,6 +144,7 @@ lib_src = files(
   'node_identity.c',
   'node_io.c',
   'node_media.c',
+  'node_noise.c',
   'node_program.c',
   'node_quad.c',
   'node_render.c',

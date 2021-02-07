@@ -263,6 +263,23 @@
     - [max_pixels, int]
     - [stream_idx, int]
 
+- _Noise:
+    - [frequency, double]
+    - [amplitude, double]
+    - [octaves, int]
+    - [lacunarity, double]
+    - [gain, double]
+    - [seed, uint]
+    - [interpolant, select]
+
+- NoiseFloat: _Noise
+
+- NoiseVec2: _Noise
+
+- NoiseVec3: _Noise
+
+- NoiseVec4: _Noise
+
 - Program:
     - [vertex, string]
     - [fragment, string]

@@ -135,7 +135,10 @@ foreach backend : backends
     'array_mat4',
   ]
 
-  tests_data = []
+  tests_data = [
+    'noise_time',
+    'noise_wiggle',
+  ]
   foreach test_name : uniform_names
     tests_data += test_name + '_uniform'
   endforeach

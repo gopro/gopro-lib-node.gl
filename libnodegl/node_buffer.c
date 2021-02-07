@@ -63,17 +63,31 @@ int ngli_node_buffer_ref(struct ngl_node *node)
         s->buffer = ngli_buffer_create(gctx);
         if (!s->buffer)
             return NGL_ERROR_MEMORY;
-
-        int ret = ngli_buffer_init(s->buffer, s->data_size, s->usage);
-        if (ret < 0)
-            return ret;
-
-        ret = ngli_buffer_upload(s->buffer, s->data, s->data_size);
-        if (ret < 0)
-            return ret;
-
         s->buffer_last_upload_time = -1.;
     }
+
+    return 0;
+}
+
+int ngli_node_buffer_init(struct ngl_node *node)
+{
+    struct buffer_priv *s = node->priv_data;
+
+    if (s->block)
+        return ngli_node_block_init(s->block);
+
+    ngli_assert(s->buffer);
+
+    if (s->buffer->size)
+        return 0;
+
+    int ret = ngli_buffer_init(s->buffer, s->data_size, s->usage);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_buffer_upload(s->buffer, s->data, s->data_size);
+    if (ret < 0)
+        return ret;
 
     return 0;
 }

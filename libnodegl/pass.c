@@ -165,6 +165,10 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     if (ret < 0)
         return ret;
 
+    ret = ngli_node_block_init(block_node);
+    if (ret < 0)
+        return ret;
+
     if (!ngli_darray_push(&s->block_nodes, &block_node)) {
         ngli_node_block_unref(block_node);
         return NGL_ERROR_MEMORY;
@@ -265,6 +269,10 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
         return 0;
 
     int ret = ngli_node_buffer_ref(attribute);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_node_buffer_init(attribute);
     if (ret < 0)
         return ret;
 
@@ -370,6 +378,10 @@ static int pass_graphics_init(struct pass *s)
         }
 
         int ret = ngli_node_buffer_ref(indices);
+        if (ret < 0)
+            return ret;
+
+        ret = ngli_node_buffer_init(indices);
         if (ret < 0)
             return ret;
 

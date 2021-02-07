@@ -165,10 +165,6 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     if (ret < 0)
         return ret;
 
-    ret = ngli_node_block_init(block_node);
-    if (ret < 0)
-        return ret;
-
     if (!ngli_darray_push(&s->block_nodes, &block_node)) {
         ngli_node_block_unref(block_node);
         return NGL_ERROR_MEMORY;
@@ -269,10 +265,6 @@ static int register_attribute(struct pass *s, const char *name, struct ngl_node 
         return 0;
 
     int ret = ngli_node_buffer_ref(attribute);
-    if (ret < 0)
-        return ret;
-
-    ret = ngli_node_buffer_init(attribute);
     if (ret < 0)
         return ret;
 
@@ -381,10 +373,6 @@ static int pass_graphics_init(struct pass *s)
         if (ret < 0)
             return ret;
 
-        ret = ngli_node_buffer_init(indices);
-        if (ret < 0)
-            return ret;
-
         s->indices = indices;
         s->indices_buffer = indices_priv->buffer;
         s->indices_format = indices_priv->data_format;
@@ -460,6 +448,26 @@ int ngli_pass_prepare(struct pass *s)
     if (rnode->graphicstate.stencil_test && !ngli_format_has_stencil(format)) {
         LOG(ERROR, "stencil operations are not support on rendertargets with no stencil attachment");
         return NGL_ERROR_INVALID_USAGE;
+    }
+
+    struct ngl_node **attribute_nodes = ngli_darray_data(&s->attribute_nodes);
+    for (int i = 0; i < ngli_darray_count(&s->attribute_nodes); i++) {
+        int ret = ngli_node_buffer_init(attribute_nodes[i]);
+        if (ret < 0)
+            return ret;
+    }
+
+    if (s->indices) {
+        int ret = ngli_node_buffer_init(s->indices);
+        if (ret < 0)
+            return ret;
+    }
+
+    struct ngl_node **block_nodes = ngli_darray_data(&s->block_nodes);
+    for (int i = 0; i < ngli_darray_count(&s->block_nodes); i++) {
+        int ret = ngli_node_block_init(block_nodes[i]);
+        if (ret < 0)
+            return ret;
     }
 
     struct pipeline_graphics pipeline_graphics = s->pipeline_graphics;

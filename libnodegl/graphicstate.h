@@ -114,6 +114,7 @@ struct graphicstate {
     int scissor_test;
 };
 
+/* Make sure to keep this in sync with the blending documentation */
 #define NGLI_GRAPHICSTATE_DEFAULTS (struct graphicstate) { \
     .blend              = 0,                               \
     .blend_src_factor   = NGLI_BLEND_FACTOR_ONE,           \

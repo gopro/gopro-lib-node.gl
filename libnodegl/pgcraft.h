@@ -184,8 +184,8 @@ struct pgcraft {
 
     int bindings[NB_BINDINGS];
     int *next_bindings[NB_BINDINGS];
-    int in_locations[NGLI_PROGRAM_SHADER_NB];
-    int out_locations[NGLI_PROGRAM_SHADER_NB];
+    int next_in_locations[NGLI_PROGRAM_SHADER_NB];
+    int next_out_locations[NGLI_PROGRAM_SHADER_NB];
 
     /* GLSL info */
     int glsl_version;

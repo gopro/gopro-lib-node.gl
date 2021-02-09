@@ -45,6 +45,10 @@ DEPENDENCIES += renderdoc
 endif
 endif
 
+ifeq ($(ENABLE_NGFX_BACKEND),1)
+DEPENDENCIES += ngfx
+endif
+
 all: $(DEPENDENCIES)
 
 MoltenVK: MoltenVK-$(MOLTENVK_VERSION)
@@ -112,5 +116,8 @@ RenderDoc_$(RENDERDOC_VERSION)_64.zip renderdoc_$(RENDERDOC_VERSION).tar.gz:
 
 renderdoc_$(RENDERDOC_VERSION): renderdoc_$(RENDERDOC_VERSION).tar.gz
 	$(TAR) -xf $<
+
+ngfx:
+	git clone https://github.com/gopro/ngfx.git -b develop
 
 .PHONY: all

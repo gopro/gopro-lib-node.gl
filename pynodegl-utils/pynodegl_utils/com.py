@@ -24,6 +24,8 @@ import importlib
 import inspect
 import os
 import os.path as op
+import platform
+import pathlib
 import pkgutil
 import sys
 import traceback
@@ -31,6 +33,15 @@ from pynodegl_utils.resourcetracker import ResourceTracker
 
 IPC_READ_BUFSIZE = 4096
 
+if platform.system() == 'Windows':
+    def add_dll_directories():
+        dll_dirs = os.getenv("NGL_DLL_DIRS")
+        if not dll_dirs:
+            return
+        dll_dirs = dll_dirs.split(';')
+        for p in dll_dirs:
+            if os.path.exists(p):
+                os.add_dll_directory(p)
 
 def load_script(path):
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly

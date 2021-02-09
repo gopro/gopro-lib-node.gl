@@ -260,10 +260,6 @@ endif
 
 pynodegl-install: pynodegl-deps-install
 	($(ACTIVATE) && $(PIP) -v install -e ./pynodegl)
-ifeq ($(TARGET_OS),Windows)
-	# TODO: call add_dll_directory in pynodegl to add DLL search paths
-	cp $(PREFIX)/Scripts/*.dll pynodegl/.
-endif
 
 pynodegl-deps-install: $(PREFIX_DONE) nodegl-install
 	($(ACTIVATE) && $(PIP) install -r ./pynodegl/requirements.txt)

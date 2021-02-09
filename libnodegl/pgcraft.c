@@ -449,6 +449,13 @@ static int inject_attribute(struct pgcraft *s, struct bstr *b,
 
     int base_location = -1;
     const int attribute_count = attribute->type == NGLI_TYPE_MAT4 ? 4 : 1;
+
+    if (s->has_in_out_layout_qualifiers) {
+        base_location = s->next_in_locations[stage];
+        s->next_in_locations[stage] += attribute_count;
+        ngli_bstr_printf(b, "layout(location=%d) ", base_location);
+    }
+
     const char *qualifier = s->has_in_out_qualifiers ? "in" : "attribute";
     const char *precision = get_precision_qualifier(s, attribute->type, attribute->precision, "highp");
     ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, attribute->name);
@@ -857,6 +864,10 @@ static int craft_frag(struct pgcraft *s, const struct pgcraft_params *params)
                            "#define highp\n");
 
     if (s->has_in_out_qualifiers) {
+        if (s->has_in_out_layout_qualifiers) {
+            const int out_location = s->next_out_locations[NGLI_PROGRAM_SHADER_FRAG]++;
+            ngli_bstr_printf(b, "layout(location=%d) ", out_location);
+        }
         if (params->nb_frag_output)
             ngli_bstr_printf(b, "out vec4 ngl_out_color[%d];\n", params->nb_frag_output);
         else

@@ -47,10 +47,6 @@
 #include "android_imagereader.h"
 #endif
 
-#if defined(TARGET_IPHONE)
-#include <CoreVideo/CoreVideo.h>
-#endif
-
 #include "animation.h"
 #include "block.h"
 #include "drawutils.h"

@@ -403,15 +403,6 @@ static int resize_ios(struct ngl_ctx *s, const struct resize_params *params)
 }
 #endif
 
-static void stop_thread(struct ngl_ctx *s)
-{
-    dispatch_cmd(s, cmd_stop, NULL);
-    pthread_join(s->worker_tid, NULL);
-    pthread_cond_destroy(&s->cond_ctl);
-    pthread_cond_destroy(&s->cond_wkr);
-    pthread_mutex_destroy(&s->lock);
-}
-
 static const char *get_cap_string_id(unsigned cap_id)
 {
     switch (cap_id) {
@@ -721,7 +712,12 @@ void ngl_freep(struct ngl_ctx **ss)
     if (s->configured)
         ngl_set_scene(s, NULL);
 
-    stop_thread(s);
+    dispatch_cmd(s, cmd_stop, NULL);
+    pthread_join(s->worker_tid, NULL);
+    pthread_cond_destroy(&s->cond_ctl);
+    pthread_cond_destroy(&s->cond_wkr);
+    pthread_mutex_destroy(&s->lock);
+
     ngli_rnode_reset(&s->rnode);
     ngli_darray_reset(&s->modelview_matrix_stack);
     ngli_darray_reset(&s->projection_matrix_stack);

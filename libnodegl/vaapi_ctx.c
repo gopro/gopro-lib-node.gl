@@ -36,7 +36,7 @@
 #include "gctx.h"
 #include "log.h"
 #include "nodes.h"
-#include "vaapi.h"
+#include "vaapi_ctx.h"
 
 int ngli_vaapi_ctx_init(struct gctx *gctx, struct vaapi_ctx *s)
 {

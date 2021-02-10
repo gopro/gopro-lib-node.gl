@@ -264,7 +264,7 @@ if dep_libva_wayland.found() and dep_libva_wayland_drm.found()
 endif
 
 if vaapi_enabled
-  lib_src += files('vaapi.c')
+  lib_src += files('vaapi_ctx.c')
   conf_data.set10('HAVE_VAAPI', true)
 endif
 

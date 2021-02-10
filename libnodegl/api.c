@@ -45,7 +45,7 @@
 #include "rnode.h"
 
 #if defined(HAVE_VAAPI)
-#include "vaapi.h"
+#include "vaapi_ctx.h"
 #endif
 
 #if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)

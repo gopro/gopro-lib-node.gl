@@ -40,10 +40,6 @@
 #include "rendertarget_gl.h"
 #include "texture_gl.h"
 
-#if defined(HAVE_VAAPI)
-#include "vaapi.h"
-#endif
-
 static void capture_cpu(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;

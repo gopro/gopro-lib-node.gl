@@ -122,7 +122,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
     int ret = ngli_gctx_init(s->gctx);
     if (ret < 0) {
         LOG(ERROR, "unable to initialize gpu context");
-        cmd_stop(s, arg);
+        ngli_gctx_freep(&s->gctx);
         return ret;
     }
 

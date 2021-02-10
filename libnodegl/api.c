@@ -157,7 +157,6 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         if (ret < 0) {
             ngli_node_detach_ctx(s->scene, s);
             ngl_node_unrefp(&s->scene);
-            cmd_stop(s, arg);
             return ret;
         }
     }
@@ -197,7 +196,6 @@ static int cmd_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer)
             ngli_node_detach_ctx(s->scene, s);
             ngl_node_unrefp(&s->scene);
         }
-        cmd_stop(s, NULL);
         config->capture_buffer = NULL;
         return ret;
     }

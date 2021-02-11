@@ -28,16 +28,8 @@
 
 #include "config.h"
 
-#if defined(HAVE_VAAPI_X11)
-#include <X11/Xlib.h>
-#endif
-
-#if defined(HAVE_VAAPI_WAYLAND)
-#include <wayland-client.h>
-#endif
-
 #if defined(HAVE_VAAPI)
-#include <va/va.h>
+#include "vaapi.h"
 #endif
 
 #if defined(TARGET_ANDROID)
@@ -90,15 +82,8 @@ struct ngl_ctx {
     struct darray activitycheck_nodes;
     struct texture *font_atlas;
     struct pgcache pgcache;
-#if defined(HAVE_VAAPI_X11)
-    Display *x11_display;
-#endif
-#if defined(HAVE_VAAPI_WAYLAND)
-    struct wl_display *wl_display;
-#endif
 #if defined(HAVE_VAAPI)
-    VADisplay va_display;
-    int va_version;
+    struct vaapi_ctx vaapi_ctx;
 #endif
 #if defined(TARGET_ANDROID)
     struct android_ctx android_ctx;

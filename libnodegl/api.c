@@ -80,7 +80,7 @@ static int get_default_platform(void)
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
 #if defined(HAVE_VAAPI)
-    ngli_vaapi_reset(s);
+    ngli_vaapi_ctx_reset(&s->vaapi_ctx);
 #endif
 #if defined(TARGET_ANDROID)
     ngli_android_ctx_reset(&s->android_ctx);
@@ -134,9 +134,9 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         return ret;
 
 #if defined(HAVE_VAAPI)
-    ret = ngli_vaapi_init(s);
+    ret = ngli_vaapi_ctx_init(s->gctx, &s->vaapi_ctx);
     if (ret < 0)
-        LOG(WARNING, "could not initialize vaapi");
+        LOG(WARNING, "could not initialize vaapi context");
 #endif
 
 #if defined(TARGET_ANDROID)

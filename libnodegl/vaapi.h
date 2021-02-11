@@ -22,9 +22,32 @@
 #ifndef VAAPI_H
 #define VAAPI_H
 
-#include "nodes.h"
+#include "config.h"
 
-int ngli_vaapi_init(struct ngl_ctx *s);
-void ngli_vaapi_reset(struct ngl_ctx *s);
+#if defined(HAVE_VAAPI_X11)
+#include <X11/Xlib.h>
+#endif
+
+#if defined(HAVE_VAAPI_WAYLAND)
+#include <wayland-client.h>
+#endif
+
+#include <va/va.h>
+
+struct gctx;
+
+struct vaapi_ctx {
+#if defined(HAVE_VAAPI_X11)
+    Display *x11_display;
+#endif
+#if defined(HAVE_VAAPI_WAYLAND)
+    struct wl_display *wl_display;
+#endif
+    VADisplay va_display;
+    int va_version;
+};
+
+int ngli_vaapi_ctx_init(struct gctx *gctx, struct vaapi_ctx *s);
+void ngli_vaapi_ctx_reset(struct vaapi_ctx *vaapi_ctx);
 
 #endif

@@ -209,7 +209,8 @@ static int media_init(struct ngl_node *node)
     }
 #elif defined(HAVE_VAAPI)
     struct ngl_ctx *ctx = node->ctx;
-    sxplayer_set_option(s->player, "opaque", &ctx->va_display);
+    struct vaapi_ctx *vaapi_ctx = &ctx->vaapi_ctx;
+    sxplayer_set_option(s->player, "opaque", &vaapi_ctx->va_display);
 #endif
 
     return 0;

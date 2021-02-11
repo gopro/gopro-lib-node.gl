@@ -155,6 +155,7 @@ static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
+    struct vaapi_ctx *vaapi_ctx = &ctx->vaapi_ctx;
     struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
     struct glcontext *gl = gctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
@@ -178,7 +179,7 @@ static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     }
 
     VASurfaceID surface_id = (VASurfaceID)(intptr_t)frame->data;
-    VAStatus status = vaExportSurfaceHandle(ctx->va_display,
+    VAStatus status = vaExportSurfaceHandle(vaapi_ctx->va_display,
                                             surface_id,
                                             VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                                             VA_EXPORT_SURFACE_READ_ONLY |

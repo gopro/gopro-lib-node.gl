@@ -36,10 +36,9 @@
 #include "nodes.h"
 #include "vaapi.h"
 
-int ngli_vaapi_init(struct ngl_ctx *s)
+int ngli_vaapi_ctx_init(struct gctx *gctx, struct vaapi_ctx *s)
 {
-    struct gctx *gctx = s->gctx;
-    const struct ngl_config *config = &s->config;
+    const struct ngl_config *config = &gctx->config;
 
     if (gctx->features & NGLI_FEATURE_SOFTWARE)
         return -1;
@@ -65,7 +64,7 @@ int ngli_vaapi_init(struct ngl_ctx *s)
 #endif
     } else if (config->platform == NGL_PLATFORM_WAYLAND) {
 #if defined(HAVE_VAAPI_WAYLAND)
-        struct wl_display *wl_display = (struct wl_display *)s->config.display;
+        struct wl_display *wl_display = (struct wl_display *)gctx->config.display;
         if (!wl_display) {
             wl_display = wl_display_connect(NULL);
             if (!wl_display) {
@@ -97,7 +96,7 @@ int ngli_vaapi_init(struct ngl_ctx *s)
     return 0;
 }
 
-void ngli_vaapi_reset(struct ngl_ctx *s)
+void ngli_vaapi_ctx_reset(struct vaapi_ctx *s)
 {
     if (s->va_display) {
         vaTerminate(s->va_display);

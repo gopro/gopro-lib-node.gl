@@ -19,6 +19,8 @@
  * under the License.
  */
 
+#include <string.h>
+
 #include "config.h"
 
 #if defined(HAVE_VAAPI_X11)
@@ -98,21 +100,15 @@ int ngli_vaapi_ctx_init(struct gctx *gctx, struct vaapi_ctx *s)
 
 void ngli_vaapi_ctx_reset(struct vaapi_ctx *s)
 {
-    if (s->va_display) {
+    if (s->va_display)
         vaTerminate(s->va_display);
-        s->va_display = NULL;
-    }
-    s->va_version = 0;
 #if defined(HAVE_VAAPI_X11)
-    if (s->x11_display) {
+    if (s->x11_display)
         XCloseDisplay(s->x11_display);
-        s->x11_display = NULL;
-    }
 #endif
 #if defined(HAVE_VAAPI_WAYLAND)
-    if (s->wl_display) {
+    if (s->wl_display)
         wl_display_disconnect(s->wl_display);
-        s->wl_display = NULL;
-    }
 #endif
+    memset(s, 0, sizeof(*s));
 }

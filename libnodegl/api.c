@@ -112,7 +112,6 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
 
     if (config->backend == NGL_BACKEND_AUTO)
         config->backend = DEFAULT_BACKEND;
-
     if (config->platform == NGL_PLATFORM_AUTO)
         config->platform = get_default_platform();
     if (config->platform < 0) {

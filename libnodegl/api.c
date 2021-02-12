@@ -77,8 +77,16 @@ static int get_default_platform(void)
 #endif
 }
 
+#define KEEP_SCENE  0
+#define UNREF_SCENE 1
+
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
+    if (s->scene) {
+        ngli_node_detach_ctx(s->scene, s);
+        if (*(int *)arg == UNREF_SCENE)
+            ngl_node_unrefp(&s->scene);
+    }
     ngli_rnode_reset(&s->rnode);
 #if defined(HAVE_VAAPI)
     ngli_vaapi_ctx_reset(&s->vaapi_ctx);
@@ -98,10 +106,7 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
 {
     struct ngl_config *config = arg;
 
-    if (s->scene)
-        ngli_node_detach_ctx(s->scene, s);
-
-    cmd_stop(s, arg);
+    cmd_stop(s, &(int[]){KEEP_SCENE});
 
     if (config->backend == NGL_BACKEND_AUTO)
         config->backend = DEFAULT_BACKEND;
@@ -707,10 +712,7 @@ void ngl_freep(struct ngl_ctx **ss)
     if (!s)
         return;
 
-    if (s->configured)
-        ngl_set_scene(s, NULL);
-
-    dispatch_cmd(s, cmd_stop, NULL);
+    dispatch_cmd(s, cmd_stop, &(int[]){UNREF_SCENE});
     pthread_join(s->worker_tid, NULL);
     pthread_cond_destroy(&s->cond_ctl);
     pthread_cond_destroy(&s->cond_wkr);

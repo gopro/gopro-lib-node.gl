@@ -79,6 +79,7 @@ static int get_default_platform(void)
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
+    ngli_rnode_reset(&s->rnode);
 #if defined(HAVE_VAAPI)
     ngli_vaapi_ctx_reset(&s->vaapi_ctx);
 #endif
@@ -99,7 +100,6 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
 
     if (s->scene)
         ngli_node_detach_ctx(s->scene, s);
-    ngli_rnode_clear(&s->rnode);
 
     cmd_stop(s, arg);
 
@@ -126,6 +126,8 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
         return ret;
     }
 
+    ngli_rnode_init(&s->rnode);
+    s->rnode_pos = &s->rnode;
     s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
     s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);
 
@@ -213,6 +215,7 @@ static int cmd_set_scene(struct ngl_ctx *s, void *arg)
     }
     ngli_rnode_clear(&s->rnode);
 
+    s->rnode_pos = &s->rnode;
     s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
     s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);
 
@@ -566,9 +569,6 @@ struct ngl_ctx *ngl_create(void)
         return NULL;
     }
 
-    ngli_rnode_init(&s->rnode);
-    s->rnode_pos = &s->rnode;
-
     ngli_darray_init(&s->modelview_matrix_stack, 4 * 4 * sizeof(float), 1);
     ngli_darray_init(&s->projection_matrix_stack, 4 * 4 * sizeof(float), 1);
     ngli_darray_init(&s->activitycheck_nodes, sizeof(struct ngl_node *), 0);
@@ -584,7 +584,6 @@ struct ngl_ctx *ngl_create(void)
     return s;
 
 fail:
-    ngli_rnode_reset(&s->rnode);
     ngl_freep(&s);
     return NULL;
 }
@@ -716,7 +715,6 @@ void ngl_freep(struct ngl_ctx **ss)
     pthread_cond_destroy(&s->cond_wkr);
     pthread_mutex_destroy(&s->lock);
 
-    ngli_rnode_reset(&s->rnode);
     ngli_darray_reset(&s->modelview_matrix_stack);
     ngli_darray_reset(&s->projection_matrix_stack);
     ngli_darray_reset(&s->activitycheck_nodes);

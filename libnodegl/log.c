@@ -53,8 +53,10 @@ static void default_callback(void *arg, int level, const char *filename, int ln,
     /* handle the case where the line doesn't fit the stack buffer */
     if (len >= sizeof(logline)) {
         logbuf = ngli_malloc(len + 1);
-        if (!logbuf)
+        if (!logbuf) {
+            va_end(vl_copy);
             return;
+        }
         vsnprintf(logbuf, len + 1, fmt, vl_copy);
         logp = logbuf;
     }
@@ -79,6 +81,7 @@ static void default_callback(void *arg, int level, const char *filename, int ln,
            log_strs[level], filename, ln, fn, logp,
            color_end);
     ngli_free(logbuf);
+    va_end(vl_copy);
     fflush(stdout);
 }
 

@@ -266,6 +266,7 @@ static int check_dup_labels(const char *block_name, struct ngl_node * const *nod
     for (int i = 0; i < nb_nodes; i++) {
         if (!nodes[i]->label) {
             LOG(ERROR, "block field labels cannot be NULL");
+            ngli_free(labels);
             return NGL_ERROR_INVALID_ARG;
         }
         labels[i] = nodes[i]->label;

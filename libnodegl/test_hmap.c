@@ -65,7 +65,9 @@ int main(void)
         for (int i = 0; i < NGLI_ARRAY_NB(kvs); i++) {
             void *data = custom_alloc ? ngli_strdup(kvs[i].val) : (void*)kvs[i].val;
             ngli_assert(ngli_hmap_set(hm, kvs[i].key, data) >= 0);
-            ngli_assert(!strcmp(ngli_hmap_get(hm, kvs[i].key), kvs[i].val));
+            const char *val = ngli_hmap_get(hm, kvs[i].key);
+            ngli_assert(val);
+            ngli_assert(!strcmp(val, kvs[i].val));
         }
 
         PRINT_HMAP("init [%d entries] [custom_alloc:%s]:\n",
@@ -77,7 +79,9 @@ int main(void)
             if (i & 1) {
                 void *data = custom_alloc ? ngli_strdup(RSTR) : RSTR;
                 ngli_assert(ngli_hmap_set(hm, kvs[i].key, data) == 0);
-                ngli_assert(strcmp((const char *)ngli_hmap_get(hm, kvs[i].key), RSTR) == 0);
+                const char *val = ngli_hmap_get(hm, kvs[i].key);
+                ngli_assert(val);
+                ngli_assert(strcmp(val, RSTR) == 0);
                 PRINT_HMAP("replace %s:\n", kvs[i].key);
             }
 

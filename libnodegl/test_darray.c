@@ -31,11 +31,13 @@ int main(void)
     ngli_assert(count == 0);
 
     int *element = ngli_darray_push(&darray, NULL);
+    ngli_assert(element);
     *element = 0xFF;
     count = ngli_darray_count(&darray);
     ngli_assert(count == 1);
 
     element = ngli_darray_push(&darray, NULL);
+    ngli_assert(element);
     *element = 0xFFFF;
     count = ngli_darray_count(&darray);
     ngli_assert(count == 2);

@@ -213,8 +213,9 @@ static int cmd_set_scene(struct ngl_ctx *s, void *arg)
         ngli_node_detach_ctx(s->scene, s);
         ngl_node_unrefp(&s->scene);
     }
-    ngli_rnode_clear(&s->rnode);
+    ngli_rnode_reset(&s->rnode);
 
+    ngli_rnode_init(&s->rnode);
     s->rnode_pos = &s->rnode;
     s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
     s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);

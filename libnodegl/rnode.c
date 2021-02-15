@@ -30,12 +30,6 @@ void ngli_rnode_init(struct rnode *s)
     ngli_darray_init(&s->children, sizeof(*s), 0);
 }
 
-void ngli_rnode_clear(struct rnode *s)
-{
-    ngli_rnode_reset(s);
-    ngli_rnode_init(s);
-}
-
 void ngli_rnode_reset(struct rnode *s)
 {
     struct rnode *children = ngli_darray_data(&s->children);

@@ -34,7 +34,6 @@ struct rnode {
 };
 
 void ngli_rnode_init(struct rnode *s);
-void ngli_rnode_clear(struct rnode *s);
 void ngli_rnode_reset(struct rnode *s);
 struct rnode *ngli_rnode_add_child(struct rnode *s);
 

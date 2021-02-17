@@ -53,8 +53,6 @@ struct camera_priv {
     const float *center_transform_matrix;
     const float *up_transform_matrix;
 
-    float ground[3];
-
     NGLI_ALIGNED_MAT(modelview_matrix);
     NGLI_ALIGNED_MAT(projection_matrix);
 };
@@ -104,11 +102,13 @@ static int camera_init(struct ngl_node *node)
     struct camera_priv *s = node->priv_data;
 
     ngli_vec3_norm(s->up, s->up);
-    ngli_vec3_sub(s->ground, s->eye, s->center);
-    ngli_vec3_norm(s->ground, s->ground);
-    ngli_vec3_cross(s->ground, s->ground, s->up);
 
-    if (!s->ground[0] && !s->ground[1] && !s->ground[2]) {
+    float ground[3];
+    ngli_vec3_sub(ground, s->eye, s->center);
+    ngli_vec3_norm(ground, ground);
+    ngli_vec3_cross(ground, ground, s->up);
+
+    if (!ground[0] && !ground[1] && !ground[2]) {
         LOG(ERROR, "view and up are collinear");
         return NGL_ERROR_INVALID_ARG;
     }

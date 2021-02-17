@@ -110,12 +110,7 @@ def _get_live_trf_spec(layout):
 
 def _live_scene(cfg, spec, field_id, seed, layout, debug_positions, color_tint):
 
-    # duration set to 0 makes it always draw the same time, and we want that
-    # FIXME: can not work with blocks because their update is not re-called
-    # FIXME: can not work with transform chains because the chain transform is not re-updated
-    cfg.duration = 0  #if layout == 'uniform' else ANIM_DURATION
-    cfg.duration = ANIM_DURATION  # FIXME: drop
-
+    cfg.duration = 0
     cfg.aspect_ratio = (1, 1)
     fields_info, block_fields, color_fields, block_definition, color_definition = get_random_block_info(spec, seed, layout, color_tint=color_tint)
     fields = match_fields(fields_info, field_id)

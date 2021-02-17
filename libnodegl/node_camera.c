@@ -122,27 +122,46 @@ static int update_matrices(struct ngl_node *node, double t)
     return 0;
 }
 
+static int update_params(struct ngl_node *node)
+{
+    struct camera_priv *s = node->priv_data;
+
+    ngli_vec3_norm(s->up, s->up);
+
+    static const float zvec[4];
+    s->use_perspective = memcmp(s->perspective, zvec, sizeof(s->perspective));
+    s->use_orthographic = memcmp(s->orthographic, zvec, sizeof(s->orthographic));
+
+    return update_matrices(node, node->last_update_time);
+}
+
 #define OFFSET(x) offsetof(struct camera_priv, x)
 static const struct node_param camera_params[] = {
     {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
               .desc=NGLI_DOCSTRING("scene to observe through the lens of the camera")},
     {"eye", PARAM_TYPE_VEC3,  OFFSET(eye), {.vec={0.0f, 0.0f, 0.0f}},
             .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+            .update_func=update_params,
             .desc=NGLI_DOCSTRING("eye position")},
     {"center", PARAM_TYPE_VEC3,  OFFSET(center), {.vec={0.0f, 0.0f, -1.0f}},
                .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+               .update_func=update_params,
                .desc=NGLI_DOCSTRING("center position")},
     {"up", PARAM_TYPE_VEC3,  OFFSET(up), {.vec={0.0f, 1.0f, 0.0f}},
            .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+           .update_func=update_params,
            .desc=NGLI_DOCSTRING("up vector, must not be parallel to the line of sight from the eye point to the center point")},
     {"perspective", PARAM_TYPE_VEC2,  OFFSET(perspective),
                     .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+                    .update_func=update_params,
                     .desc=NGLI_DOCSTRING("the 2 following values: *fov*, *aspect*")},
     {"orthographic", PARAM_TYPE_VEC4, OFFSET(orthographic),
                      .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+                     .update_func=update_params,
                      .desc=NGLI_DOCSTRING("the 4 following values: *left*, *right*, *bottom*, *top*")},
     {"clipping", PARAM_TYPE_VEC2, OFFSET(clipping),
                  .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+                 .update_func=update_params,
                  .desc=NGLI_DOCSTRING("the 2 following values: *near clipping plane*, *far clipping plane*")},
     {"eye_transform", PARAM_TYPE_NODE, OFFSET(eye_transform),
                      .flags=PARAM_FLAG_DOT_DISPLAY_FIELDNAME,

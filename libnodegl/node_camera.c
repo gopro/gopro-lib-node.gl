@@ -161,12 +161,6 @@ static int camera_update(struct ngl_node *node, double t)
     APPLY_TRANSFORM(center);
     APPLY_TRANSFORM(up);
 
-    if ((s->eye_transform || s->center_transform) && !s->up_transform) {
-        ngli_vec3_sub(up, s->center, s->eye);
-        ngli_vec3_norm(up, up);
-        ngli_vec3_cross(up, up, s->ground);
-    }
-
     ngli_mat4_look_at(s->modelview_matrix, eye, center, up);
 
     if (s->fov_anim) {

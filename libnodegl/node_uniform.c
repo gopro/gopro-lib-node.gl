@@ -40,7 +40,6 @@ static int set_live_changed(struct ngl_node *node)
         LOG(ERROR, "updating data on a dynamic uniform is unsupported");
         return NGL_ERROR_INVALID_USAGE;
     }
-    s->live_changed = 1;
     return 0;
 }
 
@@ -127,33 +126,26 @@ static const struct node_param uniformmat4_params[] = {
     {NULL}
 };
 
-static int uniform_update(struct ngl_node *node, double t)
-{
-    struct variable_priv *s = node->priv_data;
-    s->live_changed = 0;
-    return 0;
-}
-
-#define uniformbool_update   uniform_update
-#define uniformfloat_update  uniform_update
-#define uniformvec2_update   uniform_update
-#define uniformvec3_update   uniform_update
-#define uniformvec4_update   uniform_update
-#define uniformint_update    uniform_update
-#define uniformivec2_update  uniform_update
-#define uniformivec3_update  uniform_update
-#define uniformivec4_update  uniform_update
-#define uniformuint_update   uniform_update
-#define uniformuivec2_update uniform_update
-#define uniformuivec3_update uniform_update
-#define uniformuivec4_update uniform_update
+#define uniformbool_update   NULL
+#define uniformfloat_update  NULL
+#define uniformvec2_update   NULL
+#define uniformvec3_update   NULL
+#define uniformvec4_update   NULL
+#define uniformint_update    NULL
+#define uniformivec2_update  NULL
+#define uniformivec3_update  NULL
+#define uniformivec4_update  NULL
+#define uniformuint_update   NULL
+#define uniformuivec2_update NULL
+#define uniformuivec3_update NULL
+#define uniformuivec4_update NULL
 
 static int uniformquat_update(struct ngl_node *node, double t)
 {
     struct variable_priv *s = node->priv_data;
     if (s->as_mat4)
         ngli_mat4_rotate_from_quat(s->matrix, s->vector);
-    return uniform_update(node, t);
+    return 0;
 }
 
 static int uniformmat4_update(struct ngl_node *node, double t)
@@ -172,7 +164,6 @@ static int uniformmat4_update(struct ngl_node *node, double t)
         if (s->transform_matrix)
             memcpy(s->matrix, s->transform_matrix, sizeof(s->matrix));
     }
-    s->live_changed = 0;
     return 0;
 }
 

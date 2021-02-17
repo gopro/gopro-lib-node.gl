@@ -235,7 +235,6 @@ struct variable_priv {
     const float *transform_matrix;
     int as_mat4; /* quaternion only */
     int dynamic;
-    int live_changed;
     int last_index;
 };
 

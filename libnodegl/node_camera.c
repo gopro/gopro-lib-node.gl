@@ -132,7 +132,7 @@ static int update_params(struct ngl_node *node)
     s->use_perspective = memcmp(s->perspective, zvec, sizeof(s->perspective));
     s->use_orthographic = memcmp(s->orthographic, zvec, sizeof(s->orthographic));
 
-    return update_matrices(node, node->last_update_time);
+    return 0;
 }
 
 #define OFFSET(x) offsetof(struct camera_priv, x)

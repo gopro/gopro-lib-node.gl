@@ -232,7 +232,7 @@ Parameter | Live-chg. | Type | Description | Default
 `child` |  | [`Node`](#parameter-types) | scene to observe through the lens of the camera | 
 `eye` | ✓ | [`vec3`](#parameter-types) | eye position | (`0`,`0`,`0`)
 `center` | ✓ | [`vec3`](#parameter-types) | center position | (`0`,`0`,`-1`)
-`up` | ✓ | [`vec3`](#parameter-types) | up vector | (`0`,`1`,`0`)
+`up` | ✓ | [`vec3`](#parameter-types) | up vector, must not be parallel to the line of sight from the eye point to the center point | (`0`,`1`,`0`)
 `perspective` | ✓ | [`vec2`](#parameter-types) | the 2 following values: *fov*, *aspect* | (`0`,`0`)
 `orthographic` | ✓ | [`vec4`](#parameter-types) | the 4 following values: *left*, *right*, *bottom*, *top* | (`0`,`0`,`0`,`0`)
 `clipping` | ✓ | [`vec2`](#parameter-types) | the 2 following values: *near clipping plane*, *far clipping plane* | (`0`,`0`)

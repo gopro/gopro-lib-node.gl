@@ -71,7 +71,7 @@ static const struct node_param camera_params[] = {
                .desc=NGLI_DOCSTRING("center position")},
     {"up", PARAM_TYPE_VEC3,  OFFSET(up), {.vec={0.0f, 1.0f, 0.0f}},
            .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
-           .desc=NGLI_DOCSTRING("up vector")},
+           .desc=NGLI_DOCSTRING("up vector, must not be parallel to the line of sight from the eye point to the center point")},
     {"perspective", PARAM_TYPE_VEC2,  OFFSET(perspective),
                     .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
                     .desc=NGLI_DOCSTRING("the 2 following values: *fov*, *aspect*")},

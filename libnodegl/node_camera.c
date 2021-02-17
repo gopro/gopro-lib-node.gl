@@ -57,6 +57,71 @@ struct camera_priv {
     NGLI_ALIGNED_MAT(projection_matrix);
 };
 
+static int update_matrices(struct ngl_node *node, double t)
+{
+    struct ngl_ctx *ctx = node->ctx;
+    struct camera_priv *s = node->priv_data;
+
+    NGLI_ALIGNED_VEC(eye)    = {0.0f, 0.0f, 0.0f, 1.0f};
+    NGLI_ALIGNED_VEC(center) = {0.0f, 0.0f, 0.0f, 1.0f};
+    NGLI_ALIGNED_VEC(up)     = {0.0f, 0.0f, 0.0f, 1.0f};
+    static const NGLI_ALIGNED_MAT(id_matrix) = NGLI_MAT4_IDENTITY;
+
+#define APPLY_TRANSFORM(what) do {                                          \
+    memcpy(what, s->what, sizeof(s->what));                                 \
+    if (s->what##_transform) {                                              \
+        int ret = ngli_node_update(s->what##_transform, t);                 \
+        if (ret < 0)                                                        \
+            return ret;                                                     \
+        if (!ngli_darray_push(&ctx->modelview_matrix_stack, id_matrix))     \
+            return NGL_ERROR_MEMORY;                                        \
+        ngli_node_draw(s->what##_transform);                                \
+        ngli_darray_pop(&ctx->modelview_matrix_stack);                      \
+        const float *matrix = s->what##_transform_matrix;                   \
+        if (matrix)                                                         \
+            ngli_mat4_mul_vec4(what, matrix, what);                         \
+    }                                                                       \
+} while (0)
+
+    APPLY_TRANSFORM(eye);
+    APPLY_TRANSFORM(center);
+    APPLY_TRANSFORM(up);
+
+    ngli_mat4_look_at(s->modelview_matrix, eye, center, up);
+
+    if (s->fov_anim) {
+        struct ngl_node *anim_node = s->fov_anim;
+        struct variable_priv *anim = anim_node->priv_data;
+        int ret = ngli_node_update(anim_node, t);
+        if (ret < 0)
+            return ret;
+        s->perspective[0] = anim->scalar;
+    }
+
+    if (s->use_perspective) {
+        ngli_mat4_perspective(s->projection_matrix,
+                              s->perspective[0],
+                              s->perspective[1],
+                              s->clipping[0],
+                              s->clipping[1]);
+    } else if (s->use_orthographic) {
+        ngli_mat4_orthographic(s->projection_matrix,
+                               s->orthographic[0],
+                               s->orthographic[1],
+                               s->orthographic[2],
+                               s->orthographic[3],
+                               s->clipping[0],
+                               s->clipping[1]);
+    } else {
+        ngli_mat4_identity(s->projection_matrix);
+    }
+
+    struct gctx *gctx = ctx->gctx;
+    ngli_gctx_transform_projection_matrix(gctx, s->projection_matrix);
+
+    return 0;
+}
+
 #define OFFSET(x) offsetof(struct camera_priv, x)
 static const struct node_param camera_params[] = {
     {"child", PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
@@ -132,66 +197,12 @@ static int camera_init(struct ngl_node *node)
 
 static int camera_update(struct ngl_node *node, double t)
 {
-    struct ngl_ctx *ctx = node->ctx;
     struct camera_priv *s = node->priv_data;
     struct ngl_node *child = s->child;
 
-    NGLI_ALIGNED_VEC(eye)    = {0.0f, 0.0f, 0.0f, 1.0f};
-    NGLI_ALIGNED_VEC(center) = {0.0f, 0.0f, 0.0f, 1.0f};
-    NGLI_ALIGNED_VEC(up)     = {0.0f, 0.0f, 0.0f, 1.0f};
-    static const NGLI_ALIGNED_MAT(id_matrix) = NGLI_MAT4_IDENTITY;
-
-#define APPLY_TRANSFORM(what) do {                                          \
-    memcpy(what, s->what, sizeof(s->what));                                 \
-    if (s->what##_transform) {                                              \
-        int ret = ngli_node_update(s->what##_transform, t);                 \
-        if (ret < 0)                                                        \
-            return ret;                                                     \
-        if (!ngli_darray_push(&ctx->modelview_matrix_stack, id_matrix))     \
-            return NGL_ERROR_MEMORY;                                        \
-        ngli_node_draw(s->what##_transform);                                \
-        ngli_darray_pop(&ctx->modelview_matrix_stack);                      \
-        const float *matrix = s->what##_transform_matrix;                   \
-        if (matrix)                                                         \
-            ngli_mat4_mul_vec4(what, matrix, what);                         \
-    }                                                                       \
-} while (0)
-
-    APPLY_TRANSFORM(eye);
-    APPLY_TRANSFORM(center);
-    APPLY_TRANSFORM(up);
-
-    ngli_mat4_look_at(s->modelview_matrix, eye, center, up);
-
-    if (s->fov_anim) {
-        struct ngl_node *anim_node = s->fov_anim;
-        struct variable_priv *anim = anim_node->priv_data;
-        int ret = ngli_node_update(anim_node, t);
-        if (ret < 0)
-            return ret;
-        s->perspective[0] = anim->scalar;
-    }
-
-    if (s->use_perspective) {
-        ngli_mat4_perspective(s->projection_matrix,
-                              s->perspective[0],
-                              s->perspective[1],
-                              s->clipping[0],
-                              s->clipping[1]);
-    } else if (s->use_orthographic) {
-        ngli_mat4_orthographic(s->projection_matrix,
-                               s->orthographic[0],
-                               s->orthographic[1],
-                               s->orthographic[2],
-                               s->orthographic[3],
-                               s->clipping[0],
-                               s->clipping[1]);
-    } else {
-        ngli_mat4_identity(s->projection_matrix);
-    }
-
-    struct gctx *gctx = ctx->gctx;
-    ngli_gctx_transform_projection_matrix(gctx, s->projection_matrix);
+    int ret = update_matrices(node, t);
+    if (ret < 0)
+        return ret;
 
     return ngli_node_update(child, t);
 }

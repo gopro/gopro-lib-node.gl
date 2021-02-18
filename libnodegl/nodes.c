@@ -197,6 +197,7 @@ static void node_uninit(struct ngl_node *node)
 
     ngli_assert(node->ctx);
     ngli_darray_reset(&node->children);
+    ngli_darray_reset(&node->parents);
     node_release(node);
 
     if (node->class->uninit) {
@@ -223,6 +224,8 @@ static int track_children(struct ngl_node *node)
                 struct ngl_node *child = *(struct ngl_node **)child_p;
                 if (child && !ngli_darray_push(&node->children, &child))
                     return NGL_ERROR_MEMORY;
+                if (child && !ngli_darray_push(&child->parents, &node))
+                    return NGL_ERROR_MEMORY;
                 break;
             }
             case PARAM_TYPE_NODELIST: {
@@ -233,6 +236,8 @@ static int track_children(struct ngl_node *node)
                 for (int i = 0; i < nb_elems; i++) {
                     struct ngl_node *child = elems[i];
                     if (!ngli_darray_push(&node->children, &child))
+                        return NGL_ERROR_MEMORY;
+                    if (!ngli_darray_push(&child->parents, &node))
                         return NGL_ERROR_MEMORY;
                 }
                 break;
@@ -245,6 +250,8 @@ static int track_children(struct ngl_node *node)
                 while ((entry = ngli_hmap_next(hmap, entry))) {
                     struct ngl_node *child = entry->data;
                     if (!ngli_darray_push(&node->children, &child))
+                        return NGL_ERROR_MEMORY;
+                    if (!ngli_darray_push(&child->parents, &node))
                         return NGL_ERROR_MEMORY;
                 }
                 break;
@@ -286,6 +293,7 @@ static int node_init(struct ngl_node *node)
         return ret;
 
     ngli_darray_init(&node->children, sizeof(struct ngl_node *), 0);
+    ngli_darray_init(&node->parents, sizeof(struct ngl_node *), 0);
 
     ngli_assert(node->ctx);
     if (node->class->init) {
@@ -611,6 +619,23 @@ int ngl_node_param_add(struct ngl_node *node, const char *key,
     return ret;
 }
 
+static int node_invalidate_branch(struct ngl_node *node)
+{
+    node->last_update_time = -1;
+    if (node->class->invalidate) {
+        int ret = node->class->invalidate(node);
+        if (ret < 0)
+            return ret;
+    }
+    struct ngl_node **parents = ngli_darray_data(&node->parents);
+    for (int i = 0; i < ngli_darray_count(&node->parents); i++) {
+        int ret = node_invalidate_branch(parents[i]);
+        if (ret < 0)
+            return ret;
+    }
+    return 0;
+}
+
 int ngl_node_param_set(struct ngl_node *node, const char *key, ...)
 {
     int ret = 0;
@@ -634,8 +659,16 @@ int ngl_node_param_set(struct ngl_node *node, const char *key, ...)
         return ret;
     }
 
-    if (node->ctx && par->update_func)
-        ret = par->update_func(node);
+    if (node->ctx) {
+        if (par->update_func) {
+            ret = par->update_func(node);
+            if (ret < 0)
+                return ret;
+        }
+        ret = node_invalidate_branch(node);
+        if (ret < 0)
+            return ret;
+    }
 
     return ret;
 }

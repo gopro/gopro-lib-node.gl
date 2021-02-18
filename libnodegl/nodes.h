@@ -118,6 +118,7 @@ struct ngl_node {
     int ctx_refcount;
 
     struct darray children;
+    struct darray parents;
 
     char *label;
 
@@ -454,6 +455,7 @@ struct node_class {
     int (*prepare)(struct ngl_node *node);
     int (*visit)(struct ngl_node *node, int is_active, double t);
     int (*prefetch)(struct ngl_node *node);
+    int (*invalidate)(struct ngl_node *node);
     int (*update)(struct ngl_node *node, double t);
     void (*draw)(struct ngl_node *node);
     void (*release)(struct ngl_node *node);

@@ -182,7 +182,7 @@ def _get_debug_positions_from_fields(fields):
                             y + row * h / float(nb_rows),
                             w / float(nb_cols),
                             h / float(nb_rows))
-                    debug_points['{}_{}'.format(name, comp_id)] = _get_debug_point(rect)
+                    debug_points[f'{name}_{comp_id}'] = _get_debug_point(rect)
                     comp_id += 1
 
         else:
@@ -193,7 +193,7 @@ def _get_debug_positions_from_fields(fields):
                                 y + col * h / float(nb_cols),
                                 w / float(nb_rows) / float(array_len),
                                 h / float(nb_cols))
-                        debug_points['{}_{}'.format(name, comp_id)] = _get_debug_point(rect)
+                        debug_points[f'{name}_{comp_id}'] = _get_debug_point(rect)
                         comp_id += 1
 
     return debug_points
@@ -210,7 +210,7 @@ def get_render(cfg, quad, fields, block_definition, color_definition, block_fiel
     func_definitions = []
     for i, field in enumerate(fields):
         field_len = field.get('len')
-        func_calls.append('get_color_%s(w, h, 0.0, %f * h)' % (field['name'], i))
+        func_calls.append('get_color_{}(w, h, 0.0, {:f} * h)'.format(field['name'], i))
         func_definitions.append(_get_display_glsl_func(layout, field['name'], field['type'], field_len=field_len))
 
     frag_data = dict(
@@ -227,7 +227,7 @@ def get_render(cfg, quad, fields, block_definition, color_definition, block_fiel
 
     if isinstance(color_fields, dict):
         assert isinstance(block_fields, dict)
-        field_names = set(f['name'] for f in fields)
+        field_names = {f['name'] for f in fields}
         d = {}
         d.update(('color_' + n, u) for (n, u) in color_fields.items() if n in field_names)
         d.update(('field_' + n, u) for (n, u) in block_fields.items() if n in field_names)
@@ -317,7 +317,7 @@ FUNCS = dict(
 def _get_field_decl(layout, f):
     t = f['type']
     t = t.split('_')[1] if t.startswith('quat') else t
-    return '%s%-5s %s%s%s' % (
+    return '{}{:<5} {}{}{}'.format(
         'uniform ' if layout == 'uniform' else '',
         t,
         'field_' if layout == 'uniform' else '',

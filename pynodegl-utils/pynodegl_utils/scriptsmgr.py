@@ -93,7 +93,7 @@ class ScriptsManager(QtCore.QObject):
             self._timer.start()
 
     def _update_dirs_to_watch(self):
-        self._dirs_to_watch = set(op.dirname(f) for f in self._files_to_watch)
+        self._dirs_to_watch = {op.dirname(f) for f in self._files_to_watch}
 
     @QtCore.Slot(list)
     def update_filelist(self, filelist):

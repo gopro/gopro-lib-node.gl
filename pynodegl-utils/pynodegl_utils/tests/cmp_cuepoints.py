@@ -39,7 +39,7 @@ class _CompareCuePoints(CompareSceneBase):
     def serialize(data):
         ret = ''
         for color_points in data:
-            color_strings = ['{}:{:08X}'.format(point_name, color) for point_name, color in sorted(color_points.items())]
+            color_strings = [f'{point_name}:{color:08X}' for point_name, color in sorted(color_points.items())]
             ret += ' '.join(color_strings) + '\n'
         return ret
 

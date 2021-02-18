@@ -111,7 +111,7 @@ def query_inplace(**idict):
             if module_is_script:
                 module = load_script(module_pkgname)
             else:
-                import_name = '%s.%s' % (module_pkgname, module_name)
+                import_name = f'{module_pkgname}.{module_name}'
                 module = importlib.import_module(import_name)
             func = getattr(module, scene_name)
 

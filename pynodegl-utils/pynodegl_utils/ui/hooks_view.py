@@ -234,7 +234,7 @@ if __name__ == '__main__':
         def _do_action(self):
             data = self._hooks_view.get_data_from_model()
             for id_, data_row in data.items():
-                status = "applied action at {}".format(time.time()) if data_row['checked'] else ''
+                status = f"applied action at {time.time()}" if data_row['checked'] else ''
                 self._hooks_view.update_status(id_, status)
 
 

@@ -38,7 +38,7 @@ class _ControlWidget(QtWidgets.QWidget):
         self.needSceneReload.emit(self._name, value)
 
     def get_label_text(self, value=None):
-        return '<b>{}:</b> {}'.format(self._name, value) if value is not None else '<b>{}:</b>'.format(self._name)
+        return f'<b>{self._name}:</b> {value}' if value is not None else f'<b>{self._name}:</b>'
 
 
 class Slider(_ControlWidget):

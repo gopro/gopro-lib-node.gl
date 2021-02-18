@@ -169,7 +169,7 @@ class _HooksThread(QtCore.QThread):
         self._get_scene_func = get_scene_func
         self._hooks_caller = hooks_caller
         self._session_id = session_id
-        self._scene_id = '%s.%s' % (module_name, scene_name)
+        self._scene_id = f'{module_name}.{scene_name}'
 
         # The graphic backend can be different when using hooks: the scene might
         # be rendered on a remote device different from the one constructing
@@ -274,7 +274,7 @@ class HooksController(QtCore.QObject):
 
     @QtCore.Slot(str, str, str)
     def _hooks_building_scene(self, session_id, backend, system):
-        self._hooks_view.update_status(session_id, 'Building %s scene in %s...' % (system, backend))
+        self._hooks_view.update_status(session_id, f'Building {system} scene in {backend}...')
 
     @QtCore.Slot(str, str)
     def _hooks_sending_scene(self, session_id, scene):
@@ -282,7 +282,7 @@ class HooksController(QtCore.QObject):
 
     @QtCore.Slot(str, str, float)
     def _hooks_done(self, session_id, scene, t):
-        self._hooks_view.update_status(session_id, 'Submitted %s in %f' % (scene, t))
+        self._hooks_view.update_status(session_id, f'Submitted {scene} in {t:f}')
 
     @QtCore.Slot(str, str)
     def _hooks_error(self, session_id, err):

@@ -181,7 +181,7 @@ class SceneCfg:
         return odict
 
     def _get_shader(self, name, stype, shader_path):
-        filename = '%s.%s' % (name, stype)
+        filename = f'{name}.{stype}'
         if shader_path is None:
             shader_path = op.join(op.dirname(__file__), 'examples', 'shaders')
         with open(op.join(shader_path, filename)) as f:

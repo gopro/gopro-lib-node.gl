@@ -49,7 +49,7 @@ class CompareBase:
             ref_data = ref_data.splitlines(True)
             out_data = out_data.splitlines(True)
             diff = ''.join(difflib.unified_diff(ref_data, out_data, fromfile=test_name + '-ref', tofile=test_name + '-out', n=10))
-            err.append('{} fail:\n{}'.format(test_name, diff))
+            err.append(f'{test_name} fail:\n{diff}')
         return err
 
     @staticmethod

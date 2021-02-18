@@ -99,7 +99,7 @@ def time_remapping(cfg):
     ]
     rf = ngl.TimeRangeFilter(r, ranges=time_ranges, prefetch_time=prefetch_duration)
 
-    base_string = 'media time: %2g to %2g\nscene time: %2g to %2g\ntime range: %2g to %2g' % (
+    base_string = 'media time: {:2g} to {:2g}\nscene time: {:2g} to {:2g}\ntime range: {:2g} to {:2g}'.format(
                   media_seek, media_seek + playback_duration, play_start, play_stop, range_start, range_stop)
     text = ngl.Text(base_string,
                     box_height=(0, 0.3, 0),
@@ -120,7 +120,7 @@ def time_remapping(cfg):
     )
 
     for i, (description, start_time, end_time) in enumerate(steps):
-        text = ngl.Text('%g to %g: %s' % (start_time, end_time, description),
+        text = ngl.Text(f'{start_time:g} to {end_time:g}: {description}',
                         aspect_ratio=cfg.aspect_ratio,
                         box_height=(0, 0.2, 0))
         text_tr = (

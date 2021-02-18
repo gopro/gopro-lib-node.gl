@@ -102,7 +102,7 @@ class ExportView(QtWidgets.QWidget):
             gif_recommended_framerate = (Fraction(25, 1), Fraction(50, 1))
             if Fraction(*fr) not in gif_recommended_framerate:
                 gif_framerates = ', '.join('%s' % x for x in gif_recommended_framerate)
-                warnings.append('It is recommended to use one of these frame rate when exporting to GIF: {}'.format(gif_framerates))
+                warnings.append(f'It is recommended to use one of these frame rate when exporting to GIF: {gif_framerates}')
 
         if warnings:
             self._warning_label.setText('\n'.join('⚠ ' + w for w in warnings))

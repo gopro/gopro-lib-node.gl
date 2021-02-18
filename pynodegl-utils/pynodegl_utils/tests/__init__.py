@@ -48,7 +48,7 @@ def _get_ref_data(tester, ref_filepath):
 
 def _run_test_default(func_name, tester, ref_filepath, dump=False):
     if not op.exists(ref_filepath):
-        sys.stderr.write('{}: reference file {} not found, use GEN=yes to create it\n'.format(func_name, ref_filepath))
+        sys.stderr.write(f'{func_name}: reference file {ref_filepath} not found, use GEN=yes to create it\n')
         sys.exit(1)
     ref_data = _get_ref_data(tester, ref_filepath)
     out_data = tester.get_out_data(dump, func_name)
@@ -58,7 +58,7 @@ def _run_test_default(func_name, tester, ref_filepath, dump=False):
 def _run_test_gen_yes(func_name, tester, ref_filepath, dump=False):
     out_data = tester.get_out_data(dump, func_name)
     if not op.exists(ref_filepath):
-        sys.stderr.write('{}: creating {}\n'.format(func_name, ref_filepath))
+        sys.stderr.write(f'{func_name}: creating {ref_filepath}\n')
         _set_ref_data(tester, ref_filepath, out_data)
         return None
     ref_data = _get_ref_data(tester, ref_filepath)
@@ -68,22 +68,22 @@ def _run_test_gen_yes(func_name, tester, ref_filepath, dump=False):
 def _run_test_gen_update(func_name, tester, ref_filepath, dump=False):
     out_data = tester.get_out_data(dump, func_name)
     if not op.exists(ref_filepath):
-        sys.stderr.write('{}: creating {}\n'.format(func_name, ref_filepath))
+        sys.stderr.write(f'{func_name}: creating {ref_filepath}\n')
         _set_ref_data(tester, ref_filepath, out_data)
         return None
     ref_data = _get_ref_data(tester, ref_filepath)
     err = _run_test(func_name, tester, ref_data, out_data)
     if err:
-        sys.stderr.write('{}: re-generating {}\n'.format(func_name, ref_filepath))
+        sys.stderr.write(f'{func_name}: re-generating {ref_filepath}\n')
         _set_ref_data(tester, ref_filepath, out_data)
     return None
 
 
 def _run_test_gen_force(func_name, tester, ref_filepath, dump=False):
     if not op.exists(ref_filepath):
-        sys.stderr.write('{}: creating {}\n'.format(func_name, ref_filepath))
+        sys.stderr.write(f'{func_name}: creating {ref_filepath}\n')
     else:
-        sys.stderr.write('{}: re-generating {}\n'.format(func_name, ref_filepath))
+        sys.stderr.write(f'{func_name}: re-generating {ref_filepath}\n')
     out_data = tester.get_out_data(dump, func_name)
     _set_ref_data(tester, ref_filepath, out_data)
     return []

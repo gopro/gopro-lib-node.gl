@@ -34,7 +34,7 @@ class _CompareFloats(CompareBase):
     def serialize(data):
         ret = ''
         for float_set in data:
-            ret += '%s: %s\n' % (float_set[0], ' '.join('%f' % f for f in float_set[1:]))
+            ret += '{}: {}\n'.format(float_set[0], ' '.join('%f' % f for f in float_set[1:]))
         return ret
 
     @staticmethod

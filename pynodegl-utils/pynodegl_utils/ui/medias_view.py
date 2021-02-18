@@ -44,8 +44,8 @@ class MediasView(QtWidgets.QWidget):
 
         add_btn = QtWidgets.QPushButton('+')
         rm_btn = QtWidgets.QPushButton('-')
-        moveup_btn = QtWidgets.QPushButton(u'⬆')
-        movedown_btn = QtWidgets.QPushButton(u'⬇')
+        moveup_btn = QtWidgets.QPushButton('⬆')
+        movedown_btn = QtWidgets.QPushButton('⬇')
 
         btn_layout = QtWidgets.QVBoxLayout()
         btn_layout.addWidget(add_btn)
@@ -72,7 +72,7 @@ class MediasView(QtWidgets.QWidget):
             try:
                 media = Media(path)
             except:
-                print('Unable to add media {}'.format(path))
+                print(f'Unable to add media {path}')
             else:
                 self._config.set_medias_last_dir(op.dirname(path))
                 item = QtGui.QStandardItem(path)

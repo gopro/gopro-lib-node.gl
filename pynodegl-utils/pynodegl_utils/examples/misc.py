@@ -675,7 +675,7 @@ def text(cfg, demo_str='Hello World!\n\nThis is a multi-line\ntext demonstration
             if (valign, halign) == ('center', 'center'):
                 continue
             fg_color = list(colorsys.hls_to_rgb(random.uniform(0, 1), 0.5, 1.0)) + [1]
-            aligned_text = ngl.Text('%s-%s' % (valign, halign),
+            aligned_text = ngl.Text(f'{valign}-{halign}',
                                     valign=valign,
                                     halign=halign,
                                     aspect_ratio=cfg.aspect_ratio,

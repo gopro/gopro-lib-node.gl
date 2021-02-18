@@ -107,7 +107,7 @@ class _CompareFingerprints(CompareSceneBase):
         for frame, (frame_ref_hashes, frame_out_hashes) in enumerate(zip(ref_data, out_data)):
             for comp, (ref_hash, out_hash) in enumerate(zip(frame_ref_hashes, frame_out_hashes)):
                 hash_diff = ref_hash ^ out_hash
-                bstring = '{:b}'.format(hash_diff)
+                bstring = f'{hash_diff:b}'
                 diff = bstring.count('1') * 100 // _HNBITS
                 if diff > self._tolerance:
                     err.append('{} frame #{} Component {}: Diff too high ({}% > {}%)\n{:s}'.format(

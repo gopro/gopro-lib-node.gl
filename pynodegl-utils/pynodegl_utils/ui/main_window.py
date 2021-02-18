@@ -163,7 +163,7 @@ class MainWindow(QtWidgets.QSplitter):
 
     @QtCore.Slot(str, str)
     def _scene_changed(self, module_name, scene_name):
-        self.setWindowTitle('%s - %s.%s' % (self._win_title_base, module_name, scene_name))
+        self.setWindowTitle(f'{self._win_title_base} - {module_name}.{scene_name}')
         self._currentTabChanged(self._tab_widget.currentIndex())
 
     @QtCore.Slot(str, str)

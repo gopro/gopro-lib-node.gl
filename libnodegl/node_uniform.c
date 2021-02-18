@@ -33,7 +33,7 @@
 #include "type.h"
 
 
-static int set_live_changed(struct ngl_node *node)
+static int is_live_update_supported(struct ngl_node *node)
 {
     struct variable_priv *s = node->priv_data;
     if (s->dynamic) {
@@ -46,7 +46,7 @@ static int set_live_changed(struct ngl_node *node)
 #define DECLARE_UPDATE_FUNC(name, src)                        \
 static int uniform##name##_update_func(struct ngl_node *node) \
 {                                                             \
-    int ret = set_live_changed(node);                         \
+    int ret = is_live_update_supported(node);                 \
     if (ret < 0)                                              \
         return ret;                                           \
     struct variable_priv *s = node->priv_data;                \
@@ -61,7 +61,7 @@ DECLARE_UPDATE_FUNC(mat4,  s->opt.mat)
 
 static int uniformfloat_update_func(struct ngl_node *node)
 {
-    int ret = set_live_changed(node);
+    int ret = is_live_update_supported(node);
     if (ret < 0)
         return ret;
     struct variable_priv *s = node->priv_data;
@@ -71,7 +71,7 @@ static int uniformfloat_update_func(struct ngl_node *node)
 
 static int uniformquat_update_func(struct ngl_node *node)
 {
-    int ret = set_live_changed(node);
+    int ret = is_live_update_supported(node);
     if (ret < 0)
         return ret;
     struct variable_priv *s = node->priv_data;

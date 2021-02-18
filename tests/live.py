@@ -22,7 +22,9 @@
 
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
+from pynodegl_utils.tests.debug import get_debug_points
 from pynodegl_utils.tests.cmp_cuepoints import test_cuepoints
+from pynodegl_utils.toolbox.colors import COLORS
 
 from pynodegl_utils.tests.data import (
     LAYOUTS,
@@ -35,6 +37,77 @@ from pynodegl_utils.tests.data import (
     get_random_block_info,
     get_render,
 )
+
+
+_SHARED_UNIFORM_CUEPOINTS=dict((('0', (-0.5, -0.5)), ('1', (0.5, 0.5))))
+
+
+def _get_live_shared_uniform_scene(cfg, color, debug_positions):
+    program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
+    group = ngl.Group()
+    for i in range(2):
+        quad = ngl.Quad((-1 + i, -1 + i, 0), (1, 0, 0), (0, 1, 0))
+        render = ngl.Render(quad, program)
+        render.update_frag_resources(color=color)
+        group.add_children(render)
+    if debug_positions:
+        group.add_children(get_debug_points(cfg, _SHARED_UNIFORM_CUEPOINTS))
+    return group
+
+
+def _get_live_shared_uniform_with_block_scene(cfg, color, layout, debug_positions):
+    vertex = '''
+void main()
+{
+    ngl_out_pos = ngl_projection_matrix * ngl_modelview_matrix * ngl_position;
+}
+'''
+    fragment = '''
+void main()
+{
+    ngl_out_color = data.color;
+}
+'''
+    program = ngl.Program(vertex=vertex, fragment=fragment)
+    group = ngl.Group()
+    for i in range(2):
+        block = ngl.Block(fields=[color], layout=layout)
+        quad = ngl.Quad((-1 + i, -1 + i, 0), (1, 0, 0), (0, 1, 0))
+        render = ngl.Render(quad, program)
+        render.update_frag_resources(data=block)
+        group.add_children(render)
+    if debug_positions:
+        group.add_children(get_debug_points(cfg, _SHARED_UNIFORM_CUEPOINTS))
+    return group
+
+
+def _get_live_shared_uniform_function(layout=None):
+    data = [COLORS['red'], COLORS['blue']]
+    color = ngl.UniformVec4(value=COLORS['black'], label='color')
+
+    def keyframes_callback(t_id):
+        color.set_value(*data[t_id])
+
+    @test_cuepoints(points=_SHARED_UNIFORM_CUEPOINTS,
+                    nb_keyframes=len(data),
+                    keyframes_callback=keyframes_callback,
+                    tolerance=1,
+                    exercise_serialization=False,
+                    debug_positions=False)
+    @scene(debug_positions=scene.Bool())
+    def scene_func(cfg, debug_positions=True):
+        cfg.duration = 0
+        cfg.aspect_ratio = (1, 1)
+        if layout:
+            return _get_live_shared_uniform_with_block_scene(cfg, color, layout, debug_positions)
+        else:
+            return _get_live_shared_uniform_scene(cfg, color, debug_positions)
+    return scene_func
+
+
+live_shared_uniform = _get_live_shared_uniform_function(None)
+live_shared_uniform_std140 = _get_live_shared_uniform_function('std140')
+live_shared_uniform_std430 = _get_live_shared_uniform_function('std430')
 
 
 def _get_live_spec(layout):

@@ -176,14 +176,17 @@ foreach backend : backends
   foreach test_name : live_names
     tests_live += test_name + '_uniform'
   endforeach
+  tests_live += 'shared_uniform'
   if has_block
     foreach test_name : live_names
       tests_live += test_name + '_std140'
     endforeach
+    tests_live += 'shared_uniform_std140'
     if has_compute
       foreach test_name : live_names
         tests_live += test_name + '_std430'
       endforeach
+      tests_live += 'shared_uniform_std430'
     endif
   endif
 

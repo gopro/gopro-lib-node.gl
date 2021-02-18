@@ -33,7 +33,7 @@
 #include "type.h"
 
 
-static int is_live_update_supported(struct ngl_node *node)
+static int is_live_update_supported(const struct ngl_node *node)
 {
     struct variable_priv *s = node->priv_data;
     if (s->dynamic) {

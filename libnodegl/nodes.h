@@ -245,6 +245,7 @@ struct block_priv {
     int layout;
 
     struct block block;
+    int force_update;
 
     uint8_t *data;
     int data_size;

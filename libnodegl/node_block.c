@@ -203,7 +203,7 @@ static int get_node_data_count(const struct ngl_node *node)
 static int has_changed_uniform(const struct ngl_node *unode)
 {
     const struct variable_priv *uniform = unode->priv_data;
-    return uniform->dynamic || uniform->live_changed;
+    return uniform->dynamic;
 }
 
 static int has_changed_buffer(const struct ngl_node *bnode)
@@ -343,13 +343,19 @@ static int block_init(struct ngl_node *node)
     return 0;
 }
 
-static int block_update(struct ngl_node *node, double t)
+static int block_invalidate(struct ngl_node *node)
 {
     struct block_priv *s = node->priv_data;
 
-    // Check for live changes (the uniform updates below reset their
-    // live_changed flag to 0)
-    update_block_data(s, 0);
+    s->force_update = 1;
+    s->buffer_last_upload_time = -1;
+
+    return 0;
+}
+
+static int block_update(struct ngl_node *node, double t)
+{
+    struct block_priv *s = node->priv_data;
 
     for (int i = 0; i < s->nb_fields; i++) {
         struct ngl_node *field_node = s->fields[i];
@@ -358,8 +364,8 @@ static int block_update(struct ngl_node *node, double t)
             return ret;
     }
 
-    // Check for update changes (animations)
-    update_block_data(s, 0);
+    update_block_data(s, s->force_update);
+    s->force_update = 0;
 
     return 0;
 }
@@ -377,6 +383,7 @@ const struct node_class ngli_block_class = {
     .category  = NGLI_NODE_CATEGORY_BLOCK,
     .name      = "Block",
     .init      = block_init,
+    .invalidate = block_invalidate,
     .update    = block_update,
     .uninit    = block_uninit,
     .priv_size = sizeof(struct block_priv),

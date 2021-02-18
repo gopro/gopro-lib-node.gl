@@ -64,7 +64,7 @@ def _get_dbg_positions(n=1):
     ag = AutoGrid(range(n))
     for _, i, col, row in ag:
         dbg_positions = _color_positions(_CIRCLE_RADIUS)
-        dbg_positions = dict(('%s%d' % (name, i), ag.transform_coords(p, (col, row))) for name, p in dbg_positions.items())
+        dbg_positions = {'%s%d' % (name, i): ag.transform_coords(p, (col, row)) for name, p in dbg_positions.items()}
         ret.update(dbg_positions)
     return ret
 
@@ -103,7 +103,7 @@ def _get_blending_scene_with_args(cfg, colored_circles, circle, prog, positions,
     g = ngl.Group(label=bname)
     if bcolor is not None:
         blend_bg = _get_background_circles(circle, prog, positions, bcolor)
-        blend_bg.set_label('background for {}'.format(bname))
+        blend_bg.set_label(f'background for {bname}')
         g.add_children(blend_bg)
     blended_circles = ngl.GraphicConfig(colored_circles, blend=True, **bparams)
     g.add_children(blended_circles)
@@ -184,7 +184,7 @@ def _debug_overlay(cfg, scene, grid_names, show_dbg_points=False, show_labels=Fa
         nb = len(grid_names)
         dbg_positions = _get_dbg_positions(nb)
         if show_labels:
-            dbg_positions = dict((name, (p[0], p[1] - text_height / 2.0 * ag.scale)) for name, p in dbg_positions.items())
+            dbg_positions = {name: (p[0], p[1] - text_height / 2.0 * ag.scale) for name, p in dbg_positions.items()}
         dbg_points = get_debug_points(cfg, dbg_positions, radius=0.01, text_size=(0.08, 0.08))
 
         overlay.add_children(dbg_points)

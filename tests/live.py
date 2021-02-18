@@ -249,12 +249,12 @@ def _bootstrap():
         spec = _get_live_spec(layout)
         for field_info in spec:
             field_id = '{category}_{type}'.format(**field_info)
-            globals()['live_{}_{}'.format(field_id, layout)] = _get_live_function(spec, field_id, layout)
+            globals()[f'live_{field_id}_{layout}'] = _get_live_function(spec, field_id, layout)
 
         spec = _get_live_trf_spec(layout)
         for field_info in spec:
             field_id = '{category}_{type}'.format(**field_info)
-            globals()['live_trf_{}_{}'.format(field_id, layout)] = _get_live_trf_function(spec, field_id, layout)
+            globals()[f'live_trf_{field_id}_{layout}'] = _get_live_trf_function(spec, field_id, layout)
 
 
 _bootstrap()

@@ -290,7 +290,7 @@ def _get_texture_mipmap_cuepoints():
     f = float(_N)
     off = 1 / (2 * f)
     c = lambda i: (i / f + off) * 2.0 - 1.0
-    return dict(('%d%d' % (x, y), (c(x), c(y))) for y in range(_N) for x in range(_N))
+    return {'%d%d' % (x, y): (c(x), c(y)) for y in range(_N) for x in range(_N)}
 
 
 @test_cuepoints(points=_get_texture_mipmap_cuepoints(), tolerance=1)

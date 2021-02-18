@@ -255,7 +255,7 @@ def _get_data_streamed_buffer_cuepoints():
     f = float(_N)
     off = 1 / (2 * f)
     c = lambda i: (i / f + off) * 2.0 - 1.0
-    return dict((f'{x}{y}', (c(x), c(y))) for y in range(_N) for x in range(_N))
+    return {f'{x}{y}': (c(x), c(y)) for y in range(_N) for x in range(_N)}
 
 
 def _get_data_streamed_buffer_vec4_scene(cfg, scale, show_dbg_points):

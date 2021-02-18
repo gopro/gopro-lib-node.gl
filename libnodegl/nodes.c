@@ -230,9 +230,11 @@ static int track_children(struct ngl_node *node)
                 uint8_t *nb_elems_p = base_ptr + par->offset + sizeof(struct ngl_node **);
                 struct ngl_node **elems = *(struct ngl_node ***)elems_p;
                 const int nb_elems = *(int *)nb_elems_p;
-                for (int i = 0; i < nb_elems; i++)
-                    if (!ngli_darray_push(&node->children, &elems[i]))
+                for (int i = 0; i < nb_elems; i++) {
+                    struct ngl_node *child = elems[i];
+                    if (!ngli_darray_push(&node->children, &child))
                         return NGL_ERROR_MEMORY;
+                }
                 break;
             }
             case PARAM_TYPE_NODEDICT: {
@@ -240,9 +242,11 @@ static int track_children(struct ngl_node *node)
                 if (!hmap)
                     break;
                 const struct hmap_entry *entry = NULL;
-                while ((entry = ngli_hmap_next(hmap, entry)))
-                    if (!ngli_darray_push(&node->children, &entry->data))
+                while ((entry = ngli_hmap_next(hmap, entry))) {
+                    struct ngl_node *child = entry->data;
+                    if (!ngli_darray_push(&node->children, &child))
                         return NGL_ERROR_MEMORY;
+                }
                 break;
             }
         }

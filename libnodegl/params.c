@@ -568,62 +568,61 @@ int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params)
         last_offset = par->offset;
 
         int ret = 0;
-        // TODO: reindent
-            switch (par->type) {
-                case NGLI_PARAM_TYPE_SELECT: {
-                    const int v = (int)par->def_value.i64;
-                    const char *s = ngli_params_get_select_str(par->choices->consts, v);
-                    ngli_assert(s);
-                    ret = ngli_params_vset(base_ptr, par, s);
-                    break;
-                }
-                case NGLI_PARAM_TYPE_FLAGS: {
-                    const int v = (int)par->def_value.i64;
-                    char *s = ngli_params_get_flags_str(par->choices->consts, v);
-                    if (!s)
-                        return NGL_ERROR_INVALID_ARG;
-                    ngli_assert(*s);
-                    ret = ngli_params_vset(base_ptr, par, s);
-                    ngli_free(s);
-                    break;
-                }
-                case NGLI_PARAM_TYPE_BOOL:
-                case NGLI_PARAM_TYPE_INT:
-                case NGLI_PARAM_TYPE_UINT:
-                case NGLI_PARAM_TYPE_I64:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.i64);
-                    break;
-                case NGLI_PARAM_TYPE_DBL:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.dbl);
-                    break;
-                case NGLI_PARAM_TYPE_STR:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.str);
-                    break;
-                case NGLI_PARAM_TYPE_IVEC2:
-                case NGLI_PARAM_TYPE_IVEC3:
-                case NGLI_PARAM_TYPE_IVEC4:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.ivec);
-                    break;
-                case NGLI_PARAM_TYPE_UIVEC2:
-                case NGLI_PARAM_TYPE_UIVEC3:
-                case NGLI_PARAM_TYPE_UIVEC4:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.uvec);
-                    break;
-                case NGLI_PARAM_TYPE_VEC2:
-                case NGLI_PARAM_TYPE_VEC3:
-                case NGLI_PARAM_TYPE_VEC4:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.vec);
-                    break;
-                case NGLI_PARAM_TYPE_MAT4:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.mat);
-                    break;
-                case NGLI_PARAM_TYPE_DATA:
-                    ret = ngli_params_vset(base_ptr, par, 0, par->def_value.p);
-                    break;
-                case NGLI_PARAM_TYPE_RATIONAL:
-                    ret = ngli_params_vset(base_ptr, par, par->def_value.r[0], par->def_value.r[1]);
-                    break;
+        switch (par->type) {
+            case NGLI_PARAM_TYPE_SELECT: {
+                const int v = (int)par->def_value.i64;
+                const char *s = ngli_params_get_select_str(par->choices->consts, v);
+                ngli_assert(s);
+                ret = ngli_params_vset(base_ptr, par, s);
+                break;
             }
+            case NGLI_PARAM_TYPE_FLAGS: {
+                const int v = (int)par->def_value.i64;
+                char *s = ngli_params_get_flags_str(par->choices->consts, v);
+                if (!s)
+                    return NGL_ERROR_INVALID_ARG;
+                ngli_assert(*s);
+                ret = ngli_params_vset(base_ptr, par, s);
+                ngli_free(s);
+                break;
+            }
+            case NGLI_PARAM_TYPE_BOOL:
+            case NGLI_PARAM_TYPE_INT:
+            case NGLI_PARAM_TYPE_UINT:
+            case NGLI_PARAM_TYPE_I64:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.i64);
+                break;
+            case NGLI_PARAM_TYPE_DBL:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.dbl);
+                break;
+            case NGLI_PARAM_TYPE_STR:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.str);
+                break;
+            case NGLI_PARAM_TYPE_IVEC2:
+            case NGLI_PARAM_TYPE_IVEC3:
+            case NGLI_PARAM_TYPE_IVEC4:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.ivec);
+                break;
+            case NGLI_PARAM_TYPE_UIVEC2:
+            case NGLI_PARAM_TYPE_UIVEC3:
+            case NGLI_PARAM_TYPE_UIVEC4:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.uvec);
+                break;
+            case NGLI_PARAM_TYPE_VEC2:
+            case NGLI_PARAM_TYPE_VEC3:
+            case NGLI_PARAM_TYPE_VEC4:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.vec);
+                break;
+            case NGLI_PARAM_TYPE_MAT4:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.mat);
+                break;
+            case NGLI_PARAM_TYPE_DATA:
+                ret = ngli_params_vset(base_ptr, par, 0, par->def_value.p);
+                break;
+            case NGLI_PARAM_TYPE_RATIONAL:
+                ret = ngli_params_vset(base_ptr, par, par->def_value.r[0], par->def_value.r[1]);
+                break;
+        }
         if (ret < 0)
             return ret;
     }

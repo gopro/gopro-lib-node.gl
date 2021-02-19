@@ -277,39 +277,39 @@ int ngli_jni_exception_check(JNIEnv *env, int log)
 int ngli_jni_init_jfields(JNIEnv *env, void *jfields, const struct JniField *jfields_mapping, int global)
 {
     int i, ret = 0;
-    jclass last_clazz = NULL;
+    jclass last_cls = NULL;
 
     for (i = 0; jfields_mapping[i].name; i++) {
         int mandatory = jfields_mapping[i].mandatory;
         enum JniFieldType type = jfields_mapping[i].type;
 
         if (type == NGLI_JNI_CLASS) {
-            jclass clazz;
+            jclass cls;
 
-            last_clazz = NULL;
+            last_cls = NULL;
 
-            clazz = (*env)->FindClass(env, jfields_mapping[i].name);
+            cls = (*env)->FindClass(env, jfields_mapping[i].name);
             if ((ret = ngli_jni_exception_check(env, mandatory)) < 0 && mandatory) {
                 goto done;
             }
 
-            last_clazz = *(jclass*)((uint8_t*)jfields + jfields_mapping[i].offset) =
-                    global ? (*env)->NewGlobalRef(env, clazz) : clazz;
+            last_cls = *(jclass*)((uint8_t*)jfields + jfields_mapping[i].offset) =
+                    global ? (*env)->NewGlobalRef(env, cls) : cls;
 
             if (global) {
-                (*env)->DeleteLocalRef(env, clazz);
+                (*env)->DeleteLocalRef(env, cls);
             }
 
         } else {
 
-            if (!last_clazz) {
+            if (!last_cls) {
                 ret = -1;
                 break;
             }
 
             switch(type) {
             case NGLI_JNI_FIELD: {
-                jfieldID field_id = (*env)->GetFieldID(env, last_clazz, jfields_mapping[i].method, jfields_mapping[i].signature);
+                jfieldID field_id = (*env)->GetFieldID(env, last_cls, jfields_mapping[i].method, jfields_mapping[i].signature);
                 if ((ret = ngli_jni_exception_check(env, mandatory)) < 0 && mandatory) {
                     goto done;
                 }
@@ -318,7 +318,7 @@ int ngli_jni_init_jfields(JNIEnv *env, void *jfields, const struct JniField *jfi
                 break;
             }
             case NGLI_JNI_STATIC_FIELD: {
-                jfieldID field_id = (*env)->GetStaticFieldID(env, last_clazz, jfields_mapping[i].method, jfields_mapping[i].signature);
+                jfieldID field_id = (*env)->GetStaticFieldID(env, last_cls, jfields_mapping[i].method, jfields_mapping[i].signature);
                 if ((ret = ngli_jni_exception_check(env, mandatory)) < 0 && mandatory) {
                     goto done;
                 }
@@ -327,7 +327,7 @@ int ngli_jni_init_jfields(JNIEnv *env, void *jfields, const struct JniField *jfi
                 break;
             }
             case NGLI_JNI_METHOD: {
-                jmethodID method_id = (*env)->GetMethodID(env, last_clazz, jfields_mapping[i].method, jfields_mapping[i].signature);
+                jmethodID method_id = (*env)->GetMethodID(env, last_cls, jfields_mapping[i].method, jfields_mapping[i].signature);
                 if ((ret = ngli_jni_exception_check(env, mandatory)) < 0 && mandatory) {
                     goto done;
                 }
@@ -336,7 +336,7 @@ int ngli_jni_init_jfields(JNIEnv *env, void *jfields, const struct JniField *jfi
                 break;
             }
             case NGLI_JNI_STATIC_METHOD: {
-                jmethodID method_id = (*env)->GetStaticMethodID(env, last_clazz, jfields_mapping[i].method, jfields_mapping[i].signature);
+                jmethodID method_id = (*env)->GetStaticMethodID(env, last_cls, jfields_mapping[i].method, jfields_mapping[i].signature);
                 if ((ret = ngli_jni_exception_check(env, mandatory)) < 0 && mandatory) {
                     goto done;
                 }
@@ -372,14 +372,14 @@ int ngli_jni_reset_jfields(JNIEnv *env, void *jfields, const struct JniField *jf
 
         switch(type) {
         case NGLI_JNI_CLASS: {
-            jclass clazz = *(jclass*)((uint8_t*)jfields + jfields_mapping[i].offset);
-            if (!clazz)
+            jclass cls = *(jclass*)((uint8_t*)jfields + jfields_mapping[i].offset);
+            if (!cls)
                 continue;
 
             if (global) {
-                (*env)->DeleteGlobalRef(env, clazz);
+                (*env)->DeleteGlobalRef(env, cls);
             } else {
-                (*env)->DeleteLocalRef(env, clazz);
+                (*env)->DeleteLocalRef(env, cls);
             }
 
             *(jclass*)((uint8_t*)jfields + jfields_mapping[i].offset) = NULL;

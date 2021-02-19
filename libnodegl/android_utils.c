@@ -39,7 +39,7 @@ jclass ngli_android_find_application_class(JNIEnv *env, const char *name)
     jmethodID find_class_id = NULL;
 
     jobject jname = NULL;
-    jclass clazz = NULL;
+    jclass cls = NULL;
 
     application_context = ngl_android_get_application_context();
     if (!application_context) {
@@ -77,7 +77,7 @@ jclass ngli_android_find_application_class(JNIEnv *env, const char *name)
         goto done;
     }
 
-    clazz = (*env)->CallObjectMethod(env, class_loader, find_class_id, jname);
+    cls = (*env)->CallObjectMethod(env, class_loader, find_class_id, jname);
     if ((ret = ngli_jni_exception_check(env, 1)) < 0) {
         goto done;
     }
@@ -98,5 +98,5 @@ done:
         (*env)->DeleteLocalRef(env, jname);
     }
 
-    return clazz;
+    return cls;
 }

@@ -86,10 +86,6 @@ static int should_print_par(uint8_t *priv, const struct node_param *par)
             const int v = *(int *)(priv + par->offset);
             return v != par->def_value.i64;
         }
-        case NGLI_PARAM_TYPE_I64: {
-            const int64_t v = *(int64_t *)(priv + par->offset);
-            return v != par->def_value.i64;
-        }
         case NGLI_PARAM_TYPE_RATIONAL: {
             const int *r = (int *)(priv + par->offset);
             return memcmp(r, par->def_value.r, sizeof(par->def_value.r));

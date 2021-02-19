@@ -1205,7 +1205,6 @@ Type | Description
 `uivec2` | 2 unsigned integers
 `uivec3` | 3 unsigned integers
 `uivec4` | 4 unsigned integers
-`i64` | 64-bit integer
 `double` | Double-precision float
 `string` | String
 `data` | Agnostic data buffer

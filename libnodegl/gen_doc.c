@@ -130,9 +130,6 @@ static char *get_default_str(const struct node_param *p)
         case NGLI_PARAM_TYPE_UINT:
             ngli_bstr_printf(b, "`%u`", (unsigned)p->def_value.i64);
             break;
-        case NGLI_PARAM_TYPE_I64:
-            ngli_bstr_printf(b, "`%" PRId64 "`", p->def_value.i64);
-            break;
         case NGLI_PARAM_TYPE_IVEC2:  ngli_bstr_printf(b, "(`%d`,`%d`)",           NGLI_ARG_VEC2(p->def_value.ivec)); break;
         case NGLI_PARAM_TYPE_IVEC3:  ngli_bstr_printf(b, "(`%d`,`%d`,`%d`)",      NGLI_ARG_VEC3(p->def_value.ivec)); break;
         case NGLI_PARAM_TYPE_IVEC4:  ngli_bstr_printf(b, "(`%d`,`%d`,`%d`,`%d`)", NGLI_ARG_VEC4(p->def_value.ivec)); break;

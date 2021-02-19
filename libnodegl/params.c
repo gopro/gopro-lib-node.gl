@@ -82,11 +82,6 @@ const struct param_specs ngli_params_specs[] = {
         .size = sizeof(int),
         .desc = NGLI_DOCSTRING("Boolean (map to `int` in C)"),
     },
-    [NGLI_PARAM_TYPE_I64] = {
-        .name = "i64",
-        .size = sizeof(int64_t),
-        .desc = NGLI_DOCSTRING("64-bit integer"),
-    },
     [NGLI_PARAM_TYPE_DBL] = {
         .name = "double",
         .size = sizeof(double),
@@ -281,7 +276,6 @@ void ngli_params_bstr_print_val(struct bstr *b, uint8_t *base_ptr, const struct 
         case NGLI_PARAM_TYPE_DBL:    ngli_bstr_printf(b, "%g",            *(const double *)srcp);                 break;
         case NGLI_PARAM_TYPE_INT:    ngli_bstr_printf(b, "%d",            *(const int *)srcp);                    break;
         case NGLI_PARAM_TYPE_UINT:   ngli_bstr_printf(b, "%u",            *(const unsigned *)srcp);               break;
-        case NGLI_PARAM_TYPE_I64:    ngli_bstr_printf(b, "%" PRId64,      *(const int64_t *)srcp);                break;
         case NGLI_PARAM_TYPE_IVEC2:  ngli_bstr_printf(b, "(%d,%d)",       NGLI_ARG_VEC2((const int *)srcp));      break;
         case NGLI_PARAM_TYPE_IVEC3:  ngli_bstr_printf(b, "(%d,%d,%d)",    NGLI_ARG_VEC3((const int *)srcp));      break;
         case NGLI_PARAM_TYPE_IVEC4:  ngli_bstr_printf(b, "(%d,%d,%d,%d)", NGLI_ARG_VEC4((const int *)srcp));      break;
@@ -378,12 +372,6 @@ int ngli_params_set(uint8_t *base_ptr, const struct node_param *par, va_list *ap
         case NGLI_PARAM_TYPE_UINT: {
             unsigned v = va_arg(*ap, unsigned);
             LOG(VERBOSE, "set %s to %u", par->key, v);
-            memcpy(dstp, &v, sizeof(v));
-            break;
-        }
-        case NGLI_PARAM_TYPE_I64: {
-            int64_t v = va_arg(*ap, int64_t);
-            LOG(VERBOSE, "set %s to %"PRId64, par->key, v);
             memcpy(dstp, &v, sizeof(v));
             break;
         }
@@ -589,7 +577,6 @@ int ngli_params_set_defaults(uint8_t *base_ptr, const struct node_param *params)
             case NGLI_PARAM_TYPE_BOOL:
             case NGLI_PARAM_TYPE_INT:
             case NGLI_PARAM_TYPE_UINT:
-            case NGLI_PARAM_TYPE_I64:
                 ret = ngli_params_vset(base_ptr, par, par->def_value.i64);
                 break;
             case NGLI_PARAM_TYPE_DBL:

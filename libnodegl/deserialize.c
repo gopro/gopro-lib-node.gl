@@ -77,13 +77,6 @@ static int parse_hexint(const char *s, int *valp)
     return (int)(endptr - s);
 }
 
-static int64_t parse_i64(const char *s, int64_t *valp)
-{
-    char *endptr = NULL;
-    *valp = strtoll(s, &endptr, 10);
-    return (int)(endptr - s);
-}
-
 static int parse_bool(const char *s, int *valp)
 {
     int ret = parse_int(s, valp);
@@ -248,7 +241,6 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
         CASE_LITERAL(NGLI_PARAM_TYPE_INT,  int,      parse_int)
         CASE_LITERAL(NGLI_PARAM_TYPE_UINT, unsigned, parse_uint)
         CASE_LITERAL(NGLI_PARAM_TYPE_BOOL, int,      parse_bool)
-        CASE_LITERAL(NGLI_PARAM_TYPE_I64,  int64_t,  parse_i64)
         CASE_LITERAL(NGLI_PARAM_TYPE_DBL,  double,   parse_double)
 
         case NGLI_PARAM_TYPE_RATIONAL: {

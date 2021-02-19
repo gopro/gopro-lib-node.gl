@@ -174,12 +174,6 @@ static int serialize_options(struct hmap *nlist,
                     ngli_bstr_printf(b, " %s:%u", p->key, v);
                 break;
             }
-            case NGLI_PARAM_TYPE_I64: {
-                const int64_t v = *(int64_t *)(priv + p->offset);
-                if (v != p->def_value.i64)
-                    ngli_bstr_printf(b, " %s:%"PRId64, p->key, v);
-                break;
-            }
             case NGLI_PARAM_TYPE_DBL: {
                 const double v = *(double *)(priv + p->offset);
                 if (v != p->def_value.dbl) {

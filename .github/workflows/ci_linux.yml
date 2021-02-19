@@ -10,6 +10,13 @@ jobs:
   linux:
 
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        include:
+          - backend: "all"
+            run_tests_command: "DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests"
+          - backend: "opengles 2"
+            run_tests_command: "MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests TESTS_SUITE=opengles"
 
     steps:
     - uses: actions/checkout@v1
@@ -31,26 +38,7 @@ jobs:
     - name: Build
       run: |
         make -j$(($(nproc)+1))
-    - name: Run tests
+    - name: Run tests ${{matrix.backend}}
       run: |
-        DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests
+        ${{matrix.run_tests_command}}
 
-  gles2:
-
-    runs-on: ubuntu-20.04
-
-    steps:
-    - uses: actions/checkout@v1
-
-    - name: Install dependencies
-      run: |
-        sudo apt -y update
-        sudo apt -y install libsdl2-dev python3-venv
-        sudo apt -y install ffmpeg libavcodec-dev libavutil-dev libavformat-dev libavdevice-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev
-
-    - name: Build
-      run: |
-        make -j$(($(nproc)+1))
-    - name: Run tests with OpenGLES2
-      run: |
-        MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests TESTS_SUITE=opengles

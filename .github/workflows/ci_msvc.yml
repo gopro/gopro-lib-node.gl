@@ -1,0 +1,56 @@
+name: 'tests Windows MSVC'
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+  schedule:
+      - cron: "0 0 * * 6"  # Run every Saturday at midnight
+
+jobs:
+  msvc:
+
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: wsl-bash {0}
+
+    steps:
+      - uses: Vampire/setup-wsl@v1
+        with:
+          distribution: Ubuntu-20.04
+
+      - uses: actions/checkout@v2
+
+      - name: Restore vcpkg binary cache archives
+        id: restore_vcpkg_binary_cache
+        uses: actions/cache@v2
+        with:
+          path: C:\Users\runneradmin\AppData\Local\vcpkg\archives
+          # when you change the vcpkg install packages, please change this key as well using a version number
+          key: vcpkg-binary-cache-v0.0.1
+
+      - name: Install dependencies
+        run: |
+          sudo apt -y update
+          sudo apt -y install build-essential python3-venv
+          pip.exe install meson
+          cd /mnt/c/vcpkg
+          ./vcpkg.exe install pthreads:x64-windows opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows
+          # TODO: remove vcpkg integrate install
+          ./vcpkg.exe integrate install
+
+      - name: Build
+        run: |
+          # Currently, Meson has a bug where the include paths need to be on the same drive as the project directory
+          # see https://github.com/mesonbuild/meson/issues/8329
+          cd /mnt/c
+          cp -Rf /mnt/d/a/gopro-lib-node.gl/gopro-lib-node.gl .
+          cd gopro-lib-node.gl
+          export VCPKG_DIR='C:\vcpkg'
+          export VCVARS64='"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
+          # Note: we don't need to pass -j<# threads> to make
+          # Make invokes meson and cmake using multiple threads
+          make

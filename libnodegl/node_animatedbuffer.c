@@ -32,9 +32,9 @@
 
 #define OFFSET(x) offsetof(struct buffer_priv, x)
 static const struct node_param animatedbuffer_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf),
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf),
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEBUFFER, -1},
-                  .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+                  .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .desc=NGLI_DOCSTRING("key frame buffers to interpolate from")},
     {NULL}
 };

@@ -93,17 +93,17 @@ static int scale_update(struct ngl_node *node, double t)
 
 #define OFFSET(x) offsetof(struct scale_priv, x)
 static const struct node_param scale_params[] = {
-    {"child",   PARAM_TYPE_NODE, OFFSET(trf.child),
-                .flags=PARAM_FLAG_NON_NULL,
+    {"child",   NGLI_PARAM_TYPE_NODE, OFFSET(trf.child),
+                .flags=NGLI_PARAM_FLAG_NON_NULL,
                 .desc=NGLI_DOCSTRING("scene to scale")},
-    {"factors", PARAM_TYPE_VEC3, OFFSET(factors),
+    {"factors", NGLI_PARAM_TYPE_VEC3, OFFSET(factors),
                 {.vec={1.0, 1.0, 1.0}},
-                .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+                .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                 .update_func=update_factors,
                 .desc=NGLI_DOCSTRING("scaling factors (how much to scale on each axis)")},
-    {"anchor",  PARAM_TYPE_VEC3, OFFSET(anchor),
+    {"anchor",  NGLI_PARAM_TYPE_VEC3, OFFSET(anchor),
                 .desc=NGLI_DOCSTRING("vector to the center point of the scale")},
-    {"anim",    PARAM_TYPE_NODE, OFFSET(anim),
+    {"anim",    NGLI_PARAM_TYPE_NODE, OFFSET(anim),
                 .node_types=(const int[]){NGL_NODE_ANIMATEDVEC3, NGL_NODE_STREAMEDVEC3, -1},
                 .desc=NGLI_DOCSTRING("`factors` animation")},
     {NULL}

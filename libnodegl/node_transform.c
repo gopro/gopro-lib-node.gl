@@ -29,10 +29,10 @@
 
 #define OFFSET(x) offsetof(struct transform_priv, x)
 static const struct node_param transform_params[] = {
-    {"child",  PARAM_TYPE_NODE, OFFSET(child), .flags=PARAM_FLAG_NON_NULL,
+    {"child",  NGLI_PARAM_TYPE_NODE, OFFSET(child), .flags=NGLI_PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to apply the transform to")},
-    {"matrix", PARAM_TYPE_MAT4, OFFSET(matrix), {.mat=NGLI_MAT4_IDENTITY},
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"matrix", NGLI_PARAM_TYPE_MAT4, OFFSET(matrix), {.mat=NGLI_MAT4_IDENTITY},
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .desc=NGLI_DOCSTRING("transformation matrix")},
     {NULL}
 };

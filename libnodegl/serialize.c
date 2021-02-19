@@ -140,7 +140,7 @@ static int serialize_options(struct hmap *nlist,
 {
     while (p && p->key) {
         switch (p->type) {
-            case PARAM_TYPE_SELECT: {
+            case NGLI_PARAM_TYPE_SELECT: {
                 const int v = *(int *)(priv + p->offset);
                 const char *s = ngli_params_get_select_str(p->choices->consts, v);
                 ngli_assert(s);
@@ -148,7 +148,7 @@ static int serialize_options(struct hmap *nlist,
                     ngli_bstr_printf(b, " %s:%s", p->key, s);
                 break;
             }
-            case PARAM_TYPE_FLAGS: {
+            case NGLI_PARAM_TYPE_FLAGS: {
                 const int v = *(int *)(priv + p->offset);
                 char *s = ngli_params_get_flags_str(p->choices->consts, v);
                 if (!s) {
@@ -161,26 +161,26 @@ static int serialize_options(struct hmap *nlist,
                 ngli_free(s);
                 break;
             }
-            case PARAM_TYPE_BOOL:
-            case PARAM_TYPE_INT: {
+            case NGLI_PARAM_TYPE_BOOL:
+            case NGLI_PARAM_TYPE_INT: {
                 const int v = *(int *)(priv + p->offset);
                 if (v != p->def_value.i64)
                     ngli_bstr_printf(b, " %s:%d", p->key, v);
                 break;
             }
-            case PARAM_TYPE_UINT: {
+            case NGLI_PARAM_TYPE_UINT: {
                 const int v = *(int *)(priv + p->offset);
                 if (v != p->def_value.i64)
                     ngli_bstr_printf(b, " %s:%u", p->key, v);
                 break;
             }
-            case PARAM_TYPE_I64: {
+            case NGLI_PARAM_TYPE_I64: {
                 const int64_t v = *(int64_t *)(priv + p->offset);
                 if (v != p->def_value.i64)
                     ngli_bstr_printf(b, " %s:%"PRId64, p->key, v);
                 break;
             }
-            case PARAM_TYPE_DBL: {
+            case NGLI_PARAM_TYPE_DBL: {
                 const double v = *(double *)(priv + p->offset);
                 if (v != p->def_value.dbl) {
                     ngli_bstr_printf(b, " %s:", p->key);
@@ -188,13 +188,13 @@ static int serialize_options(struct hmap *nlist,
                 }
                 break;
             }
-            case PARAM_TYPE_RATIONAL: {
+            case NGLI_PARAM_TYPE_RATIONAL: {
                 const int *r = (int *)(priv + p->offset);
                 if (memcmp(r, p->def_value.r, sizeof(p->def_value.r)))
                     ngli_bstr_printf(b, " %s:%d/%d", p->key, r[0], r[1]);
                 break;
             }
-            case PARAM_TYPE_STR: {
+            case NGLI_PARAM_TYPE_STR: {
                 const char *s = *(char **)(priv + p->offset);
                 if (!s || (p->def_value.str && !strcmp(s, p->def_value.str)))
                     break;
@@ -209,7 +209,7 @@ static int serialize_options(struct hmap *nlist,
                         ngli_bstr_printf(b, "%%%02x", s[i] & 0xff);
                 break;
             }
-            case PARAM_TYPE_DATA: {
+            case NGLI_PARAM_TYPE_DATA: {
                 const uint8_t *data = *(uint8_t **)(priv + p->offset);
                 const int size = *(int *)(priv + p->offset + sizeof(uint8_t *));
                 if (!data || !size)
@@ -220,40 +220,40 @@ static int serialize_options(struct hmap *nlist,
                 }
                 break;
             }
-            case PARAM_TYPE_IVEC2:
-            case PARAM_TYPE_IVEC3:
-            case PARAM_TYPE_IVEC4: {
+            case NGLI_PARAM_TYPE_IVEC2:
+            case NGLI_PARAM_TYPE_IVEC3:
+            case NGLI_PARAM_TYPE_IVEC4: {
                 const int *iv = (const int *)(priv + p->offset);
-                const int n = p->type - PARAM_TYPE_IVEC2 + 2;
+                const int n = p->type - NGLI_PARAM_TYPE_IVEC2 + 2;
                 if (memcmp(iv, p->def_value.ivec, n * sizeof(*iv))) {
                     ngli_bstr_printf(b, " %s:", p->key);
                     print_ints(b, n, iv);
                 }
                 break;
             }
-            case PARAM_TYPE_UIVEC2:
-            case PARAM_TYPE_UIVEC3:
-            case PARAM_TYPE_UIVEC4: {
+            case NGLI_PARAM_TYPE_UIVEC2:
+            case NGLI_PARAM_TYPE_UIVEC3:
+            case NGLI_PARAM_TYPE_UIVEC4: {
                 const unsigned *uv = (const unsigned *)(priv + p->offset);
-                const int n = p->type - PARAM_TYPE_UIVEC2 + 2;
+                const int n = p->type - NGLI_PARAM_TYPE_UIVEC2 + 2;
                 if (memcmp(uv, p->def_value.uvec, n * sizeof(*uv))) {
                     ngli_bstr_printf(b, " %s:", p->key);
                     print_unsigneds(b, n, uv);
                 }
                 break;
             }
-            case PARAM_TYPE_VEC2:
-            case PARAM_TYPE_VEC3:
-            case PARAM_TYPE_VEC4: {
+            case NGLI_PARAM_TYPE_VEC2:
+            case NGLI_PARAM_TYPE_VEC3:
+            case NGLI_PARAM_TYPE_VEC4: {
                 const float *v = (float *)(priv + p->offset);
-                const int n = p->type - PARAM_TYPE_VEC2 + 2;
+                const int n = p->type - NGLI_PARAM_TYPE_VEC2 + 2;
                 if (memcmp(v, p->def_value.vec, n * sizeof(*v))) {
                     ngli_bstr_printf(b, " %s:", p->key);
                     print_floats(b, n, v);
                 }
                 break;
             }
-            case PARAM_TYPE_MAT4: {
+            case NGLI_PARAM_TYPE_MAT4: {
                 const float *m = (float *)(priv + p->offset);
                 if (memcmp(m, p->def_value.mat, 16 * sizeof(*m))) {
                     ngli_bstr_printf(b, " %s:", p->key);
@@ -261,7 +261,7 @@ static int serialize_options(struct hmap *nlist,
                 }
                 break;
             }
-            case PARAM_TYPE_NODE: {
+            case NGLI_PARAM_TYPE_NODE: {
                 const struct ngl_node *node = *(struct ngl_node **)(priv + p->offset);
                 if (!node)
                     break;
@@ -269,7 +269,7 @@ static int serialize_options(struct hmap *nlist,
                 ngli_bstr_printf(b, " %s:%x", p->key, node_id);
                 break;
             }
-            case PARAM_TYPE_NODELIST: {
+            case NGLI_PARAM_TYPE_NODELIST: {
                 struct ngl_node **nodes = *(struct ngl_node ***)(priv + p->offset);
                 const int nb_nodes = *(int *)(priv + p->offset + sizeof(struct ngl_node **));
                 if (!nb_nodes)
@@ -281,7 +281,7 @@ static int serialize_options(struct hmap *nlist,
                 }
                 break;
             }
-            case PARAM_TYPE_DBLLIST: {
+            case NGLI_PARAM_TYPE_DBLLIST: {
                 uint8_t *elems_p = priv + p->offset;
                 uint8_t *nb_elems_p = priv + p->offset + sizeof(double *);
                 const double *elems = *(double **)elems_p;
@@ -292,7 +292,7 @@ static int serialize_options(struct hmap *nlist,
                 print_doubles(b, nb_elems, elems);
                 break;
             }
-            case PARAM_TYPE_NODEDICT: {
+            case NGLI_PARAM_TYPE_NODEDICT: {
                 struct hmap *hmap = *(struct hmap **)(priv + p->offset);
                 const int nb_nodes = hmap ? ngli_hmap_count(hmap) : 0;
                 if (!nb_nodes)
@@ -334,7 +334,7 @@ static int serialize_children(struct hmap *nlist,
 {
     while (p && p->key) {
         switch (p->type) {
-            case PARAM_TYPE_NODE: {
+            case NGLI_PARAM_TYPE_NODE: {
                 const struct ngl_node *child = *(struct ngl_node **)(priv + p->offset);
                 if (child) {
                     int ret = serialize(nlist, b, child);
@@ -343,7 +343,7 @@ static int serialize_children(struct hmap *nlist,
                 }
                 break;
             }
-            case PARAM_TYPE_NODELIST: {
+            case NGLI_PARAM_TYPE_NODELIST: {
                 struct ngl_node **children = *(struct ngl_node ***)(priv + p->offset);
                 const int nb_children = *(int *)(priv + p->offset + sizeof(struct ngl_node **));
 
@@ -354,7 +354,7 @@ static int serialize_children(struct hmap *nlist,
                 }
                 break;
             }
-            case PARAM_TYPE_NODEDICT: {
+            case NGLI_PARAM_TYPE_NODEDICT: {
                 struct hmap *hmap = *(struct hmap **)(priv + p->offset);
                 if (!hmap)
                     break;

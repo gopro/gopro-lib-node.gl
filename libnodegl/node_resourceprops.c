@@ -27,14 +27,14 @@
 
 #define OFFSET(x) offsetof(struct resourceprops_priv, x)
 static const struct node_param resourceprops_params[] = {
-    {"precision", PARAM_TYPE_SELECT, OFFSET(precision), {.i64=NGLI_PRECISION_AUTO},
+    {"precision", NGLI_PARAM_TYPE_SELECT, OFFSET(precision), {.i64=NGLI_PRECISION_AUTO},
                   .choices=&ngli_precision_choices,
                   .desc=NGLI_DOCSTRING("precision qualifier for the shader")},
-    {"as_image", PARAM_TYPE_BOOL, OFFSET(as_image),
+    {"as_image", NGLI_PARAM_TYPE_BOOL, OFFSET(as_image),
                  .desc=NGLI_DOCSTRING("flag this resource for image accessing (only applies to texture nodes)")},
-    {"writable", PARAM_TYPE_BOOL, OFFSET(writable),
+    {"writable", NGLI_PARAM_TYPE_BOOL, OFFSET(writable),
                  .desc=NGLI_DOCSTRING("flag this resource as writable in the shader")},
-    {"variadic", PARAM_TYPE_BOOL, OFFSET(variadic),
+    {"variadic", NGLI_PARAM_TYPE_BOOL, OFFSET(variadic),
                  .desc=NGLI_DOCSTRING("flag this resource as variadic (only applies to block nodes)")},
     {NULL}
 };

@@ -26,21 +26,21 @@
 
 #define OFFSET(x) offsetof(struct timerangemode_priv, x)
 static const struct node_param continuous_params[] = {
-    {"start_time", PARAM_TYPE_DBL, OFFSET(start_time),
+    {"start_time", NGLI_PARAM_TYPE_DBL, OFFSET(start_time),
                    .desc=NGLI_DOCSTRING("starting time for the scene to be drawn")},
     {NULL}
 };
 
 static const struct node_param norender_params[] = {
-    {"start_time", PARAM_TYPE_DBL, OFFSET(start_time),
+    {"start_time", NGLI_PARAM_TYPE_DBL, OFFSET(start_time),
                    .desc=NGLI_DOCSTRING("starting time for the scene to stop being drawn")},
     {NULL}
 };
 
 static const struct node_param once_params[] = {
-    {"start_time",  PARAM_TYPE_DBL, OFFSET(start_time),
+    {"start_time",  NGLI_PARAM_TYPE_DBL, OFFSET(start_time),
                     .desc=NGLI_DOCSTRING("starting time for the scene to be drawn once")},
-    {"render_time", PARAM_TYPE_DBL, OFFSET(render_time),
+    {"render_time", NGLI_PARAM_TYPE_DBL, OFFSET(render_time),
                     .desc=NGLI_DOCSTRING("chosen time to draw")},
     {NULL}
 };

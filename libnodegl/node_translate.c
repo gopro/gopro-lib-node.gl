@@ -77,14 +77,14 @@ static int translate_update(struct ngl_node *node, double t)
 
 #define OFFSET(x) offsetof(struct translate_priv, x)
 static const struct node_param translate_params[] = {
-    {"child",  PARAM_TYPE_NODE, OFFSET(trf.child),
-               .flags=PARAM_FLAG_NON_NULL,
+    {"child",  NGLI_PARAM_TYPE_NODE, OFFSET(trf.child),
+               .flags=NGLI_PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to translate")},
-    {"vector", PARAM_TYPE_VEC3, OFFSET(vector),
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"vector", NGLI_PARAM_TYPE_VEC3, OFFSET(vector),
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .update_func=update_vector,
                .desc=NGLI_DOCSTRING("translation vector")},
-    {"anim",   PARAM_TYPE_NODE, OFFSET(anim),
+    {"anim",   NGLI_PARAM_TYPE_NODE, OFFSET(anim),
                .node_types=(const int[]){NGL_NODE_ANIMATEDVEC3, NGL_NODE_STREAMEDVEC3, -1},
                .desc=NGLI_DOCSTRING("`vector` animation")},
     {NULL}

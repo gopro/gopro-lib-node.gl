@@ -83,11 +83,11 @@ struct compute_priv {
 
 #define OFFSET(x) offsetof(struct compute_priv, x)
 static const struct node_param compute_params[] = {
-    {"workgroup_count", PARAM_TYPE_IVEC3,      OFFSET(workgroup_count),
+    {"workgroup_count", NGLI_PARAM_TYPE_IVEC3,      OFFSET(workgroup_count),
                         .desc=NGLI_DOCSTRING("number of work groups to be executed")},
-    {"program",    PARAM_TYPE_NODE,     OFFSET(program),    .flags=PARAM_FLAG_NON_NULL, .node_types=PROGRAMS_TYPES_LIST,
+    {"program",    NGLI_PARAM_TYPE_NODE,     OFFSET(program),    .flags=NGLI_PARAM_FLAG_NON_NULL, .node_types=PROGRAMS_TYPES_LIST,
                    .desc=NGLI_DOCSTRING("compute program to be executed")},
-    {"resources",  PARAM_TYPE_NODEDICT, OFFSET(resources),
+    {"resources",  NGLI_PARAM_TYPE_NODEDICT, OFFSET(resources),
                    .node_types=DATA_TYPES_LIST,
                    .desc=NGLI_DOCSTRING("resources made accessible to the compute `program`")},
     {NULL}

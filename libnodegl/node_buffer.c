@@ -36,16 +36,16 @@
 
 #define OFFSET(x) offsetof(struct buffer_priv, x)
 static const struct node_param buffer_params[] = {
-    {"count",  PARAM_TYPE_INT,    OFFSET(count),
+    {"count",  NGLI_PARAM_TYPE_INT,    OFFSET(count),
                .desc=NGLI_DOCSTRING("number of elements")},
-    {"data",   PARAM_TYPE_DATA,   OFFSET(data),
+    {"data",   NGLI_PARAM_TYPE_DATA,   OFFSET(data),
                .desc=NGLI_DOCSTRING("buffer of `count` elements")},
-    {"filename", PARAM_TYPE_STR,  OFFSET(filename),
+    {"filename", NGLI_PARAM_TYPE_STR,  OFFSET(filename),
                .desc=NGLI_DOCSTRING("filename from which the buffer will be read, cannot be used with `data`")},
-    {"block",  PARAM_TYPE_NODE,    OFFSET(block),
+    {"block",  NGLI_PARAM_TYPE_NODE,    OFFSET(block),
                .node_types=(const int[]){NGL_NODE_BLOCK, -1},
                .desc=NGLI_DOCSTRING("reference a field from the given block")},
-    {"block_field", PARAM_TYPE_INT, OFFSET(block_field),
+    {"block_field", NGLI_PARAM_TYPE_INT, OFFSET(block_field),
                     .desc=NGLI_DOCSTRING("field index in `block`")},
     {NULL}
 };

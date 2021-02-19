@@ -54,14 +54,14 @@ static unsigned get_hue(const char *name)
 
 static int vec_is_set(uint8_t *base_ptr, const struct node_param *par)
 {
-    const int n = par->type - PARAM_TYPE_VEC2 + 2;
+    const int n = par->type - NGLI_PARAM_TYPE_VEC2 + 2;
     const float *v = (const float *)(base_ptr + par->offset);
     return memcmp(v, par->def_value.vec, n * sizeof(*v));
 }
 
 static int ivec_is_set(uint8_t *base_ptr, const struct node_param *par)
 {
-    const int n = par->type - PARAM_TYPE_IVEC2 + 2;
+    const int n = par->type - NGLI_PARAM_TYPE_IVEC2 + 2;
     const int *v = (const int *)(base_ptr + par->offset);
     return memcmp(v, par->def_value.ivec, n * sizeof(*v));
 }
@@ -75,38 +75,38 @@ static int mat_is_set(uint8_t *base_ptr, const struct node_param *par)
 static int should_print_par(uint8_t *priv, const struct node_param *par)
 {
     switch (par->type) {
-        case PARAM_TYPE_DBL: {
+        case NGLI_PARAM_TYPE_DBL: {
             const double v = *(double *)(priv + par->offset);
             return v != par->def_value.dbl;
         }
-        case PARAM_TYPE_BOOL:
-        case PARAM_TYPE_FLAGS:
-        case PARAM_TYPE_SELECT:
-        case PARAM_TYPE_INT: {
+        case NGLI_PARAM_TYPE_BOOL:
+        case NGLI_PARAM_TYPE_FLAGS:
+        case NGLI_PARAM_TYPE_SELECT:
+        case NGLI_PARAM_TYPE_INT: {
             const int v = *(int *)(priv + par->offset);
             return v != par->def_value.i64;
         }
-        case PARAM_TYPE_I64: {
+        case NGLI_PARAM_TYPE_I64: {
             const int64_t v = *(int64_t *)(priv + par->offset);
             return v != par->def_value.i64;
         }
-        case PARAM_TYPE_RATIONAL: {
+        case NGLI_PARAM_TYPE_RATIONAL: {
             const int *r = (int *)(priv + par->offset);
             return memcmp(r, par->def_value.r, sizeof(par->def_value.r));
         }
-        case PARAM_TYPE_STR: {
+        case NGLI_PARAM_TYPE_STR: {
             const char *s = *(const char **)(priv + par->offset);
             return s && (!par->def_value.str || strcmp(s, par->def_value.str));
         }
-        case PARAM_TYPE_VEC2:
-        case PARAM_TYPE_VEC3:
-        case PARAM_TYPE_VEC4:
+        case NGLI_PARAM_TYPE_VEC2:
+        case NGLI_PARAM_TYPE_VEC3:
+        case NGLI_PARAM_TYPE_VEC4:
             return vec_is_set(priv, par);
-        case PARAM_TYPE_IVEC2:
-        case PARAM_TYPE_IVEC3:
-        case PARAM_TYPE_IVEC4:
+        case NGLI_PARAM_TYPE_IVEC2:
+        case NGLI_PARAM_TYPE_IVEC3:
+        case NGLI_PARAM_TYPE_IVEC4:
             return ivec_is_set(priv, par);
-        case PARAM_TYPE_MAT4:
+        case NGLI_PARAM_TYPE_MAT4:
             return mat_is_set(priv, par);
     }
     return 0;
@@ -177,17 +177,17 @@ static void print_decls(struct bstr *b, const struct ngl_node *node,
 {
     while (p && p->key) {
         switch (p->type) {
-            case PARAM_TYPE_NODE: {
+            case NGLI_PARAM_TYPE_NODE: {
                 const struct ngl_node *child = *(struct ngl_node **)(priv + p->offset);
                 if (child)
                     print_all_decls(b, child, decls);
                 break;
             }
-            case PARAM_TYPE_NODELIST: {
+            case NGLI_PARAM_TYPE_NODELIST: {
                 struct ngl_node **children = *(struct ngl_node ***)(priv + p->offset);
                 const int nb_children = *(int *)(priv + p->offset + sizeof(struct ngl_node **));
 
-                if (nb_children && (p->flags & PARAM_FLAG_DOT_DISPLAY_PACKED)) {
+                if (nb_children && (p->flags & NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED)) {
                     if (visited(decls, children))
                         break;
                     print_packed_decls(b, p->key, children, nb_children, !node->ctx || node->is_active);
@@ -198,7 +198,7 @@ static void print_decls(struct bstr *b, const struct ngl_node *node,
                     print_all_decls(b, children[i], decls);
                 break;
             }
-            case PARAM_TYPE_NODEDICT: {
+            case NGLI_PARAM_TYPE_NODEDICT: {
                 struct hmap *hmap = *(struct hmap **)(priv + p->offset);
                 if (!hmap)
                     break;
@@ -239,11 +239,11 @@ static void print_links(struct bstr *b, const struct ngl_node *node,
 {
     while (p && p->key) {
         char *label = ngli_asprintf("[label=\"%s\"]",
-                                    (p->flags & PARAM_FLAG_DOT_DISPLAY_FIELDNAME) ? p->key : "");
+                                    (p->flags & NGLI_PARAM_FLAG_DOT_DISPLAY_FIELDNAME) ? p->key : "");
         if (!label)
             return;
         switch (p->type) {
-            case PARAM_TYPE_NODE: {
+            case NGLI_PARAM_TYPE_NODE: {
                 const struct ngl_node *child = *(struct ngl_node **)(priv + p->offset);
                 if (child) {
                     print_link(b, node, child, label);
@@ -251,11 +251,11 @@ static void print_links(struct bstr *b, const struct ngl_node *node,
                 }
                 break;
             }
-            case PARAM_TYPE_NODELIST: {
+            case NGLI_PARAM_TYPE_NODELIST: {
                 struct ngl_node **children = *(struct ngl_node ***)(priv + p->offset);
                 const int nb_children = *(int *)(priv + p->offset + sizeof(struct ngl_node **));
 
-                if (nb_children && (p->flags & PARAM_FLAG_DOT_DISPLAY_PACKED)) {
+                if (nb_children && (p->flags & NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED)) {
                     ngli_bstr_printf(b, "    %s_%p -> %s_%p%s\n",
                                     node->class->name, node, p->key, children, label);
                     break;
@@ -271,7 +271,7 @@ static void print_links(struct bstr *b, const struct ngl_node *node,
                 }
                 break;
             }
-            case PARAM_TYPE_NODEDICT: {
+            case NGLI_PARAM_TYPE_NODEDICT: {
                 struct hmap *hmap = *(struct hmap **)(priv + p->offset);
                 if (!hmap)
                     break;
@@ -280,7 +280,7 @@ static void print_links(struct bstr *b, const struct ngl_node *node,
                     char *key;
                     const struct ngl_node *child = entry->data;
 
-                    if (p->flags & PARAM_FLAG_DOT_DISPLAY_FIELDNAME)
+                    if (p->flags & NGLI_PARAM_FLAG_DOT_DISPLAY_FIELDNAME)
                         key = ngli_asprintf("[label=\"%s:%s\"]", p->key, entry->key);
                     else
                         key = ngli_asprintf("[label=\"%s\"]", entry->key);

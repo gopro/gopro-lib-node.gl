@@ -46,17 +46,17 @@
 
 #define OFFSET(x) offsetof(struct program_priv, x)
 static const struct node_param program_params[] = {
-    {"vertex",   PARAM_TYPE_STR, OFFSET(vertex),   {.str=NULL},
+    {"vertex",   NGLI_PARAM_TYPE_STR, OFFSET(vertex),   {.str=NULL},
                  .desc=NGLI_DOCSTRING("vertex shader")},
-    {"fragment", PARAM_TYPE_STR, OFFSET(fragment), {.str=NULL},
+    {"fragment", NGLI_PARAM_TYPE_STR, OFFSET(fragment), {.str=NULL},
                  .desc=NGLI_DOCSTRING("fragment shader")},
-    {"properties", PARAM_TYPE_NODEDICT, OFFSET(properties),
+    {"properties", NGLI_PARAM_TYPE_NODEDICT, OFFSET(properties),
                    .node_types=(const int[]){NGL_NODE_RESOURCEPROPS, -1},
                    .desc=NGLI_DOCSTRING("resource properties")},
-    {"vert_out_vars", PARAM_TYPE_NODEDICT, OFFSET(vert_out_vars),
+    {"vert_out_vars", NGLI_PARAM_TYPE_NODEDICT, OFFSET(vert_out_vars),
                        .node_types=IO_NODES,
                        .desc=NGLI_DOCSTRING("in/out communication variables shared between vertex and fragment stages")},
-    {"nb_frag_output", PARAM_TYPE_INT, OFFSET(nb_frag_output),
+    {"nb_frag_output", NGLI_PARAM_TYPE_INT, OFFSET(nb_frag_output),
                        .desc=NGLI_DOCSTRING("number of color outputs in the fragment shader")},
     {NULL}
 };

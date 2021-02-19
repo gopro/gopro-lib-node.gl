@@ -31,17 +31,17 @@
 
 #define OFFSET(x) offsetof(struct geometry_priv, x)
 static const struct node_param quad_params[] = {
-    {"corner",    PARAM_TYPE_VEC3, OFFSET(quad_corner),    {.vec={-0.5f, -0.5f}},
+    {"corner",    NGLI_PARAM_TYPE_VEC3, OFFSET(quad_corner),    {.vec={-0.5f, -0.5f}},
                   .desc=NGLI_DOCSTRING("origin coordinates of `width` and `height` vectors")},
-    {"width",     PARAM_TYPE_VEC3, OFFSET(quad_width),     {.vec={ 1.0f,  0.0f}},
+    {"width",     NGLI_PARAM_TYPE_VEC3, OFFSET(quad_width),     {.vec={ 1.0f,  0.0f}},
                   .desc=NGLI_DOCSTRING("width vector")},
-    {"height",    PARAM_TYPE_VEC3, OFFSET(quad_height),    {.vec={ 0.0f,  1.0f}},
+    {"height",    NGLI_PARAM_TYPE_VEC3, OFFSET(quad_height),    {.vec={ 0.0f,  1.0f}},
                   .desc=NGLI_DOCSTRING("height vector")},
-    {"uv_corner", PARAM_TYPE_VEC2, OFFSET(quad_uv_corner), {.vec={0.0f, 0.0f}},
+    {"uv_corner", NGLI_PARAM_TYPE_VEC2, OFFSET(quad_uv_corner), {.vec={0.0f, 0.0f}},
                   .desc=NGLI_DOCSTRING("origin coordinates of `uv_width` and `uv_height` vectors")},
-    {"uv_width",  PARAM_TYPE_VEC2, OFFSET(quad_uv_width),  {.vec={1.0f, 0.0f}},
+    {"uv_width",  NGLI_PARAM_TYPE_VEC2, OFFSET(quad_uv_width),  {.vec={1.0f, 0.0f}},
                   .desc=NGLI_DOCSTRING("UV coordinates width vector")},
-    {"uv_height", PARAM_TYPE_VEC2, OFFSET(quad_uv_height), {.vec={0.0f, 1.0f}},
+    {"uv_height", NGLI_PARAM_TYPE_VEC2, OFFSET(quad_uv_height), {.vec={0.0f, 1.0f}},
                   .desc=NGLI_DOCSTRING("UV coordinates height vector")},
     {NULL}
 };

@@ -32,9 +32,9 @@
 
 #define OFFSET(x) offsetof(struct geometry_priv, x)
 static const struct node_param circle_params[] = {
-    {"radius",  PARAM_TYPE_DBL, OFFSET(radius),  {.dbl=1.0},
+    {"radius",  NGLI_PARAM_TYPE_DBL, OFFSET(radius),  {.dbl=1.0},
                 .desc=NGLI_DOCSTRING("circle radius")},
-    {"npoints", PARAM_TYPE_INT, OFFSET(npoints), {.i64=16},
+    {"npoints", NGLI_PARAM_TYPE_INT, OFFSET(npoints), {.i64=16},
                 .desc=NGLI_DOCSTRING("number of points")},
     {NULL}
 };

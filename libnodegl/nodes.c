@@ -51,7 +51,7 @@ extern const struct param_specs ngli_params_specs[];
 
 #define OFFSET(x) offsetof(struct ngl_node, x)
 const struct node_param ngli_base_node_params[] = {
-    {"label",     PARAM_TYPE_STR,      OFFSET(label)},
+    {"label",     NGLI_PARAM_TYPE_STR,      OFFSET(label)},
     {NULL}
 };
 
@@ -219,7 +219,7 @@ static int track_children(struct ngl_node *node)
 
     while (par->key) {
         switch (par->type) {
-            case PARAM_TYPE_NODE: {
+            case NGLI_PARAM_TYPE_NODE: {
                 uint8_t *child_p = base_ptr + par->offset;
                 struct ngl_node *child = *(struct ngl_node **)child_p;
                 if (child && !ngli_darray_push(&node->children, &child))
@@ -228,7 +228,7 @@ static int track_children(struct ngl_node *node)
                     return NGL_ERROR_MEMORY;
                 break;
             }
-            case PARAM_TYPE_NODELIST: {
+            case NGLI_PARAM_TYPE_NODELIST: {
                 uint8_t *elems_p = base_ptr + par->offset;
                 uint8_t *nb_elems_p = base_ptr + par->offset + sizeof(struct ngl_node **);
                 struct ngl_node **elems = *(struct ngl_node ***)elems_p;
@@ -242,7 +242,7 @@ static int track_children(struct ngl_node *node)
                 }
                 break;
             }
-            case PARAM_TYPE_NODEDICT: {
+            case NGLI_PARAM_TYPE_NODEDICT: {
                 struct hmap *hmap = *(struct hmap **)(base_ptr + par->offset);
                 if (!hmap)
                     break;
@@ -273,7 +273,7 @@ static int check_params_sanity(struct ngl_node *node)
 
     while (par->key) {
         const void *p = base_ptr + par->offset;
-        if ((par->flags & PARAM_FLAG_NON_NULL) && !*(uint8_t **)p) {
+        if ((par->flags & NGLI_PARAM_FLAG_NON_NULL) && !*(uint8_t **)p) {
             LOG(ERROR, "%s: %s parameter can not be null", node->label, par->key);
             return NGL_ERROR_INVALID_ARG;
         }
@@ -332,7 +332,7 @@ static int node_set_children_ctx(uint8_t *base_ptr, const struct node_param *par
     for (int i = 0; params[i].key; i++) {
         const struct node_param *par = &params[i];
 
-        if (par->type == PARAM_TYPE_NODE) {
+        if (par->type == NGLI_PARAM_TYPE_NODE) {
             uint8_t *node_p = base_ptr + par->offset;
             struct ngl_node *node = *(struct ngl_node **)node_p;
             if (node) {
@@ -340,7 +340,7 @@ static int node_set_children_ctx(uint8_t *base_ptr, const struct node_param *par
                 if (ret < 0)
                     return ret;
             }
-        } else if (par->type == PARAM_TYPE_NODELIST) {
+        } else if (par->type == NGLI_PARAM_TYPE_NODELIST) {
             uint8_t *elems_p = base_ptr + par->offset;
             uint8_t *nb_elems_p = base_ptr + par->offset + sizeof(struct ngl_node **);
             struct ngl_node **elems = *(struct ngl_node ***)elems_p;
@@ -350,7 +350,7 @@ static int node_set_children_ctx(uint8_t *base_ptr, const struct node_param *par
                 if (ret < 0)
                     return ret;
             }
-        } else if (par->type == PARAM_TYPE_NODEDICT) {
+        } else if (par->type == NGLI_PARAM_TYPE_NODEDICT) {
             struct hmap *hmap = *(struct hmap **)(base_ptr + par->offset);
             if (!hmap)
                 continue;
@@ -602,7 +602,7 @@ int ngl_node_param_add(struct ngl_node *node, const char *key,
     if (!par)
         return NGL_ERROR_NOT_FOUND;
 
-    if (node->ctx && !(par->flags & PARAM_FLAG_ALLOW_LIVE_CHANGE)) {
+    if (node->ctx && !(par->flags & NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE)) {
         LOG(ERROR, "%s.%s can not be live extended", node->label, key);
         return NGL_ERROR_INVALID_USAGE;
     }
@@ -646,7 +646,7 @@ int ngl_node_param_set(struct ngl_node *node, const char *key, ...)
     if (!par)
         return NGL_ERROR_NOT_FOUND;
 
-    if (node->ctx && !(par->flags & PARAM_FLAG_ALLOW_LIVE_CHANGE)) {
+    if (node->ctx && !(par->flags & NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE)) {
         LOG(ERROR, "%s.%s can not be live changed", node->label, key);
         return NGL_ERROR_INVALID_USAGE;
     }

@@ -117,25 +117,25 @@ struct render_priv {
 
 #define OFFSET(x) offsetof(struct render_priv, x)
 static const struct node_param render_params[] = {
-    {"geometry", PARAM_TYPE_NODE, OFFSET(geometry), .flags=PARAM_FLAG_NON_NULL,
+    {"geometry", NGLI_PARAM_TYPE_NODE, OFFSET(geometry), .flags=NGLI_PARAM_FLAG_NON_NULL,
                  .node_types=GEOMETRY_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("geometry to be rasterized")},
-    {"program",  PARAM_TYPE_NODE, OFFSET(program),
+    {"program",  NGLI_PARAM_TYPE_NODE, OFFSET(program),
                  .node_types=PROGRAMS_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("program to be executed")},
-    {"vert_resources", PARAM_TYPE_NODEDICT, OFFSET(vert_resources),
+    {"vert_resources", NGLI_PARAM_TYPE_NODEDICT, OFFSET(vert_resources),
                          .node_types=INPUT_TYPES_LIST,
                          .desc=NGLI_DOCSTRING("resources made accessible to the vertex stage of the `program`")},
-    {"frag_resources", PARAM_TYPE_NODEDICT, OFFSET(frag_resources),
+    {"frag_resources", NGLI_PARAM_TYPE_NODEDICT, OFFSET(frag_resources),
                            .node_types=INPUT_TYPES_LIST,
                            .desc=NGLI_DOCSTRING("resources made accessible to the fragment stage of the `program`")},
-    {"attributes", PARAM_TYPE_NODEDICT, OFFSET(attributes),
+    {"attributes", NGLI_PARAM_TYPE_NODEDICT, OFFSET(attributes),
                  .node_types=ATTRIBUTES_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("extra vertex attributes made accessible to the `program`")},
-    {"instance_attributes", PARAM_TYPE_NODEDICT, OFFSET(instance_attributes),
+    {"instance_attributes", NGLI_PARAM_TYPE_NODEDICT, OFFSET(instance_attributes),
                  .node_types=ATTRIBUTES_TYPES_LIST,
                  .desc=NGLI_DOCSTRING("per instance extra vertex attributes made accessible to the `program`")},
-    {"nb_instances", PARAM_TYPE_INT, OFFSET(nb_instances), {.i64 = 1},
+    {"nb_instances", NGLI_PARAM_TYPE_INT, OFFSET(nb_instances), {.i64 = 1},
                  .desc=NGLI_DOCSTRING("number of instances to draw")},
     {NULL}
 };

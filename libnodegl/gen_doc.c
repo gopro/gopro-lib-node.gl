@@ -98,14 +98,14 @@ static char *get_default_str(const struct node_param *p)
         return NULL;
 
     switch (p->type) {
-        case PARAM_TYPE_SELECT: {
+        case NGLI_PARAM_TYPE_SELECT: {
             const int v = (int)p->def_value.i64;
             const char *s = ngli_params_get_select_str(p->choices->consts, v);
             ngli_assert(s);
             ngli_bstr_printf(b, "`%s`", s);
             break;
         }
-        case PARAM_TYPE_FLAGS: {
+        case NGLI_PARAM_TYPE_FLAGS: {
             const int v = (int)p->def_value.i64;
             char *s = ngli_params_get_flags_str(p->choices->consts, v);
             if (!s)
@@ -115,33 +115,33 @@ static char *get_default_str(const struct node_param *p)
             ngli_free(s);
             break;
         }
-        case PARAM_TYPE_DBL:
+        case NGLI_PARAM_TYPE_DBL:
             ngli_bstr_printf(b, "`%g`", p->def_value.dbl);
             break;
-        case PARAM_TYPE_BOOL:
+        case NGLI_PARAM_TYPE_BOOL:
             if (p->def_value.i64 < 0)
                 ngli_bstr_print(b, "`unset`");
             else
                 ngli_bstr_printf(b, "`%d`", (int)p->def_value.i64);
             break;
-        case PARAM_TYPE_INT:
+        case NGLI_PARAM_TYPE_INT:
             ngli_bstr_printf(b, "`%d`", (int)p->def_value.i64);
             break;
-        case PARAM_TYPE_UINT:
+        case NGLI_PARAM_TYPE_UINT:
             ngli_bstr_printf(b, "`%u`", (unsigned)p->def_value.i64);
             break;
-        case PARAM_TYPE_I64:
+        case NGLI_PARAM_TYPE_I64:
             ngli_bstr_printf(b, "`%" PRId64 "`", p->def_value.i64);
             break;
-        case PARAM_TYPE_IVEC2:  ngli_bstr_printf(b, "(`%d`,`%d`)",           NGLI_ARG_VEC2(p->def_value.ivec)); break;
-        case PARAM_TYPE_IVEC3:  ngli_bstr_printf(b, "(`%d`,`%d`,`%d`)",      NGLI_ARG_VEC3(p->def_value.ivec)); break;
-        case PARAM_TYPE_IVEC4:  ngli_bstr_printf(b, "(`%d`,`%d`,`%d`,`%d`)", NGLI_ARG_VEC4(p->def_value.ivec)); break;
-        case PARAM_TYPE_UIVEC2: ngli_bstr_printf(b, "(`%u`,`%u`)",           NGLI_ARG_VEC2(p->def_value.uvec)); break;
-        case PARAM_TYPE_UIVEC3: ngli_bstr_printf(b, "(`%u`,`%u`,`%u`)",      NGLI_ARG_VEC3(p->def_value.uvec)); break;
-        case PARAM_TYPE_UIVEC4: ngli_bstr_printf(b, "(`%u`,`%u`,`%u`,`%u`)", NGLI_ARG_VEC4(p->def_value.uvec)); break;
-        case PARAM_TYPE_VEC2:   ngli_bstr_printf(b, "(`%g`,`%g`)",           NGLI_ARG_VEC2(p->def_value.vec));  break;
-        case PARAM_TYPE_VEC3:   ngli_bstr_printf(b, "(`%g`,`%g`,`%g`)",      NGLI_ARG_VEC3(p->def_value.vec));  break;
-        case PARAM_TYPE_VEC4:   ngli_bstr_printf(b, "(`%g`,`%g`,`%g`,`%g`)", NGLI_ARG_VEC4(p->def_value.vec));  break;
+        case NGLI_PARAM_TYPE_IVEC2:  ngli_bstr_printf(b, "(`%d`,`%d`)",           NGLI_ARG_VEC2(p->def_value.ivec)); break;
+        case NGLI_PARAM_TYPE_IVEC3:  ngli_bstr_printf(b, "(`%d`,`%d`,`%d`)",      NGLI_ARG_VEC3(p->def_value.ivec)); break;
+        case NGLI_PARAM_TYPE_IVEC4:  ngli_bstr_printf(b, "(`%d`,`%d`,`%d`,`%d`)", NGLI_ARG_VEC4(p->def_value.ivec)); break;
+        case NGLI_PARAM_TYPE_UIVEC2: ngli_bstr_printf(b, "(`%u`,`%u`)",           NGLI_ARG_VEC2(p->def_value.uvec)); break;
+        case NGLI_PARAM_TYPE_UIVEC3: ngli_bstr_printf(b, "(`%u`,`%u`,`%u`)",      NGLI_ARG_VEC3(p->def_value.uvec)); break;
+        case NGLI_PARAM_TYPE_UIVEC4: ngli_bstr_printf(b, "(`%u`,`%u`,`%u`,`%u`)", NGLI_ARG_VEC4(p->def_value.uvec)); break;
+        case NGLI_PARAM_TYPE_VEC2:   ngli_bstr_printf(b, "(`%g`,`%g`)",           NGLI_ARG_VEC2(p->def_value.vec));  break;
+        case NGLI_PARAM_TYPE_VEC3:   ngli_bstr_printf(b, "(`%g`,`%g`,`%g`)",      NGLI_ARG_VEC3(p->def_value.vec));  break;
+        case NGLI_PARAM_TYPE_VEC4:   ngli_bstr_printf(b, "(`%g`,`%g`,`%g`,`%g`)", NGLI_ARG_VEC4(p->def_value.vec));  break;
     }
 
     char *def = ngli_bstr_strdup(b);
@@ -164,7 +164,7 @@ static void print_node_params(const char *name, const struct node_param *p)
             ngli_assert(p->desc);
             printf("`%s` | %s | %s | %s | %s\n",
                    p->key,
-                   (p->flags & PARAM_FLAG_ALLOW_LIVE_CHANGE) ? "✓" : "",
+                   (p->flags & NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE) ? "✓" : "",
                    type, p->desc, def);
         }
 
@@ -243,7 +243,7 @@ int main(void)
     printf("\n");
     printf("Type | Description\n");
     printf("---- | -----------\n");
-    for (int i = 0; i < NB_PARAMS; i++) {
+    for (int i = 0; i < NGLI_PARAM_TYPE_NB; i++) {
         const struct param_specs *ps = &ngli_params_specs[i];
         ngli_assert(ps->name && ps->desc);
         printf("`%s` | %s\n", ps->name, ps->desc);

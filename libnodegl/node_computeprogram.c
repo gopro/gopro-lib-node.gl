@@ -26,11 +26,11 @@
 
 #define OFFSET(x) offsetof(struct program_priv, x)
 static const struct node_param computeprogram_params[] = {
-    {"compute", PARAM_TYPE_STR, OFFSET(compute), .flags=PARAM_FLAG_NON_NULL,
+    {"compute", NGLI_PARAM_TYPE_STR, OFFSET(compute), .flags=NGLI_PARAM_FLAG_NON_NULL,
                 .desc=NGLI_DOCSTRING("compute shader")},
-    {"workgroup_size", PARAM_TYPE_IVEC3, OFFSET(workgroup_size),
+    {"workgroup_size", NGLI_PARAM_TYPE_IVEC3, OFFSET(workgroup_size),
                        .desc=NGLI_DOCSTRING("number of local compute instances in a work group")},
-    {"properties", PARAM_TYPE_NODEDICT, OFFSET(properties),
+    {"properties", NGLI_PARAM_TYPE_NODEDICT, OFFSET(properties),
                    .node_types=(const int[]){NGL_NODE_RESOURCEPROPS, -1},
                    .desc=NGLI_DOCSTRING("resource properties")},
     {NULL}

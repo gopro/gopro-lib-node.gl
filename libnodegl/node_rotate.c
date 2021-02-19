@@ -102,18 +102,18 @@ static int rotate_update(struct ngl_node *node, double t)
 
 #define OFFSET(x) offsetof(struct rotate_priv, x)
 static const struct node_param rotate_params[] = {
-    {"child",  PARAM_TYPE_NODE, OFFSET(trf.child),
-               .flags=PARAM_FLAG_NON_NULL,
+    {"child",  NGLI_PARAM_TYPE_NODE, OFFSET(trf.child),
+               .flags=NGLI_PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to rotate")},
-    {"angle",  PARAM_TYPE_DBL,  OFFSET(angle),
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"angle",  NGLI_PARAM_TYPE_DBL,  OFFSET(angle),
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .update_func=update_angle,
                .desc=NGLI_DOCSTRING("rotation angle in degrees")},
-    {"axis",   PARAM_TYPE_VEC3, OFFSET(axis),   {.vec={0.0, 0.0, 1.0}},
+    {"axis",   NGLI_PARAM_TYPE_VEC3, OFFSET(axis),   {.vec={0.0, 0.0, 1.0}},
                .desc=NGLI_DOCSTRING("rotation axis")},
-    {"anchor", PARAM_TYPE_VEC3, OFFSET(anchor), {.vec={0.0, 0.0, 0.0}},
+    {"anchor", NGLI_PARAM_TYPE_VEC3, OFFSET(anchor), {.vec={0.0, 0.0, 0.0}},
                .desc=NGLI_DOCSTRING("vector to the center point of the rotation")},
-    {"anim",   PARAM_TYPE_NODE, OFFSET(anim),
+    {"anim",   NGLI_PARAM_TYPE_NODE, OFFSET(anim),
                .node_types=(const int[]){NGL_NODE_ANIMATEDFLOAT, NGL_NODE_STREAMEDFLOAT, -1},
                .desc=NGLI_DOCSTRING("`angle` animation")},
     {NULL}

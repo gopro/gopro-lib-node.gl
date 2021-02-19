@@ -86,42 +86,42 @@ static int uniformquat_update_func(struct ngl_node *node)
 #define DECLARE_PARAMS(type, ptype, dst, upd_fn)                        \
 static const struct node_param uniform##type##_params[] = {             \
     {"value",  ptype, OFFSET(dst),                                      \
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,                     \
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,                     \
                .update_func=upd_fn,                                     \
                .desc=NGLI_DOCSTRING("value exposed to the shader")},    \
     {NULL}                                                              \
 }
 
-DECLARE_PARAMS(bool,   PARAM_TYPE_BOOL,   opt.ivec, uniformivec_update_func);
-DECLARE_PARAMS(float,  PARAM_TYPE_DBL,    opt.dbl,  uniformfloat_update_func);
-DECLARE_PARAMS(vec2,   PARAM_TYPE_VEC2,   opt.vec,  uniformvec_update_func);
-DECLARE_PARAMS(vec3,   PARAM_TYPE_VEC3,   opt.vec,  uniformvec_update_func);
-DECLARE_PARAMS(vec4,   PARAM_TYPE_VEC4,   opt.vec,  uniformvec_update_func);
-DECLARE_PARAMS(int,    PARAM_TYPE_INT,    opt.ivec, uniformivec_update_func);
-DECLARE_PARAMS(ivec2,  PARAM_TYPE_IVEC2,  opt.ivec, uniformivec_update_func);
-DECLARE_PARAMS(ivec3,  PARAM_TYPE_IVEC3,  opt.ivec, uniformivec_update_func);
-DECLARE_PARAMS(ivec4,  PARAM_TYPE_IVEC4,  opt.ivec, uniformivec_update_func);
-DECLARE_PARAMS(uint,   PARAM_TYPE_UINT,   opt.uvec, uniformuivec_update_func);
-DECLARE_PARAMS(uivec2, PARAM_TYPE_UIVEC2, opt.uvec, uniformuivec_update_func);
-DECLARE_PARAMS(uivec3, PARAM_TYPE_UIVEC3, opt.uvec, uniformuivec_update_func);
-DECLARE_PARAMS(uivec4, PARAM_TYPE_UIVEC4, opt.uvec, uniformuivec_update_func);
+DECLARE_PARAMS(bool,   NGLI_PARAM_TYPE_BOOL,   opt.ivec, uniformivec_update_func);
+DECLARE_PARAMS(float,  NGLI_PARAM_TYPE_DBL,    opt.dbl,  uniformfloat_update_func);
+DECLARE_PARAMS(vec2,   NGLI_PARAM_TYPE_VEC2,   opt.vec,  uniformvec_update_func);
+DECLARE_PARAMS(vec3,   NGLI_PARAM_TYPE_VEC3,   opt.vec,  uniformvec_update_func);
+DECLARE_PARAMS(vec4,   NGLI_PARAM_TYPE_VEC4,   opt.vec,  uniformvec_update_func);
+DECLARE_PARAMS(int,    NGLI_PARAM_TYPE_INT,    opt.ivec, uniformivec_update_func);
+DECLARE_PARAMS(ivec2,  NGLI_PARAM_TYPE_IVEC2,  opt.ivec, uniformivec_update_func);
+DECLARE_PARAMS(ivec3,  NGLI_PARAM_TYPE_IVEC3,  opt.ivec, uniformivec_update_func);
+DECLARE_PARAMS(ivec4,  NGLI_PARAM_TYPE_IVEC4,  opt.ivec, uniformivec_update_func);
+DECLARE_PARAMS(uint,   NGLI_PARAM_TYPE_UINT,   opt.uvec, uniformuivec_update_func);
+DECLARE_PARAMS(uivec2, NGLI_PARAM_TYPE_UIVEC2, opt.uvec, uniformuivec_update_func);
+DECLARE_PARAMS(uivec3, NGLI_PARAM_TYPE_UIVEC3, opt.uvec, uniformuivec_update_func);
+DECLARE_PARAMS(uivec4, NGLI_PARAM_TYPE_UIVEC4, opt.uvec, uniformuivec_update_func);
 
 static const struct node_param uniformquat_params[] = {
-    {"value",  PARAM_TYPE_VEC4, OFFSET(opt.vec), {.vec=NGLI_QUAT_IDENTITY},
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"value",  NGLI_PARAM_TYPE_VEC4, OFFSET(opt.vec), {.vec=NGLI_QUAT_IDENTITY},
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .update_func=uniformquat_update_func,
                .desc=NGLI_DOCSTRING("value exposed to the shader")},
-    {"as_mat4", PARAM_TYPE_BOOL, OFFSET(as_mat4), {.i64=0},
+    {"as_mat4", NGLI_PARAM_TYPE_BOOL, OFFSET(as_mat4), {.i64=0},
                 .desc=NGLI_DOCSTRING("exposed as a 4x4 rotation matrix in the program")},
     {NULL}
 };
 
 static const struct node_param uniformmat4_params[] = {
-    {"value",     PARAM_TYPE_MAT4, OFFSET(opt.mat), {.mat=NGLI_MAT4_IDENTITY},
-                  .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"value",     NGLI_PARAM_TYPE_MAT4, OFFSET(opt.mat), {.mat=NGLI_MAT4_IDENTITY},
+                  .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                   .update_func=uniformmat4_update_func,
                   .desc=NGLI_DOCSTRING("value exposed to the shader")},
-    {"transform", PARAM_TYPE_NODE, OFFSET(transform), .node_types=TRANSFORM_TYPES_LIST,
+    {"transform", NGLI_PARAM_TYPE_NODE, OFFSET(transform), .node_types=TRANSFORM_TYPES_LIST,
                   .desc=NGLI_DOCSTRING("`value` transformation chain")},
     {NULL}
 };

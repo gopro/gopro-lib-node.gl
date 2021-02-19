@@ -31,11 +31,11 @@ struct userswitch {
 
 #define OFFSET(x) offsetof(struct userswitch, x)
 static const struct node_param userswitch_params[] = {
-    {"child",  PARAM_TYPE_NODE, OFFSET(child),
-               .flags=PARAM_FLAG_NON_NULL,
+    {"child",  NGLI_PARAM_TYPE_NODE, OFFSET(child),
+               .flags=NGLI_PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to be rendered or not")},
-    {"enabled", PARAM_TYPE_BOOL, OFFSET(enabled), {.i64=1},
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"enabled", NGLI_PARAM_TYPE_BOOL, OFFSET(enabled), {.i64=1},
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .desc=NGLI_DOCSTRING("set if the scene should be rendered")},
     {NULL}
 };

@@ -94,16 +94,16 @@ static int rotatequat_update(struct ngl_node *node, double t)
 
 #define OFFSET(x) offsetof(struct rotatequat_priv, x)
 static const struct node_param rotatequat_params[] = {
-    {"child",  PARAM_TYPE_NODE, OFFSET(trf.child),
-               .flags=PARAM_FLAG_NON_NULL,
+    {"child",  NGLI_PARAM_TYPE_NODE, OFFSET(trf.child),
+               .flags=NGLI_PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to rotate")},
-    {"quat",   PARAM_TYPE_VEC4, OFFSET(quat), {.vec=NGLI_QUAT_IDENTITY},
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"quat",   NGLI_PARAM_TYPE_VEC4, OFFSET(quat), {.vec=NGLI_QUAT_IDENTITY},
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .update_func=update_quat,
                .desc=NGLI_DOCSTRING("quaternion")},
-    {"anchor", PARAM_TYPE_VEC3, OFFSET(anchor), {.vec={0.0, 0.0, 0.0}},
+    {"anchor", NGLI_PARAM_TYPE_VEC3, OFFSET(anchor), {.vec={0.0, 0.0, 0.0}},
                .desc=NGLI_DOCSTRING("vector to the center point of the rotation")},
-    {"anim",   PARAM_TYPE_NODE, OFFSET(anim),
+    {"anim",   NGLI_PARAM_TYPE_NODE, OFFSET(anim),
                .node_types=(const int[]){NGL_NODE_ANIMATEDQUAT, -1},
                .desc=NGLI_DOCSTRING("`quat` animation")},
     {NULL}

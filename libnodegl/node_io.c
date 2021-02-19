@@ -29,10 +29,10 @@
 
 #define OFFSET(x) offsetof(struct io_priv, x)
 static const struct node_param io_params[] = {
-    {"precision_out", PARAM_TYPE_SELECT, OFFSET(precision_out), {.i64=NGLI_PRECISION_AUTO},
+    {"precision_out", NGLI_PARAM_TYPE_SELECT, OFFSET(precision_out), {.i64=NGLI_PRECISION_AUTO},
                       .choices=&ngli_precision_choices,
                       .desc=NGLI_DOCSTRING("precision qualifier for the output side (vertex)")},
-    {"precision_in",  PARAM_TYPE_SELECT, OFFSET(precision_in), {.i64=NGLI_PRECISION_AUTO},
+    {"precision_in",  NGLI_PARAM_TYPE_SELECT, OFFSET(precision_in), {.i64=NGLI_PRECISION_AUTO},
                       .choices=&ngli_precision_choices,
                       .desc=NGLI_DOCSTRING("precision qualifier for the input side (fragment)")},
     {NULL}

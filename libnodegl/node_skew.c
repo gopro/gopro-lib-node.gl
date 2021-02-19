@@ -105,18 +105,18 @@ static int skew_update(struct ngl_node *node, double t)
 
 #define OFFSET(x) offsetof(struct skew_priv, x)
 static const struct node_param skew_params[] = {
-    {"child",  PARAM_TYPE_NODE, OFFSET(trf.child),
-               .flags=PARAM_FLAG_NON_NULL,
+    {"child",  NGLI_PARAM_TYPE_NODE, OFFSET(trf.child),
+               .flags=NGLI_PARAM_FLAG_NON_NULL,
                .desc=NGLI_DOCSTRING("scene to skew")},
-    {"angles", PARAM_TYPE_VEC3,  OFFSET(angles),
-               .flags=PARAM_FLAG_ALLOW_LIVE_CHANGE,
+    {"angles", NGLI_PARAM_TYPE_VEC3,  OFFSET(angles),
+               .flags=NGLI_PARAM_FLAG_ALLOW_LIVE_CHANGE,
                .update_func=update_angles,
                .desc=NGLI_DOCSTRING("skewing angles, only components forming a plane opposite to `axis` should be set")},
-    {"axis",   PARAM_TYPE_VEC3, OFFSET(axis), {.vec={1.0, 0.0, 0.0}},
+    {"axis",   NGLI_PARAM_TYPE_VEC3, OFFSET(axis), {.vec={1.0, 0.0, 0.0}},
                .desc=NGLI_DOCSTRING("skew axis")},
-    {"anchor", PARAM_TYPE_VEC3, OFFSET(anchor), {.vec={0.0, 0.0, 0.0}},
+    {"anchor", NGLI_PARAM_TYPE_VEC3, OFFSET(anchor), {.vec={0.0, 0.0, 0.0}},
                .desc=NGLI_DOCSTRING("vector to the center point of the skew")},
-    {"anim",   PARAM_TYPE_NODE, OFFSET(anim),
+    {"anim",   NGLI_PARAM_TYPE_NODE, OFFSET(anim),
                .node_types=(const int[]){NGL_NODE_ANIMATEDVEC3, NGL_NODE_STREAMEDVEC3, -1},
                .desc=NGLI_DOCSTRING("`angles` animation")},
     {NULL}

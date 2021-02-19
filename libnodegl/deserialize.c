@@ -245,13 +245,13 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
     int len = -1;
 
     switch (par->type) {
-        CASE_LITERAL(PARAM_TYPE_INT,  int,      parse_int)
-        CASE_LITERAL(PARAM_TYPE_UINT, unsigned, parse_uint)
-        CASE_LITERAL(PARAM_TYPE_BOOL, int,      parse_bool)
-        CASE_LITERAL(PARAM_TYPE_I64,  int64_t,  parse_i64)
-        CASE_LITERAL(PARAM_TYPE_DBL,  double,   parse_double)
+        CASE_LITERAL(NGLI_PARAM_TYPE_INT,  int,      parse_int)
+        CASE_LITERAL(NGLI_PARAM_TYPE_UINT, unsigned, parse_uint)
+        CASE_LITERAL(NGLI_PARAM_TYPE_BOOL, int,      parse_bool)
+        CASE_LITERAL(NGLI_PARAM_TYPE_I64,  int64_t,  parse_i64)
+        CASE_LITERAL(NGLI_PARAM_TYPE_DBL,  double,   parse_double)
 
-        case PARAM_TYPE_RATIONAL: {
+        case NGLI_PARAM_TYPE_RATIONAL: {
             int r[2] = {0};
             int ret = sscanf(str, "%d/%d%n", &r[0], &r[1], &len);
             if (ret != 2)
@@ -262,8 +262,8 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_FLAGS:
-        case PARAM_TYPE_SELECT: {
+        case NGLI_PARAM_TYPE_FLAGS:
+        case NGLI_PARAM_TYPE_SELECT: {
             len = strcspn(str, " \n");
             char *s = ngli_malloc(len + 1);
             if (!s)
@@ -277,7 +277,7 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_STR: {
+        case NGLI_PARAM_TYPE_STR: {
             len = strcspn(str, " \n");
             char *s = ngli_malloc(len + 1);
             if (!s)
@@ -299,7 +299,7 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_DATA: {
+        case NGLI_PARAM_TYPE_DATA: {
             int size = 0;
             int consumed = 0;
             const char *cur = str;
@@ -331,37 +331,37 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_IVEC2:
-        case PARAM_TYPE_IVEC3:
-        case PARAM_TYPE_IVEC4: {
+        case NGLI_PARAM_TYPE_IVEC2:
+        case NGLI_PARAM_TYPE_IVEC3:
+        case NGLI_PARAM_TYPE_IVEC4: {
             int *iv = NULL;
-            CASE_VEC(parse_ints, iv, par->type - PARAM_TYPE_IVEC2 + 2);
+            CASE_VEC(parse_ints, iv, par->type - NGLI_PARAM_TYPE_IVEC2 + 2);
             break;
         }
 
-        case PARAM_TYPE_UIVEC2:
-        case PARAM_TYPE_UIVEC3:
-        case PARAM_TYPE_UIVEC4: {
+        case NGLI_PARAM_TYPE_UIVEC2:
+        case NGLI_PARAM_TYPE_UIVEC3:
+        case NGLI_PARAM_TYPE_UIVEC4: {
             unsigned *uv = NULL;
-            CASE_VEC(parse_uints, uv, par->type - PARAM_TYPE_UIVEC2 + 2);
+            CASE_VEC(parse_uints, uv, par->type - NGLI_PARAM_TYPE_UIVEC2 + 2);
             break;
         }
 
-        case PARAM_TYPE_VEC2:
-        case PARAM_TYPE_VEC3:
-        case PARAM_TYPE_VEC4: {
+        case NGLI_PARAM_TYPE_VEC2:
+        case NGLI_PARAM_TYPE_VEC3:
+        case NGLI_PARAM_TYPE_VEC4: {
             float *v = NULL;
-            CASE_VEC(parse_floats, v, par->type - PARAM_TYPE_VEC2 + 2);
+            CASE_VEC(parse_floats, v, par->type - NGLI_PARAM_TYPE_VEC2 + 2);
             break;
         }
 
-        case PARAM_TYPE_MAT4: {
+        case NGLI_PARAM_TYPE_MAT4: {
             float *m = NULL;
             CASE_VEC(parse_floats, m, 16);
             break;
         }
 
-        case PARAM_TYPE_NODE: {
+        case NGLI_PARAM_TYPE_NODE: {
             int node_id;
             len = parse_hexint(str, &node_id);
             if (len < 0)
@@ -375,7 +375,7 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_NODELIST: {
+        case NGLI_PARAM_TYPE_NODELIST: {
             int *node_ids, nb_node_ids;
             len = parse_hexints(str, &node_ids, &nb_node_ids);
             if (len < 0)
@@ -396,7 +396,7 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_DBLLIST: {
+        case NGLI_PARAM_TYPE_DBLLIST: {
             double *dbls;
             int nb_dbls;
             len = parse_doubles(str, &dbls, &nb_dbls);
@@ -409,7 +409,7 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
             break;
         }
 
-        case PARAM_TYPE_NODEDICT: {
+        case NGLI_PARAM_TYPE_NODEDICT: {
             char **node_keys;
             int *node_ids, nb_nodes;
             len = parse_kvs(str, &nb_nodes, &node_keys, &node_ids);

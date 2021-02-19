@@ -31,45 +31,45 @@
 
 #define OFFSET(x) offsetof(struct variable_priv, x)
 static const struct node_param animatedtime_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEFLOAT, -1},
                   .desc=NGLI_DOCSTRING("time key frames to interpolate from")},
     {NULL}
 };
 
 static const struct node_param animatedfloat_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEFLOAT, -1},
                   .desc=NGLI_DOCSTRING("float key frames to interpolate from")},
     {NULL}
 };
 
 static const struct node_param animatedvec2_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEVEC2, -1},
                   .desc=NGLI_DOCSTRING("vec2 key frames to interpolate from")},
     {NULL}
 };
 
 static const struct node_param animatedvec3_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEVEC3, -1},
                   .desc=NGLI_DOCSTRING("vec3 key frames to interpolate from")},
     {NULL}
 };
 
 static const struct node_param animatedvec4_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEVEC4, -1},
                   .desc=NGLI_DOCSTRING("vec4 key frames to interpolate from")},
     {NULL}
 };
 
 static const struct node_param animatedquat_params[] = {
-    {"keyframes", PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=PARAM_FLAG_DOT_DISPLAY_PACKED,
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
                   .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEQUAT, -1},
                   .desc=NGLI_DOCSTRING("quaternion key frames to interpolate from")},
-    {"as_mat4",   PARAM_TYPE_BOOL, OFFSET(as_mat4), {.i64=0},
+    {"as_mat4",   NGLI_PARAM_TYPE_BOOL, OFFSET(as_mat4), {.i64=0},
                   .desc=NGLI_DOCSTRING("exposed as a 4x4 rotation matrix in the program")},
     {NULL}
 };

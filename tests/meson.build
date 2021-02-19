@@ -321,6 +321,8 @@ foreach backend : backends
     'rotate_quat',
     'rotate_quat_anchor',
     'rotate_quat_animated',
+    'path',
+    'smoothpath',
   ]
 
   tests = {

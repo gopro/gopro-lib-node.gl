@@ -27,6 +27,7 @@
 #include "math_utils.h"
 #include "nodegl.h"
 #include "nodes.h"
+#include "path.h"
 #include "type.h"
 
 #define OFFSET(x) offsetof(struct variable_priv, x)
@@ -74,6 +75,17 @@ static const struct node_param animatedquat_params[] = {
     {NULL}
 };
 
+static const struct node_param animatedpath_params[] = {
+    {"keyframes", NGLI_PARAM_TYPE_NODELIST, OFFSET(animkf), .flags=NGLI_PARAM_FLAG_DOT_DISPLAY_PACKED,
+                  .node_types=(const int[]){NGL_NODE_ANIMKEYFRAMEFLOAT, -1},
+                  .desc=NGLI_DOCSTRING("float key frames to interpolate from, representing the normed distance from the start of the `path`")},
+    {"path",      NGLI_PARAM_TYPE_NODE, OFFSET(path_node),
+                  .node_types=(const int[]){NGL_NODE_PATH, NGL_NODE_SMOOTHPATH, -1},
+                  .flags=NGLI_PARAM_FLAG_NON_NULL,
+                  .desc=NGLI_DOCSTRING("path to follow")},
+    {NULL}
+};
+
 static void mix_time(void *user_arg, void *dst,
                      const struct animkeyframe_priv *kf0,
                      const struct animkeyframe_priv *kf1,
@@ -90,6 +102,17 @@ static void mix_float(void *user_arg, void *dst,
 {
     float *dstd = dst;
     dstd[0] = NGLI_MIX(kf0->scalar, kf1->scalar, ratio);
+}
+
+static void mix_path(void *user_arg, void *dst,
+                     const struct animkeyframe_priv *kf0,
+                     const struct animkeyframe_priv *kf1,
+                     double ratio)
+{
+    const float t = NGLI_MIX(kf0->scalar, kf1->scalar, ratio);
+    struct variable_priv *s = user_arg;
+    struct path *path = *(struct path **)s->path_node->priv_data;
+    ngli_path_evaluate(path, dst, t);
 }
 
 static void mix_quat(void *user_arg, void *dst,
@@ -129,6 +152,14 @@ DECLARE_VEC_MIX_AND_CPY_FUNCS(2)
 DECLARE_VEC_MIX_AND_CPY_FUNCS(3)
 DECLARE_VEC_MIX_AND_CPY_FUNCS(4)
 
+static void cpy_path(void *user_arg, void *dst,
+                     const struct animkeyframe_priv *kf)
+{
+    struct variable_priv *s = user_arg;
+    struct path *path = *(struct path **)s->path_node->priv_data;
+    ngli_path_evaluate(path, dst, kf->scalar);
+}
+
 static void cpy_time(void *user_arg, void *dst,
                      const struct animkeyframe_priv *kf)
 {
@@ -150,6 +181,7 @@ static ngli_animation_mix_func_type get_mix_func(int node_class)
         case NGL_NODE_ANIMATEDVEC3:  return mix_vec3;
         case NGL_NODE_ANIMATEDVEC4:  return mix_vec4;
         case NGL_NODE_ANIMATEDQUAT:  return mix_quat;
+        case NGL_NODE_ANIMATEDPATH:  return mix_path;
     }
     return NULL;
 }
@@ -163,6 +195,7 @@ static ngli_animation_cpy_func_type get_cpy_func(int node_class)
         case NGL_NODE_ANIMATEDVEC3:  return cpy_vec3;
         case NGL_NODE_ANIMATEDVEC4:  return cpy_vec4;
         case NGL_NODE_ANIMATEDQUAT:  return cpy_vec4;
+        case NGL_NODE_ANIMATEDPATH:  return cpy_path;
     }
     return NULL;
 }
@@ -192,7 +225,7 @@ int ngl_anim_evaluate(struct ngl_node *node, void *dst, double t)
     }
 
     if (!s->anim_eval.kfs) {
-        int ret = ngli_animation_init(&s->anim_eval, NULL,
+        int ret = ngli_animation_init(&s->anim_eval, s,
                                       s->animkf, s->nb_animkf,
                                       get_mix_func(node->cls->id),
                                       get_cpy_func(node->cls->id));
@@ -216,7 +249,7 @@ static int animation_init(struct ngl_node *node)
 {
     struct variable_priv *s = node->priv_data;
     s->dynamic = 1;
-    return ngli_animation_init(&s->anim, NULL,
+    return ngli_animation_init(&s->anim, s,
                                s->animkf, s->nb_animkf,
                                get_mix_func(node->cls->id),
                                get_cpy_func(node->cls->id));
@@ -277,6 +310,15 @@ static int animatedquat_init(struct ngl_node *node)
     return animation_init(node);
 }
 
+static int animatedpath_init(struct ngl_node *node)
+{
+    struct variable_priv *s = node->priv_data;
+    s->data = s->vector;
+    s->data_size = 3 * sizeof(*s->vector);
+    s->data_type = NGLI_TYPE_VEC3;
+    return animation_init(node);
+}
+
 static int animation_update(struct ngl_node *node, double t)
 {
     struct variable_priv *s = node->priv_data;
@@ -288,6 +330,7 @@ static int animation_update(struct ngl_node *node, double t)
 #define animatedvec2_update  animation_update
 #define animatedvec3_update  animation_update
 #define animatedvec4_update  animation_update
+#define animatedpath_update  animation_update
 
 static int animatedquat_update(struct ngl_node *node, double t)
 {
@@ -318,3 +361,4 @@ DEFINE_ANIMATED_CLASS(NGL_NODE_ANIMATEDVEC2,  "AnimatedVec2",  vec2)
 DEFINE_ANIMATED_CLASS(NGL_NODE_ANIMATEDVEC3,  "AnimatedVec3",  vec3)
 DEFINE_ANIMATED_CLASS(NGL_NODE_ANIMATEDVEC4,  "AnimatedVec4",  vec4)
 DEFINE_ANIMATED_CLASS(NGL_NODE_ANIMATEDQUAT,  "AnimatedQuat",  quat)
+DEFINE_ANIMATED_CLASS(NGL_NODE_ANIMATEDPATH,  "AnimatedPath",  path)

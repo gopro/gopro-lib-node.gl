@@ -17,6 +17,17 @@ List of `AnimatedBuffer*` nodes:
 - `AnimatedBufferVec3`
 - `AnimatedBufferVec4`
 
+## AnimatedPath
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`keyframes` |  | [`NodeList`](#parameter-types) ([AnimKeyFrameFloat](#animkeyframefloat)) | float key frames to interpolate from, representing the normed distance from the start of the `path` | 
+`path` |  | [`Node`](#parameter-types) ([Path](#path), [SmoothPath](#smoothpath)) | path to follow | 
+
+
+**Source**: [node_animated.c](/libnodegl/node_animated.c)
+
+
 ## AnimatedTime
 
 Parameter | Live-chg. | Type | Description | Default
@@ -410,6 +421,60 @@ List of `Noise*` nodes:
 - `NoiseVec3`
 - `NoiseVec4`
 
+## Path
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`keyframes` |  | [`NodeList`](#parameter-types) ([PathKeyMove](#pathkeymove), [PathKeyLine](#pathkeyline), [PathKeyBezier2](#pathkeybezier2), [PathKeyBezier3](#pathkeybezier3)) | anchor points the path go through | 
+`precision` |  | [`int`](#parameter-types) | number of divisions per curve segment | `64`
+
+
+**Source**: [node_path.c](/libnodegl/node_path.c)
+
+
+## PathKeyBezier2
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`control` |  | [`vec3`](#parameter-types) | control point | (`0`,`0`,`0`)
+`to` |  | [`vec3`](#parameter-types) | end point of the curve, new cursor position | (`0`,`0`,`0`)
+
+
+**Source**: [node_pathkey.c](/libnodegl/node_pathkey.c)
+
+
+## PathKeyBezier3
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`control1` |  | [`vec3`](#parameter-types) | first control point | (`0`,`0`,`0`)
+`control2` |  | [`vec3`](#parameter-types) | second control point | (`0`,`0`,`0`)
+`to` |  | [`vec3`](#parameter-types) | end position of the curve, new cursor position | (`0`,`0`,`0`)
+
+
+**Source**: [node_pathkey.c](/libnodegl/node_pathkey.c)
+
+
+## PathKeyLine
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`to` |  | [`vec3`](#parameter-types) | end point of the line, new cursor position | (`0`,`0`,`0`)
+
+
+**Source**: [node_pathkey.c](/libnodegl/node_pathkey.c)
+
+
+## PathKeyMove
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`to` |  | [`vec3`](#parameter-types) | new cursor position | (`0`,`0`,`0`)
+
+
+**Source**: [node_pathkey.c](/libnodegl/node_pathkey.c)
+
+
 ## Program
 
 Parameter | Live-chg. | Type | Description | Default
@@ -535,6 +600,20 @@ Parameter | Live-chg. | Type | Description | Default
 
 
 **Source**: [node_skew.c](/libnodegl/node_skew.c)
+
+
+## SmoothPath
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`points` |  | [`Node`](#parameter-types) ([BufferVec3](#buffer)) | anchor points the path go through | 
+`control1` |  | [`vec3`](#parameter-types) | initial control point | (`0`,`0`,`0`)
+`control2` |  | [`vec3`](#parameter-types) | final control point | (`0`,`0`,`0`)
+`precision` |  | [`int`](#parameter-types) | number of divisions per curve segment | `64`
+`tension` |  | [`double`](#parameter-types) | tension between points | `0.5`
+
+
+**Source**: [node_smoothpath.c](/libnodegl/node_smoothpath.c)
 
 
 ## Text
@@ -680,7 +759,7 @@ Parameter | Live-chg. | Type | Description | Default
 --------- | :-------: | ---- | ----------- | :-----:
 `child` |  | [`Node`](#parameter-types) | scene to translate | 
 `vector` | ✓ | [`vec3`](#parameter-types) | translation vector | (`0`,`0`,`0`)
-`anim` |  | [`Node`](#parameter-types) ([AnimatedVec3](#animatedvec3), [StreamedVec3](#streamedvec3)) | `vector` animation | 
+`anim` |  | [`Node`](#parameter-types) ([AnimatedVec3](#animatedvec3), [StreamedVec3](#streamedvec3), [AnimatedPath](#animatedpath)) | `vector` animation | 
 
 
 **Source**: [node_translate.c](/libnodegl/node_translate.c)

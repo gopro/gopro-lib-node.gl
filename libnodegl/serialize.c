@@ -174,6 +174,14 @@ static int serialize_options(struct hmap *nlist,
                     ngli_bstr_printf(b, " %s:%u", p->key, v);
                 break;
             }
+            case NGLI_PARAM_TYPE_FLT: {
+                const float v = *(float *)(priv + p->offset);
+                if (v != p->def_value.flt) {
+                    ngli_bstr_printf(b, " %s:", p->key);
+                    print_float(b, v);
+                }
+                break;
+            }
             case NGLI_PARAM_TYPE_DBL: {
                 const double v = *(double *)(priv + p->offset);
                 if (v != p->def_value.dbl) {

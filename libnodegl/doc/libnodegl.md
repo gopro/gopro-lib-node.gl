@@ -1230,6 +1230,7 @@ Type | Description
 `double` | Double-precision float
 `string` | String
 `data` | Agnostic data buffer
+`float` | Single-precision float
 `vec2` | 2 single-precision floats
 `vec3` | 3 single-precision floats
 `vec4` | 4 single-precision floats

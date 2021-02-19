@@ -39,6 +39,7 @@ enum {
     NGLI_PARAM_TYPE_DBL,
     NGLI_PARAM_TYPE_STR,
     NGLI_PARAM_TYPE_DATA,
+    NGLI_PARAM_TYPE_FLT,
     NGLI_PARAM_TYPE_VEC2,
     NGLI_PARAM_TYPE_VEC3,
     NGLI_PARAM_TYPE_VEC4,
@@ -82,6 +83,7 @@ struct node_param {
     int offset;
     union {
         int64_t i64;
+        float flt;
         double dbl;
         const char *str;
         void *p;

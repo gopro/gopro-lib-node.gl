@@ -241,6 +241,7 @@ static int parse_param(struct darray *nodes_array, uint8_t *base_ptr,
         CASE_LITERAL(NGLI_PARAM_TYPE_INT,  int,      parse_int)
         CASE_LITERAL(NGLI_PARAM_TYPE_UINT, unsigned, parse_uint)
         CASE_LITERAL(NGLI_PARAM_TYPE_BOOL, int,      parse_bool)
+        CASE_LITERAL(NGLI_PARAM_TYPE_FLT,  float,    parse_float)
         CASE_LITERAL(NGLI_PARAM_TYPE_DBL,  double,   parse_double)
 
         case NGLI_PARAM_TYPE_RATIONAL: {

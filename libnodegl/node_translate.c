@@ -85,7 +85,7 @@ static const struct node_param translate_params[] = {
                .update_func=update_vector,
                .desc=NGLI_DOCSTRING("translation vector")},
     {"anim",   NGLI_PARAM_TYPE_NODE, OFFSET(anim),
-               .node_types=(const int[]){NGL_NODE_ANIMATEDVEC3, NGL_NODE_STREAMEDVEC3, -1},
+               .node_types=(const int[]){NGL_NODE_ANIMATEDVEC3, NGL_NODE_STREAMEDVEC3, NGL_NODE_ANIMATEDPATH, -1},
                .desc=NGLI_DOCSTRING("`vector` animation")},
     {NULL}
 };

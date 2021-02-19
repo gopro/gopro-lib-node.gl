@@ -229,6 +229,7 @@ struct variable_priv {
     union {
         struct ngl_node *time_anim;
         struct ngl_node *anim_node; /* Velocity nodes only */
+        struct ngl_node *path_node; /* AnimatedPath only */
     };
 
     struct animation anim;
@@ -415,6 +416,25 @@ struct animkeyframe_priv {
     int scale_boundaries;
     double boundaries[2];
     double derivative_scale;
+};
+
+struct pathkey_move_priv {
+    float to[3];
+};
+
+struct pathkey_line_priv {
+    float to[3];
+};
+
+struct pathkey_bezier2_priv {
+    float control[3];
+    float to[3];
+};
+
+struct pathkey_bezier3_priv {
+    float control1[3];
+    float control2[3];
+    float to[3];
 };
 
 enum {

@@ -27,6 +27,7 @@
     action(NGL_NODE_ANIMATEDBUFFERVEC2,     ngli_animatedbuffervec2_class)      \
     action(NGL_NODE_ANIMATEDBUFFERVEC3,     ngli_animatedbuffervec3_class)      \
     action(NGL_NODE_ANIMATEDBUFFERVEC4,     ngli_animatedbuffervec4_class)      \
+    action(NGL_NODE_ANIMATEDPATH,           ngli_animatedpath_class)            \
     action(NGL_NODE_ANIMATEDTIME,           ngli_animatedtime_class)            \
     action(NGL_NODE_ANIMATEDFLOAT,          ngli_animatedfloat_class)           \
     action(NGL_NODE_ANIMATEDVEC2,           ngli_animatedvec2_class)            \
@@ -98,6 +99,11 @@
     action(NGL_NODE_NOISEVEC2,              ngli_noisevec2_class)               \
     action(NGL_NODE_NOISEVEC3,              ngli_noisevec3_class)               \
     action(NGL_NODE_NOISEVEC4,              ngli_noisevec4_class)               \
+    action(NGL_NODE_PATH,                   ngli_path_class)                    \
+    action(NGL_NODE_PATHKEYBEZIER2,         ngli_pathkeybezier2_class)          \
+    action(NGL_NODE_PATHKEYBEZIER3,         ngli_pathkeybezier3_class)          \
+    action(NGL_NODE_PATHKEYLINE,            ngli_pathkeyline_class)             \
+    action(NGL_NODE_PATHKEYMOVE,            ngli_pathkeymove_class)             \
     action(NGL_NODE_PROGRAM,                ngli_program_class)                 \
     action(NGL_NODE_QUAD,                   ngli_quad_class)                    \
     action(NGL_NODE_RENDER,                 ngli_render_class)                  \
@@ -107,6 +113,7 @@
     action(NGL_NODE_ROTATEQUAT,             ngli_rotatequat_class)              \
     action(NGL_NODE_SCALE,                  ngli_scale_class)                   \
     action(NGL_NODE_SKEW,                   ngli_skew_class)                    \
+    action(NGL_NODE_SMOOTHPATH,             ngli_smoothpath_class)              \
     action(NGL_NODE_TEXT,                   ngli_text_class)                    \
     action(NGL_NODE_TEXTURE2D,              ngli_texture2d_class)               \
     action(NGL_NODE_TEXTURE3D,              ngli_texture3d_class)               \

@@ -16,6 +16,10 @@
 
 - AnimatedBufferVec4: _AnimatedBuffer
 
+- AnimatedPath:
+    - [keyframes, NodeList]
+    - [path, Node]
+
 - AnimatedTime:
     - [keyframes, NodeList]
 
@@ -281,6 +285,25 @@
 
 - NoiseVec4: _Noise
 
+- Path:
+    - [keyframes, NodeList]
+    - [precision, int]
+
+- PathKeyBezier2:
+    - [control, vec3]
+    - [to, vec3]
+
+- PathKeyBezier3:
+    - [control1, vec3]
+    - [control2, vec3]
+    - [to, vec3]
+
+- PathKeyLine:
+    - [to, vec3]
+
+- PathKeyMove:
+    - [to, vec3]
+
 - Program:
     - [vertex, string]
     - [fragment, string]
@@ -344,6 +367,13 @@
     - [axis, vec3]
     - [anchor, vec3]
     - [anim, Node]
+
+- SmoothPath:
+    - [points, Node]
+    - [control1, vec3]
+    - [control2, vec3]
+    - [precision, int]
+    - [tension, double]
 
 - Text:
     - [text, string]

@@ -30,8 +30,7 @@ from pynodegl_utils.tests.cmp_fingerprint import test_fingerprint
 from pynodegl_utils.toolbox.shapes import equilateral_triangle_coords
 
 
-def _transform_shape(cfg):
-    w, h = 0.75, 0.45
+def _transform_shape(cfg, w=0.75, h=0.45):
     geometry = ngl.Quad(corner=(-w/2., -h/2., 0), width=(w, 0, 0), height=(0, h, 0))
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, prog)
@@ -241,3 +240,73 @@ def transform_rotate_quat_animated(cfg, quat0=(0, 0, -0.474, 0.880), quat1=(0, 0
         ngl.AnimKeyFrameQuat(cfg.duration, quat0),
     ]
     return ngl.RotateQuat(shape, anim=ngl.AnimatedQuat(anim))
+
+
+@test_fingerprint(nb_keyframes=15)
+@scene()
+def transform_path(cfg):
+    cfg.aspect_ratio = (1, 1)
+    cfg.duration = 7
+    shape = _transform_shape(cfg, w=.2, h=.5)
+
+    points = (
+        ( 0.7,  0.0, -0.3),
+        (-0.8, -0.1,  0.1),
+    )
+    controls = (
+        ( 0.2,  0.3, -0.2),
+        (-0.2, -0.8, -0.4),
+    )
+
+    keyframes = (
+        ngl.PathKeyMove(to=points[0]),
+        ngl.PathKeyLine(to=points[1]),
+        ngl.PathKeyBezier2(control=controls[0], to=points[0]),
+        ngl.PathKeyBezier3(control1=controls[0], control2=controls[1], to=points[1]),
+    )
+    path = ngl.Path(keyframes);
+
+    # We use back_in_out easing to force an overflow on both sides
+    anim_kf = [
+        ngl.AnimKeyFrameFloat(0, 0),
+        ngl.AnimKeyFrameFloat(cfg.duration - 1, 1, 'back_in_out'),
+    ]
+
+    return ngl.Translate(shape, anim=ngl.AnimatedPath(anim_kf, path))
+
+
+@test_fingerprint(nb_keyframes=15)
+@scene()
+def transform_smoothpath(cfg):
+    cfg.aspect_ratio = (1, 1)
+    cfg.duration = 3
+    shape = _transform_shape(cfg, w=.3, h=.3)
+
+    points = (
+        (-0.62, -0.30, 0.0),
+        (-0.36,  0.40, 0.0),
+        ( 0.04, -0.27, 0.0),
+        ( 0.36,  0.28, 0.0),
+        ( 0.65, -0.04, 0.0),
+    )
+    controls = (
+        (-0.84, 0.07, 0.0),
+        ( 0.84, 0.04, 0.0),
+    )
+
+    flat_points = (elt for point in points for elt in point)
+    points_array = array.array('f', flat_points)
+
+    path = ngl.SmoothPath(
+        ngl.BufferVec3(data=points_array),
+        control1=controls[0],
+        control2=controls[1],
+        tension=0.4,
+    )
+
+    anim_kf = [
+        ngl.AnimKeyFrameFloat(0, 0),
+        ngl.AnimKeyFrameFloat(cfg.duration, 1, 'exp_in_out'),
+    ]
+
+    return ngl.Translate(shape, anim=ngl.AnimatedPath(anim_kf, path))

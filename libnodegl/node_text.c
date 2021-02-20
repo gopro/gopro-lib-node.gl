@@ -37,13 +37,14 @@
 #include "utils.h"
 
 
-#define VERTEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_DYNAMIC_BIT      | \
-                            NGLI_BUFFER_USAGE_TRANSFER_DST_BIT | \
+#define VERTEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_TRANSFER_DST_BIT | \
                             NGLI_BUFFER_USAGE_VERTEX_BUFFER_BIT) \
 
-#define INDEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_DYNAMIC_BIT      | \
-                           NGLI_BUFFER_USAGE_TRANSFER_DST_BIT | \
+#define INDEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_TRANSFER_DST_BIT | \
                            NGLI_BUFFER_USAGE_INDEX_BUFFER_BIT)  \
+
+#define DYNAMIC_VERTEX_USAGE_FLAGS (NGLI_BUFFER_USAGE_DYNAMIC_BIT | VERTEX_USAGE_FLAGS)
+#define DYNAMIC_INDEX_USAGE_FLAGS  (NGLI_BUFFER_USAGE_DYNAMIC_BIT | INDEX_USAGE_FLAGS)
 
 struct pipeline_subdesc {
     struct pgcraft *crafter;
@@ -352,9 +353,9 @@ static int update_character_geometries(struct ngl_node *node)
             goto end;
         }
 
-        if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), VERTEX_USAGE_FLAGS)) < 0 ||
-            (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), VERTEX_USAGE_FLAGS)) < 0 ||
-            (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  INDEX_USAGE_FLAGS)) < 0)
+        if ((ret = ngli_buffer_init(s->vertices, nb_vertices * sizeof(*vertices), DYNAMIC_VERTEX_USAGE_FLAGS)) < 0 ||
+            (ret = ngli_buffer_init(s->uvcoords, nb_uvcoords * sizeof(*uvcoords), DYNAMIC_VERTEX_USAGE_FLAGS)) < 0 ||
+            (ret = ngli_buffer_init(s->indices,  nb_indices  * sizeof(*indices),  DYNAMIC_INDEX_USAGE_FLAGS)) < 0)
             goto end;
 
         struct pipeline_desc *descs = ngli_darray_data(&s->pipeline_descs);

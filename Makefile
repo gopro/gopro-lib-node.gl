@@ -214,13 +214,13 @@ else
 	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 endif
 
-pkg-config-install: external-download $(PREFIX)
+pkg-config-install: $(PREFIX)
 ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& $(MESON_SETUP) -Dtests=false external\\pkgconf builddir\\pkgconf \&\& $(MESON_COMPILE) -C builddir\\pkgconf \&\& $(MESON_INSTALL) -C builddir\\pkgconf)
 	($(CMD) copy "$(PREFIX_FULLPATH)\\Scripts\\pkgconf.exe" "$(PREFIX_FULLPATH)\\Scripts\\pkg-config.exe")
 endif
 
-sxplayer-install: external-download pkg-config-install $(PREFIX)
+sxplayer-install: pkg-config-install $(PREFIX)
 ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& $(MESON_SETUP) external\\sxplayer builddir\\sxplayer \&\& $(MESON_COMPILE) -C builddir\\sxplayer \&\& $(MESON_INSTALL) -C builddir\\sxplayer)
 else
@@ -231,7 +231,7 @@ endif
 # We do not pull meson from pip on MinGW for the same reasons we don't pull
 # Pillow and PySide2. We require the users to have it on their system.
 #
-$(PREFIX):
+$(PREFIX): external-download
 ifeq ($(TARGET_OS),Windows)
 	($(CMD) $(PYTHON) -m venv "$@")
 	($(ACTIVATE) \&\& pip install meson ninja)

@@ -227,9 +227,6 @@ else
 	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 endif
 
-external-download:
-	$(MAKE) -C external
-
 #
 # We do not pull meson from pip on MinGW for the same reasons we don't pull
 # Pillow and PySide2. We require the users to have it on their system.
@@ -244,6 +241,9 @@ else
 	$(PYTHON) -m venv $@
 	($(ACTIVATE) && pip install meson ninja)
 endif
+
+external-download:
+	$(MAKE) -C external
 
 tests: nodegl-tests tests-setup
 ifeq ($(TARGET_OS),Windows)

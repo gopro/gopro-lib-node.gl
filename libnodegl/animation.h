@@ -49,5 +49,6 @@ int ngli_animation_init(struct animation *s, void *user_arg,
                         ngli_animation_cpy_func_type cpy_func);
 
 int ngli_animation_evaluate(struct animation *s, void *dst, double t);
+int ngli_animation_derivate(struct animation *s, void *dst, double t);
 
 #endif

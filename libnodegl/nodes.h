@@ -403,12 +403,14 @@ struct animkeyframe_priv {
     int data_size;
     int easing;
     easing_function function;
+    easing_function derivative;
     easing_function resolution;
     double *args;
     int nb_args;
     double offsets[2];
     int scale_boundaries;
     double boundaries[2];
+    double derivative_scale;
 };
 
 enum {

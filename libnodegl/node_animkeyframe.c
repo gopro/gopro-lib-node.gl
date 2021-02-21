@@ -99,6 +99,11 @@ ANIMKEYFRAME_PARAMS(buffer, data, NGLI_PARAM_TYPE_DATA, data);
 #define TRANSFORM_IN_OUT(f, x) (((x) < 0.5 ? TRANSFORM_IN(f,  2.0 * (x)) : TRANSFORM_OUT(f, 2.0 * (x) - 1.0) + 1.0) / 2.0)
 #define TRANSFORM_OUT_IN(f, x) (((x) < 0.5 ? TRANSFORM_OUT(f, 2.0 * (x)) : TRANSFORM_IN(f,  2.0 * (x) - 1.0) + 1.0) / 2.0)
 
+#define DERIVATIVE_IN(df, x)     df(x, args_nb, args)
+#define DERIVATIVE_OUT(df, x)    DERIVATIVE_IN(df, 1.0 - (x))
+#define DERIVATIVE_IN_OUT(df, x) ((x) < 0.5 ? DERIVATIVE_IN(df,  2.0 * (x)) : DERIVATIVE_OUT(df, 2.0 * (x) - 1.0))
+#define DERIVATIVE_OUT_IN(df, x) ((x) < 0.5 ? DERIVATIVE_OUT(df, 2.0 * (x)) : DERIVATIVE_IN(df,  2.0 * (x) - 1.0))
+
 #define DECLARE_EASING(base_name, name, transform)                            \
 static easing_type name(easing_type x, int args_nb, const easing_type *args)  \
 {                                                                             \
@@ -111,16 +116,17 @@ static inline easing_type base_name##_helper(easing_type x, int args_nb, const e
     return formula;                                                                               \
 }
 
-#define DECLARE_EASINGS(base_name, suffix, formula) \
+#define DECLARE_EASINGS(base_name, suffix, formula, type_base) \
 DECLARE_HELPER(base_name##suffix, formula) \
-DECLARE_EASING(base_name##suffix, base_name##_in##suffix,       TRANSFORM_IN)       \
-DECLARE_EASING(base_name##suffix, base_name##_out##suffix,      TRANSFORM_OUT)      \
-DECLARE_EASING(base_name##suffix, base_name##_in_out##suffix,   TRANSFORM_IN_OUT)   \
-DECLARE_EASING(base_name##suffix, base_name##_out_in##suffix,   TRANSFORM_OUT_IN)
+DECLARE_EASING(base_name##suffix, base_name##_in##suffix,     type_base##_IN)       \
+DECLARE_EASING(base_name##suffix, base_name##_out##suffix,    type_base##_OUT)      \
+DECLARE_EASING(base_name##suffix, base_name##_in_out##suffix, type_base##_IN_OUT)   \
+DECLARE_EASING(base_name##suffix, base_name##_out_in##suffix, type_base##_OUT_IN)
 
-#define DECLARE_EASINGS_WITH_RESOLUTIONS(base_name, direct_function, resolution_function)   \
-DECLARE_EASINGS(base_name,            , direct_function)                                    \
-DECLARE_EASINGS(base_name, _resolution, resolution_function)
+#define DECLARE_EASINGS_DERIVATIVES_RESOLUTION(base_name, direct_function, derivative_function, resolution_function)   \
+DECLARE_EASINGS(base_name,            , direct_function,     TRANSFORM)                                                \
+DECLARE_EASINGS(base_name, _derivative, derivative_function, DERIVATIVE)                                               \
+DECLARE_EASINGS(base_name, _resolution, resolution_function, TRANSFORM)                                                \
 
 #define PARAM(index, default_value) (args_nb > index ? args[index] : default_value)
 
@@ -132,21 +138,36 @@ static easing_type linear(easing_type t, int args_nb, const easing_type *args)
     return t;
 }
 
+static easing_type linear_derivative(easing_type t, int args_nb, const easing_type *args)
+{
+    return 1.0;
+}
+
 static easing_type linear_resolution(easing_type v, int args_nb, const easing_type *args)
 {
     return v;
 }
 
 
-DECLARE_EASINGS_WITH_RESOLUTIONS(quadratic, x * x ,             sqrt(x))
-DECLARE_EASINGS_WITH_RESOLUTIONS(cubic,     x * x * x,          pow(x, 1.0 / 3.0))
-DECLARE_EASINGS_WITH_RESOLUTIONS(quartic,   x * x * x * x,      pow(x, 1.0 / 4.0))
-DECLARE_EASINGS_WITH_RESOLUTIONS(quintic,   x * x * x * x * x,  pow(x, 1.0 / 5.0))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(quadratic, x * x,             2 * x,             sqrt(x))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(cubic,     x * x * x,         3 * x * x,         pow(x, 1.0 / 3.0))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(quartic,   x * x * x * x,     4 * x * x * x,     pow(x, 1.0 / 4.0))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(quintic,   x * x * x * x * x, 5 * x * x * x * x, pow(x, 1.0 / 5.0))
 
-DECLARE_EASINGS_WITH_RESOLUTIONS(power, pow(x, PARAM(0, 1.0)), pow(x, 1.0 / PARAM(0, 1.0)))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(power,
+                                       pow(x, PARAM(0, 1.0)),
+                                       PARAM(0, 1.0) * pow(x, PARAM(0, 1.0) - 1.0),
+                                       pow(x, 1.0 / PARAM(0, 1.0)))
 
-DECLARE_EASINGS_WITH_RESOLUTIONS(sinus, 1.0 - cos(x * M_PI / 2.0), acos(1.0 - x) / M_PI * 2.0)
-DECLARE_EASINGS_WITH_RESOLUTIONS(circular, 1.0 - sqrt(1.0 - x * x), sqrt(x*(2.0 - x)))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(sinus,
+                                       1.0 - cos(x * M_PI / 2.0),
+                                       M_PI * sin(x * M_PI / 2.0) / 2.0,
+                                       acos(1.0 - x) / M_PI * 2.0)
+
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(circular,
+                                       1.0 - sqrt(1.0 - x * x),
+                                       x / sqrt(1.0 - x * x),
+                                       sqrt(x*(2.0 - x)))
 
 
 /* Exponential */
@@ -156,12 +177,20 @@ static inline easing_type exp_func(easing_type x, easing_type exp_base)
     return NGLI_LINEAR_INTERP(1.0, exp_base, pow(exp_base, x));
 }
 
+static inline easing_type exp_derivative(easing_type x, easing_type exp_base)
+{
+    return (pow(exp_base, x) * log(exp_base)) / (exp_base - 1.0);
+}
+
 static inline easing_type exp_resolution_func(easing_type x, easing_type exp_base)
 {
     return log2(x * (exp_base - 1.0) + 1.0) / log2(exp_base);
 }
 
-DECLARE_EASINGS_WITH_RESOLUTIONS(exp, exp_func(x, PARAM(0, 1024.0)), exp_resolution_func(x, PARAM(0, 1024.0)))
+DECLARE_EASINGS_DERIVATIVES_RESOLUTION(exp,
+                                       exp_func(x, PARAM(0, 1024.0)),
+                                       exp_derivative(x, PARAM(0, 1024.0)),
+                                       exp_resolution_func(x, PARAM(0, 1024.0)))
 
 
 /* Bounce */
@@ -184,16 +213,43 @@ static easing_type bounce_helper(easing_type t, easing_type a)
     }
 }
 
+static easing_type bounce_helper_derivative(easing_type t, easing_type a)
+{
+    if (t == 1.0)
+        return 0.0;
+    if (t < 4.0 / 11.0)
+        return 7.5625 * 2 * t;
+    if (t < 8.0 / 11.0)
+        t -= 6.0 / 11.0;
+    else if (t < 10.0 / 11.0)
+        t -= 9.0 / 11.0;
+    else
+        t -= 21.0 / 22.0;
+    return 7.5625 * 2 * a * t;
+}
+
 static easing_type bounce_in(easing_type t, int args_nb, const easing_type *args)
 {
     const easing_type a = PARAM(0, 1.70158);
     return 1.0 - bounce_helper(1.0 - t, a);
 }
 
+static easing_type bounce_in_derivative(easing_type t, int args_nb, const easing_type *args)
+{
+    const easing_type a = PARAM(0, 1.70158);
+    return bounce_helper_derivative(1.0 - t, a);
+}
+
 static easing_type bounce_out(easing_type t, int args_nb, const easing_type *args)
 {
     const easing_type a = PARAM(0, 1.70158);
     return bounce_helper(t, a);
+}
+
+static easing_type bounce_out_derivative(easing_type t, int args_nb, const easing_type *args)
+{
+    const easing_type a = PARAM(0, 1.70158);
+    return bounce_helper_derivative(t, a);
 }
 
 
@@ -217,9 +273,29 @@ static easing_type elastic_in(easing_type t, int args_nb, const easing_type *arg
     return -a * exp2(10.0 * (t - 1.0)) * sin((1.0 - t - s) * (2.0 * M_PI) / p);
 }
 
+static easing_type elastic_in_derivative(easing_type t, int args_nb, const easing_type *args)
+{
+    easing_type a = PARAM(0, 0.1); // amplitude
+    const easing_type p = PARAM(1, 0.25); // period
+    easing_type s;
+    if (a < 1.0) {
+        a = 1.0;
+        s = p / 4.0;
+    } else {
+        s = p / (2.0 * M_PI) * asin(1.0 / a);
+    }
+    const easing_type k = (s + t - 1.0) * 2.0 * M_PI / p;
+    return a * exp2(10.0 * (t - 1.0)) * (10.0 * p * log(2.0) * sin(k) + 2.0 * M_PI * cos(k)) / p;
+}
+
 static easing_type elastic_out(easing_type t, int args_nb, const easing_type *args)
 {
     return TRANSFORM_OUT(elastic_in, t);
+}
+
+static easing_type elastic_out_derivative(easing_type t, int args_nb, const easing_type *args)
+{
+    return DERIVATIVE_OUT(elastic_in_derivative, t);
 }
 
 
@@ -230,54 +306,61 @@ static easing_type back_func(easing_type t, easing_type s)
     return t * t * ((s + 1.0) * t - s);
 }
 
-DECLARE_EASINGS(back, , back_func(x, PARAM(0, 1.70158)))
+static easing_type back_derivative(easing_type t, easing_type s)
+{
+    return s * (3.0 * t - 2.0) * t + 3.0 * t * t;
+}
 
+
+DECLARE_EASINGS(back,            , back_func(x, PARAM(0, 1.70158)), TRANSFORM)
+DECLARE_EASINGS(back, _derivative, back_derivative(x, PARAM(0, 1.70158)), DERIVATIVE)
 
 static const struct {
     easing_function function;
+    easing_function derivative;
     easing_function resolution;
 } easings[] = {
-    [EASING_LINEAR]           = {linear,                 linear_resolution},
-    [EASING_QUADRATIC_IN]     = {quadratic_in,           quadratic_in_resolution},
-    [EASING_QUADRATIC_OUT]    = {quadratic_out,          quadratic_out_resolution},
-    [EASING_QUADRATIC_IN_OUT] = {quadratic_in_out,       quadratic_in_out_resolution},
-    [EASING_QUADRATIC_OUT_IN] = {quadratic_out_in,       quadratic_out_in_resolution},
-    [EASING_CUBIC_IN]         = {cubic_in,               cubic_in_resolution},
-    [EASING_CUBIC_OUT]        = {cubic_out,              cubic_out_resolution},
-    [EASING_CUBIC_IN_OUT]     = {cubic_in_out,           cubic_in_out_resolution},
-    [EASING_CUBIC_OUT_IN]     = {cubic_out_in,           cubic_out_in_resolution},
-    [EASING_QUARTIC_IN]       = {quartic_in,             quartic_in_resolution},
-    [EASING_QUARTIC_OUT]      = {quartic_out,            quartic_out_resolution},
-    [EASING_QUARTIC_IN_OUT]   = {quartic_in_out,         quartic_in_out_resolution},
-    [EASING_QUARTIC_OUT_IN]   = {quartic_out_in,         quartic_out_in_resolution},
-    [EASING_QUINTIC_IN]       = {quintic_in,             quintic_in_resolution},
-    [EASING_QUINTIC_OUT]      = {quintic_out,            quintic_out_resolution},
-    [EASING_QUINTIC_IN_OUT]   = {quintic_in_out,         quintic_in_out_resolution},
-    [EASING_QUINTIC_OUT_IN]   = {quintic_out_in,         quintic_out_in_resolution},
-    [EASING_POWER_IN]         = {power_in,               power_in_resolution},
-    [EASING_POWER_OUT]        = {power_out,              power_out_resolution},
-    [EASING_POWER_IN_OUT]     = {power_in_out,           power_in_out_resolution},
-    [EASING_POWER_OUT_IN]     = {power_out_in,           power_out_in_resolution},
-    [EASING_SINUS_IN]         = {sinus_in,               sinus_in_resolution},
-    [EASING_SINUS_OUT]        = {sinus_out,              sinus_out_resolution},
-    [EASING_SINUS_IN_OUT]     = {sinus_in_out,           sinus_in_out_resolution},
-    [EASING_SINUS_OUT_IN]     = {sinus_out_in,           sinus_out_in_resolution},
-    [EASING_EXP_IN]           = {exp_in,                 exp_in_resolution},
-    [EASING_EXP_OUT]          = {exp_out,                exp_out_resolution},
-    [EASING_EXP_IN_OUT]       = {exp_in_out,             exp_in_out_resolution},
-    [EASING_EXP_OUT_IN]       = {exp_out_in,             exp_out_in_resolution},
-    [EASING_CIRCULAR_IN]      = {circular_in,            circular_in_resolution},
-    [EASING_CIRCULAR_OUT]     = {circular_out,           circular_out_resolution},
-    [EASING_CIRCULAR_IN_OUT]  = {circular_in_out,        circular_in_out_resolution},
-    [EASING_CIRCULAR_OUT_IN]  = {circular_out_in,        circular_out_in_resolution},
-    [EASING_BOUNCE_IN]        = {bounce_in,              NULL},
-    [EASING_BOUNCE_OUT]       = {bounce_out,             NULL},
-    [EASING_ELASTIC_IN]       = {elastic_in,             NULL},
-    [EASING_ELASTIC_OUT]      = {elastic_out,            NULL},
-    [EASING_BACK_IN]          = {back_in,                NULL},
-    [EASING_BACK_OUT]         = {back_out,               NULL},
-    [EASING_BACK_IN_OUT]      = {back_in_out,            NULL},
-    [EASING_BACK_OUT_IN]      = {back_out_in,            NULL},
+    [EASING_LINEAR]           = {linear,                 linear_derivative,             linear_resolution},
+    [EASING_QUADRATIC_IN]     = {quadratic_in,           quadratic_in_derivative,       quadratic_in_resolution},
+    [EASING_QUADRATIC_OUT]    = {quadratic_out,          quadratic_out_derivative,      quadratic_out_resolution},
+    [EASING_QUADRATIC_IN_OUT] = {quadratic_in_out,       quadratic_in_out_derivative,   quadratic_in_out_resolution},
+    [EASING_QUADRATIC_OUT_IN] = {quadratic_out_in,       quadratic_out_in_derivative,   quadratic_out_in_resolution},
+    [EASING_CUBIC_IN]         = {cubic_in,               cubic_in_derivative,           cubic_in_resolution},
+    [EASING_CUBIC_OUT]        = {cubic_out,              cubic_out_derivative,          cubic_out_resolution},
+    [EASING_CUBIC_IN_OUT]     = {cubic_in_out,           cubic_in_out_derivative,       cubic_in_out_resolution},
+    [EASING_CUBIC_OUT_IN]     = {cubic_out_in,           cubic_out_in_derivative,       cubic_out_in_resolution},
+    [EASING_QUARTIC_IN]       = {quartic_in,             quartic_in_derivative,         quartic_in_resolution},
+    [EASING_QUARTIC_OUT]      = {quartic_out,            quartic_out_derivative,        quartic_out_resolution},
+    [EASING_QUARTIC_IN_OUT]   = {quartic_in_out,         quartic_in_out_derivative,     quartic_in_out_resolution},
+    [EASING_QUARTIC_OUT_IN]   = {quartic_out_in,         quartic_out_in_derivative,     quartic_out_in_resolution},
+    [EASING_QUINTIC_IN]       = {quintic_in,             quintic_in_derivative,         quintic_in_resolution},
+    [EASING_QUINTIC_OUT]      = {quintic_out,            quintic_out_derivative,        quintic_out_resolution},
+    [EASING_QUINTIC_IN_OUT]   = {quintic_in_out,         quintic_in_out_derivative,     quintic_in_out_resolution},
+    [EASING_QUINTIC_OUT_IN]   = {quintic_out_in,         quintic_out_in_derivative,     quintic_out_in_resolution},
+    [EASING_POWER_IN]         = {power_in,               power_in_derivative,           power_in_resolution},
+    [EASING_POWER_OUT]        = {power_out,              power_out_derivative,          power_out_resolution},
+    [EASING_POWER_IN_OUT]     = {power_in_out,           power_in_out_derivative,       power_in_out_resolution},
+    [EASING_POWER_OUT_IN]     = {power_out_in,           power_out_in_derivative,       power_out_in_resolution},
+    [EASING_SINUS_IN]         = {sinus_in,               sinus_in_derivative,           sinus_in_resolution},
+    [EASING_SINUS_OUT]        = {sinus_out,              sinus_out_derivative,          sinus_out_resolution},
+    [EASING_SINUS_IN_OUT]     = {sinus_in_out,           sinus_in_out_derivative,       sinus_in_out_resolution},
+    [EASING_SINUS_OUT_IN]     = {sinus_out_in,           sinus_out_in_derivative,       sinus_out_in_resolution},
+    [EASING_EXP_IN]           = {exp_in,                 exp_in_derivative,             exp_in_resolution},
+    [EASING_EXP_OUT]          = {exp_out,                exp_out_derivative,            exp_out_resolution},
+    [EASING_EXP_IN_OUT]       = {exp_in_out,             exp_in_out_derivative,         exp_in_out_resolution},
+    [EASING_EXP_OUT_IN]       = {exp_out_in,             exp_out_in_derivative,         exp_out_in_resolution},
+    [EASING_CIRCULAR_IN]      = {circular_in,            circular_in_derivative,        circular_in_resolution},
+    [EASING_CIRCULAR_OUT]     = {circular_out,           circular_out_derivative,       circular_out_resolution},
+    [EASING_CIRCULAR_IN_OUT]  = {circular_in_out,        circular_in_out_derivative,    circular_in_out_resolution},
+    [EASING_CIRCULAR_OUT_IN]  = {circular_out_in,        circular_out_in_derivative,    circular_out_in_resolution},
+    [EASING_BOUNCE_IN]        = {bounce_in,              bounce_in_derivative,          NULL},
+    [EASING_BOUNCE_OUT]       = {bounce_out,             bounce_out_derivative,         NULL},
+    [EASING_ELASTIC_IN]       = {elastic_in,             elastic_in_derivative,         NULL},
+    [EASING_ELASTIC_OUT]      = {elastic_out,            elastic_out_derivative,        NULL},
+    [EASING_BACK_IN]          = {back_in,                back_in_derivative,            NULL},
+    [EASING_BACK_OUT]         = {back_out,               back_out_derivative,           NULL},
+    [EASING_BACK_IN_OUT]      = {back_in_out,            back_in_out_derivative,        NULL},
+    [EASING_BACK_OUT_IN]      = {back_out_in,            back_out_in_derivative,        NULL},
 };
 
 static int check_offsets(double x0, double x1)
@@ -333,6 +416,7 @@ static int animkeyframe_init(struct ngl_node *node)
         return NGL_ERROR_BUG;
 
     s->function   = easings[easing_id].function;
+    s->derivative = easings[easing_id].derivative;
     s->resolution = easings[easing_id].resolution;
 
     const double x0 = s->offsets[0];
@@ -350,6 +434,7 @@ static int animkeyframe_init(struct ngl_node *node)
             return ret;
         s->boundaries[0] = y0;
         s->boundaries[1] = y1;
+        s->derivative_scale = (x1 - x0) / (y1 - y0);
     }
 
     return 0;

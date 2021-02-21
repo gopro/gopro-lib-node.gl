@@ -72,6 +72,39 @@ int ngli_animation_evaluate(struct animation *s, void *dst, double t)
     return 0;
 }
 
+int ngli_animation_derivate(struct animation *s, void *dst, double t)
+{
+    struct ngl_node * const *animkf = s->kfs;
+    const int nb_animkf = s->nb_kfs;
+    if (!nb_animkf)
+        return 0;
+    int kf_id = get_kf_id(animkf, nb_animkf, s->current_kf, t);
+    if (kf_id < 0)
+        kf_id = get_kf_id(animkf, nb_animkf, 0, t);
+    if (kf_id >= 0 && kf_id < nb_animkf - 1) {
+        const struct animkeyframe_priv *kf0 = animkf[kf_id    ]->priv_data;
+        const struct animkeyframe_priv *kf1 = animkf[kf_id + 1]->priv_data;
+        const double t0 = kf0->time;
+        const double t1 = kf1->time;
+
+        double tnorm = NGLI_LINEAR_INTERP(t0, t1, t);
+        if (kf1->scale_boundaries)
+            tnorm = NGLI_MIX(kf1->offsets[0], kf1->offsets[1], tnorm);
+        double ratio = kf1->derivative(tnorm, kf1->nb_args, kf1->args);
+        if (kf1->scale_boundaries)
+            ratio *= kf1->derivative_scale;
+
+        s->current_kf = kf_id;
+        s->mix_func(s->user_arg, dst, kf0, kf1, ratio);
+    } else {
+        const struct animkeyframe_priv *kf0 = animkf[            0]->priv_data;
+        const struct animkeyframe_priv *kfn = animkf[nb_animkf - 1]->priv_data;
+        const struct animkeyframe_priv *kf  = t < kf0->time ? kf0 : kfn;
+        s->cpy_func(s->user_arg, dst, kf);
+    }
+    return 0;
+}
+
 int ngli_animation_init(struct animation *s, void *user_arg,
                         struct ngl_node * const *kfs, int nb_kfs,
                         ngli_animation_mix_func_type mix_func,

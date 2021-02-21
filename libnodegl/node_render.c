@@ -104,6 +104,10 @@ struct render_priv {
                                           NGL_NODE_STREAMEDVEC4,    \
                                           NGL_NODE_STREAMEDMAT4,    \
                                           NGL_NODE_TIME,            \
+                                          NGL_NODE_VELOCITYFLOAT,   \
+                                          NGL_NODE_VELOCITYVEC2,    \
+                                          NGL_NODE_VELOCITYVEC3,    \
+                                          NGL_NODE_VELOCITYVEC4,    \
                                           -1}
 
 #define ATTRIBUTES_TYPES_LIST (const int[]){NGL_NODE_BUFFERFLOAT,   \

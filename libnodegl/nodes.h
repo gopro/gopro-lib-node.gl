@@ -226,7 +226,10 @@ struct variable_priv {
     struct ngl_node *timestamps;
     struct ngl_node *buffer;
     int timebase[2];
-    struct ngl_node *time_anim;
+    union {
+        struct ngl_node *time_anim;
+        struct ngl_node *anim_node; /* Velocity nodes only */
+    };
 
     struct animation anim;
     struct animation anim_eval;

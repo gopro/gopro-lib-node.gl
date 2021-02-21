@@ -201,6 +201,12 @@ foreach backend : backends
     'phases_resources',
   ]
 
+  tests_velocity = [
+    'circle_distort_2d',
+    'circle_distort_3d',
+    'triangle_rotate',
+  ]
+
   tests_rtt = [
     'load_attachment',
     'load_attachment_nested',
@@ -321,6 +327,7 @@ foreach backend : backends
     'data':      {'tests': tests_data},
     'live':      {'tests': tests_live},
     'media':     {'tests': tests_media, 'depends': media_test_file},
+    'velocity':  {'tests': tests_velocity},
     'rtt':       {'tests': tests_rtt},
     'shape':     {'tests': tests_shape},
     'text':      {'tests': tests_text},

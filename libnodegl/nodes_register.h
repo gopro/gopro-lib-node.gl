@@ -161,5 +161,9 @@
     action(NGL_NODE_UNIFORMVEC4,            ngli_uniformvec4_class)             \
     action(NGL_NODE_UNIFORMQUAT,            ngli_uniformquat_class)             \
     action(NGL_NODE_USERSWITCH,             ngli_userswitch_class)              \
+    action(NGL_NODE_VELOCITYFLOAT,          ngli_velocityfloat_class)           \
+    action(NGL_NODE_VELOCITYVEC2,           ngli_velocityvec2_class)            \
+    action(NGL_NODE_VELOCITYVEC3,           ngli_velocityvec3_class)            \
+    action(NGL_NODE_VELOCITYVEC4,           ngli_velocityvec4_class)            \
 
 #endif

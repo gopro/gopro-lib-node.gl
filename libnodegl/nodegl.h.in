@@ -240,6 +240,10 @@ struct ngl_node;
 #define NGL_NODE_UNIFORMVEC4            NGLI_FOURCC('U','n','f','4')
 #define NGL_NODE_UNIFORMQUAT            NGLI_FOURCC('U','n','Q','t')
 #define NGL_NODE_USERSWITCH             NGLI_FOURCC('U','S','c','h')
+#define NGL_NODE_VELOCITYFLOAT          NGLI_FOURCC('V','l','y','1')
+#define NGL_NODE_VELOCITYVEC2           NGLI_FOURCC('V','l','y','2')
+#define NGL_NODE_VELOCITYVEC3           NGLI_FOURCC('V','l','y','3')
+#define NGL_NODE_VELOCITYVEC4           NGLI_FOURCC('V','l','y','4')
 
 /**
  * Return error codes.

@@ -649,3 +649,15 @@
     - [child, Node]
     - [enabled, bool]
 
+- VelocityFloat:
+    - [animation, Node]
+
+- VelocityVec2:
+    - [animation, Node]
+
+- VelocityVec3:
+    - [animation, Node]
+
+- VelocityVec4:
+    - [animation, Node]
+

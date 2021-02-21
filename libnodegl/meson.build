@@ -173,6 +173,7 @@ lib_src = files(
   'node_triangle.c',
   'node_uniform.c',
   'node_userswitch.c',
+  'node_velocity.c',
   'nodes.c',
   'noise.c',
   'params.c',

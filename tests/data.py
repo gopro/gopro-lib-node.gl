@@ -245,7 +245,7 @@ void main()
     uint x = uint(var_uvcoord.x * %(size)d.0);
     uint y = uint(var_uvcoord.y * %(size)d.0);
     uint i = clamp(x + y * %(size)dU, 0U, %(data_size)dU - 1U);
-    ngl_out_color = streamed.data[i];
+    ngl_out_color = vec4(streamed.data[i]);
 }
 '''
 
@@ -257,10 +257,11 @@ def _get_data_streamed_buffer_cuepoints(size):
     return {f'{x}{y}': (c(x), c(y)) for y in range(size) for x in range(size)}
 
 
-def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, show_dbg_points):
+def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, single, show_dbg_points):
     cfg.duration = duration * scale
     cfg.aspect_ratio = (1, 1)
     data_size = size * size
+    assert not single or size == 2
 
     time_anim = None
     if scale != 1:
@@ -281,11 +282,18 @@ def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, show_dbg_po
     for i in range(duration):
         for j in range(data_size):
             v = i / float(duration) + j / float(data_size*duration)
-            vec4_data.extend([v, v, v, v])
+            if single:
+                vec4_data.extend([v])
+            else:
+                vec4_data.extend([v, v, v, v])
 
     pts_buffer = ngl.BufferInt64(data=pts_data)
     vec4_buffer = ngl.BufferVec4(data=vec4_data)
-    streamed_buffer = ngl.StreamedBufferVec4(data_size, pts_buffer, vec4_buffer, time_anim=time_anim, label='data')
+
+    if single:
+        streamed_buffer = ngl.StreamedVec4(pts_buffer, vec4_buffer, time_anim=time_anim, label='data')
+    else:
+        streamed_buffer = ngl.StreamedBufferVec4(data_size, pts_buffer, vec4_buffer, time_anim=time_anim, label='data')
     streamed_block = ngl.Block(layout='std140', label='streamed_block', fields=(streamed_buffer,))
 
     shader_params = dict(data_size=data_size, size=size)
@@ -306,18 +314,20 @@ def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, show_dbg_po
     return group
 
 
-def _get_data_streamed_buffer_function(scale):
-    size = 4
+def _get_data_streamed_buffer_function(scale, single):
+    size = 2 if single else 4
     nb_keyframes = 4
     @test_cuepoints(points=_get_data_streamed_buffer_cuepoints(size), nb_keyframes=nb_keyframes, tolerance=1)
     @scene(show_dbg_points=scene.Bool())
     def scene_func(cfg, show_dbg_points=False):
-        return _get_data_streamed_buffer_vec4_scene(cfg, size, nb_keyframes, scale, show_dbg_points)
+        return _get_data_streamed_buffer_vec4_scene(cfg, size, nb_keyframes, scale, single, show_dbg_points)
     return scene_func
 
 
-data_streamed_buffer_vec4 = _get_data_streamed_buffer_function(1)
-data_streamed_buffer_vec4_time_anim = _get_data_streamed_buffer_function(2)
+data_streamed_vec4 = _get_data_streamed_buffer_function(1, True)
+data_streamed_vec4_time_anim = _get_data_streamed_buffer_function(2, True)
+data_streamed_buffer_vec4 = _get_data_streamed_buffer_function(1, False)
+data_streamed_buffer_vec4_time_anim = _get_data_streamed_buffer_function(2, False)
 
 
 @test_cuepoints(points={'c': (0, 0)}, tolerance=1)

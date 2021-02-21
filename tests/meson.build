@@ -149,6 +149,8 @@ foreach backend : backends
 
   if has_block
     tests_data += [
+      'streamed_vec4',
+      'streamed_vec4_time_anim',
       'streamed_buffer_vec4',
       'streamed_buffer_vec4_time_anim',
     ]

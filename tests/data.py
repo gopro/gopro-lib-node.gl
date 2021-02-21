@@ -250,20 +250,17 @@ void main()
 '''
 
 
-_N = 4
-
-
-def _get_data_streamed_buffer_cuepoints():
-    f = float(_N)
+def _get_data_streamed_buffer_cuepoints(size):
+    f = float(size)
     off = 1 / (2 * f)
     c = lambda i: (i / f + off) * 2.0 - 1.0
-    return {f'{x}{y}': (c(x), c(y)) for y in range(_N) for x in range(_N)}
+    return {f'{x}{y}': (c(x), c(y)) for y in range(size) for x in range(size)}
 
 
-def _get_data_streamed_buffer_vec4_scene(cfg, duration, scale, show_dbg_points):
+def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, show_dbg_points):
     cfg.duration = duration * scale
     cfg.aspect_ratio = (1, 1)
-    size, data_size, = _N, _N * _N
+    data_size = size * size
 
     time_anim = None
     if scale != 1:
@@ -304,17 +301,18 @@ def _get_data_streamed_buffer_vec4_scene(cfg, duration, scale, show_dbg_points):
 
     group = ngl.Group(children=(render,))
     if show_dbg_points:
-        cuepoints = _get_data_streamed_buffer_cuepoints()
+        cuepoints = _get_data_streamed_buffer_cuepoints(size)
         group.add_children(get_debug_points(cfg, cuepoints))
     return group
 
 
 def _get_data_streamed_buffer_function(scale):
+    size = 4
     nb_keyframes = 4
-    @test_cuepoints(points=_get_data_streamed_buffer_cuepoints(), nb_keyframes=nb_keyframes, tolerance=1)
+    @test_cuepoints(points=_get_data_streamed_buffer_cuepoints(size), nb_keyframes=nb_keyframes, tolerance=1)
     @scene(show_dbg_points=scene.Bool())
     def scene_func(cfg, show_dbg_points=False):
-        return _get_data_streamed_buffer_vec4_scene(cfg, nb_keyframes, scale, show_dbg_points)
+        return _get_data_streamed_buffer_vec4_scene(cfg, size, nb_keyframes, scale, show_dbg_points)
     return scene_func
 
 

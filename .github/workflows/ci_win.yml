@@ -69,5 +69,4 @@ jobs:
       - name: Build
         run: |
           make -j$(($(nproc)+1)) TARGET_OS=Windows \
-          VCPKG_DIR='D:\\a\\gopro-lib-node.gl\\gopro-lib-node.gl\\vcpkg' \
-          VCVARS64='"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"'
+          VCPKG_DIR='D:\\a\\gopro-lib-node.gl\\gopro-lib-node.gl\\vcpkg'

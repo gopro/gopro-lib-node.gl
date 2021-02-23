@@ -59,6 +59,7 @@ enum texture_type {
     NGLI_TEXTURE_TYPE_2D,
     NGLI_TEXTURE_TYPE_3D,
     NGLI_TEXTURE_TYPE_CUBE,
+    NGLI_TEXTURE_TYPE_NB
 };
 
 NGLI_STATIC_ASSERT(texture_params_type_default,          NGLI_TEXTURE_TYPE_2D == 0);

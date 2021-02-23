@@ -22,7 +22,7 @@
 
 import sys
 import os.path as op
-
+from pynodegl_utils.path_util import path_join
 from PySide2 import QtWidgets, QtCore
 
 from .ui.main_window import MainWindow
@@ -34,8 +34,9 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', dest='module', default='pynodegl_utils.examples',
                         help='set the module name containing the scene functions')
+    default_hooks_dir = path_norm(op.join(op.dirname(__file__), 'hooks', 'desktop'))
     parser.add_argument('--hooks-dir', dest='hooksdirs',
-                        default=[op.join(op.dirname(__file__), 'hooks', 'desktop')],
+                        default=[default_hooks_dir],
                         action='append',
                         help='set the directory path containing event hooks')
     pargs = parser.parse_args(sys.argv[1:])

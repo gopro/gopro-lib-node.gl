@@ -28,6 +28,7 @@ import subprocess
 import time
 
 from PySide2 import QtCore
+from pynodegl_utils.path_util import path_norm
 
 
 class _HooksCaller:
@@ -89,6 +90,7 @@ class _HooksCaller:
         return uint_color
 
     def scene_change(self, session_id, local_scene, cfg):
+        local_scene = path_norm(local_scene)
         self._get_hook_output(
             'scene_change',
             session_id,

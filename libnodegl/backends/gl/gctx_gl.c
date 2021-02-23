@@ -246,6 +246,7 @@ static int offscreen_rendertarget_init(struct gctx *s)
             .load_op    = NGLI_LOAD_OP_LOAD,
             .store_op   = NGLI_STORE_OP_STORE,
         },
+        .readable = 1,
     };
 
     s_priv->rt = ngli_rendertarget_create(s);
@@ -555,6 +556,7 @@ static int update_capture_cvpixelbuffer(struct gctx *s, CVPixelBufferRef capture
             .load_op    = NGLI_LOAD_OP_LOAD,
             .store_op   = NGLI_STORE_OP_STORE,
         },
+        .readable = 1,
     };
     ret = ngli_rendertarget_init(rt, &rt_params);
     if (ret < 0)

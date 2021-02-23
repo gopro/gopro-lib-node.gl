@@ -192,90 +192,83 @@ def demo(cfg, intro='Hello World!'):
 
 ## Controller hooks
 
-When using the `--hooks-dir` option, `ngl-control` will execute various hook
+When using the `--hooks-script` option, `ngl-control` will execute various hook
 according to various events. These hooks are typically used for triggering a
 synchronization with external devices.
 
-Following are the hook scripts or programs that will be executed and their
-expected behaviour.
+The hooks are exposed through a Python script implementing the following function:
+- `get_sessions()`
+- `get_session_info(session_id)`
+- `sync_file(session_id, ifile, ofile)`
+- `scene_change(session_id, scenefile, duration, aspect_ratio, framerate, clear_color, samples)`
 
-### hook.get_sessions
+Following are the hook functions that will be executed and their expected
+behaviour.
 
-`hook.get_sessions` does not take any argument. It must print on `stdout` all
-the available sessions. Each line represents one session. The first word of
-each line represent the session identifier and must be unique. The rest of the
-line is a description of the session.
+### get_sessions()
 
-**Example**:
+`get_sessions()` does not take any argument. It must return a list of `tuple`.
+Each `tuple` must contain:
 
-```shell
-$ ./hook.get_sessions
-X2fca1f2c device Foobar 3000
-Y5fd953df Smartphone 9000 GEN X
-```
-
-### hook.get_session_info
-
-`hook.get_session_info` takes a session ID as argument. It must print on
-`stdout` the backend and system in the `key=value` form.
-
-Accepted values for the `backend`:
-
-- `opengl`
-- `opengles`
-
-Accepted values for the `system`:
-
-- `Linux`
-- `Android`
-- `Darwin`
-- `iOS`
+- a session identifier that must be unique
+- a session description
 
 **Example**:
 
-```shell
-$ ./hook.get_session_info X2fca1f2c
-backend=opengles
-system=Linux
+```console
+$ python -c 'import pprint, desktop; pprint.pprint(desktop.get_sessions())'
+[('localhost-1234', 'local ngl-desktop'),
+ ('localhost-2345', 'local ngl-desktop'),
 ```
 
-### hook.sync_file
+### get_session_info
 
-`hook.sync_file` takes 3 arguments:
+`get_session_info(session_id)` takes a session ID as argument. It must return a
+`dict` containing the following keys:
 
-1. `session_id`: the session identifier
-1. `ifile`: the path to the local file
-2. `ofile`: the output filename (not path)
+- `backend`, accepted values are `opengl`, and `opengles`
+- `system`, accepted values are `Linux`, `Android`, `Darwin`, `iOS` and `Windows`
+
+**Example**:
+
+```console
+$ python -c 'import desktop; print(desktop.get_session_info("localhost-1234"))'
+{'backend': 'opengl', 'system': 'Linux'}
+```
+
+### sync_file
+
+`sync_file(session_id, ifile, ofile)` takes the following arguments:
+
+- `session_id`: the session identifier
+- `ifile`: the path to the local file
+- `ofile`: the output filename (not path)
 
 It is called for every file to sync (typically media files).
 
-The hook must print on `stdout` the output file path.
+The hook must return the output file path.
 
 **Example**:
 
-```shell
-$ ./hook.sync_file Y5fd953df /tmp/ngl-media.mp4 media-001.mp4
+```console
+$ python -c 'import desktop; print(desktop.sync_file("192.168.1.1-1234", "/tmp/ngl-media.mp4", "media-001.mp4"))'
 /mnt/data/ngl-data/media-001.mp4
 ```
 
-### hook.scene_change
+### scene_change
 
-`hook.scene_change` takes several arguments:
+`scene_change(session_id, scenefile, duration, aspect_ratio, framerate, clear_color, samples)` take the following arguments:
 
-- first argument is the session identifier
-- second argument is the `localscene`: the path to the local serialized scene
-- every following argument is a key-value string following the format
-  `key=value`. Available named variables are following:
-  - `duration`: expressed as a float (in seconds)
-  - `aspect_ratio`: expressed as a fraction in format `num/den` where `num` and `den` are `int`
-  - `framerate`: expressed as a fraction in format `num/den` where `num` and `den` are `int`
-  - `clear_color`: expressed as a 32-bit hexadecimal following the `RRGGBBAA` format
-  - `samples`: number of samples used for multisample anti-aliasing expressed as an integer
+- `session_id`: the session identifier
+- `scenefile`: the path to the local serialized scene
+- `duration`: a `float` representing the scene duration (in seconds)
+- `aspect_ratio`: a `tuple` of `int` (`num`, `den`) representing the aspect ratio
+- `framerate`: a `tuple` of `int` (`num`, `den`) representing the framerate
+- `clear_color`: a `unsigned int` representing the 4 color components of the clear color
+- `samples`: a `int` representing the number of `samples` used for multisample anti-aliasing
 
 **Example**:
 
-A call from `ngl-control` to this hook will look like this:
-
-```shell
-$ ./hook.scene_change X2fca1f2c /tmp/ngl_scene.ngl duration=5 framerate=60000/1001 aspect_ratio=16/9 clear_color=4A646BFF samples=4
+```console
+$ python -c 'import desktop; desktop.scene_change("192.168.1.1-1234", "/tmp/scene.ngl", 5, (60000,1001), (16,9), 0x4A646BFF, 4)'
 ```

@@ -41,14 +41,14 @@ class MainWindow(QtWidgets.QSplitter):
 
     error = QtCore.Signal(str)
 
-    def __init__(self, module_pkgname, hooksdirs):
+    def __init__(self, module_pkgname, hooks_scripts):
         super().__init__(QtCore.Qt.Horizontal)
         self._win_title_base = 'Node.gl controller'
         self.setWindowTitle(self._win_title_base)
 
         self._module_pkgname = module_pkgname
         self._scripts_mgr = ScriptsManager(module_pkgname)
-        self._hooks_caller = HooksCaller(hooksdirs)
+        self._hooks_caller = HooksCaller(hooks_scripts)
 
         get_scene_func = self._get_scene
 

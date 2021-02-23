@@ -24,54 +24,35 @@ import hashlib
 import os
 import os.path as op
 import tempfile
-import subprocess
 import time
+import importlib
 
 from PySide2 import QtCore
 
+from pynodegl_utils.com import load_script
 
 class _HooksCaller:
 
     _HOOKS = ('get_session_info', 'get_sessions', 'scene_change', 'sync_file')
 
-    def __init__(self, hooksdir):
-        self._hooksdir = hooksdir
-        self.hooks_available = all(self._get_hook(h) is not None for h in self._HOOKS)
-        if not self.hooks_available:
-            print(f'hooks not available in {hooksdir}')
+    def __init__(self, hooks_script):
+        self._module = load_script(hooks_script)
+        if not all(hasattr(self._module, hook) for hook in self._HOOKS):
+            raise NotImplementedError(f'{hooks_script}: the following functions must be implemented: {self._HOOKS}')
 
-    def _get_hook(self, name):
-        if not self._hooksdir:
-            return None
-        hook = op.join(self._hooksdir, 'hook.' + name)
-        if not op.exists(hook):
-            return
-        return hook
-
-    def _get_hook_output(self, name, *args):
-        hook = self._get_hook(name)
-        if not hook:
-            return None
-        cmd = [hook] + list(args)
-        return subprocess.check_output(cmd, text=True).rstrip()
+    def _has_hook(self, name):
+        return hasattr(self._module, name)
 
     def get_session_info(self, session_id):
-        ret = {}
-        session_info_output = self._get_hook_output('get_session_info', session_id)
-        if session_info_output:
-            for line in session_info_output.splitlines():
-                k, v = line.split('=', 1)
-                ret[k] = v
-        return ret
+        return self._module.get_session_info(session_id)
 
     def get_sessions(self):
         sessions = []
-        sessions_output = self._get_hook_output('get_sessions')
-        session_lines = sessions_output.splitlines() if sessions_output is not None else []
-        for session_line in session_lines:
-            session_id, session_desc = session_line.split(None, 1)
+        session_list = self._module.get_sessions()
+        for session in session_list:
+            session_id, session_desc = session
             # TODO: asynchronous calls? (individual session queries could take some time)
-            session_info = self.get_session_info(session_id)
+            session_info = self._module.get_session_info(session_id)
             sessions.append((
                 session_id,
                 session_desc,
@@ -89,15 +70,14 @@ class _HooksCaller:
         return uint_color
 
     def scene_change(self, session_id, local_scene, cfg):
-        self._get_hook_output(
-            'scene_change',
+        return self._module.scene_change(
             session_id,
             local_scene,
-            'duration=%f' % cfg['duration'],
-            'framerate=%d/%d' % cfg['framerate'],
-            'aspect_ratio=%d/%d' % cfg['aspect_ratio'],
-            'clear_color=%08X' % self._uint_clear_color(cfg['clear_color']),
-            'samples=%d' % cfg['samples'],
+            cfg['duration'],
+            cfg['aspect_ratio'],
+            cfg['framerate'],
+            self._uint_clear_color(cfg['clear_color']),
+            cfg['samples'],
         )
 
     @staticmethod
@@ -112,14 +92,13 @@ class _HooksCaller:
         return op.join(digest + ext)
 
     def sync_file(self, session_id, localfile):
-        return self._get_hook_output('sync_file', session_id, localfile, self._hash_filename(localfile))
+        return self._module.sync_file(session_id, localfile, self._hash_filename(localfile))
 
 
 class HooksCaller:
 
-    def __init__(self, hooksdirs):
-        self._callers = [_HooksCaller(hooksdir) for hooksdir in hooksdirs]
-        self.hooks_available = any(c.hooks_available for c in self._callers)
+    def __init__(self, hooks_scripts):
+        self._callers = [_HooksCaller(hooks_script) for hooks_script in hooks_scripts]
 
     def _get_caller_session_id(self, unique_session_id):
         istr, session_id = unique_session_id.split(':', maxsplit=1)
@@ -209,8 +188,8 @@ class _HooksThread(QtCore.QThread):
                 self.uploadingFile.emit(session_id, i, len(filelist), localfile)
                 try:
                     remotefile = self._hooks_caller.sync_file(session_id, localfile)
-                except subprocess.CalledProcessError as e:
-                    self.error.emit(session_id, 'Error (%d) while uploading %s' % (e.returncode, localfile))
+                except Exception as e:
+                    self.error.emit(session_id, 'Error while uploading %s: %s' % (localfile, str(e)))
                     return
                 serialized_scene = serialized_scene.replace(
                         self._filename_escape(localfile),
@@ -226,8 +205,8 @@ class _HooksThread(QtCore.QThread):
                 self.sendingScene.emit(session_id, self._scene_id)
                 try:
                     self._hooks_caller.scene_change(session_id, f.name, cfg)
-                except subprocess.CalledProcessError as e:
-                    self.error.emit(session_id, 'Error (%d) while sending scene' % e.returncode)
+                except Exception as e:
+                    self.error.emit(session_id, 'Error while sending scene: %s' % str(e))
                     return
                 self.done.emit(session_id, self._scene_id, time.time() - start_time)
 
@@ -250,8 +229,6 @@ class HooksController(QtCore.QObject):
         self._threads = []
 
     def process(self, module_name, scene_name):
-        if not self._hooks_caller.hooks_available:
-            return
         self._wait_threads()  # Wait previous batch
         data = self._hooks_view.get_data_from_model()
         for session_id, data_row in data.items():

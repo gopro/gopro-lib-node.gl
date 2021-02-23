@@ -257,8 +257,8 @@ def _get_data_streamed_buffer_cuepoints(size):
     return {f'{x}{y}': (c(x), c(y)) for y in range(size) for x in range(size)}
 
 
-def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, single, show_dbg_points):
-    cfg.duration = duration * scale
+def _get_data_streamed_buffer_vec4_scene(cfg, size, nb_keyframes, scale, single, show_dbg_points):
+    cfg.duration = nb_keyframes * scale
     cfg.aspect_ratio = (1, 1)
     data_size = size * size
     assert not single or size == 2
@@ -267,21 +267,21 @@ def _get_data_streamed_buffer_vec4_scene(cfg, size, duration, scale, single, sho
     if scale != 1:
         kfs = [
             ngl.AnimKeyFrameFloat(0, 0),
-            ngl.AnimKeyFrameFloat(cfg.duration, duration),
+            ngl.AnimKeyFrameFloat(cfg.duration, nb_keyframes),
         ]
         time_anim = ngl.AnimatedTime(kfs)
 
     pts_data = array.array('q')
     assert pts_data.itemsize == 8
 
-    for i in range(duration):
+    for i in range(nb_keyframes):
         offset = 10000 if i == 0 else 0
         pts_data.extend([i * 1000000 + offset])
 
     vec4_data = array.array('f')
-    for i in range(duration):
+    for i in range(nb_keyframes):
         for j in range(data_size):
-            v = i / float(duration) + j / float(data_size*duration)
+            v = i / float(nb_keyframes) + j / float(data_size*nb_keyframes)
             if single:
                 vec4_data.extend([v])
             else:

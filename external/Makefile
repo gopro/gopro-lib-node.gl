@@ -58,10 +58,10 @@ sxplayer-$(SXPLAYER_VERSION).tar.gz:
 pkgconf: pkgconf-$(PKGCONF_VERSION)
 	cp -r $< $@
 
-pkgconf-$(PKGCONF_VERSION): pkgconf-$(PKGCONF_VERSION).tar.gz
+pkgconf-$(PKGCONF_VERSION): pkgconf-$(PKGCONF_VERSION).tar.xz
 	$(TAR) -xf $<
 
-pkgconf-$(PKGCONF_VERSION).tar.gz:
-	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/pkgconf-$(PKGCONF_VERSION).tar.gz -o $@
+pkgconf-$(PKGCONF_VERSION).tar.xz:
+	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/pkgconf-$(PKGCONF_VERSION).tar.xz -o $@
 
 .PHONY: all

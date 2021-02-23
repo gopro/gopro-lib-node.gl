@@ -62,6 +62,6 @@ pkgconf-$(PKGCONF_VERSION): pkgconf-$(PKGCONF_VERSION).tar.xz
 	$(TAR) -xf $<
 
 pkgconf-$(PKGCONF_VERSION).tar.xz:
-	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/pkgconf-$(PKGCONF_VERSION).tar.xz -o $@
+	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/$@ -o $@
 
 .PHONY: all

@@ -375,6 +375,10 @@ void ngli_rendertarget_gl_invalidate(struct rendertarget *s)
 void ngli_rendertarget_gl_read_pixels(struct rendertarget *s, uint8_t *data)
 {
     const struct rendertarget_gl *s_priv = (struct rendertarget_gl *)s;
+    const struct rendertarget_params *params = &s->params;
+
+    ngli_assert(params->readable);
+
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
     struct rendertarget *rt = gctx_gl->rendertarget;

@@ -382,6 +382,10 @@ end:
     ipc_pkt_freep(&s.send_pkt);
     ipc_pkt_freep(&s.recv_pkt);
     if (fd != -1)
+#ifdef _WIN32
+        closesocket(fd);
+#else
         close(fd);
+#endif
     return ret;
 }

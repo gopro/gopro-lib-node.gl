@@ -51,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt -y update
-          sudo apt -y install build-essential
+          sudo apt -y install build-essential unzip
           pip.exe install meson
 
       - name: Restore from cache and install vcpkg
@@ -68,5 +68,5 @@ jobs:
 
       - name: Build
         run: |
-          make -j$(($(nproc)+1)) TARGET_OS=Windows \
+          make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_GPU_CAPTURE=yes \
           VCPKG_DIR='D:\\a\\gopro-lib-node.gl\\gopro-lib-node.gl\\vcpkg'

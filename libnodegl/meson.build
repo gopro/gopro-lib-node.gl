@@ -61,6 +61,7 @@ conf_data.set10('CONFIG_SMALL', get_option('small'))
 conf_data.set10('DEBUG_GL', 'gl' in debug_opts)
 conf_data.set10('DEBUG_MEM', 'mem' in debug_opts)
 conf_data.set10('DEBUG_SCENE', 'scene' in debug_opts)
+conf_data.set10('DEBUG_GPU_CAPTURE', 'gpu_capture' in debug_opts)
 
 if host_system == 'windows'
   if cc.get_id() == 'msvc'
@@ -268,6 +269,26 @@ endif
 if vaapi_enabled
   lib_src += files('vaapi_ctx.c')
   conf_data.set10('HAVE_VAAPI', true)
+endif
+
+
+#
+# GPU Capture Options
+#
+
+if 'gpu_capture' in debug_opts
+  renderdoc_dir = get_option('renderdoc_dir')
+  renderdoc_include_dir = ''
+  if host_system == 'windows'
+    renderdoc_include_dir = renderdoc_dir
+  else
+    renderdoc_include_dir = renderdoc_dir / 'include'
+  endif
+  if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: true)
+    lib_src += files('gpu_capture_renderdoc.c')
+    lib_deps += declare_dependency(include_directories: renderdoc_include_dir)
+    lib_deps += cc.find_library('dl', required: host_system == 'linux')
+  endif
 endif
 
 

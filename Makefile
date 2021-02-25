@@ -43,6 +43,7 @@ export TARGET_OS ?= $(shell uname -s)
 DEBUG_GL    ?= no
 DEBUG_MEM   ?= no
 DEBUG_SCENE ?= no
+export DEBUG_GPU_CAPTURE ?= no
 TESTS_SUITE ?=
 V           ?=
 
@@ -109,8 +110,17 @@ endif
 NODEGL_DEBUG_OPTS-$(DEBUG_GL)    += gl
 NODEGL_DEBUG_OPTS-$(DEBUG_MEM)   += mem
 NODEGL_DEBUG_OPTS-$(DEBUG_SCENE) += scene
+NODEGL_DEBUG_OPTS-$(DEBUG_GPU_CAPTURE) += gpu_capture
 ifneq ($(NODEGL_DEBUG_OPTS-yes),)
 NODEGL_DEBUG_OPTS = -Ddebug_opts=$(shell echo $(NODEGL_DEBUG_OPTS-yes) | tr ' ' ',')
+endif
+ifeq ($(DEBUG_GPU_CAPTURE),yes)
+ifeq ($(TARGET_OS),Windows)
+RENDERDOC_DIR = $(shell wslpath -wa .)\external\renderdoc
+else
+RENDERDOC_DIR = $(PWD)/external/renderdoc
+endif
+NODEGL_DEBUG_OPTS += -Drenderdoc_dir="$(RENDERDOC_DIR)"
 endif
 
 # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
@@ -205,7 +215,14 @@ else
 	($(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
 endif
 
-nodegl-setup: sxplayer-install
+NODEGL_DEPS = sxplayer-install
+ifeq ($(DEBUG_GPU_CAPTURE),yes)
+ifeq ($(TARGET_OS),$(filter $(TARGET_OS),MinGW-w64 Windows))
+NODEGL_DEPS += renderdoc-install
+endif
+endif
+
+nodegl-setup: $(NODEGL_DEPS)
 ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir\\libnodegl)
 else
@@ -223,6 +240,13 @@ ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& $(MESON_SETUP) external\\sxplayer builddir\\sxplayer \&\& $(MESON_COMPILE) -C builddir\\sxplayer \&\& $(MESON_INSTALL) -C builddir\\sxplayer)
 else
 	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
+endif
+
+renderdoc-install: external-download pkg-config-install $(PREFIX)
+ifeq ($(TARGET_OS),Windows)
+	$(CMD) xcopy /Y "$(RENDERDOC_DIR)\renderdoc.dll" "$(PREFIX_FULLPATH)\Scripts\."
+else
+	cp $(RENDERDOC_DIR)/renderdoc.dll $(PREFIX_FULLPATH)/bin/
 endif
 
 external-download:

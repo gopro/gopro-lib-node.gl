@@ -24,12 +24,9 @@ import importlib
 import inspect
 import os
 import os.path as op
-import pickle
 import pkgutil
-import subprocess
 import sys
 import traceback
-import pynodegl as ngl
 from pynodegl_utils.filetracker import FileTracker
 
 IPC_READ_BUFSIZE = 4096
@@ -43,48 +40,6 @@ def load_script(path):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
-
-
-def query_subproc(**idict):
-
-    '''
-    Run the query in a sub-process. IPC happens using pipes and pickle
-    serialization of dict.
-
-    The parent process will write the query to the writable input fd
-    (fd_w) and read the result from the readable output fd (fd_r).
-
-    The executed child (ngl-com sub-process) will read the query from the
-    readable input fd (child_fd_r) and write result to writable output fd
-    (child_fd_w).
-    '''
-
-    child_fd_r, fd_w = os.pipe()
-    fd_r, child_fd_w = os.pipe()
-
-    cmd = [sys.executable, '-m', 'pynodegl_utils.com', str(child_fd_r), str(child_fd_w)]
-    ret = subprocess.Popen(cmd, pass_fds=(child_fd_r, child_fd_w))
-    os.close(child_fd_r)
-    os.close(child_fd_w)
-
-    # Send input
-    idata = pickle.dumps(idict)
-    os.write(fd_w, idata)
-    os.close(fd_w)
-
-    # Receive output
-    odata = b''
-    while True:
-        rdata = os.read(fd_r, IPC_READ_BUFSIZE)
-        if not rdata:
-            break
-        odata += rdata
-    os.close(fd_r)
-    odict = pickle.loads(odata)
-
-    ret.wait()
-
-    return odict
 
 
 def query_inplace(**idict):
@@ -163,34 +118,8 @@ def query_inplace(**idict):
     # End of file and modules tracking
     ftrack.end_hooking()
     odict['filelist'] = ftrack.filelist
+    odict['modulelist'] = ftrack.modulelist
     if module_is_script:
         odict['filelist'].update([module_pkgname])
 
     return odict
-
-
-# Entry point for the ngl-com tool
-def run():
-    fd_r, fd_w = int(sys.argv[1]), int(sys.argv[2])
-
-    # Read input
-    idata = b''
-    while True:
-        rdata = os.read(fd_r, IPC_READ_BUFSIZE)
-        if not rdata:
-            break
-        idata += rdata
-    os.close(fd_r)
-    idict = pickle.loads(idata)
-
-    # Execute the query
-    odict = query_inplace(**idict)
-
-    # Write output
-    odata = pickle.dumps(odict)
-    os.write(fd_w, odata)
-    os.close(fd_w)
-
-
-if __name__ == '__main__':
-    run()

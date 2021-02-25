@@ -30,6 +30,7 @@ class FileTracker:
 
     def __init__(self):
         self.filelist = set()
+        self.modulelist = set()
         self._builtin_open = builtins.open
         self._pysysdir = op.realpath(distutils.sysconfig.get_python_lib(standard_lib=True))
 
@@ -56,10 +57,13 @@ class FileTracker:
         return files
 
     def start_hooking(self):
+        self._start_modules = set(sys.modules.keys())
         self._start_files = self._get_trackable_files()
         builtins.open = self._open_hook
 
     def end_hooking(self):
+        new_modules = set(sys.modules.keys()) - self._start_modules
+        self.modulelist.update(new_modules)
         new_files = self._get_trackable_files() - self._start_files
         self.filelist.update(new_files)
         builtins.open = self._builtin_open

@@ -20,6 +20,7 @@
 # under the License.
 #
 
+import sys
 import os.path as op
 
 from threading import Timer
@@ -28,7 +29,7 @@ from watchdog.events import FileSystemEventHandler
 
 from PySide2 import QtCore
 
-from .com import query_subproc
+from .com import query_inplace
 
 MIN_RELOAD_INTERVAL = 0.0015
 
@@ -43,6 +44,7 @@ class ScriptsManager(QtCore.QObject):
         self._module_pkgname = module_pkgname
         self._dirs_to_watch = set()
         self._files_to_watch = set()
+        self._modules = set()
 
         self._event_handler = FileSystemEventHandler()
         self._event_handler.on_any_event = self._on_any_event
@@ -86,9 +88,13 @@ class ScriptsManager(QtCore.QObject):
     def reload(self):
         self._set_reloading()
         self.pause()
-        odict = query_subproc(query='list', pkg=self._module_pkgname)
+        for name in self._modules:
+            del sys.modules[name]
+        self._modules = set()
+        odict = query_inplace(query='list', pkg=self._module_pkgname)
         if 'error' in odict:
             self.update_filelist(odict['filelist'])
+            self.update_modulelist(odict['modulelist'])
             self.resume()
             self._set_reloaded()
             self.error.emit(odict['error'])
@@ -96,6 +102,7 @@ class ScriptsManager(QtCore.QObject):
         self.error.emit(None)
 
         self.set_filelist(odict['filelist'])
+        self.set_modulelist(odict['modulelist'])
         self.resume()
         self._set_reloaded()
 
@@ -126,6 +133,12 @@ class ScriptsManager(QtCore.QObject):
     def set_filelist(self, filelist):
         self._files_to_watch = set(filelist)
         self._update_dirs_to_watch()
+
+    def update_modulelist(self, modulelist):
+        self._modules.update(modulelist)
+
+    def set_modulelist(self, modulelist):
+        self._modules = set(modulelist)
 
     def inc_query_count(self):
         with QtCore.QMutexLocker(self._lock):

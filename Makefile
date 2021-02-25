@@ -171,7 +171,8 @@ endif
 #   Python virtualenv)
 # - ngl-control can not currently work because of:
 #     - temporary files handling
-#     - subprocess usage, passing fd is not supported on Windows
+#     - export cannot work because of our subprocess usage, passing fd is not
+#       supported on Windows
 #
 # Still, we want the module to be installed so we can access the scene()
 # decorator and other related utils.

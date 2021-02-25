@@ -24,7 +24,7 @@ import sys
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from pynodegl_utils.com import query_subproc
+from pynodegl_utils.com import query_inplace
 from pynodegl_utils.config import Config
 from pynodegl_utils.scriptsmgr import ScriptsManager
 from pynodegl_utils.hooks import HooksController, HooksCaller
@@ -144,20 +144,23 @@ class MainWindow(QtWidgets.QSplitter):
         cfg['pkg'] = self._module_pkgname
         medias = self._medias_view.get_medias()
         cfg['medias'] = medias if medias else None
+        cfg['files'] = []
         cfg.update(cfg_overrides)
 
         self._scripts_mgr.inc_query_count()
         self._scripts_mgr.pause()
-        ret = query_subproc(query='scene', **cfg)
+        ret = query_inplace(query='scene', **cfg)
         if 'error' in ret:
             self._scripts_mgr.update_filelist(ret['filelist'])
+            self._scripts_mgr.update_modulelist(ret['modulelist'])
             self._scripts_mgr.resume()
             self._scripts_mgr.dec_query_count()
             self.error.emit(ret['error'])
             return None
 
         self.error.emit(None)
-        self._scripts_mgr.set_filelist(ret['filelist'])
+        self._scripts_mgr.update_filelist(ret['filelist'])
+        self._scripts_mgr.update_modulelist(ret['modulelist'])
         self._scripts_mgr.resume()
         self._scripts_mgr.dec_query_count()
         self._scene_toolbar.set_cfg(ret)

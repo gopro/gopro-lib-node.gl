@@ -38,3 +38,8 @@ option('logtrace', type: 'boolean', value: false,
        description: 'log tracing (slow and verbose)')
 option('debug_opts', type: 'array', choices: ['gl', 'mem', 'scene'], value: [],
        description: 'debugging options for developers')
+
+option('gpu_capture_renderdoc', type: 'feature', value: 'auto',
+       description: 'GPU capture via renderdoc')
+option('renderdoc_dir', type: 'string',
+       description: 'Renderdoc directory')

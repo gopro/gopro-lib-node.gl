@@ -272,6 +272,26 @@ endif
 
 
 #
+# GPU Capture Options
+#
+
+renderdoc_dir = get_option('renderdoc_dir')
+renderdoc_include_dir = ''
+if cc.get_id() == 'msvc'
+  renderdoc_include_dir = renderdoc_dir
+elif host_system == 'linux'
+  renderdoc_include_dir = renderdoc_dir / 'include'
+endif
+renderdoc_dep = declare_dependency(include_directories: renderdoc_include_dir)
+if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: get_option('gpu_capture_renderdoc'))
+  lib_src += files('gpu_capture_renderdoc.c')
+  conf_data.set10('HAVE_GPU_CAPTURE', true)
+  lib_deps += renderdoc_dep
+  lib_deps += cc.find_library('dl', required: host_system == 'linux')
+endif
+
+
+#
 # Graphic backend dependencies
 #
 

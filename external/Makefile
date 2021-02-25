@@ -24,10 +24,22 @@ CURL ?= curl
 
 SXPLAYER_VERSION ?= 9.7.0
 PKGCONF_VERSION ?= 1.7.3
+RENDERDOC_VERSION ?= 1.12
 
 DEPENDENCIES = sxplayer
 ifeq ($(TARGET_OS),Windows)
 DEPENDENCIES += pkgconf
+endif
+
+ifeq ($(DEBUG_CAPTURE),yes)
+ifeq ($(TARGET_OS),Windows)
+RENDERDOC_TARGET = RenderDoc_$(RENDERDOC_VERSION)_64
+else ifeq ($(TARGET_OS),Linux)
+RENDERDOC_TARGET = renderdoc_$(RENDERDOC_VERSION)
+else
+$(error RenderDoc is not supported on this system)
+endif
+DEPENDENCIES += renderdoc
 endif
 
 all: $(DEPENDENCIES)
@@ -63,5 +75,20 @@ pkgconf-$(PKGCONF_VERSION): pkgconf-$(PKGCONF_VERSION).tar.xz
 
 pkgconf-$(PKGCONF_VERSION).tar.xz:
 	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/$@ -o $@
+
+renderdoc: renderdoc_$(RENDERDOC_VERSION)
+	ln -snf $< $@
+
+renderdoc: $(RENDERDOC_TARGET)
+	ln -snf $< $@
+
+RenderDoc_$(RENDERDOC_VERSION)_64: RenderDoc_$(RENDERDOC_VERSION)_64.zip
+	unzip -q -o $<
+
+RenderDoc_$(RENDERDOC_VERSION)_64.zip renderdoc_$(RENDERDOC_VERSION).tar.gz:
+	$(CURL) -L https://renderdoc.org/stable/$(RENDERDOC_VERSION)/$@ -o $@
+
+renderdoc_$(RENDERDOC_VERSION): renderdoc_$(RENDERDOC_VERSION).tar.gz
+	$(TAR) -xf $<
 
 .PHONY: all

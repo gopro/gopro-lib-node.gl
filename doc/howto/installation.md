@@ -54,7 +54,7 @@ following components are included:
 following:
     ```shell
     sudo apt -y update
-    sudo apt -y install build-essential
+    sudo apt -y install build-essential unzip
     ```
 - Add `C:\vcpkg\installed\x64-windows\tools\ffmpeg` path to your windows system `%PATH%` environment variable (`ffmpeg`
 and `ffprobe` binaries must be available in order to run the tests)

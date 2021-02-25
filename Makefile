@@ -43,6 +43,7 @@ export TARGET_OS ?= $(shell uname -s)
 DEBUG_GL    ?= no
 DEBUG_MEM   ?= no
 DEBUG_SCENE ?= no
+export DEBUG_CAPTURE ?= no
 TESTS_SUITE ?=
 V           ?=
 
@@ -72,6 +73,12 @@ ACTIVATE = . $(PREFIX_FULLPATH)/bin/activate
 endif
 
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX_FULLPATH)/lib
+
+ifeq ($(TARGET_OS),Windows)
+RENDERDOC_DIR = $(shell wslpath -wa .)\external\renderdoc
+else
+RENDERDOC_DIR = $(PWD)/external/renderdoc
+endif
 
 ifeq ($(TARGET_OS),Windows)
 MESON_SETUP_PARAMS  = \
@@ -205,11 +212,16 @@ else
 	($(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
 endif
 
-nodegl-setup: sxplayer-install
+NODEGL_DEPS = sxplayer-install
 ifeq ($(TARGET_OS),Windows)
-	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir\\libnodegl)
+NODEGL_DEPS += renderdoc-install
+endif
+
+nodegl-setup:  $(NODEGL_DEPS)
+ifeq ($(TARGET_OS),Windows)
+	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) -Drenderdoc_dir="$(RENDERDOC_DIR)" libnodegl builddir\\libnodegl)
 else
-	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) -Drenderdoc_dir="$(RENDERDOC_DIR)" libnodegl builddir/libnodegl)
 endif
 
 pkg-config-install: external-download $(PREFIX)
@@ -223,6 +235,11 @@ ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& $(MESON_SETUP) external\\sxplayer builddir\\sxplayer \&\& $(MESON_COMPILE) -C builddir\\sxplayer \&\& $(MESON_INSTALL) -C builddir\\sxplayer)
 else
 	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
+endif
+
+ifeq ($(TARGET_OS),Windows)
+renderdoc-install: external-download pkg-config-install $(PREFIX)
+	$(CMD) xcopy /Y "$(RENDERDOC_DIR)\renderdoc.dll" "$(PREFIX_FULLPATH)\Scripts\."
 endif
 
 external-download:

@@ -26,8 +26,8 @@ import subprocess
 import pynodegl as ngl
 from PySide2 import QtGui, QtCore
 
-from .com import query_inplace
-from .misc import get_backend, get_viewport, get_nodegl_tempdir
+from pynodegl_utils.com import query_inplace
+from pynodegl_utils.misc import get_backend, get_viewport, get_nodegl_tempdir
 
 
 class Exporter(QtCore.QThread):

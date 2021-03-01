@@ -202,6 +202,7 @@ foreach backend : backends
 
   tests_rtt = [
     'load_attachment',
+    'load_attachment_nested',
     'feature_depth',
     'feature_depth_stencil',
     'mipmap',

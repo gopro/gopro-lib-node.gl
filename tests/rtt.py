@@ -192,9 +192,7 @@ for name, params in _rtt_tests.items():
     globals()['rtt_' + name] = _get_rtt_function(**params)
 
 
-@test_cuepoints(width=32, height=32, points={'bottom-left': (-0.5, -0.5), 'top-right': (0.5, 0.5)}, tolerance=1)
-@scene()
-def rtt_load_attachment(cfg):
+def _rtt_load_attachment(cfg):
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
@@ -219,6 +217,28 @@ def rtt_load_attachment(cfg):
     foreground.update_frag_resources(tex0=texture)
 
     return ngl.Group(children=(background, rtt, rtt_noop, foreground))
+
+
+@test_cuepoints(width=32, height=32, points={'bottom-left': (-0.5, -0.5), 'top-right': (0.5, 0.5)}, tolerance=1)
+@scene()
+def rtt_load_attachment(cfg):
+    return _rtt_load_attachment(cfg)
+
+@test_cuepoints(width=32, height=32, points={'bottom-left': (-0.5, -0.5), 'top-right': (0.5, 0.5)}, tolerance=1)
+@scene()
+def rtt_load_attachment_nested(cfg):
+    scene = _rtt_load_attachment(cfg)
+
+    texture = ngl.Texture2D(width=16, height=16)
+    rtt = ngl.RenderToTexture(scene, [texture])
+
+    quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
+    program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
+    program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
+    foreground = ngl.Render(quad, program)
+    foreground.update_frag_resources(tex0=texture)
+
+    return ngl.Group(children=(rtt, foreground))
 
 
 @test_fingerprint(width=512, height=512, nb_keyframes=10)

@@ -209,13 +209,16 @@ def rtt_load_attachment(cfg):
     texture = ngl.Texture2D(width=16, height=16)
     rtt = ngl.RenderToTexture(render, [texture])
 
+    texture_noop = ngl.Texture2D(width=16, height=16)
+    rtt_noop = ngl.RenderToTexture(render, [texture_noop])
+
     quad = ngl.Quad((0, 0, 0), (1, 0, 0), (0, 1, 0))
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     foreground = ngl.Render(quad, program)
     foreground.update_frag_resources(tex0=texture)
 
-    return ngl.Group(children=(background, rtt, foreground))
+    return ngl.Group(children=(background, rtt, rtt_noop, foreground))
 
 
 @test_fingerprint(width=512, height=512, nb_keyframes=10)

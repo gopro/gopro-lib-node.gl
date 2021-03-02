@@ -50,6 +50,12 @@ class ScriptsManager(QtCore.QObject):
         self._observer.start()
         self._timer = None
 
+        self._lock = QtCore.QMutex()
+        self._query_count = 0
+        self._query_count_cond = QtCore.QWaitCondition()
+        self._reloading = False
+        self._reloading_cond = QtCore.QWaitCondition()
+
     def start(self):
         self.reload()
 
@@ -63,19 +69,35 @@ class ScriptsManager(QtCore.QObject):
     def pause(self):
         self._observer.unschedule_all()
 
+    def _set_reloading(self):
+        with QtCore.QMutexLocker(self._lock):
+            while self._reloading:
+                self._reloading_cond.wait(self._lock)
+            self._reloading = True
+            while self._query_count != 0:
+                self._query_count_cond.wait(self._lock)
+
+    def _set_reloaded(self):
+        with QtCore.QMutexLocker(self._lock):
+            self._reloading = False
+            self._reloading_cond.wakeAll()
+
     @QtCore.Slot()
     def reload(self):
+        self._set_reloading()
         self.pause()
         odict = query_subproc(query='list', pkg=self._module_pkgname)
         if 'error' in odict:
             self.update_filelist(odict['filelist'])
             self.resume()
+            self._set_reloaded()
             self.error.emit(odict['error'])
             return
         self.error.emit(None)
 
         self.set_filelist(odict['filelist'])
         self.resume()
+        self._set_reloaded()
 
         scripts = odict['scenes']
         self.scriptsChanged.emit(scripts)
@@ -104,3 +126,14 @@ class ScriptsManager(QtCore.QObject):
     def set_filelist(self, filelist):
         self._files_to_watch = set(filelist)
         self._update_dirs_to_watch()
+
+    def inc_query_count(self):
+        with QtCore.QMutexLocker(self._lock):
+            while self._reloading:
+                self._reloading_cond.wait(self._lock)
+            self._query_count += 1
+
+    def dec_query_count(self):
+        with QtCore.QMutexLocker(self._lock):
+            self._query_count -= 1
+            self._query_count_cond.wakeAll()

@@ -32,7 +32,6 @@ import traceback
 import pynodegl as ngl
 from pynodegl_utils.filetracker import FileTracker
 
-
 IPC_READ_BUFSIZE = 4096
 
 

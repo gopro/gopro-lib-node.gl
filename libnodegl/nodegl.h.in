@@ -259,6 +259,11 @@ struct ngl_node;
 #define NGL_ERROR_NOT_FOUND         -NGLI_FOURCC('E','f','n','d')       /* Target not found */
 #define NGL_ERROR_UNSUPPORTED       -NGLI_FOURCC('E','s','u','p')       /* Unsupported operation */
 
+#define NGL_ERROR_GRAPHICS_GENERIC         -NGLI_FOURCC('G','g','e','n')    /* Generic graphics error */
+#define NGL_ERROR_GRAPHICS_LIMIT_EXCEEDED  -NGLI_FOURCC('G','l','i','m')    /* Graphics hardware or resource limit exceeded */
+#define NGL_ERROR_GRAPHICS_MEMORY          -NGLI_FOURCC('G','m','e','m')    /* Graphics memory/allocation error */
+#define NGL_ERROR_GRAPHICS_UNSUPPORTED     -NGLI_FOURCC('G','s','u','p')    /* Unsupported graphics operation */
+
 /**
  * Allocate a node.
  *

@@ -227,7 +227,7 @@ static int renderbuffer_check_samples(struct texture *s)
     if (params->samples > max_samples) {
         LOG(WARNING, "renderbuffer format 0x%x does not support samples %d (maximum %d)",
             s_priv->format, params->samples, max_samples);
-        return NGL_ERROR_UNSUPPORTED;
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     return 0;

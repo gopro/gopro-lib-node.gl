@@ -116,7 +116,7 @@ static int compute_init(struct ngl_node *node)
             NGLI_ARG_VEC3(s->workgroup_count),
             NGLI_ARG_VEC3(limits->max_compute_work_group_count));
 
-        return NGL_ERROR_LIMIT_EXCEEDED;
+        return NGL_ERROR_GRAPHICS_LIMIT_EXCEEDED;
     }
     const struct program_priv *program = s->program->priv_data;
     struct pass_params params = {

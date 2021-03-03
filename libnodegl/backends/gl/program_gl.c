@@ -272,7 +272,7 @@ int ngli_program_gl_init(struct program *s, const char *vertex, const char *frag
 
     if (compute && (gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
         LOG(ERROR, "context does not support compute shaders");
-        return NGL_ERROR_UNSUPPORTED;
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     s_priv->id = ngli_glCreateProgram(gl);

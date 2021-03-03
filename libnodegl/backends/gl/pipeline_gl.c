@@ -170,7 +170,7 @@ static int build_uniform_bindings(struct pipeline *s, const struct pipeline_para
              uniform_desc->type == NGLI_TYPE_UIVEC3 ||
              uniform_desc->type == NGLI_TYPE_UIVEC4)) {
             LOG(ERROR, "context does not support unsigned int uniform flavours");
-            return NGL_ERROR_UNSUPPORTED;
+            return NGL_ERROR_GRAPHICS_UNSUPPORTED;
         }
 
         const set_uniform_func set_func = set_uniform_func_map[uniform_desc->type];
@@ -213,13 +213,13 @@ static int build_texture_bindings(struct pipeline *s, const struct pipeline_para
 
             if (!(gl->features & NGLI_FEATURE_SHADER_IMAGE_LOAD_STORE)) {
                 LOG(ERROR, "context does not support shader image load store operations");
-                return NGL_ERROR_UNSUPPORTED;
+                return NGL_ERROR_GRAPHICS_UNSUPPORTED;
             }
 
             int max_nb_textures = NGLI_MIN(limits->max_texture_image_units, sizeof(s_priv->used_texture_units) * 8);
             if (texture_desc->binding >= max_nb_textures) {
                 LOG(ERROR, "maximum number (%d) of texture unit reached", max_nb_textures);
-                return NGL_ERROR_LIMIT_EXCEEDED;
+                return NGL_ERROR_GRAPHICS_LIMIT_EXCEEDED;
             }
             if (s_priv->used_texture_units & (1ULL << texture_desc->binding)) {
                 LOG(ERROR, "texture unit %d is already used by another image", texture_desc->binding);
@@ -250,7 +250,7 @@ static int acquire_next_available_texture_unit(uint64_t *texture_units)
         }
     }
     LOG(ERROR, "no texture unit available");
-    return NGL_ERROR_LIMIT_EXCEEDED;
+    return NGL_ERROR_GRAPHICS_LIMIT_EXCEEDED;
 }
 
 static const GLenum gl_access_map[NGLI_ACCESS_NB] = {
@@ -327,13 +327,13 @@ static int build_buffer_bindings(struct pipeline *s, const struct pipeline_param
         if (pipeline_buffer_desc->type == NGLI_TYPE_UNIFORM_BUFFER &&
             !(gl->features & NGLI_FEATURE_UNIFORM_BUFFER_OBJECT)) {
             LOG(ERROR, "context does not support uniform buffer objects");
-            return NGL_ERROR_UNSUPPORTED;
+            return NGL_ERROR_GRAPHICS_UNSUPPORTED;
         }
 
         if (pipeline_buffer_desc->type == NGLI_TYPE_STORAGE_BUFFER &&
             !(gl->features & NGLI_FEATURE_SHADER_STORAGE_BUFFER_OBJECT)) {
             LOG(ERROR, "context does not support shader storage buffer objects");
-            return NGL_ERROR_UNSUPPORTED;
+            return NGL_ERROR_GRAPHICS_UNSUPPORTED;
         }
 
         if (pipeline_buffer_desc->access & NGLI_ACCESS_WRITE_BIT)
@@ -399,7 +399,7 @@ static int build_attribute_bindings(struct pipeline *s, const struct pipeline_pa
 
         if (pipeline_attribute_desc->rate > 0 && !(gl->features & NGLI_FEATURE_INSTANCED_ARRAY)) {
             LOG(ERROR, "context does not support instanced arrays");
-            return NGL_ERROR_UNSUPPORTED;
+            return NGL_ERROR_GRAPHICS_UNSUPPORTED;
         }
 
         struct attribute_binding desc = {
@@ -478,7 +478,7 @@ static int pipeline_compute_init(struct pipeline *s)
 
     if ((gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
         LOG(ERROR, "context does not support compute shaders");
-        return NGL_ERROR_UNSUPPORTED;
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     return 0;
@@ -667,7 +667,7 @@ int ngli_pipeline_gl_update_buffer(struct pipeline *s, int index, struct buffer 
             buffer->size > limits->max_uniform_block_size) {
             LOG(ERROR, "buffer %s size (%d) exceeds max uniform block size (%d)",
                 buffer_binding->desc.name, buffer->size, limits->max_uniform_block_size);
-            return NGL_ERROR_LIMIT_EXCEEDED;
+            return NGL_ERROR_GRAPHICS_LIMIT_EXCEEDED;
         }
     }
 

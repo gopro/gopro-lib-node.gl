@@ -295,7 +295,7 @@ int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_
         if (params->nb_colors > limits->max_draw_buffers) {
             LOG(ERROR, "draw buffer count (%d) exceeds driver limit (%d)",
                 params->nb_colors, limits->max_draw_buffers);
-            ret = NGL_ERROR_UNSUPPORTED;
+            ret = NGL_ERROR_GRAPHICS_UNSUPPORTED;
             goto done;
         }
         if (params->nb_colors > 1) {

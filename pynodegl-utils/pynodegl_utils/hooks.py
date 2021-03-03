@@ -167,6 +167,15 @@ class _HooksThread(QtCore.QThread):
                 s += '%%%02x' % (cval & 0xff)
         return s
 
+    def _change_scene(self, scenefile, cfg, start_time):
+        self.sendingScene.emit(self._session_id, self._scene_id)
+        try:
+            self._hooks_caller.scene_change(self._session_id, scenefile, cfg)
+        except Exception as e:
+            self.error.emit(self._session_id, 'Error while sending scene: %s' % str(e))
+            return
+        self.done.emit(self._session_id, self._scene_id, time.time() - start_time)
+
     def run(self):
         start_time = time.time()
         session_id, backend, system = self._session_id, self._target_backend, self._target_system
@@ -202,14 +211,7 @@ class _HooksThread(QtCore.QThread):
             with tempfile.NamedTemporaryFile('w', prefix='ngl_scene_', suffix='.ngl', delete=True) as f:
                 f.write(serialized_scene)
                 f.flush()
-                self.sendingScene.emit(session_id, self._scene_id)
-                try:
-                    self._hooks_caller.scene_change(session_id, f.name, cfg)
-                except Exception as e:
-                    self.error.emit(session_id, 'Error while sending scene: %s' % str(e))
-                    return
-                self.done.emit(session_id, self._scene_id, time.time() - start_time)
-
+                self._change_scene(f.name, cfg, start_time)
         except Exception as e:
             self.error.emit(session_id, 'Error: %s' % str(e))
 

@@ -169,10 +169,8 @@ endif
 #   Python virtualenv)
 # - Pillow fails to find zlib (required to be installed by the user outside the
 #   Python virtualenv)
-# - ngl-control can not currently work because of:
-#     - temporary files handling
-#     - export cannot work because of our subprocess usage, passing fd is not
-#       supported on Windows
+# - ngl-control works partially, export cannot work because of our subprocess
+#   usage, passing fd is not supported on Windows
 #
 # Still, we want the module to be installed so we can access the scene()
 # decorator and other related utils.

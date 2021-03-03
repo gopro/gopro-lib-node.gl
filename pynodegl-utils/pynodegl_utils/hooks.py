@@ -26,6 +26,7 @@ import os.path as op
 import tempfile
 import time
 import importlib
+import platform
 
 from PySide2 import QtCore
 
@@ -206,12 +207,21 @@ class _HooksThread(QtCore.QThread):
 
             # The serialized scene is then stored in a file which is then
             # communicated with additional parameters to the user
-            # FIXME: this won't work on Windows, see
+            # temfile.NamedTemporaryFile is not supported on Windows, see
             # https://docs.python.org/3/library/tempfile.html#tempfile.NamedTemporaryFile
-            with tempfile.NamedTemporaryFile('w', prefix='ngl_scene_', suffix='.ngl', delete=True) as f:
-                f.write(serialized_scene)
-                f.flush()
-                self._change_scene(f.name, cfg, start_time)
+            if platform.system() == 'Windows':
+                fd, fname = tempfile.mkstemp(prefix='ngl_scene_', suffix='.ngl')
+                try:
+                    with os.fdopen(fd, "w", newline='\n') as f:
+                        f.write(serialized_scene)
+                    self._change_scene(fname, cfg, start_time)
+                finally:
+                    os.remove(fname)
+            else:
+                with tempfile.NamedTemporaryFile('w', prefix='ngl_scene_', suffix='.ngl', delete=True) as f:
+                    f.write(serialized_scene)
+                    f.flush()
+                    self._change_scene(f.name, cfg, start_time)
         except Exception as e:
             self.error.emit(session_id, 'Error: %s' % str(e))
 

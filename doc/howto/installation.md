@@ -37,6 +37,8 @@ building and running the complete `node.gl` stack.
 ## Quick user installation on Windows (MSVC toolchain)
 
 - Install [Python](https://www.python.org/downloads/windows/) 3.x using the Windows Installer
+- Install [Graphviz](https://graphviz.org/download/) using the Windows Installer and make sure to select the option to add Graphviz
+to the system PATH during its installation
 - Install [Microsoft Visual Studio](https://visualstudio.microsoft.com/downloads/) Community 2019 or greater and make sure the
 following components are included:
     - Desktop development with C++

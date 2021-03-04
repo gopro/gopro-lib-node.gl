@@ -30,6 +30,7 @@ building and running the complete `node.gl` stack.
     pacman -S mingw-w64-x86_64-python3-{pillow,pip}
     pacman -S mingw-w64-x86_64-pyside2-qt5
     pacman -S mingw-w64-x86_64-meson
+    pacman -S mingw-w64-x86_64-graphviz
     ```
 - From MinGW64, build with `make -jN TARGET_OS=MinGW-w64` where `N` is the number of parallel processes
 - Enter the virtual environment with `. venv/bin/activate`

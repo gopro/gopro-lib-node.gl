@@ -26,7 +26,7 @@ import os.path as op
 import distutils.sysconfig
 
 
-class FileTracker:
+class ResourceTracker:
 
     def __init__(self):
         self.filelist = set()

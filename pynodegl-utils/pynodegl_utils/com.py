@@ -27,7 +27,7 @@ import os.path as op
 import pkgutil
 import sys
 import traceback
-from pynodegl_utils.filetracker import FileTracker
+from pynodegl_utils.resourcetracker import ResourceTracker
 
 IPC_READ_BUFSIZE = 4096
 
@@ -52,8 +52,8 @@ def query_inplace(**idict):
     module_is_script = module_pkgname.endswith('.py')
 
     # Start tracking the imported modules and opened files
-    ftrack = FileTracker()
-    ftrack.start_hooking()
+    rtracker = ResourceTracker()
+    rtracker.start_hooking()
 
     odict = {}
 
@@ -116,9 +116,9 @@ def query_inplace(**idict):
         odict = {'error': traceback.format_exc()}
 
     # End of file and modules tracking
-    ftrack.end_hooking()
-    odict['filelist'] = ftrack.filelist
-    odict['modulelist'] = ftrack.modulelist
+    rtracker.end_hooking()
+    odict['filelist'] = rtracker.filelist
+    odict['modulelist'] = rtracker.modulelist
     if module_is_script:
         odict['filelist'].update([module_pkgname])
 

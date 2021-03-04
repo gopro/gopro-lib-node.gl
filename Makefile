@@ -244,7 +244,7 @@ renderdoc-install: external-download pkg-config-install $(PREFIX)
 ifeq ($(TARGET_OS),Windows)
 	$(CMD) xcopy /Y "$(RENDERDOC_DIR)\renderdoc.dll" "$(PREFIX_FULLPATH)\Scripts\."
 else
-	cp $(RENDERDOC_DIR)/renderdoc.dll $(PREFIX_FULLPATH)/bin
+	cp $(RENDERDOC_DIR)/renderdoc.dll $(PREFIX_FULLPATH)/bin/
 endif
 
 external-download:

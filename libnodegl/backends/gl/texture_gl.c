@@ -159,10 +159,6 @@ static void texture_set_sub_image(struct texture *s, const uint8_t *data, int li
     if (!linesize)
         linesize = params->width;
 
-    const int bytes_per_row = linesize * ngli_format_get_bytes_per_pixel(params->format);
-    const int alignment = NGLI_MIN(bytes_per_row & ~(bytes_per_row - 1), 8);
-    ngli_glPixelStorei(gl, GL_UNPACK_ALIGNMENT, alignment);
-
     int row_upload = 0;
     if (gl->features & NGLI_FEATURE_ROW_LENGTH)
         ngli_glPixelStorei(gl, GL_UNPACK_ROW_LENGTH, linesize);
@@ -181,7 +177,6 @@ static void texture_set_sub_image(struct texture *s, const uint8_t *data, int li
         break;
     }
 
-    ngli_glPixelStorei(gl, GL_UNPACK_ALIGNMENT, 4);
     if (gl->features & NGLI_FEATURE_ROW_LENGTH)
         ngli_glPixelStorei(gl, GL_UNPACK_ROW_LENGTH, 0);
 }

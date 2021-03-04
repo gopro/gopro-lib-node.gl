@@ -105,9 +105,9 @@ struct gctx {
     int language_version;
     uint64_t features;
     struct limits limits;
-#ifdef HAVE_GPU_CAPTURE
+#if DEBUG_GPU_CAPTURE
     struct gpu_capture_ctx *gpu_capture_ctx;
-    int debug_capture;
+    int gpu_capture;
 #endif
 };
 

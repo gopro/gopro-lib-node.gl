@@ -68,5 +68,5 @@ jobs:
 
       - name: Build
         run: |
-          make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_CAPTURE=yes \
+          make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_GPU_CAPTURE=yes \
           VCPKG_DIR='D:\\a\\gopro-lib-node.gl\\gopro-lib-node.gl\\vcpkg'

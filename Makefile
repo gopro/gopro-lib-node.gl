@@ -43,7 +43,7 @@ export TARGET_OS ?= $(shell uname -s)
 DEBUG_GL    ?= no
 DEBUG_MEM   ?= no
 DEBUG_SCENE ?= no
-export DEBUG_CAPTURE ?= no
+export DEBUG_GPU_CAPTURE ?= no
 TESTS_SUITE ?=
 V           ?=
 
@@ -73,12 +73,6 @@ ACTIVATE = . $(PREFIX_FULLPATH)/bin/activate
 endif
 
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX_FULLPATH)/lib
-
-ifeq ($(TARGET_OS),Windows)
-RENDERDOC_DIR = $(shell wslpath -wa .)\external\renderdoc
-else
-RENDERDOC_DIR = $(PWD)/external/renderdoc
-endif
 
 ifeq ($(TARGET_OS),Windows)
 MESON_SETUP_PARAMS  = \
@@ -116,8 +110,17 @@ endif
 NODEGL_DEBUG_OPTS-$(DEBUG_GL)    += gl
 NODEGL_DEBUG_OPTS-$(DEBUG_MEM)   += mem
 NODEGL_DEBUG_OPTS-$(DEBUG_SCENE) += scene
+NODEGL_DEBUG_OPTS-$(DEBUG_GPU_CAPTURE) += gpu_capture
 ifneq ($(NODEGL_DEBUG_OPTS-yes),)
 NODEGL_DEBUG_OPTS = -Ddebug_opts=$(shell echo $(NODEGL_DEBUG_OPTS-yes) | tr ' ' ',')
+endif
+ifeq ($(DEBUG_GPU_CAPTURE),yes)
+ifeq ($(TARGET_OS),Windows)
+RENDERDOC_DIR = $(shell wslpath -wa .)\external\renderdoc
+else
+RENDERDOC_DIR = $(PWD)/external/renderdoc
+endif
+NODEGL_DEBUG_OPTS += -Drenderdoc_dir="$(RENDERDOC_DIR)"
 endif
 
 # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
@@ -217,11 +220,11 @@ ifeq ($(TARGET_OS),Windows)
 NODEGL_DEPS += renderdoc-install
 endif
 
-nodegl-setup:  $(NODEGL_DEPS)
+nodegl-setup: $(NODEGL_DEPS)
 ifeq ($(TARGET_OS),Windows)
-	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) -Drenderdoc_dir="$(RENDERDOC_DIR)" libnodegl builddir\\libnodegl)
+	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir\\libnodegl)
 else
-	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) -Drenderdoc_dir="$(RENDERDOC_DIR)" libnodegl builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 endif
 
 pkg-config-install: external-download $(PREFIX)
@@ -237,10 +240,8 @@ else
 	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 endif
 
-ifeq ($(TARGET_OS),Windows)
 renderdoc-install: external-download pkg-config-install $(PREFIX)
 	$(CMD) xcopy /Y "$(RENDERDOC_DIR)\renderdoc.dll" "$(PREFIX_FULLPATH)\Scripts\."
-endif
 
 external-download:
 	$(MAKE) -C external

@@ -31,7 +31,7 @@ ifeq ($(TARGET_OS),Windows)
 DEPENDENCIES += pkgconf
 endif
 
-ifeq ($(DEBUG_CAPTURE),yes)
+ifeq ($(DEBUG_GPU_CAPTURE),yes)
 ifeq ($(TARGET_OS),Windows)
 RENDERDOC_TARGET = RenderDoc_$(RENDERDOC_VERSION)_64
 else ifeq ($(TARGET_OS),Linux)
@@ -76,11 +76,12 @@ pkgconf-$(PKGCONF_VERSION): pkgconf-$(PKGCONF_VERSION).tar.xz
 pkgconf-$(PKGCONF_VERSION).tar.xz:
 	$(CURL) -L https://distfiles.dereferenced.org/pkgconf/$@ -o $@
 
-renderdoc: renderdoc_$(RENDERDOC_VERSION)
-	ln -snf $< $@
-
 renderdoc: $(RENDERDOC_TARGET)
+ifneq ($(TARGET_OS),$(filter $(TARGET_OS),MinGW-w64 Windows))
 	ln -snf $< $@
+else
+	cp -r $< $@
+endif
 
 RenderDoc_$(RENDERDOC_VERSION)_64: RenderDoc_$(RENDERDOC_VERSION)_64.zip
 	unzip -q -o $<

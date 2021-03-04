@@ -37,7 +37,7 @@ jobs:
 
     - name: Build
       run: |
-        make -j$(($(nproc)+1)) DEBUG_CAPTURE=yes
+        make -j$(($(nproc)+1)) DEBUG_GPU_CAPTURE=yes
     - name: Run tests ${{matrix.backend}}
       run: |
         ${{matrix.run_tests_command}}

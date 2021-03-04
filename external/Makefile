@@ -32,7 +32,7 @@ DEPENDENCIES += pkgconf
 endif
 
 ifeq ($(DEBUG_GPU_CAPTURE),yes)
-ifeq ($(TARGET_OS),Windows)
+ifeq ($(TARGET_OS),$(filter $(TARGET_OS),MinGW-w64 Windows))
 RENDERDOC_TARGET = RenderDoc_$(RENDERDOC_VERSION)_64
 else ifeq ($(TARGET_OS),Linux)
 RENDERDOC_TARGET = renderdoc_$(RENDERDOC_VERSION)

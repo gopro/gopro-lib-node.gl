@@ -279,9 +279,9 @@ endif
 if 'gpu_capture' in debug_opts
   renderdoc_dir = get_option('renderdoc_dir')
   renderdoc_include_dir = ''
-  if cc.get_id() == 'msvc'
+  if host_system == 'windows'
     renderdoc_include_dir = renderdoc_dir
-  elif host_system == 'linux'
+  else
     renderdoc_include_dir = renderdoc_dir / 'include'
   endif
   if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: true)

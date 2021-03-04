@@ -216,7 +216,7 @@ else
 endif
 
 NODEGL_DEPS = sxplayer-install
-ifeq ($(TARGET_OS),Windows)
+ifeq ($(TARGET_OS),$(filter $(TARGET_OS),MinGW-w64 Windows))
 NODEGL_DEPS += renderdoc-install
 endif
 

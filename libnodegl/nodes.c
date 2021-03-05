@@ -34,6 +34,7 @@
 #include "params.h"
 #include "utils.h"
 #include "nodes_register.h"
+#include "gpu_ctx.h"
 
 enum {
     STATE_INIT_FAILED   = -1,
@@ -426,6 +427,8 @@ int ngli_node_attach_ctx(struct ngl_node *node, struct ngl_ctx *ctx)
 
 void ngli_node_detach_ctx(struct ngl_node *node, struct ngl_ctx *ctx)
 {
+    if (ctx->gpu_ctx)
+        ctx->gpu_ctx->cls->wait_idle(ctx->gpu_ctx);
     int ret = node_set_ctx(node, NULL, ctx);
     ngli_assert(ret == 0);
 }

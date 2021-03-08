@@ -33,12 +33,12 @@ PYTHON_MAJOR = 3
 #
 DEBUG      ?= no
 COVERAGE   ?= no
+export TARGET_OS ?= $(shell uname -s)
 ifeq ($(TARGET_OS),Windows)
 PYTHON     ?= python.exe
 else
 PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYTHON_MAJOR),)
 endif
-export TARGET_OS ?= $(shell uname -s)
 
 DEBUG_GL    ?= no
 DEBUG_MEM   ?= no

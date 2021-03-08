@@ -1,4 +1,4 @@
-name: 'tests Windows'
+name: 'tests MSVC'
 
 on:
   push:
@@ -9,30 +9,6 @@ on:
       - cron: "0 0 * * 6"  # Run every Saturday at midnight
 
 jobs:
-  mingw:
-
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64 # Start a 64 bit Mingw environment
-          update: true
-
-      - name: Install dependencies
-        run: |
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed git make"
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}"
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-python3-{pillow,pip}"
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-meson"
-
-      - name: Build
-        run: |
-          $env:CHERE_INVOKING = 'yes'  # Preserve the current working directory
-          C:\msys64\usr\bin\bash -lc "make -j$(($(nproc)+1)) TARGET_OS=MinGW-w64"
-
   msvc:
 
     runs-on: windows-latest

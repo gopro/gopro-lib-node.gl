@@ -12,6 +12,9 @@ jobs:
   msvc:
 
     runs-on: windows-latest
+    env:
+        VCPKG_TRIPLET: x64-windows
+        VCPKG_INSTALL_PACKAGES: pthreads opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
 
     defaults:
       run:
@@ -24,25 +27,34 @@ jobs:
 
       - uses: actions/checkout@v2
 
+      - name: Get vcpkg cache key
+        id: get-vcpkg-cache-key
+        run: |
+          VCPKG_COMMIT_ID=$(cd /mnt/c/vcpkg && git rev-parse HEAD)
+          echo "::set-output name=key::$(echo $VCPKG_COMMIT_ID ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}} | md5sum | cut -f1 -d" ")"
+
+      - name: Restore vcpkg binary cache archives
+        id: restore_vcpkg_binary_cache
+        uses: actions/cache@v2
+        with:
+          path: C:\Users\runneradmin\AppData\Local\vcpkg\archives
+          key: ${{ steps.get-vcpkg-cache-key.outputs.key }}
+
       - name: Install dependencies
         run: |
           sudo apt -y update
           sudo apt -y install build-essential unzip
           pip.exe install meson
-
-      - name: Restore from cache and install vcpkg
-        uses: lukka/run-vcpkg@v6
-        with:
-          vcpkgGitCommitId: 595777db2332a3442b73f9af9f656355f207aec9
-          vcpkgTriplet: x64-windows
-          vcpkgArguments: pthreads opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
-          cleanAfterBuild: false
-
-      - name: vcpkg integrate install
-        run: |
-          cd vcpkg && ./vcpkg.exe integrate install
+          cd /mnt/c/vcpkg
+          ./vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
+          ./vcpkg.exe integrate install
 
       - name: Build
         run: |
+          cd /mnt/c
+          # Workaround for meson issue #8329
+          # Currently meson requires the project to be on the same drive as dependencies
+          cp -Rf /mnt/d/a/gopro-lib-node.gl/gopro-lib-node.gl .
+          cd gopro-lib-node.gl
           make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_GPU_CAPTURE=yes \
-          VCPKG_DIR='D:\\a\\gopro-lib-node.gl\\gopro-lib-node.gl\\vcpkg'
+          VCPKG_DIR='C:\\vcpkg'

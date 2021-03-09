@@ -198,6 +198,7 @@ class MainWindow(QtWidgets.QSplitter):
 
     @QtCore.Slot(QtGui.QCloseEvent)
     def closeEvent(self, close_event):
+        self._hooks_ctl.stop_threads()
         for name, widget in self._tabs:
             widget.close()
         super().closeEvent(close_event)

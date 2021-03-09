@@ -87,9 +87,9 @@ endif
 # syntax) for the issue described here:
 # https://github.com/ninja-build/ninja/issues/1139#issuecomment-724061270
 ifeq ($(TARGET_OS),Windows)
-MESON_COMPILE = meson compile
+MESON_COMPILE = meson compile -j8
 else
-MESON_COMPILE = MAKEFLAGS= meson compile
+MESON_COMPILE = MAKEFLAGS= meson compile -j8
 endif
 MESON_INSTALL = meson install
 ifeq ($(COVERAGE),yes)

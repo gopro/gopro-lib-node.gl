@@ -39,6 +39,7 @@ from pynodegl_utils.ui.toolbar import Toolbar
 
 class MainWindow(QtWidgets.QSplitter):
 
+    sceneLoaded = QtCore.Signal(dict)
     error = QtCore.Signal(str)
 
     def __init__(self, module_pkgname, hooks_scripts):
@@ -114,6 +115,7 @@ class MainWindow(QtWidgets.QSplitter):
         self._scripts_mgr.start()
 
         self.error.connect(self._scene_err)
+        self.sceneLoaded.connect(self._scene_loaded)
 
         # Load the previous scene if the current and previously loaded
         # module packages match
@@ -163,7 +165,7 @@ class MainWindow(QtWidgets.QSplitter):
         self._scripts_mgr.resume()
         self._scripts_mgr.dec_query_count()
         self.error.emit(None)
-        self._scene_toolbar.set_cfg(ret)
+        self.sceneLoaded.emit(ret)
 
         return ret
 
@@ -175,6 +177,10 @@ class MainWindow(QtWidgets.QSplitter):
     @QtCore.Slot(str, str)
     def _scene_changed_hook(self, module_name, scene_name):
         self._hooks_ctl.process(module_name, scene_name)
+
+    @QtCore.Slot(dict)
+    def _scene_loaded(self, cfg):
+        self._scene_toolbar.set_cfg(cfg)
 
     def _emit_geometry(self):
         geometry = (self.x(), self.y(), self.width(), self.height())

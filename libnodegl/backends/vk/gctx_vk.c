@@ -550,7 +550,7 @@ static int vk_init(struct gctx *s)
             LOG(ERROR, "could not create GPU capture context");
             return NGL_ERROR_MEMORY;
         }
-        ret = gpu_capture_init(s->gpu_capture_ctx);
+        int ret = gpu_capture_init(s->gpu_capture_ctx);
         if (ret < 0) {
             LOG(ERROR, "could not initialize GPU capture");
             s->gpu_capture = 0;

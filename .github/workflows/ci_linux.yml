@@ -14,9 +14,9 @@ jobs:
       matrix:
         include:
           - backend: "all"
-            run_tests_command: "DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests"
+            run_tests_command: "DEBUG=yes DEBUG_GL=yes make tests"
           - backend: "opengles 2"
-            run_tests_command: "MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests TESTS_SUITE=opengles"
+            run_tests_command: "MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make tests TESTS_SUITE=opengles"
 
     steps:
     - uses: actions/checkout@v1

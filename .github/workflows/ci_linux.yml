@@ -19,7 +19,7 @@ jobs:
             run_tests_command: "MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make -k -j$(($(nproc)+1)) tests TESTS_SUITE=opengles"
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Install dependencies
       run: |

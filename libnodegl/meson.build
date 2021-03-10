@@ -398,10 +398,14 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   foreach dep : host_backend_cfg.get('deps', [])
     gbackend_deps += dependency(dep, required: opt_gbackend)
   endforeach
-  foreach dep : host_backend_cfg.get('libs', [])
-    # XXX: dirs is a hack for MoltenVK; it will break for libraries that are
-    # outside the destination prefix
-    gbackend_deps += cc.find_library(dep, required: opt_gbackend, dirs: get_option('prefix') / get_option('libdir'))
+  foreach lib : host_backend_cfg.get('libs', [])
+    dep = cc.find_library(lib, required: opt_gbackend)
+    if not opt_gbackend.disabled() and not dep.found()
+        # XXX: dirs is a hack for MoltenVK; it will break for libraries that are
+        # outside the destination prefix
+        dep = cc.find_library(lib, required: opt_gbackend, dirs: get_option('prefix') / get_option('libdir'))
+    endif
+    gbackend_deps += dep
   endforeach
   if 'frameworks' in host_backend_cfg
     gbackend_deps += dependency('appleframeworks', modules: host_backend_cfg.get('frameworks'), required: opt_gbackend)

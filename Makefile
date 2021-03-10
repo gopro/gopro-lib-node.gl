@@ -52,9 +52,6 @@ $(info PREFIX: $(PREFIX))
 $(info PREFIX_FULLPATH: $(PREFIX_FULLPATH))
 
 ifeq ($(TARGET_OS),Windows)
-# Initialize VCVARS64 and VCPKG_DIR to a default value
-# Note: the user should override this environment variable if needed
-VCVARS64 ?= "$(shell powershell.exe .\\build_scripts\\windows\\find_vcvars64.ps1)"
 VCPKG_DIR ?= C:\\vcpkg
 PKG_CONF_DIR = external\\pkgconf\\build
 CMD = PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1 PKG_CONFIG_ALLOW_SYSTEM_LIBS=1 PKG_CONFIG="$(PREFIX_FULLPATH)\\Scripts\\pkg-config.exe" PKG_CONFIG_PATH="$(VCPKG_DIR)\\installed\\x64-windows\\lib\\pkgconfig" WSLENV=PKG_CONFIG/w:PKG_CONFIG_PATH/w:PKG_CONFIG_ALLOW_SYSTEM_LIBS/w:PKG_CONFIG_ALLOW_SYSTEM_CFLAGS/w cmd.exe /C
@@ -67,7 +64,7 @@ $(error "Python $(PYTHON_MAJOR) not found")
 endif
 
 ifeq ($(TARGET_OS),Windows)
-ACTIVATE = $(CMD) $(VCVARS64) \&\& "$(PREFIX_FULLPATH)\\Scripts\\activate.bat"
+ACTIVATE = $(CMD) "$(PREFIX_FULLPATH)\\Scripts\\activate.bat"
 else
 ACTIVATE = . $(PREFIX_FULLPATH)/bin/activate
 endif

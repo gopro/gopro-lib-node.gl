@@ -20,6 +20,7 @@
 #
 
 PREFIX          ?= venv
+PREFIX_DONE     = .venv-done
 ifeq ($(TARGET_OS),Windows)
 PREFIX_FULLPATH = $(shell wslpath -wa .)\$(PREFIX)
 else
@@ -201,7 +202,7 @@ else
 	($(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX_FULLPATH)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
 endif
 
-pynodegl-deps-install: $(PREFIX) nodegl-install
+pynodegl-deps-install: $(PREFIX_DONE) nodegl-install
 ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& pip install -r pynodegl\\requirements.txt)
 else
@@ -229,7 +230,7 @@ else
 	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 endif
 
-pkg-config-install: external-download $(PREFIX)
+pkg-config-install: external-download $(PREFIX_DONE)
 ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& $(MESON_SETUP) -Dtests=false external\\pkgconf builddir\\pkgconf \&\& $(MESON_COMPILE) -C builddir\\pkgconf \&\& $(MESON_INSTALL) -C builddir\\pkgconf)
 	($(CMD) copy "$(PREFIX_FULLPATH)\\Scripts\\pkgconf.exe" "$(PREFIX_FULLPATH)\\Scripts\\pkg-config.exe")
@@ -256,16 +257,19 @@ external-download:
 # We do not pull meson from pip on MinGW for the same reasons we don't pull
 # Pillow and PySide2. We require the users to have it on their system.
 #
-$(PREFIX):
+$(PREFIX_DONE):
 ifeq ($(TARGET_OS),Windows)
-	($(CMD) $(PYTHON) -m venv "$@")
+	($(CMD) $(PYTHON) -m venv $(PREFIX))
 	($(ACTIVATE) \&\& pip install meson ninja)
 else ifeq ($(TARGET_OS),MinGW-w64)
-	$(PYTHON) -m venv --system-site-packages $@
+	$(PYTHON) -m venv --system-site-packages $(PREFIX)
 else
-	$(PYTHON) -m venv $@
+	$(PYTHON) -m venv $(PREFIX)
 	($(ACTIVATE) && pip install meson ninja)
 endif
+	touch $@
+
+$(PREFIX): $(PREFIX_DONE)
 
 tests: nodegl-tests tests-setup
 ifeq ($(TARGET_OS),Windows)

@@ -40,5 +40,8 @@ option('logtrace', type: 'boolean', value: false,
 option('debug_opts', type: 'array', choices: ['gl', 'vk', 'mem', 'scene', 'gpu_capture'], value: [],
        description: 'debugging options for developers')
 
+option('vulkan_sdk_dir', type: 'string', value: 'C:\\VulkanSDK',
+       description: 'Vulkan SDK path')
+
 option('renderdoc_dir', type: 'string',
        description: 'Renderdoc directory')

@@ -134,6 +134,13 @@ ifneq ($(TESTS_SUITE),)
 MESON_TESTS_SUITE_OPTS += --suite $(TESTS_SUITE)
 endif
 
+NODEGL_SETUP_OPTS =
+
+ifeq ($(TARGET_OS), Windows)
+VULKAN_SDK_DIR ?= $(shell wslpath -wa /mnt/c/VulkanSDK/*)
+NODEGL_SETUP_OPTS += -Dvulkan_sdk_dir='$(VULKAN_SDK_DIR)'
+endif
+
 all: ngl-tools-install pynodegl-utils-install
 	@echo
 	@echo "    Install completed."
@@ -223,9 +230,9 @@ endif
 
 nodegl-setup: $(NODEGL_DEPS)
 ifeq ($(TARGET_OS),Windows)
-	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir\\libnodegl)
+	($(ACTIVATE) \&\& $(MESON_SETUP) $(NODEGL_SETUP_OPTS) $(NODEGL_DEBUG_OPTS) libnodegl builddir\\libnodegl)
 else
-	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_SETUP_OPTS) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 endif
 
 pkg-config-install: external-download $(PREFIX_DONE)

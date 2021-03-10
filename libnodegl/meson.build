@@ -215,6 +215,8 @@ hosts_cfg = {
   },
 }
 
+lib_include_dirs = []
+
 lib_deps = [
   cc.find_library('m', required: false),
   dependency('libsxplayer', version: '>= 9.7.0'),
@@ -373,6 +375,7 @@ gbackends_cfg = {
         'frameworks': ['Metal'],
       },
       'windows': {
+        'libs': ['vulkan-1'],
         'deps': ['shaderc'],
       },
     },
@@ -381,6 +384,17 @@ gbackends_cfg = {
 
 if host_system in ['darwin', 'iphone']
   add_languages('objc')
+endif
+
+cc_lib_dirs = [ get_option('prefix') / get_option('libdir') ]
+
+if cc.get_id() == 'msvc'
+  vulkan_sdk_dir = get_option('vulkan_sdk_dir')
+
+  vulkan_sdk_library_directories = [ vulkan_sdk_dir + '\\Lib']
+
+  lib_include_dirs += include_directories(vulkan_sdk_dir + '\\Include')
+  cc_lib_dirs += vulkan_sdk_library_directories
 endif
 
 foreach gbackend_name, gbackend_cfg : gbackends_cfg
@@ -452,6 +466,7 @@ libnodegl = library(
   version: meson.project_version(),
   c_args: lib_c_args,
   gnu_symbol_visibility: 'hidden',
+  include_directories: lib_include_dirs,
 )
 lib_header = configure_file(
   input: files('nodegl.h.in'),

@@ -53,6 +53,16 @@ following components are included:
     ```
 - Enable [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 - Install Ubuntu into WSL from Microsoft Store.
+- Set MSVC Environment Variables
+
+    - Launch x64 Native Tools Command Prompt for VS 2019.
+    - Inside command prompt, launch WSL (wsl.exe).
+    - Note: we provide a convenience script to set the MSVC environment variables:
+      build_scripts/windows/start_msvc_env.sh  
+      To use: run bash build_scripts/windows/start_msvc_env.sh.  
+      This will run vcvars64.bat to set the MSVC environment variables,
+      and then run wsl.exe to launch a wsl bash shell.  
+
 - In WSL, install other needed dependencies as
 following:
     ```shell

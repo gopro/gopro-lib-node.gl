@@ -373,7 +373,7 @@ gbackends_cfg = {
         'frameworks': ['Metal'],
       },
       'windows': {
-        'deps': ['shaderc'],
+        'deps': ['shaderc', 'vulkan'],
       },
     },
   },
@@ -382,6 +382,9 @@ gbackends_cfg = {
 if host_system in ['darwin', 'iphone']
   add_languages('objc')
 endif
+
+# Additional search paths for find_library
+library_dirs = [ get_option('prefix') / get_option('libdir') ]
 
 foreach gbackend_name, gbackend_cfg : gbackends_cfg
   opt_gbackend = get_option('gbackend-' + gbackend_name)
@@ -394,9 +397,7 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   foreach lib : host_backend_cfg.get('libs', [])
     dep = cc.find_library(lib, required: opt_gbackend)
     if not opt_gbackend.disabled() and not dep.found()
-        # XXX: dirs is a hack for MoltenVK; it will break for libraries that are
-        # outside the destination prefix
-        dep = cc.find_library(lib, required: opt_gbackend, dirs: get_option('prefix') / get_option('libdir'))
+        dep = cc.find_library(lib, required: opt_gbackend, dirs: library_dirs)
     endif
     gbackend_deps += dep
   endforeach

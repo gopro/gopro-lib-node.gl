@@ -40,6 +40,7 @@ building and running the complete `node.gl` stack.
   Studio](https://visualstudio.microsoft.com/downloads/) and make sure the
   *Desktop development with C++* is included (it should enable MSVC build tools
   and Windows 10 SDK).
+- Install [VulkanSDK](https://vulkan.lunarg.com/sdk/home#windows) (optional)
 - Download and extract [Vcpkg](https://github.com/microsoft/vcpkg) in
   `C:\vcpkg`, then from Windows PowerShell:
     ```shell

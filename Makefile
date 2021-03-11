@@ -194,8 +194,8 @@ endif
 pynodegl-install: pynodegl-deps-install
 ifeq ($(TARGET_OS),Windows)
 	($(ACTIVATE) \&\& pip -v install -e .\\pynodegl)
-	$(CMD) xcopy /Y builddir\\sxplayer\\*.dll pynodegl\\.
-	$(CMD) xcopy /Y /C builddir\\libnodegl\\*.dll pynodegl\\.
+	# TODO: call add_dll_directory in pynodegl to add DLL search paths
+	$(CMD) xcopy /Y "$(PREFIX_FULLPATH)\Scripts\." pynodegl\\.
 else
 	($(ACTIVATE) && PKG_CONFIG_PATH=$(PREFIX_FULLPATH)/lib/pkgconfig LDFLAGS=$(RPATH_LDFLAGS) pip -v install -e ./pynodegl)
 endif
@@ -285,6 +285,8 @@ $(PREFIX_DONE):
 ifeq ($(TARGET_OS),Windows)
 	($(CMD) $(PYTHON) -m venv $(PREFIX))
 	($(ACTIVATE) \&\& pip install meson ninja)
+	$(CMD) xcopy /Y "$(VCPKG_DIR)\installed\x64-windows\tools\shaderc_shared.dll" "$(PREFIX_FULLPATH)\Scripts\."
+	$(CMD) xcopy /Y "$(VCPKG_DIR)\installed\x64-windows\bin\*.dll" "$(PREFIX_FULLPATH)\Scripts\."
 else ifeq ($(TARGET_OS),MinGW-w64)
 	$(PYTHON) -m venv --system-site-packages $(PREFIX)
 else

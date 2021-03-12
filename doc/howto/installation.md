@@ -42,9 +42,11 @@ building and running the complete `node.gl` stack.
   *Desktop development with C++* is included (it should enable MSVC build tools
   and Windows 10 SDK).
 - Install [VulkanSDK](https://vulkan.lunarg.com/sdk/home#windows) (optional)
-- Download and extract [Vcpkg](https://github.com/microsoft/vcpkg) in
-  `C:\vcpkg`, then from Windows PowerShell:
+- Download and extract [Vcpkg](https://github.com/microsoft/vcpkg) as of commit
+  56136ff (see issue [16658](https://github.com/microsoft/vcpkg/issues/16658))
+  in `C:\vcpkg`, then from Windows PowerShell:
     ```shell
+    git.exe checkout 56136ffae69a4a7f8b9cd5452713925417d47367 -b shaderc/workaround-16658
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install --triplet x64-windows opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
     ```

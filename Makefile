@@ -29,8 +29,6 @@ else
 PREFIX_FULLPATH = $(PWD)/$(PREFIX)
 endif
 
-PYTHON_MAJOR = 3
-
 #
 # User configuration
 #
@@ -39,7 +37,7 @@ COVERAGE   ?= no
 ifeq ($(TARGET_OS),Windows)
 PYTHON     ?= python.exe
 else
-PYTHON     ?= python$(if $(shell which python$(PYTHON_MAJOR) 2> /dev/null),$(PYTHON_MAJOR),)
+PYTHON     ?= python3
 endif
 
 DEBUG_GL    ?= no
@@ -61,10 +59,6 @@ PKG_CONF_DIR = external\\pkgconf\\build
 CMD = cmd.exe /C @
 else
 CMD =
-endif
-
-ifneq ($(shell $(CMD) $(PYTHON) -c "import sys;print(sys.version_info.major)"),$(PYTHON_MAJOR))
-$(error "Python $(PYTHON_MAJOR) not found")
 endif
 
 ifeq ($(TARGET_OS),Windows)

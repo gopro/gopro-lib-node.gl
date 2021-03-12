@@ -21,7 +21,7 @@ jobs:
 
     - name: Build
       run: |
-        ./configure.py --debug-opts gpu_capture
+        ./configure.py --buildtype debug --debug-opts gl gpu_capture --enable-ngfx-backend
         make
 
     - name: Python import and dylib runtime test
@@ -29,3 +29,13 @@ jobs:
         . venv/bin/activate
         python -c 'import pynodegl, pynodegl_utils'
         ngl-python -h
+
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+          name: nodegl-mac-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile

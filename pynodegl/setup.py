@@ -22,13 +22,15 @@
 
 from setuptools import setup, Command, Extension
 from setuptools.command.build_ext import build_ext
+import os
 
 
 class LibNodeGLConfig:
 
     PKG_LIB_NAME = 'libnodegl'
 
-    def __init__(self, pkg_config_bin='pkg-config'):
+    pkg_config_env = os.getenv('PKG_CONFIG')
+    def __init__(self, pkg_config_bin= pkg_config_env if pkg_config_env else 'pkg-config'):
         import subprocess
 
         if subprocess.call([pkg_config_bin, '--exists', self.PKG_LIB_NAME]) != 0:

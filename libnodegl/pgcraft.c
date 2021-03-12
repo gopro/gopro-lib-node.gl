@@ -1247,6 +1247,12 @@ static void setup_glsl_info_vk(struct pgcraft *s)
         s->next_bindings[i] = &s->bindings[0];
 }
 
+static void setup_glsl_info_ngfx(struct pgcraft *s)
+{
+    setup_glsl_info_vk(s);
+}
+
+
 static void setup_glsl_info(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
@@ -1259,6 +1265,8 @@ static void setup_glsl_info(struct pgcraft *s)
         setup_glsl_info_gl(s);
     else if (config->backend == NGL_BACKEND_VULKAN)
         setup_glsl_info_vk(s);
+    else if (config->backend == NGL_BACKEND_NGFX)
+        setup_glsl_info_ngfx(s);
     else
         ngli_assert(0);
 }

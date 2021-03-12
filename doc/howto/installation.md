@@ -45,9 +45,9 @@ following components are included:
     - Desktop development with C++
     - MSVC - VS 2019 C++ x64/x86 build tools
     - Windows 10 SDK
-- Install [Vcpkg](https://github.com/microsoft/vcpkg) from Windows PowerShell as of commit 09a647a (see issue [16658](https://github.com/microsoft/vcpkg/issues/16658)):
+- Install [Vcpkg](https://github.com/microsoft/vcpkg) from Windows PowerShell as of commit 56136ff (see issue [16658](https://github.com/microsoft/vcpkg/issues/16658)):
     ```shell
-    git.exe checkout 09a647a5261e981cbbc8219292c838490ed0b06f -b shaderc/workaround-16658
+    git.exe checkout 56136ffae69a4a7f8b9cd5452713925417d47367 -b shaderc/workaround-16658
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install pthreads:x64-windows opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows
     .\vcpkg.exe integrate install

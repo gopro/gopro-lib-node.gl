@@ -75,6 +75,8 @@ else
 MESON_BACKEND ?= ninja
 endif
 
+BUILDDIR ?= builddir
+
 ifeq ($(TARGET_OS),Windows)
 MESON = meson.exe
 MESON_SETUP_PARAMS  = \
@@ -146,7 +148,7 @@ all: ngl-tools-install pynodegl-utils-install
 	@echo
 
 ngl-tools-install: nodegl-install
-	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) ngl-tools builddir/ngl-tools && $(MESON_COMPILE) -C builddir/ngl-tools && $(MESON_INSTALL) -C builddir/ngl-tools)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) ngl-tools $(BUILDDIR)/ngl-tools && $(MESON_COMPILE) -C $(BUILDDIR)/ngl-tools && $(MESON_INSTALL) -C $(BUILDDIR)/ngl-tools)
 
 pynodegl-utils-install: pynodegl-utils-deps-install
 	($(ACTIVATE) && $(PIP) -v install -e ./pynodegl-utils)
@@ -185,7 +187,7 @@ pynodegl-deps-install: $(PREFIX_DONE) nodegl-install
 	($(ACTIVATE) && $(PIP) install -r ./pynodegl/requirements.txt)
 
 nodegl-install: nodegl-setup
-	($(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl && $(MESON_INSTALL) -C builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_COMPILE) -C $(BUILDDIR)/libnodegl && $(MESON_INSTALL) -C $(BUILDDIR)/libnodegl)
 
 NODEGL_DEPS = sxplayer-install
 ifeq ($(DEBUG_GPU_CAPTURE),yes)
@@ -195,15 +197,15 @@ endif
 endif
 
 nodegl-setup: $(NODEGL_DEPS)
-	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) $(NODEGL_DEBUG_OPTS) libnodegl $(BUILDDIR)/libnodegl)
 
 pkg-config-install: external-download $(PREFIX_DONE)
 ifeq ($(TARGET_OS),Windows)
-	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) -Dtests=false external/pkgconf builddir/pkgconf && $(MESON_COMPILE) -C builddir/pkgconf && $(MESON_INSTALL) -C builddir/pkgconf)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) -Dtests=false external/pkgconf $(BUILDDIR)/pkgconf && $(MESON_COMPILE) -C $(BUILDDIR)/pkgconf && $(MESON_INSTALL) -C $(BUILDDIR)/pkgconf)
 endif
 
 sxplayer-install: external-download pkg-config-install $(PREFIX)
-	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) external/sxplayer $(BUILDDIR)/sxplayer && $(MESON_COMPILE) -C $(BUILDDIR)/sxplayer && $(MESON_INSTALL) -C $(BUILDDIR)/sxplayer)
 
 renderdoc-install: external-download pkg-config-install $(PREFIX)
 ifeq ($(TARGET_OS),Windows)
@@ -225,8 +227,8 @@ endif
 shaderc-install: SHADERC_LIB_FILENAME = libshaderc_shared.1.dylib
 shaderc-install: external-download $(PREFIX)
 	cd external/shaderc && ./utils/git-sync-deps
-	cmake -B builddir/shaderc -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) external/shaderc
-	ninja -C builddir/shaderc install
+	cmake -B $(BUILDDIR)/shaderc -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX) external/shaderc
+	ninja -C $(BUILDDIR)/shaderc install
 	install_name_tool -id @rpath/$(SHADERC_LIB_FILENAME) $(PREFIX)/lib/$(SHADERC_LIB_FILENAME)
 
 # Note: somehow xcodebuild sets name @rpath/libMoltenVK.dylib automatically
@@ -263,16 +265,16 @@ endif
 $(PREFIX): $(PREFIX_DONE)
 
 tests: nodegl-tests tests-setup
-	($(ACTIVATE) && $(MESON) test $(MESON_TESTS_SUITE_OPTS) -C builddir/tests)
+	($(ACTIVATE) && $(MESON) test $(MESON_TESTS_SUITE_OPTS) -C $(BUILDDIR)/tests)
 
 tests-setup: ngl-tools-install pynodegl-utils-install
-	($(ACTIVATE) && $(MESON_SETUP) --backend ninja builddir/tests tests)
+	($(ACTIVATE) && $(MESON_SETUP) --backend ninja $(BUILDDIR)/tests tests)
 
 nodegl-tests: nodegl-install
-	($(ACTIVATE) && $(MESON) test -C builddir/libnodegl)
+	($(ACTIVATE) && $(MESON) test -C $(BUILDDIR)/libnodegl)
 
 nodegl-%: nodegl-setup
-	($(ACTIVATE) && $(MESON_COMPILE) -C builddir/libnodegl $(subst nodegl-,,$@))
+	($(ACTIVATE) && $(MESON_COMPILE) -C $(BUILDDIR)/libnodegl $(subst nodegl-,,$@))
 
 clean_py:
 	$(RM) pynodegl/nodes_def.pyx
@@ -285,19 +287,19 @@ clean_py:
 	$(RM) -r pynodegl-utils/.eggs
 
 clean: clean_py
-	$(RM) -r builddir/sxplayer
-	$(RM) -r builddir/libnodegl
-	$(RM) -r builddir/ngl-tools
-	$(RM) -r builddir/tests
+	$(RM) -r $(BUILDDIR)/sxplayer
+	$(RM) -r $(BUILDDIR)/libnodegl
+	$(RM) -r $(BUILDDIR)/ngl-tools
+	$(RM) -r $(BUILDDIR)/tests
 
 # You need to build and run with COVERAGE set to generate data.
 # For example: `make clean && make -j8 tests COVERAGE=yes`
 # We don't use `meson coverage` here because of
 # https://github.com/mesonbuild/meson/issues/7895
 coverage-html:
-	($(ACTIVATE) && ninja -C builddir/libnodegl coverage-html)
+	($(ACTIVATE) && ninja -C $(BUILDDIR)/libnodegl coverage-html)
 coverage-xml:
-	($(ACTIVATE) && ninja -C builddir/libnodegl coverage-xml)
+	($(ACTIVATE) && ninja -C $(BUILDDIR)/libnodegl coverage-xml)
 
 .PHONY: all
 .PHONY: ngl-tools-install

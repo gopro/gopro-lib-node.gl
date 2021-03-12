@@ -80,6 +80,7 @@ and `ffprobe` binaries must be available in order to run the tests)
 ## Build Customization Parameters
 
 - MESON_BACKEND: the Meson backend (ninja,vs,vs2010,vs2015,vs2017,vs2019,xcode)
+- BUILDDIR: the build output directory (default: builddir)
 
 ### Known limitations
 

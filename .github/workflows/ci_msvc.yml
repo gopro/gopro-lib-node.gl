@@ -58,7 +58,8 @@ jobs:
       - name: Build (${{matrix.build_backend}})
         run: |
           .\scripts\msvc-env.ps1
-          python.exe .\configure.py --debug-opts gpu_capture --build-backend ${{matrix.build_backend}}
+          $env:VULKAN_SDK='C:\VulkanSDK\${{env.VULKAN_SDK_VERSION}}'
+          python.exe .\configure.py --buildtype debug --debug-opts gl gpu_capture --build-backend ${{matrix.build_backend}} --enable-ngfx-backend
           nmake
 
       - name: Python import and dylib runtime test
@@ -66,3 +67,13 @@ jobs:
           .\venv\Scripts\Activate.ps1
           python.exe -c "import pynodegl, pynodegl_utils"
           ngl-python.exe -h
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: nodegl-msvc-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile

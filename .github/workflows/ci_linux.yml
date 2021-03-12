@@ -37,7 +37,8 @@ jobs:
         #
         sudo apt -y install libsdl2-dev python3-venv valgrind
         sudo apt -y install ffmpeg libavcodec-dev libavutil-dev libavformat-dev libavdevice-dev \
-            libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev ninja-build renderdoc
+            libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev ninja-build libglm-dev \
+            libglfw3-dev libglew-dev renderdoc
         # Install Vulkan SDK
         wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
         sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-${{env.VULKAN_SDK_VERSION}}-focal.list https://packages.lunarg.com/vulkan/${{env.VULKAN_SDK_VERSION}}/lunarg-vulkan-${{env.VULKAN_SDK_VERSION}}-focal.list
@@ -46,7 +47,7 @@ jobs:
 
     - name: Build
       run: |
-        ./configure.py --buildtype debug --debug-opts gl gpu_capture
+        ./configure.py --buildtype debug --debug-opts gl gpu_capture --enable-ngfx-backend
         make
 
     - name: Python import and dylib runtime test
@@ -59,6 +60,16 @@ jobs:
       run: |
         . venv/bin/activate
         meson test -C builddir/libnodegl --wrap 'valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1'
+
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+          name: nodegl-linux-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile
 
     - name: Run tests ${{matrix.backend}}
       run: |

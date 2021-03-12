@@ -20,7 +20,7 @@ jobs:
         # Recent release of vcpkg introduced a regression, where shaderc shared library
         # is no longer supported
         # See https://github.com/microsoft/vcpkg/issues/16658
-        VCPKG_SHADERC_COMMIT_ID: 09a647a5261e981cbbc8219292c838490ed0b06f
+        VCPKG_SHADERC_COMMIT_ID: 56136ffae69a4a7f8b9cd5452713925417d47367
     strategy:
       matrix:
         include:

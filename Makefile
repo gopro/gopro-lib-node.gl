@@ -19,6 +19,8 @@
 # under the License.
 #
 
+export TARGET_OS ?= $(shell uname -s)
+
 PREFIX          ?= venv
 PREFIX_DONE     = .venv-done
 ifeq ($(TARGET_OS),Windows)
@@ -34,7 +36,6 @@ PYTHON_MAJOR = 3
 #
 DEBUG      ?= no
 COVERAGE   ?= no
-export TARGET_OS ?= $(shell uname -s)
 ifeq ($(TARGET_OS),Windows)
 PYTHON     ?= python.exe
 else

@@ -56,7 +56,9 @@ $(info PREFIX_FULLPATH: $(PREFIX_FULLPATH))
 ifeq ($(TARGET_OS),Windows)
 VCPKG_DIR ?= C:\\vcpkg
 PKG_CONF_DIR = external\\pkgconf\\build
-CMD = cmd.exe /C
+# General way to call cmd from bash: https://github.com/microsoft/WSL/issues/2835
+# Add the character @ after /C
+CMD = cmd.exe /C @
 else
 CMD =
 endif

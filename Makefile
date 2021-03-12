@@ -68,12 +68,19 @@ endif
 RPATH_LDFLAGS ?= -Wl,-rpath,$(PREFIX_FULLPATH)/lib
 
 ifeq ($(TARGET_OS),Windows)
+MESON_BACKEND ?= vs
+else ifeq ($(TARGET_OS),Darwin)
+MESON_BACKEND ?= xcode
+else
+MESON_BACKEND ?= ninja
+endif
+
+ifeq ($(TARGET_OS),Windows)
 MESON = meson.exe
 MESON_SETUP_PARAMS  = \
     --prefix="$(PREFIX_FULLPATH)" --bindir="$(PREFIX_FULLPATH)\\Scripts" --includedir="$(PREFIX_FULLPATH)\\Include" \
     --libdir="$(PREFIX_FULLPATH)\\Lib" --pkg-config-path="$(VCPKG_DIR)\\installed\x64-windows\\lib\\pkgconfig;$(PREFIX_FULLPATH)\\Lib\\pkgconfig" -Drpath=true
-MESON_SETUP         = $(MESON) setup --backend vs $(MESON_SETUP_PARAMS)
-MESON_SETUP_NINJA   = $(MESON) setup --backend ninja $(MESON_SETUP_PARAMS)
+MESON_SETUP         = $(MESON) setup $(MESON_SETUP_PARAMS)
 else
 MESON = meson
 MESON_SETUP         = $(MESON) setup --prefix=$(PREFIX_FULLPATH) --pkg-config-path=$(PREFIX_FULLPATH)/lib/pkgconfig -Drpath=true
@@ -139,7 +146,7 @@ all: ngl-tools-install pynodegl-utils-install
 	@echo
 
 ngl-tools-install: nodegl-install
-	($(ACTIVATE) && $(MESON_SETUP) ngl-tools builddir/ngl-tools && $(MESON_COMPILE) -C builddir/ngl-tools && $(MESON_INSTALL) -C builddir/ngl-tools)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) ngl-tools builddir/ngl-tools && $(MESON_COMPILE) -C builddir/ngl-tools && $(MESON_INSTALL) -C builddir/ngl-tools)
 
 pynodegl-utils-install: pynodegl-utils-deps-install
 	($(ACTIVATE) && $(PIP) -v install -e ./pynodegl-utils)
@@ -188,15 +195,15 @@ endif
 endif
 
 nodegl-setup: $(NODEGL_DEPS)
-	($(ACTIVATE) && $(MESON_SETUP) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) $(NODEGL_DEBUG_OPTS) libnodegl builddir/libnodegl)
 
 pkg-config-install: external-download $(PREFIX_DONE)
 ifeq ($(TARGET_OS),Windows)
-	($(ACTIVATE) && $(MESON_SETUP) -Dtests=false external/pkgconf builddir/pkgconf && $(MESON_COMPILE) -C builddir/pkgconf && $(MESON_INSTALL) -C builddir/pkgconf)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) -Dtests=false external/pkgconf builddir/pkgconf && $(MESON_COMPILE) -C builddir/pkgconf && $(MESON_INSTALL) -C builddir/pkgconf)
 endif
 
 sxplayer-install: external-download pkg-config-install $(PREFIX)
-	($(ACTIVATE) && $(MESON_SETUP) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
+	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) external/sxplayer builddir/sxplayer && $(MESON_COMPILE) -C builddir/sxplayer && $(MESON_INSTALL) -C builddir/sxplayer)
 
 renderdoc-install: external-download pkg-config-install $(PREFIX)
 ifeq ($(TARGET_OS),Windows)
@@ -259,7 +266,7 @@ tests: nodegl-tests tests-setup
 	($(ACTIVATE) && $(MESON) test $(MESON_TESTS_SUITE_OPTS) -C builddir/tests)
 
 tests-setup: ngl-tools-install pynodegl-utils-install
-	($(ACTIVATE) && $(MESON_SETUP) builddir/tests tests)
+	($(ACTIVATE) && $(MESON_SETUP) --backend ninja builddir/tests tests)
 
 nodegl-tests: nodegl-install
 	($(ACTIVATE) && $(MESON) test -C builddir/libnodegl)

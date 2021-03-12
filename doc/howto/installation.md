@@ -77,6 +77,10 @@ and `ffprobe` binaries must be available in order to run the tests)
     .\venv\Scripts\Activate.ps1
     ```
 
+## Build Customization Parameters
+
+- MESON_BACKEND: the Meson backend (ninja,vs,vs2010,vs2015,vs2017,vs2019,xcode)
+
 ### Known limitations
 
 Even if both WSL versions have been tested, we encourage to use version 1

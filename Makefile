@@ -175,7 +175,7 @@ endif
 # available on PyPi.
 #
 # We do not pull the requirements on MinGW because of various issues:
-# - PySide2 can't be pulled (required to be installed by the user outside the
+# - PySide6 can't be pulled (required to be installed by the user outside the
 #   Python virtualenv)
 # - Pillow fails to find zlib (required to be installed by the user outside the
 #   Python virtualenv)
@@ -254,7 +254,7 @@ external-download:
 
 #
 # We do not pull meson from pip on MinGW for the same reasons we don't pull
-# Pillow and PySide2. We require the users to have it on their system.
+# Pillow and PySide6. We require the users to have it on their system.
 #
 $(PREFIX):
 ifeq ($(TARGET_OS),Windows)

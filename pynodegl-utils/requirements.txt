@@ -1,4 +1,4 @@
 pillow
 pynodegl
-pyside2
+pyside6
 watchdog

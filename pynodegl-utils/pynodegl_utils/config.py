@@ -23,7 +23,7 @@
 import os
 import os.path as op
 import json
-from PySide2 import QtCore
+from PySide6 import QtCore
 from .misc import get_nodegl_tempdir
 
 

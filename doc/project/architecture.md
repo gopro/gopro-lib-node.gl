@@ -21,7 +21,7 @@ The `node.gl` project is split in several parts:
 - `pynodegl` needs [Python][python] and [Cython][cython], and `libnodegl`
   installed.
 - `pynodegl-utils` needs [Python][python] and `pynodegl`. The controller depends on
-  `PySide2` (which is the main reason why this package is separated from the
+  `PySide6` (which is the main reason why this package is separated from the
   `pynodegl` package). It is also recommended to install [Graphviz][graphviz]
   in order to render graph in the controller.
 

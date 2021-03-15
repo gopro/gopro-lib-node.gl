@@ -26,6 +26,14 @@ jobs:
           pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}
           pacman -S --noconfirm --needed mingw-w64-x86_64-python3-{pillow,pip}
           pacman -S --noconfirm --needed mingw-w64-x86_64-meson
+          pacman -S --noconfirm --needed mingw-w64-x86_64-shaderc
+
+      - name: Install Vulkan SDK
+        shell: powershell
+        run: |
+          $env:CHERE_INVOKING = 'yes'  # Preserve the current working directory
+          C:\msys64\usr\bin\bash -lc "wget https://sdk.lunarg.com/sdk/download/1.2.162.1/windows/VulkanSDK-1.2.162.1-Installer.exe"
+          ./VulkanSDK-1.2.162.1-Installer.exe /S
 
       - name: Build
         shell: msys2 {0}

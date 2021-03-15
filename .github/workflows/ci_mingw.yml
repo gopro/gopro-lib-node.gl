@@ -26,7 +26,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pacman -S --noconfirm --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python3-pillow,meson}
+          pacman -S --noconfirm --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python3-pillow,meson,shaderc}
+
+      - name: Install Vulkan SDK
+        shell: powershell
+        run: |
+          $env:CHERE_INVOKING = 'yes'  # Preserve the current working directory
+          C:\msys64\usr\bin\bash -lc "wget https://sdk.lunarg.com/sdk/download/1.2.162.1/windows/VulkanSDK-1.2.162.1-Installer.exe"
+          ./VulkanSDK-1.2.162.1-Installer.exe /S
 
       - name: Build
         run: |

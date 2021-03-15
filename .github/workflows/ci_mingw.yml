@@ -20,13 +20,14 @@ jobs:
           update: true
 
       - name: Install dependencies
+        shell: msys2 {0}
         run: |
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed git make"
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}"
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-python3-{pillow,pip}"
-          C:\msys64\usr\bin\bash -lc "pacman -S --noconfirm --needed mingw-w64-x86_64-meson"
+          pacman -S --noconfirm --needed git make
+          pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}
+          pacman -S --noconfirm --needed mingw-w64-x86_64-python3-{pillow,pip}
+          pacman -S --noconfirm --needed mingw-w64-x86_64-meson
 
       - name: Build
+        shell: msys2 {0}
         run: |
-          $env:CHERE_INVOKING = 'yes'  # Preserve the current working directory
-          C:\msys64\usr\bin\bash -lc "make -j$(($(nproc)+1)) TARGET_OS=MinGW-w64"
+          make -j$(($(nproc)+1)) TARGET_OS=MinGW-w64

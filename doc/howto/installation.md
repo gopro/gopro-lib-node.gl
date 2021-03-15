@@ -20,10 +20,11 @@ building and running the complete `node.gl` stack.
 
 - Install [MSYS2](https://www.msys2.org/) (which also brings **MinGW64**)
 - Install dependencies via pacman using **MinGW64** shell (*Not* MSYS2,
+- Install [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows) (optional)
 "MINGW64" should be visible in the prompt):
     ```shell
     pacman -Syuu  # and restart the shell
-    pacman -S --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python-watchdog,python3-pillow,pyside2-qt5,meson,graphviz}
+    pacman -S --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python-watchdog,python3-pillow,pyside2-qt5,meson,graphviz,shaderc}
     ```
 - From MinGW64, build with `./configure.py && make`
 - Enter the virtual environment with `. venv/bin/activate`

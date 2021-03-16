@@ -16,7 +16,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install python3 curl pkg-config sdl2 ffmpeg
+        brew install python3 curl pkg-config sdl2 ffmpeg glm spirv-cross ninja
         # https://docs.brew.sh/Homebrew-and-Python
         python3 -m pip install --upgrade pip
 

@@ -572,15 +572,31 @@ static int makedirs(const char *path, int mode)
     return 0;
 }
 
+static const char *env_vars[] = {"TMPDIR", "TEMP", "TMP"};
+
+static const char *get_tmp_dir_from_env(void)
+{
+    for (int i = 0; i < ARRAY_NB(env_vars); i++) {
+        const char *v = getenv(env_vars[i]);
+        if (v)
+            return v;
+    }
+    return NULL;
+}
+
 static int setup_paths(struct ctx *s)
 {
 #ifdef _WIN32
-    TCHAR tmp_dir[MAX_PATH + 1];
-    if (GetTempPath(sizeof(tmp_dir), tmp_dir) == 0)
+    TCHAR tmp_dir_default[MAX_PATH + 1];
+    if (GetTempPath(sizeof(tmp_dir_default), tmp_dir_default) == 0)
         return NGL_ERROR_EXTERNAL;
 #else
-    static const char *tmp_dir = "/tmp";
+    static const char *tmp_dir_default = "/tmp";
 #endif
+    const char *tmp_dir = get_tmp_dir_from_env();
+    if (!tmp_dir)
+        tmp_dir = tmp_dir_default;
+
     int ret = snprintf(s->root_dir, sizeof(s->root_dir), "%s/ngl-desktop/%s-%s/", tmp_dir, s->host, s->port);
     if (ret < 0 || ret >= sizeof(s->root_dir))
         return ret;

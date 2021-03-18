@@ -11,6 +11,8 @@ jobs:
   linux:
 
     runs-on: ubuntu-20.04
+    env:
+        VULKAN_SDK_VERSION: 1.2.170
     strategy:
       matrix:
         include:
@@ -34,7 +36,13 @@ jobs:
         #         apt-get install python3-venv
         #
         sudo apt -y install libsdl2-dev python3-venv valgrind
-        sudo apt -y install ffmpeg libavcodec-dev libavutil-dev libavformat-dev libavdevice-dev libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev
+        sudo apt -y install ffmpeg libavcodec-dev libavutil-dev libavformat-dev libavdevice-dev \
+            libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev ninja-build renderdoc
+        # Install Vulkan SDK
+        wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-${{env.VULKAN_SDK_VERSION}}-focal.list https://packages.lunarg.com/vulkan/${{env.VULKAN_SDK_VERSION}}/lunarg-vulkan-${{env.VULKAN_SDK_VERSION}}-focal.list
+        sudo apt -y update
+        sudo apt install vulkan-sdk
 
     - name: Build
       run: |

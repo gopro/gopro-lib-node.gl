@@ -121,10 +121,11 @@ endif
 ifeq ($(DEBUG_GPU_CAPTURE),yes)
 ifeq ($(TARGET_OS),Windows)
 RENDERDOC_DIR = $(shell wslpath -wa .)\external\renderdoc
-else
-RENDERDOC_DIR = $(PWD)/external/renderdoc
-endif
 NODEGL_DEBUG_OPTS += -Drenderdoc_dir="$(RENDERDOC_DIR)"
+else ifeq ($(TARGET_OS),Linux)
+RENDERDOC_DIR = $(PWD)/external/renderdoc
+NODEGL_DEBUG_OPTS += -Drenderdoc_dir="$(RENDERDOC_DIR)"
+endif
 endif
 
 # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925

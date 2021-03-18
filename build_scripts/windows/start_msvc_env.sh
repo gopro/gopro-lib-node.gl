@@ -6,7 +6,8 @@ fi
 # Set Visual Studio environment variables
 cmd='WSLENV=VCVARS64/w cmd.exe /C %VCVARS64% \&\& wsl.exe'
 if [[ $# -ge 1 ]]; then
-  cmd+=" < $1"
+  shift
+  cmd+=" $@"
 fi
 echo "running command: $cmd"
 eval $cmd

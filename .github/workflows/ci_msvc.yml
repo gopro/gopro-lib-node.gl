@@ -56,12 +56,4 @@ jobs:
           # Currently meson requires the project to be on the same drive as dependencies
           cp -Rf /mnt/d/a/gopro-lib-node.gl/gopro-lib-node.gl .
           cd gopro-lib-node.gl
-          # Save the following commands to a variable
-          read -r -d '' COMMANDS << EOM || true
-          make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_GPU_CAPTURE=yes \
-          VCPKG_DIR='C:\\vcpkg'
-          EOM
-          tmpfile=$(mktemp)
-          echo "$COMMANDS" > $tmpfile
-          # Execute the commands in an msvc dev environment
-          bash build_scripts/windows/start_msvc_env.sh $tmpfile
+          bash build_scripts/windows/start_msvc_env.sh -- make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_GPU_CAPTURE=yes VCPKG_DIR='C:\\vcpkg'

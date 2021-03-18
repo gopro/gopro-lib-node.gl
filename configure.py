@@ -84,9 +84,8 @@ def _get_external_deps(args):
     if _SYSTEM == 'Windows':
         deps.append('pkgconf')
     if 'gpu_capture' in args.debug_opts:
-        if _SYSTEM not in {'Windows', 'Linux'}:
-            raise Exception(f'Renderdoc is not supported on {_SYSTEM}')
-        deps.append(_RENDERDOC_ID)
+        if _SYSTEM  in {'Windows', 'Linux'}:
+            deps.append(_RENDERDOC_ID)
     if _SYSTEM == 'Darwin':
         deps += ['shaderc', 'moltenvk']
     return {dep: _EXTERNAL_DEPS[dep] for dep in deps}
@@ -227,7 +226,7 @@ def _nodegl_setup(cfg):
         debug_opts = ','.join(cfg.args.debug_opts)
         nodegl_debug_opts += [f'-Ddebug_opts={debug_opts}']
 
-    if 'gpu_capture' in cfg.args.debug_opts:
+    if 'gpu_capture' in cfg.args.debug_opts and _SYSTEM != 'Darwin':
         renderdoc_dir = cfg.externals[_RENDERDOC_ID]
         nodegl_debug_opts += [f'-Drenderdoc_dir={renderdoc_dir}']
 

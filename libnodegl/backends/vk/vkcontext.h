@@ -47,6 +47,7 @@
 #define VK_LOAD_FUN(instance, name) \
     VK_FUN(name) name = (VK_FUN(name))vkGetInstanceProcAddr(instance, "vk" #name);
 
+
 struct vkcontext {
     uint32_t api_version;
     VkInstance instance;
@@ -87,6 +88,10 @@ struct vkcontext {
     uint32_t nb_surface_formats;
     VkPresentModeKHR *present_modes;
     uint32_t nb_present_modes;
+
+#if defined(TARGET_DARWIN)
+    struct mvk_util *mvk_util;
+#endif
 };
 
 struct vkcontext *ngli_vkcontext_create(void);

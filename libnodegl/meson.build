@@ -62,7 +62,6 @@ conf_data.set10('DEBUG_GL', 'gl' in debug_opts)
 conf_data.set10('DEBUG_VK', 'vk' in debug_opts)
 conf_data.set10('DEBUG_MEM', 'mem' in debug_opts)
 conf_data.set10('DEBUG_SCENE', 'scene' in debug_opts)
-conf_data.set10('DEBUG_GPU_CAPTURE', 'gpu_capture' in debug_opts)
 
 if host_system == 'windows'
   if cc.get_id() == 'msvc'
@@ -281,28 +280,10 @@ endif
 
 
 #
-# GPU Capture Options
-#
-
-if 'gpu_capture' in debug_opts
-  renderdoc_dir = get_option('renderdoc_dir')
-  renderdoc_include_dir = ''
-  if host_system == 'windows'
-    renderdoc_include_dir = renderdoc_dir
-  else
-    renderdoc_include_dir = renderdoc_dir / 'include'
-  endif
-  if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: true)
-    lib_src += files('gpu_capture_renderdoc.c')
-    lib_deps += declare_dependency(include_directories: renderdoc_include_dir)
-    lib_deps += cc.find_library('dl', required: host_system == 'linux')
-  endif
-endif
-
-
-#
 # Graphic backend dependencies
 #
+
+gbackends = []
 
 gbackends_cfg = {
   'gl': {
@@ -418,6 +399,7 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   endforeach
   message('backend: @0@ enabled: @1@'.format(gbackend_name, all_dep_found.to_string()))
   if all_dep_found
+    gbackends += gbackend_name
 
     if gbackend_name == 'gl' and vaapi_enabled
       lib_src += files('backends/gl/hwupload_vaapi_gl.c')
@@ -438,6 +420,37 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
     endif
   endif
 endforeach
+
+
+#
+# GPU Capture Options
+#
+
+enable_gpu_capture = false
+if 'gpu_capture' in debug_opts
+  if host_system == 'darwin'
+    if 'vk' in gbackends
+      lib_src += files('gpu_capture_metal.m')
+      enable_gpu_capture = true
+    endif
+  else
+    renderdoc_dir = get_option('renderdoc_dir')
+    renderdoc_include_dir = ''
+    if host_system == 'windows'
+      renderdoc_include_dir = renderdoc_dir
+    else
+      renderdoc_include_dir = renderdoc_dir / 'include'
+    endif
+    if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: true)
+      lib_src += files('gpu_capture_renderdoc.c')
+      lib_deps += declare_dependency(include_directories: renderdoc_include_dir)
+      lib_deps += cc.find_library('dl', required: host_system == 'linux')
+      enable_gpu_capture = true
+    endif
+  endif
+endif
+
+conf_data.set10('DEBUG_GPU_CAPTURE', enable_gpu_capture)
 
 
 #

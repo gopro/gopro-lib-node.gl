@@ -3,3 +3,9 @@ pkgconf*
 shaderc*
 sxplayer*
 renderdoc*
+windows*
+linux*
+darwin*
+stb*
+json*
+ngfx*

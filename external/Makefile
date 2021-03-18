@@ -34,14 +34,14 @@ DEPENDENCIES += pkgconf
 endif
 
 ifeq ($(DEBUG_GPU_CAPTURE),yes)
+ifneq ($(TARGET_OS),Darwin)
 ifeq ($(TARGET_OS),$(filter $(TARGET_OS),MinGW-w64 Windows))
 RENDERDOC_TARGET = RenderDoc_$(RENDERDOC_VERSION)_64
 else ifeq ($(TARGET_OS),Linux)
 RENDERDOC_TARGET = renderdoc_$(RENDERDOC_VERSION)
-else
-$(error RenderDoc is not supported on this system)
 endif
 DEPENDENCIES += renderdoc
+endif
 endif
 
 all: $(DEPENDENCIES)

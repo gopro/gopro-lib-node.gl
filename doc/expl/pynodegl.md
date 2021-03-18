@@ -13,13 +13,11 @@ How the Python binding is created
 dedicated tool ([gen_specs.c][gen-specs-c]) crawling the internal node C
 definitions.
 
-This generated `nodes.specs` file (see `updatespecs` build rule in [libnodegl's
-Makefile][libnodegl-makefile]) is installed on the system or targeted
-environment by the `install` rule.
+This generated `nodes.specs` file (see the `./ngl-env dev updatespecs` command)
+is installed on the system or targeted environment by the `install` rule.
 
 [specs]: /libnodegl/nodes.specs
 [gen-specs-c]: /libnodegl/gen_specs.c
-[libnodegl-makefile]: /libnodegl/Makefile
 
 ### nodes.specs ← pynodegl
 

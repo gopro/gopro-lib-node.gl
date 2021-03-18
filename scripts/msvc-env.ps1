@@ -1,3 +1,7 @@
+if (Test-Path env:VCVARS64) {
+    Exit
+}
+
 # Install VSSetup module if not existing
 if ((Get-InstalledModule -Name "VSSetup" -ErrorAction SilentlyContinue) -eq $null) {
     Install-Module VSSetup -Scope CurrentUser -Force
@@ -9,4 +13,11 @@ $vsInstallationInfo = Get-VSSetupInstance -All -Prerelease |
     Select-Object -First 1
 $vcvars64 = "$($vsInstallationInfo.InstallationPath)\VC\Auxiliary\Build\vcvars64.bat"
 
-Write-Host $vcvars64
+cmd /c "call `"$vcvars64`" && set" |
+foreach {
+    if ($_ -match "=") {
+        $v = $_.split("="); Set-Item -force -Path "env:\$($v[0])" -Value "$($v[1])"
+    }
+}
+
+Set-Item -force -Path env:VCVARS64 -Value "$vcvars64"

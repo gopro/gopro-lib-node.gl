@@ -14,9 +14,9 @@ In order to add a node, you need to:
   the Copyright header. See other node files, such as `node_identity.c`
 - in `nodes_register.h`: register the new node
 - reference the source file node in `libnodegl/meson.build`
-- run `make nodegl-updatespecs` (from the top-level Makefile) to update
+- run `./ngl-env dev updatespecs` (from the top-level directory) to update
   `nodes.specs` every time you update the parameters of the node
-- similarly, run `make nodegl-updatedoc` to update the [reference
+- similarly, run `./ngl-env dev updatedoc` to update the [reference
   documentation][libnodegl-ref] after every change to the parameters
 - refer to [nodes.h][nodes-h] for the available callbacks to
   implement in your class map

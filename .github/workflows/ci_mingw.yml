@@ -32,4 +32,4 @@ jobs:
 
       - name: Build
         run: |
-          make -j$(($(nproc)+1)) TARGET_OS=MinGW-w64
+          ./ngl-env build

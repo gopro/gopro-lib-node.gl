@@ -50,6 +50,7 @@ Following are how-to guides on various specific usages:
 
 ### ⚙️ Discussions and explanations
 
+- [How to use ngl-env][expl-ngl-env]
 - [How the Python binding is created][expl-pynodegl]
 - [What happens in a draw call?][expl-draw-call]
 - [Technical choices][expl-techchoices]
@@ -80,6 +81,7 @@ Following are how-to guides on various specific usages:
 [expl-colormatrix]:      /doc/expl/colormatrix.md
 [expl-graphicconfig]:    /doc/expl/graphicconfig.md
 [expl-noise]:            /doc/expl/noise.md
+[expl-ngl-env]:          /doc/expl/ngl-env.md
 [ref-libnodegl]:         /libnodegl/doc/libnodegl.md
 [ref-pynodegl]:          /doc/ref/pynodegl.md
 [ref-pynodegl-utils]:    /doc/ref/pynodegl-utils.md

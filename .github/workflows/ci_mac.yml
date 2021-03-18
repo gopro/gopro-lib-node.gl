@@ -20,5 +20,4 @@ jobs:
 
     - name: Build
       run: |
-        make -j$(($(sysctl -n hw.logicalcpu)+1))
-
+        ./ngl-env build

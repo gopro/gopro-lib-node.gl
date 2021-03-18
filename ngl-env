@@ -1,0 +1,467 @@
+#!/usr/bin/env python3
+#
+# Copyright 2021 GoPro Inc.
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+import argparse
+import glob
+import logging
+import os
+import os.path as op
+import pathlib
+import platform
+import shlex
+import shutil
+import sys
+import sysconfig
+import tarfile
+import urllib.request
+import venv
+import zipfile
+from multiprocessing import Pool
+from subprocess import call, run
+
+
+_ROOTDIR = op.abspath(op.dirname(__file__))
+_SYSTEM = 'MinGW' if sysconfig.get_platform() == 'mingw' else platform.system()
+_ENV_CFG_FILE = 'ngl-env.cfg'
+
+_RENDERDOC_FILE = 'RenderDoc_@VERSION@_64.zip' if _SYSTEM == 'Windows' else 'renderdoc_@VERSION@.tar.gz'
+_EXTERNAL_DEPS = dict(
+    sxplayer=dict(
+        version='9.8.1',
+        url='https://github.com/Stupeflix/sxplayer/archive/v@VERSION@.tar.gz',
+        dst_file='sxplayer-@VERSION@.tar.gz',
+    ),
+    pkgconf=dict(
+        version='1.7.3',
+        url='https://distfiles.dereferenced.org/pkgconf/pkgconf-@VERSION@.tar.xz',
+    ),
+    renderdoc=dict(
+        version='1.12',
+        url=f'https://renderdoc.org/stable/@VERSION@/{_RENDERDOC_FILE}',
+    ),
+)
+
+
+def _cmd(*args, _env=None):
+    logging.info('CMD: ' + shlex.join(args))
+    ret = call(args, env=_env)
+    if ret:
+        sys.exit(ret)
+
+
+def _guess_base_dir(dirs):
+    smallest_dir = sorted(dirs, key=lambda x: len(x))[0]
+    return pathlib.Path(smallest_dir).parts[0]
+
+
+def _download_extract(dep_item):
+    name, dep = dep_item
+
+    version = dep['version']
+    url = dep['url'].replace('@VERSION@', version)
+    dst_file = dep.get('dst_file', op.basename(url)).replace('@VERSION@', version)
+    dst_base = op.join(_ROOTDIR, 'external')
+    dst_path = op.join(dst_base, dst_file)
+    os.makedirs(dst_base, exist_ok=True)
+
+    # Download
+    if not op.exists(dst_path):
+        logging.info('downloading %s to %s', url, dst_file)
+        urllib.request.urlretrieve(url, dst_path)
+
+    # Extract
+    if tarfile.is_tarfile(dst_path):
+        with tarfile.open(dst_path) as tar:
+            dirs = {f.name for f in tar.getmembers() if f.isdir()}
+            extract_dir = op.join(dst_base, _guess_base_dir(dirs))
+            if not op.exists(extract_dir):
+                logging.info('extracting %s', dst_file)
+                tar.extractall(dst_base)
+
+    elif zipfile.is_zipfile(dst_path):
+        with zipfile.ZipFile(dst_path) as zip_:
+            dirs = {op.dirname(f) for f in zip_.namelist()}
+            extract_dir = op.join(dst_base, _guess_base_dir(dirs))
+            if not op.exists(extract_dir):
+                logging.info('extracting %s', dst_file)
+                zip_.extractall(dst_base)
+    else:
+        assert False
+
+    # Link
+    target = op.join(dst_base, name)
+    if _SYSTEM in ('Windows', 'MinGW'):
+        logging.info(f'copy {target} -> {extract_dir}')
+        shutil.copytree(extract_dir, target, dirs_exist_ok=True)
+    else:
+        extract_dir = op.basename(extract_dir)
+        if op.exists(target) and os.readlink(target) != extract_dir:
+            os.unlink(target)
+        if not op.exists(target):
+            logging.info(f'symlink {target} -> {extract_dir}')
+            os.symlink(extract_dir, target)
+    return name, target
+
+
+def _fetch_externals(args):
+    dependencies = _EXTERNAL_DEPS.copy()
+    if _SYSTEM not in {'Windows', 'MinGW'}:
+        del dependencies['pkgconf']
+    if 'gpu_capture' not in args.debug:
+        del dependencies['renderdoc']
+
+    with Pool() as p:
+        return dict(p.map(_download_extract, dependencies.items()))
+
+
+def _get_cfg(venv_path):
+    if not op.exists(op.join(venv_path, _ENV_CFG_FILE)):
+        logging.error('No environment installed found in %s', venv_path)
+        sys.exit(1)
+
+    ret = {}
+    path = op.join(venv_path, _ENV_CFG_FILE)
+    with open(path) as f:
+        for line in f:
+            k, v = line.split('=', maxsplit=1)
+            ret[k.strip()] = v.strip()
+    ret['coverage'] = ret.get('coverage') == 'yes'
+    return ret
+
+
+def _get_env(venv_path):
+    env = {}
+    cfg = _get_cfg(venv_path)
+
+    prefix = op.abspath(venv_path)
+    sep = ';' if _SYSTEM in ('Windows', 'MinGW') else ':'
+    env['PATH'] = sep.join((cfg['bin_path'], os.environ['PATH']))
+
+    if _SYSTEM == 'Windows':
+        vcpkg_pkgconfig_path = op.join(cfg['vcpkg_dir'], 'installed', 'x64-windows', 'lib', 'pkgconfig')
+        pkg_config_path = ';'.join((vcpkg_pkgconfig_path, op.join(prefix, 'Lib', 'pkgconfig')))
+        env['PKG_CONFIG_ALLOW_SYSTEM_LIBS'] = '1'
+        env['PKG_CONFIG_ALLOW_SYSTEM_CFLAGS'] = '1'
+        env['PKG_CONFIG_PATH'] = pkg_config_path
+    else:
+        env['PKG_CONFIG_PATH'] = op.join(prefix, 'lib', 'pkgconfig')
+
+    return env
+
+
+class _EnvBuilder(venv.EnvBuilder):
+
+    def __init__(self, args, externals):
+        system_site_packages = _SYSTEM == 'MinGW'
+        super().__init__(
+            system_site_packages=system_site_packages,
+            with_pip=True,
+            prompt='nodegl',
+        )
+        self._args = args
+        self._externals = externals
+
+    def create_configuration(self, context):
+        super().create_configuration(context)
+        path = op.join(context.env_dir, _ENV_CFG_FILE)
+        with open(path, 'w') as f:
+            f.write(f'bin_path = {context.bin_path}\n')
+            f.write(f'coverage = {"yes" if self._args.coverage else "no"}\n')
+            if _SYSTEM == 'Windows':
+                f.write(f'vcpkg_dir = {self._args.vcpkg_dir}\n')
+
+    def post_setup(self, context):
+        python = context.env_exe
+        prefix = context.env_dir
+        rpath = op.join(prefix, 'lib')
+
+        # "activate" virtual env
+        env = _get_env(self._args.venv_path)
+        os.environ.update(env)
+
+        # Core dependencies
+        pip_install = [python, '-m', 'pip', 'install']
+        if _SYSTEM != 'MinGW':
+            _cmd(*pip_install, 'meson')
+            _cmd(*pip_install, 'ninja')
+        meson_setup = [
+            'meson', 'setup',
+            '--prefix', prefix,
+            '-Drpath=true',
+            '--bindir', context.bin_name,
+        ]
+
+        if self._args.coverage:
+            meson_setup.append('-Db_coverage=true')
+        buildtype = 'debugoptimized' if self._args.coverage or self._args.buildtype == 'debug' else 'release'
+        meson_setup += ['--buildtype', buildtype]
+
+        if _SYSTEM != 'MinGW':
+            meson_setup.append('-Db_lto=true')
+
+        meson_compile = ['meson', 'compile']
+        if self._args.verbose:
+            meson_compile.append('-v')
+            pip_install.append('-v')
+
+        meson_install = ['meson', 'install']
+
+        if _SYSTEM == 'Windows':
+            meson_setup += [
+                '--backend=vs',
+                '--pkg-config-path', env['PKG_CONFIG_PATH'],
+                '--libdir=Lib',
+                '--includedir=Include',
+            ]
+
+            # pkgconf
+            pkgconf_path = self._externals['pkgconf']
+            pkgconf_builddir = op.join(_ROOTDIR, 'builddir', 'pkgconf')
+            _cmd(*meson_setup, '-Dtests=false', pkgconf_path, pkgconf_builddir)
+            _cmd(*meson_compile, '-C', pkgconf_builddir)
+            _cmd(*meson_install, '-C', pkgconf_builddir)
+            shutil.copy2(op.join(context.bin_path, 'pkgconf.exe'), op.join(context.bin_path, 'pkg-config.exe'))
+        else:
+            meson_setup += [
+                '--pkg-config-path', op.join(prefix, 'lib', 'pkgconfig'),
+            ]
+            try:
+                distrib_id = run(['lsb_release', '-si'], capture_output=True).stdout.decode().strip()
+            except Exception:
+                pass
+            else:
+                # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
+                if distrib_id in ('Ubuntu', 'Debian'):
+                    meson_setup += ['--libdir=lib']
+
+        if _SYSTEM == 'Windows':
+            vcpkg_bin = op.join(self._args.vcpkg_dir, 'installed', 'x64-windows', 'bin')
+            for f in glob.glob(op.join(vcpkg_bin, '*.dll')):
+                shutil.copy2(f, op.join('venv', 'Scripts'))
+
+        if _SYSTEM in ('Windows', 'MinGW'):
+            if 'gpu_capture' in self._args.debug:
+                shutil.copy2(op.join(self._externals['renderdoc'], 'renderdoc.dll'), context.bin_path)
+
+        if 'sxplayer' in self._args.target:
+            sxplayer_path = self._externals['sxplayer']
+            sxplayer_builddir = op.join(_ROOTDIR, 'builddir', 'sxplayer')
+            _cmd(*meson_setup, sxplayer_path, sxplayer_builddir)
+            _cmd(*meson_compile, '-C', sxplayer_builddir)
+            _cmd(*meson_install, '-C', sxplayer_builddir)
+
+        if 'libnodegl' in self._args.target:
+            nodegl_debug_opts = []
+            if self._args.debug:
+                debug_opts = ','.join(self._args.debug)
+                nodegl_debug_opts += [f'-Ddebug_opts={debug_opts}']
+
+            if 'gpu_capture' in self._args.debug:
+                renderdoc_dir = self._externals['renderdoc']
+                nodegl_debug_opts += [f'-Drenderdoc_dir={renderdoc_dir}']
+
+            libnodegl_path = op.join(_ROOTDIR, 'libnodegl')
+            libnodegl_builddir = op.join(_ROOTDIR, 'builddir', 'libnodegl')
+            _cmd(*meson_setup, *nodegl_debug_opts, libnodegl_path, libnodegl_builddir)
+            _cmd(*meson_compile, '-C', libnodegl_builddir)
+            _cmd(*meson_install, '-C', libnodegl_builddir)
+
+        if 'ngl-tools' in self._args.target:
+            ngltools_path = op.join(_ROOTDIR, 'ngl-tools')
+            ngltools_builddir = op.join(_ROOTDIR, 'builddir', 'ngl-tools')
+            _cmd(*meson_setup, ngltools_path, ngltools_builddir)
+            _cmd(*meson_compile, '-C', ngltools_builddir)
+            _cmd(*meson_install, '-C', ngltools_builddir)
+
+        if 'pynodegl' in self._args.target:
+            tmp_env = os.environ.copy()
+            tmp_env['LDFLAGS'] = f'-Wl,-rpath,{rpath}'
+            pynodegl_path = op.join(_ROOTDIR, 'pynodegl')
+            _cmd(*pip_install, '-r', op.join(pynodegl_path, 'requirements.txt'))
+            _cmd(*pip_install, '-e', pynodegl_path, _env=tmp_env)
+            if _SYSTEM == 'Windows':
+                for f in glob.glob(op.join('venv', 'Scripts', '*.dll')):
+                    shutil.copy2(f, 'pynodegl')
+
+        if 'pynodegl-utils' in self._args.target:
+            pynodegl_utils_path = op.join(_ROOTDIR, 'pynodegl-utils')
+
+            #
+            # Requirements not installed on MinGW because:
+            # - PySide2 can't be pulled (required to be installed by the user outside the
+            #   Python virtual env)
+            # - Pillow fails to find zlib (required to be installed by the user outside the
+            #   Python virtual env)
+            #
+            if _SYSTEM != 'MinGW':
+                _cmd(*pip_install, '-r', op.join(pynodegl_utils_path, 'requirements.txt'))
+
+            _cmd(*pip_install, '-e', pynodegl_utils_path)
+
+
+def _get_activate_cmd(args):
+    if _SYSTEM == 'Windows':
+        return op.join(args.venv_path, 'Scripts', 'Activate.ps1')
+    return '. ' + op.join(args.venv_path, 'bin/activate')
+
+
+def _build(args):
+    externals = _fetch_externals(args)
+    logging.info('creating Python virtualenv: %s', args.venv_path)
+    builder = _EnvBuilder(args, externals)
+    builder.create(args.venv_path)
+    activate = _get_activate_cmd(args)
+    print(f'''
+        Build completed.
+
+        You can now enter the venv with:
+            {activate}
+''')
+
+
+def _tests(args):
+    env = _get_env(args.venv_path)
+    os.environ.update(env)
+    tests_path = op.join(_ROOTDIR, 'tests')
+    tests_builddir = op.join(_ROOTDIR, 'builddir', 'tests')
+    meson_test = ['meson', 'test']
+    if args.verbose:
+        meson_test.append('-v')
+    if args.suite:
+        meson_test += ['--suite', args.suite]
+    _cmd('meson', 'setup', tests_path, tests_builddir)
+    _cmd(*meson_test, '-C', op.join(_ROOTDIR, 'builddir', 'libnodegl'))
+    _cmd(*meson_test, '-C', op.join(_ROOTDIR, 'builddir', 'tests'))
+
+
+def _clean(args):
+    rt_targets = {
+        'builddir/libnodegl',
+        'builddir/ngl-tools',
+        'builddir/sxplayer',
+        'builddir/tests',
+        'pynodegl-utils/.eggs',
+        'pynodegl-utils/pynodegl_utils.egg-info',
+        'pynodegl/.eggs',
+        'pynodegl/build',
+        'pynodegl/nodes_def.pyx',
+        'pynodegl/nodes_def.pyx',
+        'pynodegl/pynodegl.c',
+        'pynodegl/pynodegl.egg-info',
+    }
+    rt_targets |= set(glob.glob(op.join(_ROOTDIR, 'pynodegl/pynodegl.*.so')))
+    for rm_target in rt_targets:
+        rm_path = op.join(_ROOTDIR, rm_target)
+        if op.isdir(rm_path):
+            logging.info('removing tree: %s', rm_path)
+            shutil.rmtree(rm_path)
+        elif op.exists(rm_path):
+            logging.info('removing file: %s', rm_path)
+            os.remove(rm_path)
+
+    if args.rm_venv and op.isdir(args.venv_path):
+        logging.info('removing virtual env: %s', args.venv_path)
+        shutil.rmtree(args.venv_path)
+
+
+def _coverage(args):
+    cfg = _get_cfg(args.venv_path)
+    if not cfg['coverage']:
+        logging.error('You must build node.gl with the --coverage option (and run the tests) before using this function')
+        sys.exit(1)
+
+    # We don't use `meson coverage` here because of
+    # https://github.com/mesonbuild/meson/issues/7895
+    coverage_rule = 'coverage-' + args.coverage_ofmt
+    _cmd('ninja', '-C', 'builddir/libnodegl', coverage_rule)
+
+
+def _dev(args):
+    if args.command == 'shell':
+        # We use print() here so that we can evaluate stdout directly
+        print(_get_activate_cmd(args))
+        return
+    env = _get_env(args.venv_path)
+    os.environ.update(env)
+    meson_compile = ['meson', 'compile']
+    if args.verbose:
+        meson_compile.append('-v')
+    _cmd(*meson_compile, '-C', op.join(_ROOTDIR, 'builddir', 'libnodegl'), args.command)
+
+
+def _run():
+    parser = argparse.ArgumentParser(
+        prog='ngl-env',
+        description='Create and manage a standalone node.gl virtual environement',
+    )
+    parser.add_argument('-p', '--venv-path', default=op.join(_ROOTDIR, 'venv'),
+                        help='Virtual environment directory')
+    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.set_defaults(func=None)
+
+    subparsers = parser.add_subparsers()
+
+    build_p = subparsers.add_parser('build', help='Build a standalone node.gl environement')
+    build_p.add_argument('--buildtype', choices=('release', 'debug'), default='release',
+                         help='Build type')
+    modules = ('sxplayer', 'libnodegl', 'ngl-tools', 'pynodegl', 'pynodegl-utils')
+    build_p.add_argument('-t', '--target', nargs='+', default=list(modules),
+                         choices=modules)
+    build_p.add_argument('--coverage', action='store_true',
+                         help='Code coverage')
+    build_p.add_argument('-d', '--debug', nargs='+', default=[],
+                         choices=('gl', 'mem', 'scene', 'gpu_capture'),
+                         help='Debug options')
+    if _SYSTEM == 'Windows':
+        build_p.add_argument('--vcpkg-dir', default=r'C:\vcpkg',
+                             help='Vcpkg directory')
+    build_p.set_defaults(func=_build)
+
+    test_p = subparsers.add_parser('tests', help='Run the tests')
+    test_p.add_argument('--suite',
+                        help='Meson test suite')
+    test_p.set_defaults(func=_tests)
+
+    clean_p = subparsers.add_parser('clean', help='Clean the sources directory')
+    clean_p.add_argument('--venv', dest='rm_venv', action='store_true',
+                         help='Also remove the Virtual env')
+    clean_p.set_defaults(func=_clean)
+
+    dev_p = subparsers.add_parser('dev', help='Development tools')
+    dev_p.add_argument('command', choices=('updatedoc', 'updatespecs', 'updateglwrappers', 'shell'))
+    dev_p.set_defaults(func=_dev)
+
+    coverage_p = subparsers.add_parser('coverage', help='Generate code coverage report')
+    coverage_p.add_argument('--ofmt', dest='coverage_ofmt', choices=('html', 'xml'), default='html')
+    coverage_p.set_defaults(func=_coverage)
+
+    args = parser.parse_args()
+    if args.func is None:
+        parser.print_help()
+        return
+
+    logging.basicConfig(level='INFO' if not args.verbose else 'DEBUG')
+    args.func(args)
+
+
+if __name__ == '__main__':
+    _run()

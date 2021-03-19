@@ -392,7 +392,7 @@ static int gl_init(struct gctx *s)
 
 #if DEBUG_GPU_CAPTURE
     const char *var = getenv("NGL_GPU_CAPTURE");
-    s->gpu_capture = var && !strcmp(var, "yes");
+    s->gpu_capture = var && !strcmp(var, "yes") && !config->probe;
     if (s->gpu_capture) {
         s->gpu_capture_ctx = gpu_capture_ctx_create();
         if (!s->gpu_capture_ctx) {

@@ -393,7 +393,7 @@ static int gl_init(struct gctx *s)
     const char *var = getenv("NGL_GPU_CAPTURE");
     s->gpu_capture = var && !strcmp(var, "yes");
     if (s->gpu_capture) {
-        s->gpu_capture_ctx = gpu_capture_ctx_create();
+        s->gpu_capture_ctx = gpu_capture_ctx_create(s);
         if (!s->gpu_capture_ctx) {
             LOG(ERROR, "could not create GPU capture context");
             return NGL_ERROR_MEMORY;

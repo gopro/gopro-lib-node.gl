@@ -41,7 +41,7 @@ struct gpu_capture_ctx {
 #endif
 };
 
-struct gpu_capture_ctx *gpu_capture_ctx_create(void)
+struct gpu_capture_ctx *gpu_capture_ctx_create(struct gctx *gctx)
 {
     struct gpu_capture_ctx *s = ngli_calloc(1, sizeof(*s));
     return s;

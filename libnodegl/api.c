@@ -543,6 +543,7 @@ int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, 
         struct ngl_config config = *user_config;
         config.backend = backend_ids[i];
         config.platform = platform;
+        config.probe = 1;
 
         int ret = backend_probe(&backends[nb_backends], &config);
         if (ret < 0)

@@ -109,6 +109,7 @@ cdef extern from "nodegl.h":
         int hud_refresh_rate[2]
         const char *hud_export_filename
         int hud_scale
+        int probe
 
     ngl_ctx *ngl_create()
     int ngl_backends_probe(const ngl_config *user_config, int *nb_backendsp, ngl_backend **backendsp)

@@ -22,9 +22,10 @@
 #ifndef GPU_CAPTURE_H
 #define GPU_CAPTURE_H
 
+struct gctx;
 struct gpu_capture_ctx;
 
-struct gpu_capture_ctx *gpu_capture_ctx_create(void);
+struct gpu_capture_ctx *gpu_capture_ctx_create(struct gctx *s);
 int gpu_capture_init(struct gpu_capture_ctx *s);
 int gpu_capture_begin(struct gpu_capture_ctx *s);
 int gpu_capture_end(struct gpu_capture_ctx *s);

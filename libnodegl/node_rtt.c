@@ -414,6 +414,12 @@ static void rtt_draw(struct ngl_node *node)
     const int vp[4] = {0, 0, s->width, s->height};
     ngli_gctx_set_viewport(gctx, vp);
 
+    int prev_scissor[4] = {0};
+    ngli_gctx_get_scissor(gctx, prev_scissor);
+
+    const int scissor[4] = {0, 0, s->width, s->height};
+    ngli_gctx_set_scissor(gctx, scissor);
+
     struct rendertarget *prev_rendertargets[2] = {
         ctx->available_rendertargets[0],
         ctx->available_rendertargets[1],
@@ -444,6 +450,7 @@ static void rtt_draw(struct ngl_node *node)
     ctx->begin_render_pass = 1;
 
     ngli_gctx_set_viewport(gctx, prev_vp);
+    ngli_gctx_set_scissor(gctx, prev_scissor);
 
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;

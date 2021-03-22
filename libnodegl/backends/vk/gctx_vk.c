@@ -1050,6 +1050,12 @@ static void vk_destroy(struct gctx *s)
     if (res != VK_SUCCESS) // what to do if this happen? ignore graphic call with device lost, and try continue in case of mem error?
         return;
 
+#if DEBUG_GPU_CAPTURE
+    if (s->gpu_capture)
+        gpu_capture_end(s->gpu_capture_ctx);
+    gpu_capture_freep(&s->gpu_capture_ctx);
+#endif
+
     destroy_command_pool_and_buffers(s);
 
     if (s_priv->sem_render_finished) {
@@ -1110,11 +1116,6 @@ static void vk_destroy(struct gctx *s)
     ngli_darray_reset(&s_priv->wait_semaphores);
     ngli_darray_reset(&s_priv->wait_stages);
     ngli_darray_reset(&s_priv->signal_semaphores);
-#if DEBUG_GPU_CAPTURE
-    if (s->gpu_capture)
-        gpu_capture_end(s->gpu_capture_ctx);
-    gpu_capture_freep(&s->gpu_capture_ctx);
-#endif
 
     ngli_vkcontext_freep(&s_priv->vkcontext);
 }

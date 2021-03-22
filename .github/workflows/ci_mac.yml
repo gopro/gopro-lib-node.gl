@@ -21,7 +21,7 @@ jobs:
 
     - name: Build
       run: |
-        ./configure.py
+        ./configure.py --debug-opts gpu_capture
         make
 
     - name: Python import and dylib runtime test

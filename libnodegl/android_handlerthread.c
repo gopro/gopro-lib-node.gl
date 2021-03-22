@@ -19,13 +19,13 @@
  * under the License.
  */
 
-#include <pthread.h>
 #include <stdlib.h>
 
 #include "android_looper.h"
 #include "android_handler.h"
 #include "android_handlerthread.h"
 #include "memory.h"
+#include "pthread_compat.h"
 
 struct android_handlerthread {
     pthread_t tid;

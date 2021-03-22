@@ -14,7 +14,7 @@ jobs:
     runs-on: windows-latest
     env:
         VCPKG_TRIPLET: x64-windows
-        VCPKG_INSTALL_PACKAGES: pthreads opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2 shaderc spirv-cross
+        VCPKG_INSTALL_PACKAGES: opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2 shaderc spirv-cross
         # Use older version of shaderc
         # Recent release of vcpkg introduced a regression, where shaderc shared library
         # is no longer supported

@@ -20,7 +20,6 @@
  */
 
 #include <jni.h>
-#include <pthread.h>
 #include <stdlib.h>
 
 #include "bstr.h"
@@ -28,6 +27,7 @@
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"
+#include "pthread_compat.h"
 #include "utils.h"
 
 static JavaVM *java_vm;

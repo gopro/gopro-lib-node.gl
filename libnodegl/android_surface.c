@@ -20,7 +20,6 @@
  */
 
 #include <jni.h>
-#include <pthread.h>
 #include <time.h>
 #include <libavcodec/mediacodec.h>
 
@@ -30,6 +29,7 @@
 #include "memory.h"
 #include "android_handlerthread.h"
 #include "android_surface.h"
+#include "pthread_compat.h"
 
 
 static void native_on_frame_available(JNIEnv *env, jobject object, jlong surface_)

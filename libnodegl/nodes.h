@@ -24,7 +24,6 @@
 
 #include <stdlib.h>
 #include <sxplayer.h>
-#include <pthread.h>
 
 #include "config.h"
 
@@ -52,6 +51,7 @@
 #include "params.h"
 #include "pgcache.h"
 #include "program.h"
+#include "pthread_compat.h"
 #include "darray.h"
 #include "buffer.h"
 #include "format.h"

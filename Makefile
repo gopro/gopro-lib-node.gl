@@ -179,6 +179,11 @@ all: ngl-tools-install pynodegl-utils-install
 ngl-tools-install: nodegl-install
 	($(ACTIVATE) && $(MESON_SETUP) --backend $(MESON_BACKEND) ngl-tools $(BUILDDIR)/ngl-tools && $(MESON_COMPILE) -C $(BUILDDIR)/ngl-tools && $(MESON_INSTALL) -C $(BUILDDIR)/ngl-tools)
 
+ngl-debug-tools-install:
+	$(CMAKE) -S ngl-debug-tools -B builddir/ngl-debug-tools -G $(CMAKE_GENERATOR) $(CMAKE_SETUP_OPTIONS) && \
+	$(CMAKE) --build builddir/ngl-debug-tools $(CMAKE_COMPILE_OPTIONS) && \
+	$(CMAKE) --install builddir/ngl-debug-tools $(CMAKE_INSTALL_OPTIONS)
+
 pynodegl-utils-install: pynodegl-utils-deps-install
 	($(ACTIVATE) && $(PIP) -v install -e ./pynodegl-utils)
 
@@ -334,6 +339,7 @@ coverage-xml:
 
 .PHONY: all
 .PHONY: ngl-tools-install
+.PHONY: ngl-debug-tools-install
 .PHONY: pynodegl-utils-install pynodegl-utils-deps-install
 .PHONY: pynodegl-install pynodegl-deps-install
 .PHONY: nodegl-install nodegl-setup

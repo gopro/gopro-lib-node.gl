@@ -20,7 +20,6 @@
  */
 
 #include <stdlib.h>
-#include <pthread.h>
 #include <jni.h>
 #include <android/native_window.h>
 #include <media/NdkImageReader.h>
@@ -29,6 +28,7 @@
 #include "jni_utils.h"
 #include "log.h"
 #include "memory.h"
+#include "pthread_compat.h"
 
 struct android_image {
     struct android_ctx *android_ctx;

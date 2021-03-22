@@ -50,7 +50,6 @@
 #endif
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <signal.h>
 
 #include <nodegl.h>
@@ -59,6 +58,7 @@
 #include "ipc.h"
 #include "opts.h"
 #include "player.h"
+#include "pthread_compat.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0

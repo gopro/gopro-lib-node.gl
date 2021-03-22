@@ -20,7 +20,6 @@
  */
 
 #define _GNU_SOURCE
-#include <pthread.h>
 
 #ifdef _WIN32
 #define POW10_9 1000000000
@@ -43,6 +42,7 @@
 #include "log.h"
 #include "memory.h"
 #include "utils.h"
+#include "pthread_compat.h"
 
 char *ngli_strdup(const char *s)
 {

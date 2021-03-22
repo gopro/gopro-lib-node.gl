@@ -20,7 +20,6 @@
  */
 
 #include <stdlib.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -43,6 +42,7 @@
 #include "nodes.h"
 #include "pgcache.h"
 #include "rnode.h"
+#include "pthread_compat.h"
 
 #if defined(HAVE_VAAPI)
 #include "vaapi_ctx.h"

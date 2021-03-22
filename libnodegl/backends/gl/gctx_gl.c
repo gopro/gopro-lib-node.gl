@@ -702,13 +702,13 @@ static void gl_wait_idle(struct gctx *s)
 static void gl_destroy(struct gctx *s)
 {
     struct gctx_gl *s_priv = (struct gctx_gl *)s;
-    timer_reset(s);
-    rendertarget_reset(s);
 #if DEBUG_GPU_CAPTURE
     if (s->gpu_capture)
         gpu_capture_end(s->gpu_capture_ctx);
     gpu_capture_freep(&s->gpu_capture_ctx);
 #endif
+    timer_reset(s);
+    rendertarget_reset(s);
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 

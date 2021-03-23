@@ -62,7 +62,6 @@ jobs:
           ./VulkanSDK-1.2.162.1-Installer.exe /S
           cd /mnt/c/vcpkg
           ./vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
-          ./vcpkg.exe integrate install
 
       - name: Build
         run: |

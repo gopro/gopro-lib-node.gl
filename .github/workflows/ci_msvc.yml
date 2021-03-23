@@ -47,7 +47,6 @@ jobs:
           pip.exe install meson
           cd /mnt/c/vcpkg
           ./vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
-          ./vcpkg.exe integrate install
 
       - name: Build
         run: |

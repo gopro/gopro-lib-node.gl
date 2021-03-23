@@ -49,7 +49,6 @@ following components are included:
     ```shell
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows
-    .\vcpkg.exe integrate install
     ```
 - Enable [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 - Install Ubuntu into WSL from Microsoft Store.

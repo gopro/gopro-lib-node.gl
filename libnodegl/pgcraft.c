@@ -1259,10 +1259,20 @@ void ngli_pgcraft_freep(struct pgcraft **sp)
     ngli_darray_reset(&s->pipeline_info.desc.buffers);
     ngli_darray_reset(&s->pipeline_info.desc.attributes);
 
+    ngli_darray_reset(&s->pipeline_info.data.uniforms);
+    ngli_darray_reset(&s->pipeline_info.data.textures);
+    ngli_darray_reset(&s->pipeline_info.data.buffers);
+    ngli_darray_reset(&s->pipeline_info.data.attributes);
+
     ngli_darray_reset(&s->filtered_pipeline_info.desc.uniforms);
     ngli_darray_reset(&s->filtered_pipeline_info.desc.textures);
     ngli_darray_reset(&s->filtered_pipeline_info.desc.buffers);
     ngli_darray_reset(&s->filtered_pipeline_info.desc.attributes);
+
+    ngli_darray_reset(&s->filtered_pipeline_info.data.uniforms);
+    ngli_darray_reset(&s->filtered_pipeline_info.data.textures);
+    ngli_darray_reset(&s->filtered_pipeline_info.data.buffers);
+    ngli_darray_reset(&s->filtered_pipeline_info.data.attributes);
 
     ngli_freep(sp);
 }

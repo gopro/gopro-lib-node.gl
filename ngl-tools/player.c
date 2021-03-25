@@ -361,7 +361,7 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     struct ngl_node *group      = ngl_node_create(NGL_NODE_GROUP);
 
     if (!text || !quad || !program || !render || !time || !v_duration || !v_opacity ||
-        !coord || !group || !gcfg) {
+        !coord || !ui_group || !group || !gcfg) {
         ngl_node_unrefp(&group);
         goto end;
     }

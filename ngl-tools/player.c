@@ -409,6 +409,7 @@ static struct ngl_node *add_progress_bar(struct ngl_node *scene)
     p->pgbar_text_node     = text;
 
 end:
+    ngl_node_unrefp(&text);
     ngl_node_unrefp(&quad);
     ngl_node_unrefp(&program);
     ngl_node_unrefp(&render);
@@ -416,6 +417,7 @@ end:
     ngl_node_unrefp(&v_duration);
     ngl_node_unrefp(&v_opacity);
     ngl_node_unrefp(&coord);
+    ngl_node_unrefp(&ui_group);
     ngl_node_unrefp(&gcfg);
 
     return group;

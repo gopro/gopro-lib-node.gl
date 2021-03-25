@@ -97,9 +97,14 @@ static int get_backend(const char *id)
     int ret = ngl_backends_probe(NULL, &nb_backends, &backends);
     if (ret < 0)
         return ret;
-    for (int i = 0; i < nb_backends; i++)
-        if (!strcmp(backends[i].string_id, id))
-            return backends[i].id;
+    for (int i = 0; i < nb_backends; i++) {
+        if (!strcmp(backends[i].string_id, id)) {
+            ret = backends[i].id;
+            ngl_backends_freep(&backends);
+            return ret;
+        }
+    }
+    ngl_backends_freep(&backends);
     return NGL_ERROR_NOT_FOUND;
 }
 

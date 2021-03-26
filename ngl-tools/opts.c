@@ -94,7 +94,7 @@ static int get_backend(const char *id)
 
     int nb_backends;
     struct ngl_backend *backends;
-    int ret = ngl_backends_probe(NULL, &nb_backends, &backends);
+    int ret = ngl_backends_get(NULL, &nb_backends, &backends);
     if (ret < 0)
         return ret;
     for (int i = 0; i < nb_backends; i++) {

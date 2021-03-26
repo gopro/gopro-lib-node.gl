@@ -29,6 +29,10 @@ struct limits {
     int max_compute_work_group_size[3];
     int max_uniform_block_size;
     int max_samples;
+    int max_texture_dimension_1d;
+    int max_texture_dimension_2d;
+    int max_texture_dimension_3d;
+    int max_texture_dimension_cube;
     int max_color_attachments;
     int max_draw_buffers;
 };

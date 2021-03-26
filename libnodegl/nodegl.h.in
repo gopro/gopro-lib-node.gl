@@ -461,6 +461,10 @@ struct ngl_config {
 #define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y      NGLI_FOURCC('C','G','s','y')
 #define NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z      NGLI_FOURCC('C','G','s','z')
 #define NGL_CAP_MAX_SAMPLES                   NGLI_FOURCC('M','S','A','A')
+#define NGL_CAP_MAX_TEXTURE_DIMENSION_1D      NGLI_FOURCC('M','T','D','1')
+#define NGL_CAP_MAX_TEXTURE_DIMENSION_2D      NGLI_FOURCC('M','T','D','2')
+#define NGL_CAP_MAX_TEXTURE_DIMENSION_3D      NGLI_FOURCC('M','T','D','3')
+#define NGL_CAP_MAX_TEXTURE_DIMENSION_CUBE    NGLI_FOURCC('M','T','D','C')
 #define NGL_CAP_NPOT_TEXTURE                  NGLI_FOURCC('N','P','O','T')
 #define NGL_CAP_SHADER_TEXTURE_LOD            NGLI_FOURCC('S','T','L','d')
 #define NGL_CAP_TEXTURE_3D                    NGL_NODE_TEXTURE3D

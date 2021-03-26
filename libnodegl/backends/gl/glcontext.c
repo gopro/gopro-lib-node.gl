@@ -317,6 +317,12 @@ static int glcontext_probe_settings(struct glcontext *glcontext)
     struct limits *limits = &glcontext->limits;
 
     ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_IMAGE_UNITS, &limits->max_texture_image_units);
+    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_1d);
+    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_2d);
+    if (glcontext->features & NGLI_FEATURE_TEXTURE_3D)
+        ngli_glGetIntegerv(glcontext, GL_MAX_3D_TEXTURE_SIZE, &limits->max_texture_dimension_3d);
+    if (glcontext->features & NGLI_FEATURE_TEXTURE_CUBE_MAP)
+        ngli_glGetIntegerv(glcontext, GL_MAX_CUBE_MAP_TEXTURE_SIZE, &limits->max_texture_dimension_cube);
 
     limits->max_color_attachments = 1;
     if (glcontext->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) {

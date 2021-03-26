@@ -413,6 +413,13 @@ static int texture2d_init(struct ngl_node *node)
     struct ngl_ctx *ctx = node->ctx;
     struct gctx *gctx = ctx->gctx;
     struct texture_priv *s = node->priv_data;
+    const int max_dimension = gctx->limits.max_texture_dimension_2d;
+    if (s->params.width  > max_dimension ||
+        s->params.height > max_dimension) {
+        LOG(ERROR, "texture dimensions (%d,%d) exceeds device limits (%d,%d)",
+            s->params.width, s->params.height, max_dimension, max_dimension);
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
+    }
     s->params.type = NGLI_TEXTURE_TYPE_2D;
     s->params.format = get_preferred_format(gctx, s->format);
     s->supported_image_layouts = s->direct_rendering ? -1 : (1 << NGLI_IMAGE_LAYOUT_DEFAULT);
@@ -430,6 +437,15 @@ static int texture3d_init(struct ngl_node *node)
     }
 
     struct texture_priv *s = node->priv_data;
+    const int max_dimension = gctx->limits.max_texture_dimension_3d;
+    if (s->params.width  > max_dimension ||
+        s->params.height > max_dimension ||
+        s->params.depth  > max_dimension) {
+        LOG(ERROR, "texture dimensions (%d,%d,%d) exceeds device limits (%d,%d,%d)",
+            s->params.width, s->params.height, s->params.depth,
+            max_dimension, max_dimension, max_dimension);
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
+    }
     s->params.type = NGLI_TEXTURE_TYPE_3D;
     s->params.format = get_preferred_format(gctx, s->format);
 
@@ -447,6 +463,13 @@ static int texturecube_init(struct ngl_node *node)
     }
 
     struct texture_priv *s = node->priv_data;
+    const int max_dimension = gctx->limits.max_texture_dimension_cube;
+    if (s->params.width  > max_dimension ||
+        s->params.height > max_dimension) {
+        LOG(ERROR, "texture dimensions (%d,%d) exceeds device limits (%d,%d)",
+            s->params.width, s->params.height, max_dimension, max_dimension);
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
+    }
     s->params.type = NGLI_TEXTURE_TYPE_CUBE;
     s->params.format = get_preferred_format(gctx, s->format);
 

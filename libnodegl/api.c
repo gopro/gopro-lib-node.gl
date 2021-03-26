@@ -428,6 +428,10 @@ static const char *get_cap_string_id(unsigned cap_id)
     case NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y:      return "max_compute_group_size_y";
     case NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z:      return "max_compute_group_size_z";
     case NGL_CAP_MAX_SAMPLES:                   return "max_samples";
+    case NGL_CAP_MAX_TEXTURE_DIMENSION_1D:      return "max_texture_dimensions_1d";
+    case NGL_CAP_MAX_TEXTURE_DIMENSION_2D:      return "max_texture_dimensions_2d";
+    case NGL_CAP_MAX_TEXTURE_DIMENSION_3D:      return "max_texture_dimensions_3d";
+    case NGL_CAP_MAX_TEXTURE_DIMENSION_CUBE:    return "max_texture_dimensions_cube";
     case NGL_CAP_NPOT_TEXTURE:                  return "npot_texture";
     case NGL_CAP_SHADER_TEXTURE_LOD:            return "shader_texture_lod";
     case NGL_CAP_TEXTURE_3D:                    return "texture_3d";
@@ -466,6 +470,10 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Y,      limits->max_compute_work_group_size[1]),
         CAP(NGL_CAP_MAX_COMPUTE_GROUP_SIZE_Z,      limits->max_compute_work_group_size[2]),
         CAP(NGL_CAP_MAX_SAMPLES,                   limits->max_samples),
+        CAP(NGL_CAP_MAX_TEXTURE_DIMENSION_1D,      limits->max_texture_dimension_1d),
+        CAP(NGL_CAP_MAX_TEXTURE_DIMENSION_2D,      limits->max_texture_dimension_2d),
+        CAP(NGL_CAP_MAX_TEXTURE_DIMENSION_3D,      limits->max_texture_dimension_3d),
+        CAP(NGL_CAP_MAX_TEXTURE_DIMENSION_CUBE,    limits->max_texture_dimension_cube),
         CAP(NGL_CAP_NPOT_TEXTURE,                  has_npot_texture),
         CAP(NGL_CAP_SHADER_TEXTURE_LOD,            has_shader_texture_lod),
         CAP(NGL_CAP_TEXTURE_3D,                    has_texture_3d),

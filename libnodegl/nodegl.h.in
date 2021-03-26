@@ -501,6 +501,14 @@ struct ngl_backend {
  */
 NGL_API int ngl_backends_probe(const struct ngl_config *user_config, int *nb_backendsp, struct ngl_backend **backendsp);
 
+/**
+ * Identical to ngl_backends_probe() without graphics resources initialization.
+ *
+ * This means that ngl_backend.caps won't be set and that all the returned
+ * backends may not be supported on the host.
+ */
+NGL_API int ngl_backends_get(const struct ngl_config *user_config, int *nb_backendsp, struct ngl_backend **backendsp);
+
 NGL_API void ngl_backends_freep(struct ngl_backend **backendsp);
 
 /**

@@ -111,6 +111,7 @@ cdef extern from "nodegl.h":
 
     ngl_ctx *ngl_create()
     int ngl_backends_probe(const ngl_config *user_config, int *nb_backendsp, ngl_backend **backendsp)
+    int ngl_backends_get(const ngl_config *user_config, int *nb_backendsp, ngl_backend **backendsp)
     void ngl_backends_freep(ngl_backend **backendsp)
     int ngl_configure(ngl_ctx *s, ngl_config *config)
     int ngl_resize(ngl_ctx *s, int width, int height, const int *viewport);
@@ -214,7 +215,12 @@ cdef _set_node_ctx(_Node node, int type):
     if node.ctx is NULL:
         raise MemoryError()
 
-def probe_backends(**kwargs):
+
+_PROBE_MODE_FULL = 0
+_PROBE_MODE_NO_GRAPHICS = 1
+
+
+def _probe_backends(mode, **kwargs):
     cdef ngl_config config
     cdef ngl_config *configp = NULL;
     if kwargs:
@@ -224,7 +230,11 @@ def probe_backends(**kwargs):
     cdef ngl_backend *backend = NULL
     cdef ngl_backend *backends = NULL
     cdef ngl_cap *cap = NULL
-    cdef int ret = ngl_backends_probe(configp, &nb_backends, &backends)
+    cdef int ret;
+    if mode == _PROBE_MODE_NO_GRAPHICS:
+        ret = ngl_backends_get(configp, &nb_backends, &backends)
+    else:
+        ret = ngl_backends_probe(configp, &nb_backends, &backends)
     if ret < 0:
         raise Exception("Error probing backends")
     backend_set = []
@@ -247,6 +257,14 @@ def probe_backends(**kwargs):
         ))
     ngl_backends_freep(&backends)
     return backend_set
+
+
+def probe_backends(**kwargs):
+    return _probe_backends(_PROBE_MODE_FULL, **kwargs)
+
+
+def get_backends(**kwargs):
+    return _probe_backends(_PROBE_MODE_NO_GRAPHICS, **kwargs)
 
 
 cdef class Context:

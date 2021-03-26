@@ -488,13 +488,16 @@ static int backend_probe(struct ngl_backend *backend, const struct ngl_config *c
     if (!gctx)
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_gctx_init(gctx);
-    if (ret < 0)
-        goto end;
+    ngli_assert(gctx->backend_str);
+    ngli_assert(gctx->cls);
 
     backend->id         = config->backend;
     backend->string_id  = gctx->backend_str;
     backend->name       = gctx->cls->name;
+
+    int ret = ngli_gctx_init(gctx);
+    if (ret < 0)
+        goto end;
 
     ret = load_caps(backend, gctx);
     if (ret < 0)

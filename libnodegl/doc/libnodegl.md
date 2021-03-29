@@ -382,6 +382,7 @@ Parameter | Live-chg. | Type | Description | Default
 `max_nb_sink` |  | [`int`](#parameter-types) | maximum number of frames in sxplayer filtering queue | `1`
 `max_pixels` |  | [`int`](#parameter-types) | maximum number of pixels per frame | `0`
 `stream_idx` |  | [`int`](#parameter-types) | force a stream number instead of picking the "best" one | `-1`
+`hwaccel` |  | [`sxplayer_hwaccel`](#sxplayer_hwaccel-choices) | hardware acceleration | `auto`
 
 
 **Source**: [node_media.c](/libnodegl/node_media.c)
@@ -1399,6 +1400,13 @@ Constant | Description
 `info` | informational messages
 `warning` | warning messages
 `error` | error messages
+
+## sxplayer_hwaccel choices
+
+Constant | Description
+-------- | -----------
+`disabled` | disable hardware acceleration
+`auto` | enable hardware acceleration if available
 
 ## interp_noise choices
 

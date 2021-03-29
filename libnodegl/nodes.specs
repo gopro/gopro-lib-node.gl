@@ -262,6 +262,7 @@
     - [max_nb_sink, int]
     - [max_pixels, int]
     - [stream_idx, int]
+    - [hwaccel, select]
 
 - _Noise:
     - [frequency, double]

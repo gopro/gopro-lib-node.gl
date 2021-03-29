@@ -52,6 +52,18 @@ static const struct param_choices sxplayer_log_level_choices = {
     }
 };
 
+#define HWACCEL_DISABLED 0
+#define HWACCEL_AUTO     1
+
+static const struct param_choices sxplayer_hwaccel_choices = {
+    .name = "sxplayer_hwaccel",
+    .consts = {
+        {"disabled", HWACCEL_DISABLED, .desc=NGLI_DOCSTRING("disable hardware acceleration")},
+        {"auto",     HWACCEL_AUTO,     .desc=NGLI_DOCSTRING("enable hardware acceleration if available")},
+        {NULL}
+    }
+};
+
 #define OFFSET(x) offsetof(struct media_priv, x)
 static const struct node_param media_params[] = {
     {"filename", NGLI_PARAM_TYPE_STR, OFFSET(filename), {.str=NULL}, NGLI_PARAM_FLAG_NON_NULL,
@@ -74,6 +86,9 @@ static const struct node_param media_params[] = {
                        .desc=NGLI_DOCSTRING("maximum number of pixels per frame")},
     {"stream_idx",     NGLI_PARAM_TYPE_INT, OFFSET(stream_idx),     {.i64=-1},
                        .desc=NGLI_DOCSTRING("force a stream number instead of picking the \"best\" one")},
+    {"hwaccel",        NGLI_PARAM_TYPE_SELECT, OFFSET(hwaccel),     {.i64=HWACCEL_AUTO},
+                       .choices=&sxplayer_hwaccel_choices,
+                       .desc=NGLI_DOCSTRING("hardware acceleration")},
     {NULL}
 };
 
@@ -137,6 +152,7 @@ static int media_init(struct ngl_node *node)
     if (s->max_pixels)     sxplayer_set_option(s->player, "max_pixels",     s->max_pixels);
 
     sxplayer_set_option(s->player, "stream_idx", s->stream_idx);
+    sxplayer_set_option(s->player, "auto_hwaccel", s->hwaccel);
 
     sxplayer_set_option(s->player, "sw_pix_fmt", SXPLAYER_PIXFMT_RGBA);
 #if defined(TARGET_IPHONE) || defined(TARGET_DARWIN)

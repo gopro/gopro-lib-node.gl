@@ -204,7 +204,8 @@ all: ngl-tools-install pynodegl-utils-install
 	@echo
 
 ngl-tools-install: nodegl-install
-	($(ACTIVATE) && $(MESON_SETUP) ngl-tools $(BUILDDIR)/ngl-tools && $(MESON_COMPILE) -C $(BUILDDIR)/ngl-tools && $(MESON_INSTALL) -C $(BUILDDIR)/ngl-tools)
+	($(ACTIVATE) && $(MESON_SETUP) ngl-tools $(BUILDDIR)/ngl-tools && \
+	$(MESON_COMPILE) -C $(BUILDDIR)/ngl-tools && $(MESON_INSTALL) -C $(BUILDDIR)/ngl-tools)
 
 ngl-debug-tools-install:
 	$(CMAKE) -S ngl-debug-tools -B $(BUILDDIR)/ngl-debug-tools $(CMAKE_SETUP_OPTIONS) && \

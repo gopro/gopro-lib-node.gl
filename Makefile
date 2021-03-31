@@ -277,25 +277,39 @@ endif
 external-download:
 	$(MAKE) -C external
 ifeq ($(TARGET_OS),Darwin)
-	$(MAKE) -C external MoltenVK shaderc
+	$(MAKE) -C external MoltenVK
+endif
+ifeq ($(TARGET_OS),$(filter $(TARGET_OS),Darwin Windows))
+	$(MAKE) -C external shaderc
 endif
 
+EXTERNAL_DEPS = sxplayer-install
 ifeq ($(TARGET_OS),Darwin)
-external-install: sxplayer-install MoltenVK-install shaderc-install
-else
-external-install: sxplayer-install
+EXTERNAL_DEPS += MoltenVK-install
+endif
+ifeq ($(TARGET_OS),$(filter $(TARGET_OS),Darwin Windows))
+EXTERNAL_DEPS += shaderc-install
 endif
 
-shaderc-install: SHADERC_CMAKE_SETUP_OPTIONS = $(filter-out -G$(CMAKE_GENERATOR),$(CMAKE_SETUP_OPTIONS))
-# Use Ninja backend, XCode backend isn't supported
-shaderc-install: SHADERC_CMAKE_SETUP_OPTIONS += -GNinja
+external-install: $(EXTERNAL_DEPS)
+
+shaderc-install: SHADERC_CMAKE_SETUP_OPTIONS = $(filter-out -G$(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE),$(CMAKE_SETUP_OPTIONS))
+shaderc-install: SHADERC_CMAKE_SETUP_OPTIONS +=  -GNinja -DCMAKE_BUILD_TYPE=Release
+shaderc-install: SHADERC_CMAKE_COMPILE_OPTIONS = $(subst --config $(CMAKE_BUILD_TYPE),--config Release,$(CMAKE_COMPILE_OPTIONS))
+shaderc-install: SHADERC_CMAKE_INSTALL_OPTIONS = $(subst --config $(CMAKE_BUILD_TYPE),--config Release,$(CMAKE_INSTALL_OPTIONS))
+ifeq ($(TARGET_OS),Darwin)
 shaderc-install: SHADERC_LIB_FILENAME = libshaderc_shared.1.dylib
+endif
 shaderc-install: external-download $(PREFIX)
+ifeq ($(TARGET_OS),$(filter $(TARGET_OS),Darwin Windows))
 	cd external/shaderc && ./utils/git-sync-deps
-	$(CMAKE) -S external/shaderc -B $(BUILDDIR)/shaderc $(SHADERC_CMAKE_SETUP_OPTIONS)  && \
-	$(CMAKE) --build $(BUILDDIR)/shaderc $(CMAKE_COMPILE_OPTIONS) && \
-	$(CMAKE) --install $(BUILDDIR)/shaderc $(CMAKE_INSTALL_OPTIONS)
+	$(CMAKE) -S external/shaderc -B $(BUILDDIR)/shaderc $(SHADERC_CMAKE_SETUP_OPTIONS) -DSHADERC_SKIP_TESTS=ON && \
+	$(CMAKE) --build $(BUILDDIR)/shaderc $(SHADERC_CMAKE_COMPILE_OPTIONS) && \
+	$(CMAKE) --install $(BUILDDIR)/shaderc $(SHADERC_CMAKE_INSTALL_OPTIONS)
+ifeq ($(TARGET_OS),Darwin)
 	install_name_tool -id @rpath/$(SHADERC_LIB_FILENAME) $(PREFIX)/lib/$(SHADERC_LIB_FILENAME)
+endif
+endif
 
 # Note: somehow xcodebuild sets name @rpath/libMoltenVK.dylib automatically
 # (according to otool -l) so we don't have to do anything special
@@ -317,7 +331,6 @@ ifeq ($(TARGET_OS),Windows)
 	# Convert windows to unix style line endings in the activate bash script
 	# See https://bugs.python.org/issue43437
 	sed -i 's/\r$///' $(PREFIX)/Scripts/activate
-	cp $(VCPKG_DIR_WSL)/installed/x64-windows/tools/shaderc_shared.dll $(PREFIX)/Scripts/.
 	cp $(VCPKG_DIR_WSL)/installed/x64-windows/bin/*.dll $(PREFIX)/Scripts/.
 	($(ACTIVATE) && $(PIP) install meson ninja)
 else ifeq ($(TARGET_OS),MinGW-w64)

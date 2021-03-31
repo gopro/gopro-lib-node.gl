@@ -100,7 +100,7 @@ MESON_SETUP += -Db_coverage=true
 DEBUG = yes
 endif
 ifeq ($(DEBUG),yes)
-MESON_SETUP += --buildtype=debugoptimized
+MESON_SETUP += --buildtype=debug
 else
 MESON_SETUP += --buildtype=release
 ifneq ($(TARGET_OS),MinGW-w64)

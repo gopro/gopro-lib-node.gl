@@ -148,7 +148,7 @@ endif
 ifeq ($(TARGET_OS),Windows)
 CMAKE_GENERATOR ?= "Visual Studio 16 2019"
 else ifeq ($(TARGET_OS),Linux)
-CMAKE_GENERATOR ?= "Ninja"
+CMAKE_GENERATOR ?= "CodeBlocks - Ninja"
 else ifeq ($(TARGET_OS),Darwin)
 CMAKE_GENERATOR ?= "Xcode"
 endif
@@ -159,12 +159,40 @@ else
 CMAKE_BUILD_TYPE = Release
 endif
 
-CMAKE_SETUP_OPTIONS = -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-CMAKE_COMPILE_OPTIONS = --config $(CMAKE_BUILD_TYPE)
+CMAKE_SETUP_OPTIONS = -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -G$(CMAKE_GENERATOR) -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+ifeq ($(TARGET_OS),Windows)
+# Python venv uses a non-conventional directory structure on Windows
+CMAKE_SETUP_OPTIONS += -DCMAKE_INSTALL_INCLUDEDIR=Include -DCMAKE_INSTALL_LIBDIR=Lib -DCMAKE_INSTALL_BINDIR=Scripts
+endif
+ifeq ($(TARGET_OS),Windows)
+# Always use MultiThreadedDLL (/MD), not MultiThreadedDebugDLL (/MDd)
+# Some external libraries are only available in Release mode, not in Debug mode
+# MSVC toolchain doesn't allow mixing libraries built in /MD mode with libraries built in /MDd mode
+CMAKE_SETUP_OPTIONS += -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=MultiThreadedDLL
+endif
+
+ifeq ($(TARGET_OS),Windows)
+# Set Windows SDK Version
+CMAKE_SYSTEM_VERSION ?= 10.0.18362.0
+CMAKE_SETUP_OPTIONS += -DCMAKE_SYSTEM_VERSION=$(CMAKE_SYSTEM_VERSION)
+# Set VCPKG Directory
+CMAKE_SETUP_OPTIONS += -DVCPKG_DIR='$(VCPKG_DIR)'
+endif
+
+# Set External Directory
+ifeq ($(TARGET_OS),Windows)
+EXTERNAL_DIR = $(shell wslpath -wa external)
+else
+EXTERNAL_DIR = $(PWD)/external
+endif
+
+CMAKE_SETUP_OPTIONS += -DEXTERNAL_DIR='$(EXTERNAL_DIR)'
+
+CMAKE_COMPILE_OPTIONS = --config $(CMAKE_BUILD_TYPE) -j8
 ifeq ($(V),1)
 CMAKE_COMPILE_OPTIONS += -v
 endif
-CMAKE_INSTALL_OPTIONS =
+CMAKE_INSTALL_OPTIONS = --config $(CMAKE_BUILD_TYPE)
 
 
 all: ngl-tools-install pynodegl-utils-install
@@ -179,9 +207,9 @@ ngl-tools-install: nodegl-install
 	($(ACTIVATE) && $(MESON_SETUP) ngl-tools $(BUILDDIR)/ngl-tools && $(MESON_COMPILE) -C $(BUILDDIR)/ngl-tools && $(MESON_INSTALL) -C $(BUILDDIR)/ngl-tools)
 
 ngl-debug-tools-install:
-	$(CMAKE) -S ngl-debug-tools -B builddir/ngl-debug-tools -G $(CMAKE_GENERATOR) $(CMAKE_SETUP_OPTIONS) && \
-	$(CMAKE) --build builddir/ngl-debug-tools $(CMAKE_COMPILE_OPTIONS) && \
-	$(CMAKE) --install builddir/ngl-debug-tools $(CMAKE_INSTALL_OPTIONS)
+	$(CMAKE) -S ngl-debug-tools -B $(BUILDDIR)/ngl-debug-tools $(CMAKE_SETUP_OPTIONS) && \
+	$(CMAKE) --build $(BUILDDIR)/ngl-debug-tools $(CMAKE_COMPILE_OPTIONS) && \
+	$(CMAKE) --install $(BUILDDIR)/ngl-debug-tools $(CMAKE_INSTALL_OPTIONS)
 
 pynodegl-utils-install: pynodegl-utils-deps-install
 	($(ACTIVATE) && $(PIP) -v install -e ./pynodegl-utils)
@@ -257,13 +285,15 @@ else
 external-install: sxplayer-install
 endif
 
+shaderc-install: SHADERC_CMAKE_SETUP_OPTIONS = $(filter-out -G$(CMAKE_GENERATOR),$(CMAKE_SETUP_OPTIONS))
+# Use Ninja backend, XCode backend isn't supported
+shaderc-install: SHADERC_CMAKE_SETUP_OPTIONS += -GNinja
 shaderc-install: SHADERC_LIB_FILENAME = libshaderc_shared.1.dylib
 shaderc-install: external-download $(PREFIX)
 	cd external/shaderc && ./utils/git-sync-deps
-	# Use Ninja backend, XCode backend isn't supported
-	$(CMAKE) -S external/shaderc -B builddir/shaderc -G Ninja $(CMAKE_SETUP_OPTIONS)  && \
-	$(CMAKE) --build builddir/shaderc $(CMAKE_COMPILE_OPTIONS) && \
-	$(CMAKE) --install builddir/shaderc $(CMAKE_INSTALL_OPTIONS)
+	$(CMAKE) -S external/shaderc -B $(BUILDDIR)/shaderc $(SHADERC_CMAKE_SETUP_OPTIONS)  && \
+	$(CMAKE) --build $(BUILDDIR)/shaderc $(CMAKE_COMPILE_OPTIONS) && \
+	$(CMAKE) --install $(BUILDDIR)/shaderc $(CMAKE_INSTALL_OPTIONS)
 	install_name_tool -id @rpath/$(SHADERC_LIB_FILENAME) $(PREFIX)/lib/$(SHADERC_LIB_FILENAME)
 
 # Note: somehow xcodebuild sets name @rpath/libMoltenVK.dylib automatically

@@ -11,7 +11,6 @@ building and running the complete `node.gl` stack.
   - **FFmpeg** (and its libraries for compilation)
   - **Python 3.x** (you will need the package with the build headers as well,
     typically named with a `-devel` suffix on Debian based systems)
-  - **pip** (Python 3 version)
   - **Graphviz**
   - **SDL2**
 - Build with `make -jN` where `N` is the number of parallel processes
@@ -27,7 +26,7 @@ building and running the complete `node.gl` stack.
     pacman -S git make
     pacman -S mingw-w64-x86_64-{toolchain,ffmpeg,python}
     pacman -S mingw-w64-x86_64-python-watchdog
-    pacman -S mingw-w64-x86_64-python3-{pillow,pip}
+    pacman -S mingw-w64-x86_64-python3-pillow
     pacman -S mingw-w64-x86_64-pyside2-qt5
     pacman -S mingw-w64-x86_64-meson
     pacman -S mingw-w64-x86_64-graphviz

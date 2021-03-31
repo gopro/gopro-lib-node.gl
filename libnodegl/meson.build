@@ -507,30 +507,33 @@ install_data(files('android/java/OnFrameAvailableListener.java'), install_dir: d
 # between the library and these tools?
 # https://git.archlinux.org/pacman.git/tree/meson.build?id=4533c6a8e0f39c7707e671b7f9687607b46f1417#n310
 # seem to imply some extract_all_objects(recursive: true)
-gen_specs = executable(
-  'gen_specs',
-  lib_src + files('gen_specs.c'),
-  dependencies: lib_deps,
-  build_by_default: false,
-  native: true,
-)
-specs_file = custom_target(
-  specs_filename,
-  command: gen_specs,
-  capture: true,
-  output: specs_filename,
-)
-run_target(
-  'updatespecs',
-  command: [copyfile, specs_file, meson.current_source_dir()],
-)
+
+if meson.backend() != 'xcode'
+  gen_specs = executable(
+    'gen_specs',
+    lib_src + files('gen_specs.c'),
+    dependencies: lib_deps,
+    build_by_default: false,
+    native: true,
+  )
+  specs_file = custom_target(
+    specs_filename,
+    command: gen_specs,
+    capture: true,
+    output: specs_filename,
+  )
+  run_target(
+    'updatespecs',
+    command: [copyfile, specs_file, meson.current_source_dir()],
+  )
+endif
 
 
 #
 # Doc
 #
 
-if not get_option('small')
+if not get_option('small') and meson.backend() != 'xcode'
   gen_doc = executable(
     'gen_doc',
     lib_src + files('gen_doc.c'),
@@ -622,7 +625,7 @@ test_progs = {
   },
 }
 
-if get_option('tests')
+if get_option('tests') and meson.backend() != 'xcode'
   foreach test_key, test_data : test_progs
     exe = executable(
       test_data.get('exe'),

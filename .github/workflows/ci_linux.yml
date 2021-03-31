@@ -38,6 +38,13 @@ jobs:
     - name: Build
       run: |
         ./ngl-env build --buildtype debug --debug gl gpu_capture
+
+    - name: Python import and dylib runtime test
+      run: |
+        . venv/bin/activate
+        python -c "import pynodegl, pynodegl_utils"
+        ngl-python -h
+
     - name: Run tests ${{matrix.backend}}
       run: |
         ${{matrix.run_tests_command}}

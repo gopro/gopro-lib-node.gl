@@ -33,3 +33,9 @@ jobs:
       - name: Build
         run: |
           ./ngl-env build
+
+      - name: Python import and dylib runtime test
+        run: |
+          . venv/bin/activate
+          python -c 'import pynodegl, pynodegl_utils'
+          ngl-python -h

@@ -109,33 +109,6 @@ ifneq ($(V),)
 MESON_COMPILE += -v
 endif
 
-ifeq ($(TARGET_OS),Windows)
-CMAKE ?= cmake.exe
-else
-CMAKE ?= cmake
-endif
-
-ifeq ($(TARGET_OS),Windows)
-CMAKE_GENERATOR ?= "Visual Studio 16 2019"
-else ifeq ($(TARGET_OS),Linux)
-CMAKE_GENERATOR ?= "Ninja"
-else ifeq ($(TARGET_OS),Darwin)
-CMAKE_GENERATOR ?= "Xcode"
-endif
-
-ifeq ($(DEBUG),yes)
-CMAKE_BUILD_TYPE = Debug
-else
-CMAKE_BUILD_TYPE = Release
-endif
-
-CMAKE_SETUP_OPTIONS = -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-CMAKE_COMPILE_OPTIONS = --config $(CMAKE_BUILD_TYPE)
-ifeq ($(V),1)
-CMAKE_COMPILE_OPTIONS += -v
-endif
-CMAKE_INSTALL_OPTIONS =
-
 NODEGL_DEBUG_OPTS-$(DEBUG_GL)    += gl
 NODEGL_DEBUG_OPTS-$(DEBUG_VK)    += vk
 NODEGL_DEBUG_OPTS-$(DEBUG_MEM)   += mem
@@ -165,6 +138,34 @@ endif
 ifneq ($(TESTS_SUITE),)
 MESON_TESTS_SUITE_OPTS += --suite $(TESTS_SUITE)
 endif
+
+ifeq ($(TARGET_OS),Windows)
+CMAKE ?= cmake.exe
+else
+CMAKE ?= cmake
+endif
+
+ifeq ($(TARGET_OS),Windows)
+CMAKE_GENERATOR ?= "Visual Studio 16 2019"
+else ifeq ($(TARGET_OS),Linux)
+CMAKE_GENERATOR ?= "Ninja"
+else ifeq ($(TARGET_OS),Darwin)
+CMAKE_GENERATOR ?= "Xcode"
+endif
+
+ifeq ($(DEBUG),yes)
+CMAKE_BUILD_TYPE = Debug
+else
+CMAKE_BUILD_TYPE = Release
+endif
+
+CMAKE_SETUP_OPTIONS = -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE) -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+CMAKE_COMPILE_OPTIONS = --config $(CMAKE_BUILD_TYPE)
+ifeq ($(V),1)
+CMAKE_COMPILE_OPTIONS += -v
+endif
+CMAKE_INSTALL_OPTIONS =
+
 
 all: ngl-tools-install pynodegl-utils-install
 	@echo

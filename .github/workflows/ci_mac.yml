@@ -22,5 +22,6 @@ jobs:
 
     - name: Build
       run: |
+        export PKG_CONFIG_PATH=$PWD/venv/Lib/pkgconfig:$PKG_CONFIG_PATH
         make MESON_BACKEND=ninja DEBUG_GPU_CAPTURE=yes
 

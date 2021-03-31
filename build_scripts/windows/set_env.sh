@@ -9,7 +9,7 @@ fi
 CURRENT_DIR=`wslpath -wa .`
 export PKG_CONFIG=$CURRENT_DIR'\venv\Scripts\pkgconf.exe'
 export TARGET_OS=Windows
-
+export DEBUG=yes
 export DEBUG_GPU_CAPTURE=yes
 
 export PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1

@@ -1,4 +1,4 @@
-# Installation
+# Quick user build & installation
 
 This page includes the system requirements as well as the steps needed for
 building and running the complete `node.gl` stack.
@@ -55,6 +55,11 @@ and `ffprobe` binaries must be available in order to run the tests)
 - Prepare the MSVC environment with `scripts\msvc-env.ps1`
 - Build with `python3.exe .\ngl-env build`
 - Enter the virtual environment with `.\venv\Scripts\Activate.ps1`
+
+# Manual components installation
+
+This section is targeted at packagers willing to build packages for every
+individual components.
 
 ## Installation of `libnodegl` (the core library)
 

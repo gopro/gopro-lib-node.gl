@@ -61,6 +61,7 @@ jobs:
           cd gopro-lib-node.gl
           # Save the following commands to a variable
           read -r -d '' COMMANDS << EOM || true
+          export VULKAN_SDK='C:\VulkanSDK\${{env.VULKAN_SDK_VERSION}}'
           source build_scripts/windows/set_env.sh
           make -j$(($(nproc)+1))
           EOM

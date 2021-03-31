@@ -351,7 +351,11 @@ int main(int argc, char *argv[])
         if (ret != -1)
             break;
 
+#ifdef _WIN32
+        closesocket(fd);
+#else
         close(fd);
+#endif
     }
 
     if (!rp) {

@@ -22,7 +22,7 @@
 project(
   'ngl-tools',
   'c',
-   default_options: ['c_std=c99'],
+   default_options: ['c_std=c99', 'b_vscrt=md'],
    license: 'Apache',
    meson_version: '>= 0.53.0',
 )

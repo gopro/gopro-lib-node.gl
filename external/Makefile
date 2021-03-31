@@ -21,6 +21,7 @@
 
 TAR  ?= tar
 CURL ?= curl
+UNZIP ?= unzip
 
 MOLTENVK_VERSION ?= 1.1.1
 SHADERC_VERSION  ?= 2020.3
@@ -104,7 +105,7 @@ else
 endif
 
 RenderDoc_$(RENDERDOC_VERSION)_64: RenderDoc_$(RENDERDOC_VERSION)_64.zip
-	unzip -q -o $<
+	$(UNZIP) -q -o $<
 
 RenderDoc_$(RENDERDOC_VERSION)_64.zip renderdoc_$(RENDERDOC_VERSION).tar.gz:
 	$(CURL) -L https://renderdoc.org/stable/$(RENDERDOC_VERSION)/$@ -o $@

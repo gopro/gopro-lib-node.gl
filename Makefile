@@ -29,9 +29,6 @@ else
 PREFIX_FULLPATH = $(PWD)/$(PREFIX)
 endif
 
-#
-# User configuration
-#
 DEBUG      ?= no
 COVERAGE   ?= no
 ifeq ($(TARGET_OS),Windows)

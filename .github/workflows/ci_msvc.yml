@@ -44,7 +44,6 @@ jobs:
         run: |
           sudo apt -y update
           sudo apt -y install build-essential unzip
-          pip.exe install meson
           cd /mnt/c/vcpkg
           ./vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
 

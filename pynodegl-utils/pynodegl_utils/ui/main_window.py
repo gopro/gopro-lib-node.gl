@@ -22,7 +22,7 @@
 
 import sys
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 from pynodegl_utils.com import query_inplace
 from pynodegl_utils.config import Config

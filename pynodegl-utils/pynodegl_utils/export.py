@@ -24,7 +24,7 @@ import os.path as op
 import subprocess
 
 import pynodegl as ngl
-from PySide2 import QtGui, QtCore
+from PySide6 import QtGui, QtCore
 
 from .com import query_inplace
 from .misc import get_backend, get_viewport, get_nodegl_tempdir

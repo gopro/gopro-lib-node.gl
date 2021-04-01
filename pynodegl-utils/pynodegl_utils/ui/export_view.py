@@ -20,7 +20,7 @@
 # under the License.
 #
 
-from PySide2 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 from fractions import Fraction
 
 from pynodegl_utils.export import Exporter

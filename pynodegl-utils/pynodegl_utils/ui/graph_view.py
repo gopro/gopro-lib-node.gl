@@ -22,7 +22,7 @@
 
 import os.path as op
 import subprocess
-from PySide2 import QtCore, QtGui, QtWidgets, QtSvg
+from PySide6 import QtCore, QtGui, QtWidgets, QtSvgWidgets
 
 from .seekbar import Seekbar
 
@@ -201,7 +201,7 @@ class GraphView(QtWidgets.QWidget):
                                            QtWidgets.QMessageBox.Ok)
             return
 
-        item = QtSvg.QGraphicsSvgItem(svgfile)
+        item = QtSvgWidgets.QGraphicsSvgItem(svgfile)
         self._scene.clear()
         self._scene.addItem(item)
         self._scene.setSceneRect(item.boundingRect())

@@ -27,7 +27,7 @@ from threading import Timer
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from .com import query_inplace
 

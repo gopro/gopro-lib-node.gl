@@ -15,7 +15,7 @@ digraph {
     ffmpeg[label="FFmpeg"]
     sdl2[label="SDL2"]
     graphviz[label="Graphviz"]
-    pyside2[label="PySide2"]
+    pyside2[label="PySide6"]
     python[label="Python"]
     sxplayer
     watchdog

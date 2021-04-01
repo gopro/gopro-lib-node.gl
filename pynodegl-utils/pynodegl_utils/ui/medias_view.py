@@ -22,7 +22,7 @@
 
 import os.path as op
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 from pynodegl_utils.misc import Media
 

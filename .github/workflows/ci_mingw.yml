@@ -1,3 +1,4 @@
+# Warning: this name must stay in sync with the badges referenced in the README
 name: 'tests MinGW'
 
 on:

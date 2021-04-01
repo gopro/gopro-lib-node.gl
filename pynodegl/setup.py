@@ -397,9 +397,10 @@ setup(
         'build_ext': BuildExtCommand,
         'build_src': BuildSrcCommmand,
     },
-    ext_modules=[Extension("pynodegl",
+    ext_modules=[Extension("_pynodegl",
                            sources=['pynodegl.pyx'],
                            include_dirs=_LIB_CFG.include_dirs,
                            libraries=_LIB_CFG.libraries,
-                           library_dirs=_LIB_CFG.library_dirs)]
+                           library_dirs=_LIB_CFG.library_dirs)],
+    py_modules=['pynodegl'],
 )

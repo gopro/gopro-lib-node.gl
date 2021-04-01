@@ -397,3 +397,4 @@ coverage-xml:
 .PHONY: clean clean_py
 .PHONY: coverage-html coverage-xml
 .PHONY: external-download external-install
+.PHONY: ngl-debug-tools

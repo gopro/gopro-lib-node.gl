@@ -24,7 +24,7 @@ import pynodegl as ngl
 from pynodegl_utils.toolbox.colors import COLORS
 
 
-def get_debug_points(cfg, points, radius=0.025, color=COLORS['green'], text_size=(0.1, 0.1)):
+def get_debug_points(cfg, points, radius=0.025, color=COLORS.green, text_size=(0.1, 0.1)):
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     g = ngl.Group()
     circle = ngl.Circle(radius=radius)

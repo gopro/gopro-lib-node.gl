@@ -184,14 +184,14 @@ def texture_cubemap_from_mrt_msaa(cfg):
 @scene()
 def texture_clear_and_scissor(cfg):
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    color = ngl.UniformVec4(COLORS['white'])
+    color = ngl.UniformVec4(COLORS.white)
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(quad, program)
     render.update_frag_resources(color=color)
     graphic_config = ngl.GraphicConfig(render, scissor_test=True, scissor=(0, 0, 0, 0))
 
     texture = ngl.Texture2D(width=64, height=64)
-    rtt = ngl.RenderToTexture(ngl.Identity(), [texture], clear_color=COLORS['orange'])
+    rtt = ngl.RenderToTexture(ngl.Identity(), [texture], clear_color=COLORS.orange)
 
     program = ngl.Program(vertex=cfg.get_vert('texture'), fragment=cfg.get_frag('texture'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
@@ -207,7 +207,7 @@ def texture_scissor(cfg):
     cfg.aspect_ratio = (1, 1)
 
     quad = ngl.Quad((-1, -1, 0), (2, 0, 0), (0, 2, 0))
-    color = ngl.UniformVec4(COLORS['orange'])
+    color = ngl.UniformVec4(COLORS.orange)
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(quad, program)
     render.update_frag_resources(color=color)

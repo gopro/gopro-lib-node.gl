@@ -88,7 +88,7 @@ def flat_remap(cfg):
     return render
 
 
-@test_cuepoints(points={'X': (0, -0.625)}, nb_keyframes=15, clear_color=COLORS['violet'], tolerance=1)
+@test_cuepoints(points={'X': (0, -0.625)}, nb_keyframes=15, clear_color=COLORS.violet, tolerance=1)
 @scene()
 def media_phases_display(cfg):
     cfg.medias = [Media('ngl-media-test.nut')]

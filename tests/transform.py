@@ -35,7 +35,7 @@ def _transform_shape(cfg):
     geometry = ngl.Quad(corner=(-w/2., -h/2., 0), width=(w, 0, 0), height=(0, h, 0))
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, prog)
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['rose']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.rose))
     return render
 
 
@@ -60,18 +60,18 @@ def transform_animated_camera(cfg):
     g = ngl.Group()
 
     elems = (
-        ('red',     None),
-        ('yellow',  (-0.6,  0.8, -1)),
-        ('green',   ( 0.6,  0.8, -1)),
-        ('cyan',    (-0.6, -0.5, -1)),
-        ('magenta', ( 0.6, -0.5, -1)),
+        (COLORS.red,     None),
+        (COLORS.yellow,  (-0.6,  0.8, -1)),
+        (COLORS.green,   ( 0.6,  0.8, -1)),
+        (COLORS.cyan,    (-0.6, -0.5, -1)),
+        (COLORS.magenta, ( 0.6, -0.5, -1)),
     )
 
     quad = ngl.Quad((-0.5, -0.5, 0), (1, 0, 0), (0, 1, 0))
     prog = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     for color, vector in elems:
         node = ngl.Render(quad, prog)
-        node.update_frag_resources(color=ngl.UniformVec4(value=COLORS[color]))
+        node.update_frag_resources(color=ngl.UniformVec4(value=color))
         if vector:
             node = ngl.Translate(node, vector=vector)
         g.add_children(node)

@@ -25,22 +25,21 @@ import random
 
 
 # https://en.wikipedia.org/wiki/Color_term
-COLORS = {
-    'white':   (1.0, 1.0, 1.0, 1.0),
-    'black':   (0.0, 0.0, 0.0, 1.0),
-    'red':     (1.0, 0.0, 0.0, 1.0),
-    'orange':  (1.0, 0.5, 0.0, 1.0),
-    'yellow':  (1.0, 1.0, 0.0, 1.0),
-    'cgreen':  (0.5, 1.0, 0.0, 1.0),  # Chartreuse green
-    'green':   (0.0, 1.0, 0.0, 1.0),
-    'sgreen':  (0.0, 1.0, 0.5, 1.0),  # Spring green
-    'cyan':    (0.0, 1.0, 1.0, 1.0),
-    'azure':   (0.0, 0.5, 1.0, 1.0),
-    'blue':    (0.0, 0.0, 1.0, 1.0),
-    'violet':  (0.5, 0.0, 1.0, 1.0),
-    'magenta': (1.0, 0.0, 1.0, 1.0),
-    'rose':    (1.0, 0.0, 0.5, 1.0),
-}
+class COLORS:
+    white =   (1.0, 1.0, 1.0, 1.0)
+    black =   (0.0, 0.0, 0.0, 1.0)
+    red =     (1.0, 0.0, 0.0, 1.0)
+    orange =  (1.0, 0.5, 0.0, 1.0)
+    yellow =  (1.0, 1.0, 0.0, 1.0)
+    cgreen =  (0.5, 1.0, 0.0, 1.0)  # Chartreuse green
+    green =   (0.0, 1.0, 0.0, 1.0)
+    sgreen =  (0.0, 1.0, 0.5, 1.0)  # Spring green
+    cyan =    (0.0, 1.0, 1.0, 1.0)
+    azure =   (0.0, 0.5, 1.0, 1.0)
+    blue =    (0.0, 0.0, 1.0, 1.0)
+    violet =  (0.5, 0.0, 1.0, 1.0)
+    magenta = (1.0, 0.0, 1.0, 1.0)
+    rose =    (1.0, 0.0, 0.5, 1.0)
 
 
 def get_random_color_buffer(dim):

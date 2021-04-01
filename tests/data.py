@@ -373,7 +373,7 @@ void main()
     program = ngl.Program(vertex=vert, fragment=frag)
     render = ngl.Render(geometry, program)
     render.update_vert_resources(t=ngl.Time(), signal=ngl.NoiseFloat(octaves=8))
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.white))
     return render
 
 
@@ -400,5 +400,5 @@ void main()
     program = ngl.Program(vertex=vert, fragment=frag)
     render = ngl.Render(geometry, program)
     render.update_vert_resources(wiggle=ngl.NoiseVec2(octaves=8))
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.white))
     return render

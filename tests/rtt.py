@@ -197,12 +197,12 @@ def _rtt_load_attachment(cfg):
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     background = ngl.Render(quad, program)
-    background.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
+    background.update_frag_resources(color=ngl.UniformVec4(value=COLORS.white))
 
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['orange']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.orange))
 
     texture = ngl.Texture2D(width=16, height=16)
     rtt = ngl.RenderToTexture(render, [texture])
@@ -251,7 +251,7 @@ def rtt_clear_attachment_with_timeranges(cfg):
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['white']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.white))
     time_range_filter = ngl.TimeRangeFilter(render)
     time_range_filter.add_ranges(ngl.TimeRangeModeNoop(0))
 
@@ -264,7 +264,7 @@ def rtt_clear_attachment_with_timeranges(cfg):
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     program.update_vert_out_vars(var_tex0_coord=ngl.IOVec2(), var_uvcoord=ngl.IOVec2())
     render = ngl.Render(quad, program)
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['orange']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.orange))
     animkf = [ngl.AnimKeyFrameFloat(0, 0), ngl.AnimKeyFrameFloat(cfg.duration, -360)]
     render = ngl.Rotate(render, anim=ngl.AnimatedFloat(animkf))
 

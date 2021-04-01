@@ -104,7 +104,7 @@ def compute_particles(cfg):
     circle = ngl.Circle(radius=0.05)
     program = ngl.Program(vertex=_PARTICULES_VERT, fragment=cfg.get_frag('color'))
     render = ngl.Render(circle, program, nb_instances=nb_particles)
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.sgreen))
     render.update_vert_resources(data=opositions)
 
     group = ngl.Group()
@@ -289,6 +289,6 @@ def compute_animation(cfg):
     geometry = ngl.Geometry(quad_buffer, topology='triangle_strip')
     program = ngl.Program(vertex=cfg.get_vert('color'), fragment=cfg.get_frag('color'))
     render = ngl.Render(geometry, program)
-    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS['sgreen']))
+    render.update_frag_resources(color=ngl.UniformVec4(value=COLORS.sgreen))
 
     return ngl.Group(children=(compute, render))

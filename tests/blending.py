@@ -118,18 +118,18 @@ def _get_blending_scene(cfg, bname, bcolor, **bparams):
 
 _BLENDING_CFGS = (
     ("none", None, dict()),
-    ("multiply", COLORS["white"], dict(
+    ("multiply", COLORS.white, dict(
         blend_src_factor='dst_color',
         blend_dst_factor='zero',
     )),
-    ("screen", COLORS["black"], dict(
+    ("screen", COLORS.black, dict(
         blend_src_factor="one",
         blend_dst_factor="one_minus_src_color",
     )),
-    ("darken", COLORS["white"], dict(
+    ("darken", COLORS.white, dict(
         blend_op='min',
     )),
-    ("lighten", COLORS["black"], dict(
+    ("lighten", COLORS.black, dict(
         blend_op='max',
     )),
 )
@@ -167,7 +167,7 @@ def _debug_overlay(cfg, scene, grid_names, show_dbg_points=False, show_labels=Fa
         ag = AutoGrid(grid_names)
         for grid_name, i, col, row in ag:
             text = ngl.Text(grid_name,
-                            fg_color=COLORS["white"], bg_color=COLORS["black"],
+                            fg_color=COLORS.white, bg_color=COLORS.black,
                             valign='top',
                             box_width=(2.0, 0, 0),
                             box_height=(0, text_height, 0),
@@ -192,7 +192,7 @@ def _debug_overlay(cfg, scene, grid_names, show_dbg_points=False, show_labels=Fa
     return overlay
 
 
-_TEST_SETTINGS = dict(show_dbg_points=False, show_labels=False, clear_color=COLORS['azure'], tolerance=1)
+_TEST_SETTINGS = dict(show_dbg_points=False, show_labels=False, clear_color=COLORS.azure, tolerance=1)
 
 
 @test_cuepoints(points=_get_dbg_positions(_NB_BLENDINGS), **_TEST_SETTINGS)

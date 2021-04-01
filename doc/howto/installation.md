@@ -23,13 +23,7 @@ building and running the complete `node.gl` stack.
 "MINGW64" should be visible in the prompt):
     ```shell
     pacman -Syuu  # and restart the shell
-    pacman -S git make
-    pacman -S mingw-w64-x86_64-{toolchain,ffmpeg,python}
-    pacman -S mingw-w64-x86_64-python-watchdog
-    pacman -S mingw-w64-x86_64-python3-pillow
-    pacman -S mingw-w64-x86_64-pyside2-qt5
-    pacman -S mingw-w64-x86_64-meson
-    pacman -S mingw-w64-x86_64-graphviz
+    pacman -S git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python-watchdog,python3-pillow,pyside2-qt5,meson,graphviz}
     ```
 - From MinGW64, build with `./configure.py && make`
 - Enter the virtual environment with `. venv/bin/activate`

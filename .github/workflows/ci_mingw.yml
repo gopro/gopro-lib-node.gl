@@ -25,10 +25,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pacman -S --noconfirm --needed git make
-          pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}
-          pacman -S --noconfirm --needed mingw-w64-x86_64-python3-pillow
-          pacman -S --noconfirm --needed mingw-w64-x86_64-meson
+          pacman -S --noconfirm --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python3-pillow,meson}
 
       - name: Build
         run: |

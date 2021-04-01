@@ -94,6 +94,12 @@ trim_prefix = run_command([
 
 project_args = cc.get_supported_arguments([
   '-Werror=missing-prototypes',
+  '-Werror=pointer-arith',
+  '-Werror=vla',
+  '-Wformat=2',
+  '-Wignored-qualifiers',
+  '-Wimplicit-fallthrough',
+  '-Wlogical-op',
   '-fmacro-prefix-map=@0@/='.format(trim_prefix),
 ])
 add_project_arguments(project_args, language: 'c')

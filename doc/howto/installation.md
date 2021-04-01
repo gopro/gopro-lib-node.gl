@@ -10,7 +10,7 @@ building and running the complete `node.gl` stack.
   - **GNU/Make**
   - **FFmpeg** (and its libraries for compilation)
   - **Python ≥ 3.8** (you will need the package with the build headers as well,
-    typically named with a `-devel` suffix on Debian based systems)
+    typically named with a `-dev` suffix on Debian based systems)
   - **Graphviz**
   - **SDL2**
 - Build with `./configure.py && make`

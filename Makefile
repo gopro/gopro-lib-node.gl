@@ -339,8 +339,14 @@ MoltenVK-install: external-download $(PREFIX)
 	cp -v external/MoltenVK/Package/Latest/MoltenVK/dylib/macOS/libMoltenVK.dylib $(PREFIX)/lib
 	cp -vr external/MoltenVK/Package/Latest/MoltenVK/include $(PREFIX)
 
+ngfx-install: NGFX_DEPS = nlohmann-json stb
+ifeq ($(TARGET_OS),Windows)
+ngfx-install: NGFX_DEPS += glm d3dx12 glfw
+endif
 ngfx-install: external-download pkg-config-install shaderc-install $(PREFIX_DONE)
-	bash external/ngfx/build_scripts/sync_deps.sh $(TARGET_OS) external
+	export OS=$(TARGET_OS) && \
+	export PKGS="$(NGFX_DEPS)" && \
+	bash external/ngfx/build_scripts/install_deps.sh external
 	$(CMAKE) -S external/ngfx -B $(BUILDDIR)/ngfx $(CMAKE_SETUP_OPTIONS) -D$(NGFX_GRAPHICS_BACKEND)=ON && \
 	$(CMAKE) --build $(BUILDDIR)/ngfx $(CMAKE_COMPILE_OPTIONS) && \
 	$(CMAKE) --install $(BUILDDIR)/ngfx $(CMAKE_INSTALL_OPTIONS)

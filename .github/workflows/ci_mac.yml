@@ -20,5 +20,6 @@ jobs:
 
     - name: Build
       run: |
-        make -j$(($(sysctl -n hw.logicalcpu)+1))
+        ./configure.py
+        make
 

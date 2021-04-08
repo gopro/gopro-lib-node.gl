@@ -14,9 +14,9 @@ jobs:
       matrix:
         include:
           - backend: "all"
-            run_tests_command: "DEBUG=yes DEBUG_GL=yes make tests"
+            custom_env:
           - backend: "opengles 2"
-            run_tests_command: "MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make tests TESTS_SUITE=opengles"
+            custom_env: MESA_GLES_VERSION_OVERRIDE=2.0
 
     steps:
     - uses: actions/checkout@v2
@@ -37,8 +37,8 @@ jobs:
 
     - name: Build
       run: |
-        make -j$(($(nproc)+1)) DEBUG_GPU_CAPTURE=yes
+        ./configure.py --buildtype debug --debug-opts gl gpu_capture
+        make
     - name: Run tests ${{matrix.backend}}
       run: |
-        ${{matrix.run_tests_command}}
-
+        ${{matrix.custom_env}} make tests

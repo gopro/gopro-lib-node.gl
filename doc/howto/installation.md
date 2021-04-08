@@ -9,11 +9,11 @@ building and running the complete `node.gl` stack.
   - **GCC** or **Clang**
   - **GNU/Make**
   - **FFmpeg** (and its libraries for compilation)
-  - **Python 3.x** (you will need the package with the build headers as well,
+  - **Python ≥ 3.8** (you will need the package with the build headers as well,
     typically named with a `-devel` suffix on Debian based systems)
   - **Graphviz**
   - **SDL2**
-- Build with `make -jN` where `N` is the number of parallel processes
+- Build with `./configure.py && make`
 - Enter the virtual environment with `. venv/bin/activate`
 
 ## Quick user installation on Windows (MinGW64 toolchain)
@@ -31,12 +31,12 @@ building and running the complete `node.gl` stack.
     pacman -S mingw-w64-x86_64-meson
     pacman -S mingw-w64-x86_64-graphviz
     ```
-- From MinGW64, build with `make -jN TARGET_OS=MinGW-w64` where `N` is the number of parallel processes
+- From MinGW64, build with `./configure.py && make`
 - Enter the virtual environment with `. venv/bin/activate`
 
 ## Quick user installation on Windows (MSVC toolchain)
 
-- Install [Python](https://www.python.org/downloads/windows/) 3.x using the Windows Installer
+- Install [Python](https://www.python.org/downloads/windows/) ≥ 3.8 using the Windows Installer
 - Install [Graphviz](https://graphviz.org/download/) using the Windows Installer and make sure to select the option to add Graphviz
 to the system PATH during its installation
 - Install [Microsoft Visual Studio](https://visualstudio.microsoft.com/downloads/) Community 2019 or greater and make sure the
@@ -49,33 +49,16 @@ following components are included:
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows
     ```
-- Enable [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-- Install Ubuntu into WSL from Microsoft Store.
-- In WSL, install other needed dependencies as
-following:
-    ```shell
-    sudo apt -y update
-    sudo apt -y install build-essential unzip
-    ```
 - Add `C:\vcpkg\installed\x64-windows\tools\ffmpeg` path to your windows system `%PATH%` environment variable (`ffmpeg`
 and `ffprobe` binaries must be available in order to run the tests)
-- From WSL, build with `make -jN TARGET_OS=Windows` where `N` is the number of parallel processes
-- From WSL, access powershell with `powershell.exe`
-- Now from powershell, you can enter the virtual environment with:
-    ```shell
-    set-executionpolicy RemoteSigned # to allows special scripts to run
-    .\venv\Scripts\Activate.ps1
-    ```
+- To be allowed to run the build scripts, you will need to run this once in an
+  administrator Powershell: `Set-ExecutionPolicy RemoteSigned`
+- In a Powershell (as user), in the `node.gl` sources, run
+  `.\scripts\msvc-env.ps1` to import all the necessary variables for the MSVC
+  environment. Alternatively, you can open *VS Native Tools Prompt* and spawn a
+  `powershell` from here.
+- Finally, run `python.exe .\configure.py` followed by `nmake`
 
-### Known limitations
-
-Even if both WSL versions have been tested, we encourage to use version 1
-which seems for now faster and more stable in our use case. Indeed we are
-accessing executable files mounted from Windows, which is a drawback for
-[WSL 2 linux kernel needing files entirely stored in Linux file system to
-be efficient][wsl1-vs-wsl2].
-
-[wsl1-vs-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/compare-versions#exceptions-for-using-wsl-1-rather-than-wsl-2
 
 ## Installation of `libnodegl` (the core library)
 

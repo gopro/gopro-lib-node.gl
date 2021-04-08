@@ -50,6 +50,7 @@ Following are how-to guides on various specific usages:
 
 ### ⚙️ Discussions and explanations
 
+- [node.gl standalone build environment][expl-ngl-env]
 - [How the Python binding is created][expl-pynodegl]
 - [What happens in a draw call?][expl-draw-call]
 - [Technical choices][expl-techchoices]
@@ -79,6 +80,7 @@ Following are how-to guides on various specific usages:
 [expl-time-remap]:       /doc/expl/media-time-remapping.md
 [expl-colormatrix]:      /doc/expl/colormatrix.md
 [expl-graphicconfig]:    /doc/expl/graphicconfig.md
+[expl-ngl-env]:          /doc/expl/ngl-env.md
 [expl-noise]:            /doc/expl/noise.md
 [ref-libnodegl]:         /libnodegl/doc/libnodegl.md
 [ref-pynodegl]:          /doc/ref/pynodegl.md

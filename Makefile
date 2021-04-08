@@ -346,7 +346,7 @@ endif
 ngfx-install: external-download pkg-config-install shaderc-install $(PREFIX_DONE)
 	export OS=$(TARGET_OS) && \
 	export PKGS="$(NGFX_DEPS)" && \
-	bash external/ngfx/build_scripts/install_deps.sh external
+	python3 external/ngfx/build_scripts/install_deps.py
 	$(CMAKE) -S external/ngfx -B $(BUILDDIR)/ngfx $(CMAKE_SETUP_OPTIONS) -D$(NGFX_GRAPHICS_BACKEND)=ON && \
 	$(CMAKE) --build $(BUILDDIR)/ngfx $(CMAKE_COMPILE_OPTIONS) && \
 	$(CMAKE) --install $(BUILDDIR)/ngfx $(CMAKE_INSTALL_OPTIONS)

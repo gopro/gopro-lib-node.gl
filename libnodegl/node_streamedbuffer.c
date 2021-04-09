@@ -200,7 +200,7 @@ const struct node_class ngli_streamedbuffer##class_suffix##_class = {       \
     .name      = class_name,                                                \
     .init      = streamedbuffer_init,                                       \
     .update    = streamedbuffer_update,                                     \
-    .priv_size = sizeof(struct variable_priv),                              \
+    .priv_size = sizeof(struct buffer_priv),                                \
     .params    = streamedbuffer##class_suffix##_params,                     \
     .file      = __FILE__,                                                  \
 };                                                                          \

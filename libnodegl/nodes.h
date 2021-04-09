@@ -166,6 +166,14 @@ struct geometry_priv {
 struct ngl_node *ngli_node_geometry_generate_buffer(struct ngl_ctx *ctx, int type, int count, int size, void *data);
 
 struct buffer_priv {
+    struct {
+        int count;
+        uint8_t *data;
+        int data_size;
+        char *filename;
+        struct ngl_node *block;
+        int block_field;
+    } opt;
     int count;              // number of elements
     uint8_t *data;          // buffer of <count> elements
     int data_size;          // total buffer data size in bytes

@@ -521,10 +521,15 @@ run_target(
 # Tests
 #
 
+test_asm_src = files('test_asm.c', 'math_utils.c')
+if host_machine.cpu_family() == 'aarch64'
+  test_asm_src += files('asm_aarch64.S')
+endif
+
 test_progs = {
   'Assembly': {
     'exe': 'test_asm',
-    'src': files('test_asm.c', 'math_utils.c'),
+    'src': test_asm_src,
   },
   'Color convertion': {
     'exe': 'test_colorconv',

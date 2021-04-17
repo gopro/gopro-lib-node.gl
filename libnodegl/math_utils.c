@@ -27,6 +27,36 @@
 
 static const float zvec[4];
 
+float ngli_vec2_length(const float *v)
+{
+    return sqrtf(v[0]*v[0] + v[1]*v[1]);
+}
+
+void ngli_vec2_scale(float *dst, const float *v, float s)
+{
+    dst[0] = v[0] * s;
+    dst[1] = v[1] * s;
+}
+
+void ngli_vec2_sub(float *dst, const float *v1, const float *v2)
+{
+    dst[0] = v1[0] - v2[0];
+    dst[1] = v1[1] - v2[1];
+}
+
+void ngli_vec2_norm(float *dst, const float *v)
+{
+    if (!memcmp(v, zvec, 2 * sizeof(*v))) {
+        memset(dst, 0, 2 * sizeof(*v));
+        return;
+    }
+
+    const float l = 1.0f / ngli_vec2_length(v);
+
+    dst[0] = v[0] * l;
+    dst[1] = v[1] * l;
+}
+
 float ngli_vec3_length(const float *v)
 {
     return sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);

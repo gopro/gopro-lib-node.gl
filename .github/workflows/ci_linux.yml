@@ -39,6 +39,13 @@ jobs:
       run: |
         ./configure.py --buildtype debug --debug-opts gl gpu_capture
         make
+
+    - name: Python import and dylib runtime test
+      run: |
+        . venv/bin/activate
+        python -c "import pynodegl, pynodegl_utils"
+        ngl-python -h
+
     - name: Run tests ${{matrix.backend}}
       run: |
         ${{matrix.custom_env}} make tests

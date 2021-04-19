@@ -51,3 +51,9 @@ jobs:
           .\scripts\msvc-env.ps1
           python.exe .\configure.py --debug-opts gpu_capture
           nmake
+
+      - name: Python import and dylib runtime test
+        run: |
+          .\venv\Scripts\Activate.ps1
+          python.exe -c "import pynodegl, pynodegl_utils"
+          ngl-python.exe -h

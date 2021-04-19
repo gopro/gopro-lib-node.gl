@@ -1,4 +1,4 @@
-# Installation
+# Quick user build & installation
 
 This page includes the system requirements as well as the steps needed for
 building and running the complete `node.gl` stack.
@@ -63,6 +63,11 @@ building and running the complete `node.gl` stack.
   `powershell` from here.
 - Finally, run `python.exe .\configure.py` followed by `nmake`
 
+
+# Manual components installation
+
+This section is targeted at packagers willing to build packages for every
+individual components.
 
 ## Installation of `libnodegl` (the core library)
 

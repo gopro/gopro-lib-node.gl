@@ -207,9 +207,9 @@ static easing_type bounce_out(easing_type t, int args_nb, const easing_type *arg
 
 static easing_type elastic_in_helper(easing_type t, easing_type a, easing_type p)
 {
-    if (t == 0.0)
+    if (t <= 0.0)
         return 0.0;
-    if (t == 1.0)
+    if (t >= 1.0)
         return 1.0;
     easing_type s;
     if (a < 1.0) {

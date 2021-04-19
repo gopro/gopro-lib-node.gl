@@ -205,52 +205,51 @@ static easing_type bounce_out(easing_type t, int args_nb, const easing_type *arg
 
 /* Elastic */
 
-static easing_type elastic_in_helper(easing_type t, easing_type b, easing_type c, easing_type d, easing_type a, easing_type p)
+static easing_type elastic_in_helper(easing_type t, easing_type a, easing_type p)
 {
     if (t == 0.0)
-        return b;
-    easing_type t_adj = t / d;
-    if (t_adj == 1.0)
-        return b + c;
+        return 0.0;
+    if (t == 1.0)
+        return 1.0;
     easing_type s;
-    if (a < fabs(c)) {
-        a = c;
+    if (a < 1.0) {
+        a = 1.0;
         s = p / 4.0;
     } else {
-        s = p / (2.0 * M_PI) * asin(c / a);
+        s = p / (2.0 * M_PI) * asin(1.0 / a);
     }
-    t_adj -= 1.0;
-    return -(a * exp2(10.0 * t_adj) * sin((t_adj * d - s) * (2.0 * M_PI) / p)) + b;
+    t -= 1.0;
+    return -a * exp2(10.0 * t) * sin((t - s) * (2.0 * M_PI) / p);
 }
 
 static easing_type elastic_in(easing_type t, int args_nb, const easing_type *args)
 {
     const easing_type amplitude = DEFAULT_PARAMETER(0, 0.1);
     const easing_type period    = DEFAULT_PARAMETER(1, 0.25);
-    return elastic_in_helper(t, 0.0, 1.0, 1.0, amplitude, period);
+    return elastic_in_helper(t, amplitude, period);
 }
 
-static easing_type elastic_out_helper(easing_type t, easing_type b, easing_type c, easing_type d, easing_type a, easing_type p)
+static easing_type elastic_out_helper(easing_type t, easing_type a, easing_type p)
 {
     if (t <= 0.0)
         return 0.0;
     if (t >= 1.0)
-        return c;
+        return 1.0;
     easing_type s;
-    if (a < c) {
-        a = c;
+    if (a < 1.0) {
+        a = 1.0;
         s = p / 4.0;
     } else {
-        s = p / (2.0 * M_PI) * asin(c / a);
+        s = p / (2.0 * M_PI) * asin(1.0 / a);
     }
-    return a * exp2(-10.0 * t) * sin((t - s) * (2 * M_PI) / p) + c;
+    return a * exp2(-10.0 * t) * sin((t - s) * (2 * M_PI) / p) + 1.0;
 }
 
 static easing_type elastic_out(easing_type t, int args_nb, const easing_type *args)
 {
     const easing_type amplitude = DEFAULT_PARAMETER(0, 0.1);
     const easing_type period    = DEFAULT_PARAMETER(1, 0.25);
-    return elastic_out_helper(t, 0.0, 1.0, 1.0, amplitude, period);
+    return elastic_out_helper(t, amplitude, period);
 }
 
 

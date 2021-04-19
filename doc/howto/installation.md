@@ -39,8 +39,9 @@ building and running the complete `node.gl` stack.
 - Install [Python](https://www.python.org/downloads/windows/) ≥ 3.8 using the
   Windows Installer and make sure to select the option to add Python to the
   system `PATH` during its installation
-- Install [Graphviz](https://graphviz.org/download/) using the Windows Installer and make sure to select the option to add Graphviz
-to the system PATH during its installation
+- Install [Graphviz](https://graphviz.org/download/) using the Windows
+  Installer and make sure to select the option to add Graphviz to the system
+  `PATH` during its installation
 - Install [Microsoft Visual
   Studio](https://visualstudio.microsoft.com/downloads/) Community 2019 or
   greater and make sure the *Desktop development with C++* is included (it
@@ -51,8 +52,9 @@ to the system PATH during its installation
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install --triplet x64-windows opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
     ```
-- Add `C:\vcpkg\installed\x64-windows\tools\ffmpeg` path to your windows system `%PATH%` environment variable (`ffmpeg`
-and `ffprobe` binaries must be available in order to run the tests)
+- Add `C:\vcpkg\installed\x64-windows\tools\ffmpeg` path to your windows system
+  `%PATH%` environment variable (`ffmpeg` and `ffprobe` binaries must be
+  available in order to run the tests)
 - To be allowed to run the build scripts, you will need to run this once in an
   administrator Powershell: `Set-ExecutionPolicy RemoteSigned`
 - In a Powershell (as user), in the `node.gl` sources, run

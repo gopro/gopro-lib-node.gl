@@ -45,7 +45,8 @@ to the system PATH during its installation
   Studio](https://visualstudio.microsoft.com/downloads/) Community 2019 or
   greater and make sure the *Desktop development with C++* is included (it
   should enable MSVC build tools and Windows 10 SDK).
-- Install [Vcpkg](https://github.com/microsoft/vcpkg) from Windows PowerShell:
+- Download and extract [Vcpkg](https://github.com/microsoft/vcpkg) in
+  `C:\vcpkg`, then from Windows PowerShell:
     ```shell
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows

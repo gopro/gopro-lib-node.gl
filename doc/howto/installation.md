@@ -49,7 +49,7 @@ to the system PATH during its installation
   `C:\vcpkg`, then from Windows PowerShell:
     ```shell
     .\bootstrap-vcpkg.bat
-    .\vcpkg.exe install opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows
+    .\vcpkg.exe install --triplet x64-windows opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
     ```
 - Add `C:\vcpkg\installed\x64-windows\tools\ffmpeg` path to your windows system `%PATH%` environment variable (`ffmpeg`
 and `ffprobe` binaries must be available in order to run the tests)

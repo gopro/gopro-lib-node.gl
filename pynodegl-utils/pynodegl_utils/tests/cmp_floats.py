@@ -55,6 +55,7 @@ class _CompareFloats(CompareBase):
             if name != out_floats[0]:
                 err.append('{} float sets {} have different names: "{}" vs "{}"'.format(
                     test_name, float_set_id, ref_floats[0], out_floats[0]))
+                break
             if len(ref_floats) != len(out_floats):
                 err.append(f'{test_name}: number of floats is different '
                            f'(ref:{len(ref_floats)}, out:{len(out_floats)})')

@@ -114,17 +114,8 @@ def run():
     dump = tests_opts == 'dump'
 
     if len(sys.argv) not in (3, 4):
-        sys.stderr.write('''Usage: [TESTS_OPTIONS={} REFGEN={}] {} <script_path> <func_name> [<ref_filepath>]
-
-    REFGEN=no      Run the test normally without changing the reference (default)
-    REFGEN=create  Create the reference file if not present
-    REFGEN=update  Same as "create" and update the reference if the test fails
-    REFGEN=force   Same as "create" and always replace the reference file. This may
-                   change the references even if the tests are passing due to the
-                   threshold/tolerance mechanism.
-
-    TESTS_OPTIONS=dump Dump tests outputs to the filesystem (in <temp directory>/nodegl/tests)
-'''.format('|'.join(allowed_tests_opts), '|'.join(allowed_gen_opt), op.basename(sys.argv[0])))
+        sys.stderr.write('Usage: [TESTS_OPTIONS={} REFGEN={}] {} <script_path> <func_name> [<ref_filepath>]'.format(
+            '|'.join(allowed_tests_opts), '|'.join(allowed_gen_opt), op.basename(sys.argv[0])))
         sys.exit(1)
 
     if len(sys.argv) == 3:

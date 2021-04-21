@@ -46,6 +46,7 @@ Following are how-to guides on various specific usages:
 
 - [Installation][howto-install]
 - [Using the C API][howto-c-api]
+- [Working with tests][howto-tests] (mainly for core developers)
 - [Writing a new node][howto-write-new-node] (for core developers only)
 
 ### ⚙️ Discussions and explanations
@@ -72,6 +73,7 @@ Following are how-to guides on various specific usages:
 [tuto-start]:            /doc/tuto/start.md
 [howto-install]:         /doc/howto/installation.md
 [howto-c-api]:           /doc/howto/c-api.md
+[howto-tests]:           /doc/howto/tests.md
 [howto-write-new-node]:  /doc/howto/write-new-node.md
 [expl-pynodegl]:         /doc/expl/pynodegl.md
 [expl-draw-call]:        /doc/expl/draw-call.md

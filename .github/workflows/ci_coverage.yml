@@ -20,7 +20,7 @@ jobs:
 
     - name: Run tests
       run: |
-        ./configure.py --buildtype debug --coverage --debug-opts gl
+        ./configure.py --buildtype debug --coverage --debug-opts gl scene
         make tests
     - name: Get coverage
       run: |

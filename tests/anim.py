@@ -49,6 +49,7 @@ _easing_specs = (
     ('circular',  3),
     ('bounce',    1),
     ('elastic',   1),
+    ('elastic:1.5:1.2', 1),
     ('back',      3),
 )
 

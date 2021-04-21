@@ -49,7 +49,7 @@ void ngli_vec3_sub(float *dst, const float *v1, const float *v2)
 void ngli_vec3_norm(float *dst, const float *v)
 {
     if (!memcmp(v, zvec, 3 * sizeof(*v))) {
-        memcpy(dst, zvec, 3 * sizeof(*v));
+        memset(dst, 0, 3 * sizeof(*v));
         return;
     }
 
@@ -97,7 +97,7 @@ float ngli_vec4_length(const float *v)
 void ngli_vec4_norm(float *dst, const float *v)
 {
     if (!memcmp(v, zvec, 4 * sizeof(*v))) {
-        memcpy(dst, zvec, 4 * sizeof(*v));
+        memset(dst, 0, 4 * sizeof(*v));
         return;
     }
 

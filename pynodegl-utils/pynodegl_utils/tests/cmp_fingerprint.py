@@ -54,9 +54,6 @@ class _CompareFingerprints(CompareSceneBase):
 
     @staticmethod
     def _get_plane_hashes(buf):
-        # Note: the following is an implementation of dhash[1] with a different
-        # interleaving and splitted components.
-        # [1]: https://pypi.org/project/dhash/
         hashes = []
         linesize = _HSIZE + 1
         comp_bufs = (buf[x::4] for x in range(4))  # R, G, B, A

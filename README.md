@@ -60,6 +60,7 @@ Following are how-to guides on various specific usages:
 - [The maths behind the YCbCr to RGBA color matrix][expl-colormatrix]
 - [Graphic configuration (blending, inheritance, ...)][expl-graphicconfig]
 - [How the Noise node works][expl-noise]
+- [Tests categories][expl-tests-categories]
 
 ### 🗜 Reference documentation
 
@@ -84,6 +85,7 @@ Following are how-to guides on various specific usages:
 [expl-graphicconfig]:    /doc/expl/graphicconfig.md
 [expl-ngl-env]:          /doc/expl/ngl-env.md
 [expl-noise]:            /doc/expl/noise.md
+[expl-tests-categories]: /doc/expl/tests-categories.md
 [ref-libnodegl]:         /libnodegl/doc/libnodegl.md
 [ref-pynodegl]:          /doc/ref/pynodegl.md
 [ref-pynodegl-utils]:    /doc/ref/pynodegl-utils.md

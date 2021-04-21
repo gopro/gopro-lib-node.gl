@@ -49,7 +49,7 @@ if cc.get_id() == 'msvc'
   c_args += ['-DSDL_MAIN_HANDLED']
   msvc_args = [
       # Ignore several spurious warnings
-      '/wd4018', # comparaison between signed and unsigned numbers
+      '/wd4018', # comparison between signed and unsigned numbers
       '/wd4146', # unary minus operator applied to unsigned type when its result is still unsigned (INT_MIN)
       '/wd4244', # conversion from 'type1' to 'type2', resulting in a possible loss of data
       '/wd4305', # value is converted to a smaller type in an initialization, resulting in a loss of information.

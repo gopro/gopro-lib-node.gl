@@ -39,7 +39,7 @@ cpu_family = host_machine.cpu_family()
 cc = meson.get_compiler('c')
 
 # meson currently (0.56.0) doesn't distinguish between macOS and iOS (the
-# "darwin" identifier is shared), so we need to test explicitely.
+# "darwin" identifier is shared), so we need to test explicitly.
 # We are also checking for IPHONE and not IOS but since the latter is actually
 # more specific (doesn't include tvOS and watchOS) we may want to consider
 # switching to it at some point.
@@ -68,7 +68,7 @@ if host_system == 'windows'
     conf_data.set10('TARGET_MSVC', true)
     msvc_args = [
       # Ignore several spurious warnings
-      '/wd4018', # comparaison between signed and unsigned numbers
+      '/wd4018', # comparison between signed and unsigned numbers
       '/wd4146', # unary minus operator applied to unsigned type when its result is still unsigned (INT_MIN)
       '/wd4244', # conversion from 'type1' to 'type2', resulting in a possible loss of data
       '/wd4305', # value is converted to a smaller type in an initialization, resulting in a loss of information.

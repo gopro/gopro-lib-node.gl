@@ -19,6 +19,7 @@
  * under the License.
  */
 
+#include "nodegl.h"
 #include "utils.h"
 #include "vkutils.h"
 
@@ -82,6 +83,22 @@ const char *ngli_vk_res2str(VkResult res)
                                             return "full screen exclusive mode lost";
 #endif
     default:                                return "undefined";
+    }
+}
+
+int ngli_vk_res2ret(VkResult res)
+{
+    switch (res) {
+    case VK_SUCCESS:                        return 0;
+    case VK_ERROR_OUT_OF_HOST_MEMORY:       return NGL_ERROR_GRAPHICS_MEMORY;
+    case VK_ERROR_OUT_OF_DEVICE_MEMORY:     return NGL_ERROR_GRAPHICS_MEMORY;
+    case VK_ERROR_FORMAT_NOT_SUPPORTED:     return NGL_ERROR_GRAPHICS_UNSUPPORTED;
+#ifdef VK_ERROR_OUT_OF_POOL_MEMORY
+    case VK_ERROR_OUT_OF_POOL_MEMORY:       return NGL_ERROR_GRAPHICS_MEMORY;
+#elif defined(VK_ERROR_OUT_OF_POOL_MEMORY_KHR)
+    case VK_ERROR_OUT_OF_POOL_MEMORY:       return NGL_ERROR_GRAPHICS_MEMORY;
+#endif
+    default:                                return NGL_ERROR_GRAPHICS_GENERIC;
     }
 }
 

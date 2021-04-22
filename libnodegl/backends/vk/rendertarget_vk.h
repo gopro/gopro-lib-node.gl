@@ -39,10 +39,10 @@ struct rendertarget_vk {
 };
 
 struct rendertarget *ngli_rendertarget_vk_create(struct gctx *gctx);
-int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_params *params);
+VkResult ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_params *params);
 void ngli_rendertarget_vk_read_pixels(struct rendertarget *s, uint8_t *data);
 void ngli_rendertarget_vk_freep(struct rendertarget **sp);
 
-int ngli_vk_create_compatible_renderpass(struct gctx *s, const struct rendertarget_desc *desc, VkRenderPass *render_pass);
+VkResult ngli_vk_create_compatible_renderpass(struct gctx *s, const struct rendertarget_desc *desc, VkRenderPass *render_pass);
 
 #endif

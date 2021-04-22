@@ -90,7 +90,7 @@ struct vkcontext {
 };
 
 struct vkcontext *ngli_vkcontext_create(void);
-int ngli_vkcontext_init(struct vkcontext *s, const struct ngl_config *config);
+VkResult ngli_vkcontext_init(struct vkcontext *s, const struct ngl_config *config);
 void *ngli_vkcontext_get_proc_addr(struct vkcontext *s, const char *name);
 VkFormat ngli_vkcontext_find_supported_format(struct vkcontext *s, const VkFormat *formats,
                                               VkImageTiling tiling, VkFormatFeatureFlags features);

@@ -45,17 +45,18 @@ struct texture_vk {
 
 struct texture *ngli_texture_vk_create(struct gctx *gctx);
 
-int ngli_texture_vk_init(struct texture *s,
-                         const struct texture_params *params);
+VkResult ngli_texture_vk_init(struct texture *s,
+                              const struct texture_params *params);
 
 int ngli_texture_vk_has_mipmap(const struct texture *s);
 int ngli_texture_vk_match_dimensions(const struct texture *s, int width, int height, int depth);
 
-int ngli_texture_vk_upload(struct texture *s, const uint8_t *data, int linesize);
-int ngli_texture_vk_generate_mipmap(struct texture *s);
+VkResult ngli_texture_vk_upload(struct texture *s, const uint8_t *data, int linesize);
+VkResult ngli_texture_vk_generate_mipmap(struct texture *s);
 
 void ngli_texture_vk_freep(struct texture **sp);
 
+// FIXME unused return value
 int ngli_texture_vk_transition_layout(struct texture *s, VkImageLayout layout);
 
 void ngli_vk_transition_image_layout(const struct vkcontext *vk,
@@ -65,8 +66,8 @@ void ngli_vk_transition_image_layout(const struct vkcontext *vk,
                                      VkImageLayout new_layout,
                                      const VkImageSubresourceRange *subres_range);
 
-int ngli_texture_vk_wrap(struct texture *s,
-                         const struct texture_params *params,
-                         VkImage image, VkImageLayout layout);
+VkResult ngli_texture_vk_wrap(struct texture *s,
+                              const struct texture_params *params,
+                              VkImage image, VkImageLayout layout);
 
 #endif

@@ -190,10 +190,9 @@ static VkResult create_swapchain_resources(struct gctx *s)
             .external_storage = 1,
         };
 
-        // FIXME: current function returns VkResult
-        int ret = ngli_texture_vk_wrap(*wrapped_texture, &params, s_priv->images[i], VK_IMAGE_LAYOUT_UNDEFINED);
-        if (ret < 0)
-            return ret;
+        res = ngli_texture_vk_wrap(*wrapped_texture, &params, s_priv->images[i], VK_IMAGE_LAYOUT_UNDEFINED);
+        if (res != VK_SUCCESS)
+            return res;
 
         struct texture **depth_texture = ngli_darray_push(&s_priv->depth_textures, NULL);
         if (!depth_texture)
@@ -203,19 +202,18 @@ static VkResult create_swapchain_resources(struct gctx *s)
         if (!*depth_texture)
             return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        struct texture_params depth_params = {
+        const struct texture_params depth_params = {
             .type    = NGLI_TEXTURE_TYPE_2D,
-            .format  = NGLI_FORMAT_D32_SFLOAT_S8_UINT,
+            .format  = NGLI_FORMAT_D32_SFLOAT_S8_UINT, // vk->preferred_depth_stencil_format?
             .width   = s_priv->extent.width,
             .height  = s_priv->extent.height,
             .samples = config->samples,
             .usage   = NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         };
 
-        // FIXME: current function returns VkResult
-        ret = ngli_texture_vk_init(*depth_texture, &depth_params);
-        if (ret < 0)
-            return ret;
+        res = ngli_texture_vk_init(*depth_texture, &depth_params);
+        if (res != VK_SUCCESS)
+            return res;
 
         struct rendertarget_params rt_params = {
             .width     = s_priv->extent.width,
@@ -233,18 +231,10 @@ static VkResult create_swapchain_resources(struct gctx *s)
             .depth_stencil.attachment = *depth_texture,
             .depth_stencil.load_op    = NGLI_LOAD_OP_LOAD,
             .depth_stencil.store_op   = NGLI_STORE_OP_STORE,
+            // XXX: no readable set here? (set in create_offscreen_resources)
         };
 
         if (config->samples) {
-            struct texture_params texture_params = {
-                .type    = NGLI_TEXTURE_TYPE_2D,
-                .width   = s_priv->extent.width,
-                .height  = s_priv->extent.height,
-                .format  = NGLI_FORMAT_B8G8R8A8_UNORM,
-                .samples = config->samples,
-                .usage   = NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT,
-            };
-
             struct texture **ms_texture = ngli_darray_push(&s_priv->ms_textures, NULL);
             if (!ms_texture)
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
@@ -253,10 +243,18 @@ static VkResult create_swapchain_resources(struct gctx *s)
             if (!*ms_texture)
                 return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-            // FIXME: current function returns VkResult
-            ret = ngli_texture_init(*ms_texture, &texture_params);
-            if (ret < 0)
-                return ret;
+            const struct texture_params texture_params = {
+                .type    = NGLI_TEXTURE_TYPE_2D,
+                .width   = s_priv->extent.width,
+                .height  = s_priv->extent.height,
+                .format  = NGLI_FORMAT_B8G8R8A8_UNORM,
+                .samples = config->samples,
+                .usage   = NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT,
+            };
+
+            res = ngli_texture_vk_init(*ms_texture, &texture_params);
+            if (res != VK_SUCCESS)
+                return res;
             rt_params.colors[0].attachment     = *ms_texture;
             rt_params.colors[0].resolve_target = *wrapped_texture;
         }
@@ -269,10 +267,9 @@ static VkResult create_swapchain_resources(struct gctx *s)
         if (!*rt)
             return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        // FIXME: current function returns VkResult
-        ret = ngli_rendertarget_init(*rt, &rt_params);
-        if (ret < 0)
-            return ret;
+        res = ngli_rendertarget_vk_init(*rt, &rt_params);
+        if (res != VK_SUCCESS)
+            return res;
     }
 
     return VK_SUCCESS;
@@ -389,19 +386,18 @@ static void cleanup_swapchain(struct gctx *s)
 }
 
 // XXX: window minimizing? (fb gets zero width or height)
-// TODO: raise VkResult?
-static int reset_swapchain(struct gctx *gctx, struct vkcontext *vk)
+static VkResult reset_swapchain(struct gctx *gctx, struct vkcontext *vk)
 {
     VkResult res = vkDeviceWaitIdle(vk->device);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
     cleanup_swapchain(gctx);
     if ((res = create_swapchain(gctx)) != VK_SUCCESS ||
         (res = create_swapchain_resources(gctx)) != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
-    return 0;
+    return VK_SUCCESS;
 }
 
 static struct gctx *vk_create(const struct ngl_config *config)
@@ -415,9 +411,9 @@ static struct gctx *vk_create(const struct ngl_config *config)
 // XXX: very close to create_swapchain_resources
 static VkResult create_offscreen_resources(struct gctx *s)
 {
-    const struct ngl_config *config = &s->config;
     struct gctx_vk *s_priv = (struct gctx_vk *)s;
     struct vkcontext *vk = s_priv->vkcontext;
+    const struct ngl_config *config = &s->config;
 
     for (uint32_t i = 0; i < s_priv->nb_in_flight_frames; i++) {
         struct texture **ms_texture = ngli_darray_push(&s_priv->ms_textures, NULL);
@@ -426,21 +422,20 @@ static VkResult create_offscreen_resources(struct gctx *s)
 
         *ms_texture = ngli_texture_create(s);
         if (!*ms_texture)
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        struct texture_params texture_params = {
+        const struct texture_params params = {
             .type    = NGLI_TEXTURE_TYPE_2D,
-            .format  = NGLI_FORMAT_R8G8B8A8_UNORM,
+            .format  = NGLI_FORMAT_R8G8B8A8_UNORM, // XXX BGRA in swapchain resources; why the diff?
             .width   = config->width,
             .height  = config->height,
             .samples = config->samples,
             .usage   = NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT,
         };
 
-        // FIXME: current function returns VkResult
-        int ret = ngli_texture_init(*ms_texture, &texture_params);
-        if (ret < 0)
-            return ret;
+        VkResult res = ngli_texture_vk_init(*ms_texture, &params);
+        if (res != VK_SUCCESS)
+            return res;
 
         struct texture **depth_texture = ngli_darray_push(&s_priv->depth_textures, NULL);
         if (!depth_texture)
@@ -448,27 +443,34 @@ static VkResult create_offscreen_resources(struct gctx *s)
 
         *depth_texture = ngli_texture_create(s);
         if (!depth_texture)
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        texture_params.format = vk->preferred_depth_stencil_format;
-        texture_params.usage  = NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        const struct texture_params depth_params = {
+            .type    = NGLI_TEXTURE_TYPE_2D,
+            .format  = vk->preferred_depth_stencil_format,
+            .width   = config->width,
+            .height  = config->height,
+            .samples = config->samples,
+            .usage   = NGLI_TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        };
 
-        // FIXME: current function returns VkResult
-        ret = ngli_texture_init(*depth_texture, &texture_params);
-        if (ret < 0)
-            return ret;
+        res = ngli_texture_vk_init(*depth_texture, &depth_params);
+        if (res != VK_SUCCESS)
+            return res;
 
         struct rendertarget_params rt_params = {
-            .width                    = config->width,
-            .height                   = config->height,
-            .nb_colors                = 1,
-            .colors[0].attachment     = *ms_texture,
-            .colors[0].load_op        = NGLI_LOAD_OP_LOAD,
-            .colors[0].clear_value[0] = config->clear_color[0],
-            .colors[0].clear_value[1] = config->clear_color[1],
-            .colors[0].clear_value[2] = config->clear_color[2],
-            .colors[0].clear_value[3] = config->clear_color[3],
-            .colors[0].store_op       = NGLI_STORE_OP_STORE,
+            .width     = config->width,
+            .height    = config->height,
+            .nb_colors = 1,
+            .colors[0] = {
+                .attachment     = *ms_texture,
+                .load_op        = NGLI_LOAD_OP_LOAD,
+                .clear_value[0] = config->clear_color[0],
+                .clear_value[1] = config->clear_color[1],
+                .clear_value[2] = config->clear_color[2],
+                .clear_value[3] = config->clear_color[3],
+                .store_op       = NGLI_STORE_OP_STORE,
+            },
             .depth_stencil.attachment = *depth_texture,
             .depth_stencil.load_op    = NGLI_LOAD_OP_LOAD,
             .depth_stencil.store_op   = NGLI_STORE_OP_STORE,
@@ -482,21 +484,20 @@ static VkResult create_offscreen_resources(struct gctx *s)
 
             *resolve_texture = ngli_texture_create(s);
             if (!*resolve_texture)
-                return NGL_ERROR_MEMORY;
+                return VK_ERROR_OUT_OF_HOST_MEMORY;
 
             const struct texture_params texture_params = {
                 .type    = NGLI_TEXTURE_TYPE_2D,
                 .format  = NGLI_FORMAT_R8G8B8A8_UNORM,
                 .width   = config->width,
                 .height  = config->height,
-                .samples = 1,
+                .samples = 1, // XXX shouldn't this be config->samples or the goal is to actually sample?
                 .usage   = NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT,
             };
 
-            // FIXME: current function returns VkResult
-            ret = ngli_texture_init(*resolve_texture, &texture_params);
-            if (ret < 0)
-                return ret;
+            res = ngli_texture_vk_init(*resolve_texture, &texture_params);
+            if (res != VK_SUCCESS)
+                return res;
             rt_params.colors[0].resolve_target = *resolve_texture;
         }
 
@@ -508,10 +509,9 @@ static VkResult create_offscreen_resources(struct gctx *s)
         if (!*rt)
             return VK_ERROR_OUT_OF_HOST_MEMORY;
 
-        // FIXME: current function returns VkResult
-        ret = ngli_rendertarget_init(*rt, &rt_params);
-        if (ret < 0)
-            return ret;
+        res = ngli_rendertarget_vk_init(*rt, &rt_params);
+        if (res != VK_SUCCESS)
+            return res;
     }
 
     return VK_SUCCESS;
@@ -577,12 +577,13 @@ static int vk_init(struct gctx *s)
     if (!s_priv->vkcontext)
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_vkcontext_init(s_priv->vkcontext, config);
-    if (ret < 0) {
+    VkResult res = ngli_vkcontext_init(s_priv->vkcontext, config);
+    if (res != VK_SUCCESS) {
+        LOG(ERROR, "unable to initialize Vulkan context: %s", ngli_vk_res2str(res));
         // XXX: this should not be needed: in api.c ngli_gctx_freep is called
         // if the ngli_gctx_init fails
         ngli_vkcontext_freep(&s_priv->vkcontext);
-        return ret;
+        return ngli_vk_res2ret(res);
     }
 
 #if DEBUG_GPU_CAPTURE
@@ -628,9 +629,9 @@ static int vk_init(struct gctx *s)
         .flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
     };
 
-    VkResult res = vkCreateCommandPool(vk->device, &command_pool_create_info, NULL, &s_priv->transient_command_buffer_pool);
+    res = vkCreateCommandPool(vk->device, &command_pool_create_info, NULL, &s_priv->transient_command_buffer_pool);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     const VkQueryPoolCreateInfo query_pool_create_info = {
         .sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
@@ -639,7 +640,7 @@ static int vk_init(struct gctx *s)
     };
     res = vkCreateQueryPool(vk->device, &query_pool_create_info, NULL, &s_priv->query_pool);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     const VkFenceCreateInfo fence_create_info = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -648,7 +649,7 @@ static int vk_init(struct gctx *s)
     };
     res = vkCreateFence(vk->device, &fence_create_info, NULL, &s_priv->transient_command_buffer_fence);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     s_priv->nb_in_flight_frames = 1;
     s_priv->width  = config->width;
@@ -661,24 +662,24 @@ static int vk_init(struct gctx *s)
         }
         res = create_offscreen_resources(s);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return ngli_vk_res2ret(res);
     } else {
         res = create_swapchain(s);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return ngli_vk_res2ret(res);
 
         res = create_swapchain_resources(s);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return ngli_vk_res2ret(res);
     }
 
     res = create_semaphores(s);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     res = create_command_pool_and_buffers(s);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     const int *viewport = config->viewport;
     if (viewport[2] > 0 && viewport[3] > 0) {
@@ -745,14 +746,14 @@ static int swapchain_acquire_image(struct gctx *s, uint32_t *image_index)
     case VK_ERROR_OUT_OF_DATE_KHR:
         res = reset_swapchain(s, vk);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return ngli_vk_res2ret(res);
         res = vkAcquireNextImageKHR(vk->device, s_priv->swapchain, UINT64_MAX, semaphore, NULL, image_index);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return ngli_vk_res2ret(res);
         break;
     default:
         LOG(ERROR, "failed to acquire swapchain image: %s", ngli_vk_res2str(res));
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
     }
 
     if (!ngli_darray_push(&s_priv->wait_semaphores, &semaphore))
@@ -784,7 +785,7 @@ static int swapchain_swap_buffers(struct gctx *s)
         break;
     default:
         LOG(ERROR, "failed to present image %s", ngli_vk_res2str(res));
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
     }
 
     return 0;
@@ -841,7 +842,7 @@ static int vk_begin_draw(struct gctx *s, double t)
     };
     VkResult res = vkBeginCommandBuffer(s_priv->cur_command_buffer, &command_buffer_begin_info);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
     s_priv->cur_command_buffer_state = 1;
 
     if (config->hud) {
@@ -912,7 +913,7 @@ static int vk_query_draw_time(struct gctx *s, int64_t *time)
     vkCmdWriteTimestamp(command_buffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, s_priv->query_pool, 1);
     VkResult res = vkEndCommandBuffer(command_buffer);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
     s_priv->cur_command_buffer_state = 0;
 
     const VkSubmitInfo submit_info = {
@@ -927,18 +928,18 @@ static int vk_query_draw_time(struct gctx *s, int64_t *time)
     };
     res = vkQueueSubmit(vk->graphic_queue, 1, &submit_info, s_priv->fences[s_priv->frame_index]);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     ngli_darray_clear(&s_priv->wait_semaphores);
     ngli_darray_clear(&s_priv->wait_stages);
 
     res = vkWaitForFences(vk->device, 1, &s_priv->fences[s_priv->frame_index], VK_TRUE, UINT64_MAX);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     res = vkResetFences(vk->device, 1, &s_priv->fences[s_priv->frame_index]);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     uint64_t results[2];
     vkGetQueryPoolResults(vk->device,
@@ -954,7 +955,7 @@ static int vk_query_draw_time(struct gctx *s, int64_t *time)
     };
     res = vkBeginCommandBuffer(s_priv->cur_command_buffer, &command_buffer_begin_info);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     return 0;
 }
@@ -1017,10 +1018,10 @@ done:;
     struct vkcontext *vk = s_priv->vkcontext;
     VkResult res = vkWaitForFences(vk->device, 1, &s_priv->fences[s_priv->frame_index], VK_TRUE, UINT64_MAX);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
     res = vkResetFences(vk->device, 1, &s_priv->fences[s_priv->frame_index]);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return ngli_vk_res2ret(res);
 
     s_priv->frame_index = (s_priv->frame_index + 1) % s_priv->nb_in_flight_frames;
 
@@ -1271,7 +1272,7 @@ static int vk_get_preferred_depth_stencil_format(struct gctx *s)
     return vk->preferred_depth_stencil_format;
 }
 
-int ngli_gctx_vk_begin_transient_command(struct gctx *s, VkCommandBuffer *command_buffer)
+VkResult ngli_gctx_vk_begin_transient_command(struct gctx *s, VkCommandBuffer *command_buffer)
 {
     struct gctx_vk *s_priv = (struct gctx_vk *)s;
     struct vkcontext *vk = s_priv->vkcontext;
@@ -1285,7 +1286,7 @@ int ngli_gctx_vk_begin_transient_command(struct gctx *s, VkCommandBuffer *comman
 
     VkResult res = vkAllocateCommandBuffers(vk->device, &alloc_info, command_buffer);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
     const VkCommandBufferBeginInfo beginInfo = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -1295,13 +1296,13 @@ int ngli_gctx_vk_begin_transient_command(struct gctx *s, VkCommandBuffer *comman
     res = vkBeginCommandBuffer(*command_buffer, &beginInfo);
     if (res != VK_SUCCESS) {
         vkFreeCommandBuffers(vk->device, s_priv->transient_command_buffer_pool, 1, command_buffer);
-        return NGL_ERROR_EXTERNAL;
+        return res;
     }
 
-    return 0;
+    return VK_SUCCESS;
 }
 
-int ngli_gctx_vk_execute_transient_command(struct gctx *s, VkCommandBuffer command_buffer)
+VkResult ngli_gctx_vk_execute_transient_command(struct gctx *s, VkCommandBuffer command_buffer)
 {
     struct gctx_vk *s_priv = (struct gctx_vk *)s;
     struct vkcontext *vk = s_priv->vkcontext;
@@ -1326,10 +1327,79 @@ int ngli_gctx_vk_execute_transient_command(struct gctx *s, VkCommandBuffer comma
 
 done:
     vkFreeCommandBuffers(vk->device, s_priv->transient_command_buffer_pool, 1, &command_buffer);
+    return res;
+}
 
-    if (res != VK_SUCCESS) // XXX: generic convert?
-        return NGL_ERROR_EXTERNAL;
-    return 0;
+static int vk_buffer_init(struct buffer *s, int size, int usage)
+{
+    VkResult res = ngli_buffer_vk_init(s, size, usage);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to initialize buffer: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_buffer_upload(struct buffer *s, const void *data, int size, int offset)
+{
+    VkResult res = ngli_buffer_vk_upload(s, data, size, offset);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to upload buffer: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_buffer_download(struct buffer *s, void *data, int size, int offset)
+{
+    VkResult res = ngli_buffer_vk_download(s, data, size, offset);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to download buffer: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_buffer_map(struct buffer *s, int size, int offset, void **data)
+{
+    VkResult res = ngli_buffer_vk_map(s, size, offset, data);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to map buffer: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_texture_init(struct texture *s, const struct texture_params *params)
+{
+    VkResult res = ngli_texture_vk_init(s, params);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to initialize texture: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_texture_upload(struct texture *s, const uint8_t *data, int linesize)
+{
+    VkResult res = ngli_texture_vk_upload(s, data, linesize);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to upload texture: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_texture_generate_mipmap(struct texture *s)
+{
+    VkResult res = ngli_texture_vk_generate_mipmap(s);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to generate texture mipmap: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params)
+{
+    VkResult res = ngli_rendertarget_vk_init(s, params);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to initialize render target: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
+}
+
+static int vk_pipeline_init(struct pipeline *s, const struct pipeline_params *params)
+{
+    VkResult res = ngli_pipeline_vk_init(s, params);
+    if (res != VK_SUCCESS)
+        LOG(ERROR, "unable to initialize pipeline: %s", ngli_vk_res2str(res));
+    return ngli_vk_res2ret(res);
 }
 
 const struct gctx_class ngli_gctx_vk = {
@@ -1365,15 +1435,15 @@ const struct gctx_class ngli_gctx_vk = {
     .get_preferred_depth_stencil_format = vk_get_preferred_depth_stencil_format,
 
     .buffer_create                      = ngli_buffer_vk_create,
-    .buffer_init                        = ngli_buffer_vk_init,
-    .buffer_upload                      = ngli_buffer_vk_upload,
-    .buffer_download                    = ngli_buffer_vk_download,
-    .buffer_map                         = ngli_buffer_vk_map,
+    .buffer_init                        = vk_buffer_init,
+    .buffer_upload                      = vk_buffer_upload,
+    .buffer_download                    = vk_buffer_download,
+    .buffer_map                         = vk_buffer_map,
     .buffer_unmap                       = ngli_buffer_vk_unmap,
     .buffer_freep                       = ngli_buffer_vk_freep,
 
     .pipeline_create                    = ngli_pipeline_vk_create,
-    .pipeline_init                      = ngli_pipeline_vk_init,
+    .pipeline_init                      = vk_pipeline_init,
     .pipeline_set_resources             = ngli_pipeline_vk_set_resources,
     .pipeline_update_attribute          = ngli_pipeline_vk_update_attribute,
     .pipeline_update_uniform            = ngli_pipeline_vk_update_uniform,
@@ -1389,15 +1459,15 @@ const struct gctx_class ngli_gctx_vk = {
     .program_freep                      = ngli_program_vk_freep,
 
     .rendertarget_create                = ngli_rendertarget_vk_create,
-    .rendertarget_init                  = ngli_rendertarget_vk_init,
+    .rendertarget_init                  = vk_rendertarget_init,
     .rendertarget_read_pixels           = ngli_rendertarget_vk_read_pixels,
     .rendertarget_freep                 = ngli_rendertarget_vk_freep,
 
     .texture_create                     = ngli_texture_vk_create,
-    .texture_init                       = ngli_texture_vk_init,
+    .texture_init                       = vk_texture_init,
     .texture_has_mipmap                 = ngli_texture_vk_has_mipmap,
     .texture_match_dimensions           = ngli_texture_vk_match_dimensions,
-    .texture_upload                     = ngli_texture_vk_upload,
-    .texture_generate_mipmap            = ngli_texture_vk_generate_mipmap,
+    .texture_upload                     = vk_texture_upload,
+    .texture_generate_mipmap            = vk_texture_generate_mipmap,
     .texture_freep                      = ngli_texture_vk_freep,
 };

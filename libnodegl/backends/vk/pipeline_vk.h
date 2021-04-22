@@ -51,7 +51,7 @@ struct pipeline_vk {
 };
 
 struct pipeline *ngli_pipeline_vk_create(struct gctx *gctx);
-int ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *params);
+VkResult ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *params);
 int ngli_pipeline_vk_set_resources(struct pipeline *s, const struct pipeline_resource_params *params);
 int ngli_pipeline_vk_update_attribute(struct pipeline *s, int index, struct buffer *buffer);
 int ngli_pipeline_vk_update_uniform(struct pipeline *s, int index, const void *value);

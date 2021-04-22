@@ -48,7 +48,7 @@ struct buffer *ngli_buffer_vk_create(struct gctx *gctx)
     return (struct buffer *)s;
 }
 
-int ngli_buffer_vk_init(struct buffer *s, int size, int usage)
+VkResult ngli_buffer_vk_init(struct buffer *s, int size, int usage)
 {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     struct vkcontext *vk = gctx_vk->vkcontext;
@@ -65,7 +65,7 @@ int ngli_buffer_vk_init(struct buffer *s, int size, int usage)
     };
     VkResult res = vkCreateBuffer(vk->device, &buffer_create_info, NULL, &s_priv->buffer);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
     VkMemoryRequirements requirements;
     vkGetBufferMemoryRequirements(vk->device, s_priv->buffer, &requirements);
@@ -73,7 +73,7 @@ int ngli_buffer_vk_init(struct buffer *s, int size, int usage)
     const VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     const int32_t memory_type_index = ngli_vkcontext_find_memory_type(vk, requirements.memoryTypeBits, props);
     if (memory_type_index < 0)
-        return NGL_ERROR_EXTERNAL;
+        return VK_ERROR_UNKNOWN;
 
     const VkMemoryAllocateInfo memory_allocate_info = {
         .sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -82,49 +82,44 @@ int ngli_buffer_vk_init(struct buffer *s, int size, int usage)
     };
     res = vkAllocateMemory(vk->device, &memory_allocate_info, NULL, &s_priv->memory);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_MEMORY;
+        return res;
 
     res = vkBindBufferMemory(vk->device, s_priv->buffer, s_priv->memory, 0);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
-    return 0;
+    return VK_SUCCESS;
 }
 
-int ngli_buffer_vk_upload(struct buffer *s, const void *data, int size, int offset)
+VkResult ngli_buffer_vk_upload(struct buffer *s, const void *data, int size, int offset)
 {
     void *dst;
-    int ret = ngli_buffer_map(s, size, offset, &dst);
-    if (ret < 0)
-        return ret;
+    VkResult res = ngli_buffer_vk_map(s, size, offset, &dst);
+    if (res != VK_SUCCESS)
+        return res;
     memcpy(dst, data, size);
     ngli_buffer_unmap(s);
-
-    return 0;
+    return VK_SUCCESS;
 }
 
-int ngli_buffer_vk_download(struct buffer *s, void *data, int size, int offset)
+VkResult ngli_buffer_vk_download(struct buffer *s, void *data, int size, int offset)
 {
     void *src;
-    int ret = ngli_buffer_map(s, size, offset, &src);
-    if (ret < 0)
-        return ret;
+    VkResult res = ngli_buffer_vk_map(s, size, offset, &src);
+    if (res != VK_SUCCESS)
+        return res;
     memcpy(data, (uint8_t *)src + offset, size);
     ngli_buffer_unmap(s);
-    return 0;
+    return VK_SUCCESS;
 }
 
-int ngli_buffer_vk_map(struct buffer *s, int size, int offset, void **data)
+VkResult ngli_buffer_vk_map(struct buffer *s, int size, int offset, void **data)
 {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     struct vkcontext *vk = gctx_vk->vkcontext;
     struct buffer_vk *s_priv = (struct buffer_vk *)s;
 
-    VkResult res = vkMapMemory(vk->device, s_priv->memory, 0, size, 0, data);
-    if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
-
-    return 0;
+    return vkMapMemory(vk->device, s_priv->memory, 0, size, 0, data);
 }
 
 void ngli_buffer_vk_unmap(struct buffer *s)

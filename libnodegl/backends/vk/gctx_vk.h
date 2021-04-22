@@ -81,7 +81,7 @@ struct gctx_vk {
     float clear_color[4];
 };
 
-int ngli_gctx_vk_begin_transient_command(struct gctx *s, VkCommandBuffer *command_buffer);
-int ngli_gctx_vk_execute_transient_command(struct gctx *s, VkCommandBuffer command_buffer);
+VkResult ngli_gctx_vk_begin_transient_command(struct gctx *s, VkCommandBuffer *command_buffer);
+VkResult ngli_gctx_vk_execute_transient_command(struct gctx *s, VkCommandBuffer command_buffer);
 
 #endif

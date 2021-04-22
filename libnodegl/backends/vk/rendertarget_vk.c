@@ -34,7 +34,7 @@ static VkAttachmentStoreOp get_vk_store_op(int store_op)
     return store_op_map[store_op];
 }
 
-static int vk_create_compatible_renderpass(struct gctx *s, const struct rendertarget_desc *desc, const struct rendertarget_params *params, VkRenderPass *render_pass)
+static VkResult vk_create_compatible_renderpass(struct gctx *s, const struct rendertarget_desc *desc, const struct rendertarget_params *params, VkRenderPass *render_pass)
 {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s;
     struct vkcontext *vk = gctx_vk->vkcontext;
@@ -61,7 +61,7 @@ static int vk_create_compatible_renderpass(struct gctx *s, const struct renderta
         const VkFormatFeatureFlags features = VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
         if ((properties.optimalTilingFeatures & features) != features) {
             LOG(ERROR, "format %d does not support features 0x%d", format, properties.optimalTilingFeatures);
-            return NGL_ERROR_EXTERNAL;
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
         }
 
         const VkAttachmentLoadOp load_op   = params ? get_vk_load_op(params->colors[i].load_op)   : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -116,7 +116,7 @@ static int vk_create_compatible_renderpass(struct gctx *s, const struct renderta
         const VkFormatFeatureFlags features = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
         if ((properties.optimalTilingFeatures & features) != features) {
             LOG(ERROR, "format %d does not support features 0x%d", format, properties.optimalTilingFeatures);
-            return NGL_ERROR_EXTERNAL;
+            return VK_ERROR_FORMAT_NOT_SUPPORTED;
         }
 
         const VkAttachmentLoadOp load_op = params ? get_vk_load_op(params->depth_stencil.load_op) : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -201,14 +201,10 @@ static int vk_create_compatible_renderpass(struct gctx *s, const struct renderta
         .pDependencies   = dependencies,
     };
 
-    VkResult res = vkCreateRenderPass(vk->device, &render_pass_create_info, NULL, render_pass);
-    if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
-
-    return 0;
+    return vkCreateRenderPass(vk->device, &render_pass_create_info, NULL, render_pass);
 }
 
-int ngli_vk_create_compatible_renderpass(struct gctx *s, const struct rendertarget_desc *desc, VkRenderPass *render_pass)
+VkResult ngli_vk_create_compatible_renderpass(struct gctx *s, const struct rendertarget_desc *desc, VkRenderPass *render_pass)
 {
     return vk_create_compatible_renderpass(s, desc, NULL, render_pass);
 }
@@ -260,7 +256,7 @@ struct rendertarget *ngli_rendertarget_vk_create(struct gctx *gctx)
     return (struct rendertarget *)s;
 }
 
-int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_params *params)
+VkResult ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_params *params)
 {
     struct rendertarget_vk *s_priv = (struct rendertarget_vk *)s;
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
@@ -295,17 +291,17 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
     }
     desc.samples = samples;
 
-    int ret = vk_create_compatible_renderpass(s->gctx, &desc, params, &s_priv->render_pass);
-    if (ret < 0)
-        return ret;
+    VkResult res = vk_create_compatible_renderpass(s->gctx, &desc, params, &s_priv->render_pass);
+    if (res != VK_SUCCESS)
+        return res;
 
     for (int i = 0; i < params->nb_colors; i++) {
         const struct attachment *attachment = &params->colors[i];
 
         VkImageView view;
-        VkResult res = create_framebuffer_image_view(s, attachment->attachment, attachment->attachment_layer, &view);
+        res = create_framebuffer_image_view(s, attachment->attachment, attachment->attachment_layer, &view);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return res;
 
         s_priv->attachments[s_priv->nb_attachments] = view;
         s_priv->nb_attachments++;
@@ -324,9 +320,9 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
 
         if (attachment->resolve_target) {
             VkImageView view;
-            VkResult res = create_framebuffer_image_view(s, attachment->resolve_target, attachment->resolve_target_layer, &view);
+            res = create_framebuffer_image_view(s, attachment->resolve_target, attachment->resolve_target_layer, &view);
             if (res != VK_SUCCESS)
-                return NGL_ERROR_EXTERNAL;
+                return res;
 
             s_priv->attachments[s_priv->nb_attachments] = view;
             s_priv->nb_attachments++;
@@ -349,9 +345,9 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
     texture = attachment->attachment;
     if (texture) {
         VkImageView view;
-        VkResult res = create_framebuffer_image_view(s, texture, attachment->attachment_layer, &view);
+        res = create_framebuffer_image_view(s, texture, attachment->attachment_layer, &view);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return res;
 
         s_priv->attachments[s_priv->nb_attachments] = view;
         s_priv->nb_attachments++;
@@ -361,9 +357,9 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
 
         if (attachment->resolve_target) {
             VkImageView view;
-            VkResult res = create_framebuffer_image_view(s, attachment->resolve_target, attachment->resolve_target_layer, &view);
+            res = create_framebuffer_image_view(s, attachment->resolve_target, attachment->resolve_target_layer, &view);
             if (res != VK_SUCCESS)
-                return NGL_ERROR_EXTERNAL;
+                return res;
 
             s_priv->attachments[s_priv->nb_attachments] = view;
             s_priv->nb_attachments++;
@@ -383,9 +379,9 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
         .layers          = 1,
     };
 
-    VkResult res = vkCreateFramebuffer(vk->device, &framebuffer_create_info, NULL, &s_priv->framebuffer);
+    res = vkCreateFramebuffer(vk->device, &framebuffer_create_info, NULL, &s_priv->framebuffer);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
     if (params->readable) {
         const struct attachment *attachment = &params->colors[0];
@@ -399,9 +395,9 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
             .usage       = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
-        VkResult res = vkCreateBuffer(vk->device, &buffer_create_info, NULL, &s_priv->staging_buffer);
+        res = vkCreateBuffer(vk->device, &buffer_create_info, NULL, &s_priv->staging_buffer);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+            return res;
 
         VkMemoryRequirements requirements;
         vkGetBufferMemoryRequirements(vk->device, s_priv->staging_buffer, &requirements);
@@ -409,7 +405,7 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
         const VkMemoryPropertyFlags props = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         const int32_t memory_type_index = ngli_vkcontext_find_memory_type(vk, requirements.memoryTypeBits, props);
         if (memory_type_index < 0)
-            return NGL_ERROR_EXTERNAL;
+            return VK_ERROR_UNKNOWN;
 
         const VkMemoryAllocateInfo memory_allocate_info = {
             .sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -418,14 +414,14 @@ int ngli_rendertarget_vk_init(struct rendertarget *s, const struct rendertarget_
         };
         res = vkAllocateMemory(vk->device, &memory_allocate_info, NULL, &s_priv->staging_memory);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_MEMORY;
+            return res;
 
         res = vkBindBufferMemory(vk->device, s_priv->staging_buffer, s_priv->staging_memory, 0);
         if (res != VK_SUCCESS)
-            return NGL_ERROR_MEMORY;
+            return res;
     }
 
-    return 0;
+    return VK_SUCCESS;
 }
 
 void ngli_rendertarget_vk_read_pixels(struct rendertarget *s, uint8_t *data)

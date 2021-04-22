@@ -42,6 +42,7 @@
 #include "gctx_vk.h"
 #include "texture_vk.h"
 #include "type.h"
+#include "vkutils.h"
 
 struct hwupload_vt_darwin {
     struct sxplayer_frame *frame;
@@ -67,13 +68,13 @@ static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *fra
     IOSurfaceRef surface = CVPixelBufferGetIOSurface(cvpixbuf);
     if (!surface) {
         LOG(ERROR, "could not get IOSurface from buffer");
-        return NGL_ERROR_EXTERNAL;
+        return NGL_ERROR_GRAPHICS_GENERIC;
     }
 
     OSType format = IOSurfaceGetPixelFormat(surface);
     if (format != kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange) {
         LOG(ERROR, "unsupported IOSurface format: 0x%x", format);
-        return NGL_ERROR_UNSUPPORTED;
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     for (int i = 0; i < 2; i++) {
@@ -88,7 +89,7 @@ static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *fra
         CVReturn status = CVMetalTextureCacheCreateTextureFromImage(NULL, vt->texture_cache, cvpixbuf, NULL, pixel_format, width, height, i, &texture_ref);
         if (status != kCVReturnSuccess) {
             LOG(ERROR, "unable to create texture from image on plane %d", i);
-            return NGL_ERROR_EXTERNAL;
+            return NGL_ERROR_GRAPHICS_GENERIC;
         }
 
         id<MTLTexture> mtl_texture = CVMetalTextureGetTexture(texture_ref);
@@ -112,28 +113,33 @@ static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *fra
             //.flags         = flags,
         };
 
-        VkResult vkret = vkCreateImage(vk->device, &image_create_info, NULL, &plane_vk->image);
-        if (vkret != VK_SUCCESS)
-            return NGL_ERROR_EXTERNAL;
+        VkResult res = vkCreateImage(vk->device, &image_create_info, NULL, &plane_vk->image);
+        if (res != VK_SUCCESS) {
+            LOG(ERROR, "unable to create image: %s", ngli_vk_res2str(res));
+            CFRelease(texture_ref);
+            return ngli_vk_res2ret(res);
+        }
 
         struct texture_params plane_params = s->params;
         // XXX: format should not be required with a wrap since we do declare them ourselves?
         plane_params.format = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM;
-        //plane_params.usage |= NGLI_TEXTURE_USAGE_ATTACHMENT_ONLY; // XXX: workaround to skip buffer create in texture wrap
         plane_params.type = NGLI_TEXTURE_TYPE_2D;
         plane_params.external_storage = 1;
 
-        int ret = ngli_texture_vk_wrap(vt->planes[i], &plane_params, plane_vk->image, VK_IMAGE_LAYOUT_GENERAL);
-        if (ret < 0)
-            return ret;
-
-        vkret = vkSetMTLTextureMVK(plane_vk->image, mtl_texture);
-        if (vkret != VK_SUCCESS) {
-            LOG(ERROR, "error set mtl texture");
-            return NGL_ERROR_EXTERNAL;
+        res = ngli_texture_vk_wrap(vt->planes[i], &plane_params, plane_vk->image, VK_IMAGE_LAYOUT_GENERAL);
+        if (res != VK_SUCCESS) {
+            LOG(ERROR, "unable to wrap texture: %s", ngli_vk_res2str(res));
+            CFRelease(texture_ref);
+            return ngli_vk_res2ret(res);
         }
 
-        // FIXME: release in error codepath
+        res = vkSetMTLTextureMVK(plane_vk->image, mtl_texture);
+        if (res != VK_SUCCESS) {
+            LOG(ERROR, "error in set mtl texture: %s", ngli_vk_res2str(res));
+            CFRelease(texture_ref);
+            return ngli_vk_res2ret(res);
+        }
+
         CFRelease(texture_ref);
     }
 
@@ -167,18 +173,10 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
 
     CVMetalTextureCacheCreate(NULL, NULL, vt->device, NULL, &vt->texture_cache);
 
-    //struct texture_params plane_params = s->params;
-    //struct texture_params plane_params = NGLI_TEXTURE_PARAM_DEFAULTS;
-
     for (int i = 0; i < 2; i++) {
-
         vt->planes[i] = ngli_texture_create(gctx);
         if (!vt->planes[i])
             return NGL_ERROR_MEMORY;
-
-        //int ret = ngli_texture_init(vt->planes[i], &plane_params);
-        //if (ret < 0)
-        //    return ret;
     }
 
     struct image_params image_params = {

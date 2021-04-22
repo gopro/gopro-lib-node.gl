@@ -158,7 +158,7 @@ static VkColorComponentFlags get_vk_color_write_mask(int color_write_mask)
          | (color_write_mask & NGLI_COLOR_COMPONENT_A_BIT ? VK_COLOR_COMPONENT_A_BIT : 0);
 }
 
-static int build_attribute_descs(struct pipeline *s, const struct pipeline_params *params)
+static VkResult build_attribute_descs(struct pipeline *s, const struct pipeline_params *params)
 {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     struct vkcontext *vk = gctx_vk->vkcontext;
@@ -176,7 +176,7 @@ static int build_attribute_descs(struct pipeline *s, const struct pipeline_param
             .desc = *desc,
         };
         if (!ngli_darray_push(&s_priv->attribute_bindings, &attribute_binding))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         const VkVertexInputBindingDescription binding_desc = {
             .binding   = i,
@@ -184,7 +184,7 @@ static int build_attribute_descs(struct pipeline *s, const struct pipeline_param
             .inputRate = desc->rate ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX,
         };
         if (!ngli_darray_push(&s_priv->vertex_binding_descs, &binding_desc))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         const VkVertexInputAttributeDescription attr_desc = {
             .binding  = i,
@@ -193,23 +193,23 @@ static int build_attribute_descs(struct pipeline *s, const struct pipeline_param
             .offset   = desc->offset,
         };
         if (!ngli_darray_push(&s_priv->vertex_attribute_descs, &attr_desc))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         const VkBuffer buffer = VK_NULL_HANDLE;
         if (!ngli_darray_push(&s_priv->vertex_buffers, &buffer))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         const VkDeviceSize offset = 0;
         if (!ngli_darray_push(&s_priv->vertex_offsets, &offset))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
     }
     s_priv->nb_unbound_attributes = params->nb_attributes;
 
-    return 0;
+    return VK_SUCCESS;
 }
 
-static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_params *params)
+static VkResult pipeline_graphics_init(struct pipeline *s, const struct pipeline_params *params)
 {
     const struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     const struct vkcontext *vk = gctx_vk->vkcontext;
@@ -217,9 +217,9 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
     const struct graphicstate *state = &graphics->state;
     struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
 
-    int ret = build_attribute_descs(s, params);
-    if (ret < 0)
-        return ret;
+    VkResult res = build_attribute_descs(s, params);
+    if (res != VK_SUCCESS)
+        return res;
 
     const VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = {
         .sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -345,9 +345,9 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
     };
 
     VkRenderPass render_pass = VK_NULL_HANDLE;
-    ret = ngli_vk_create_compatible_renderpass(s->gctx, &graphics->rt_desc, &render_pass);
-    if (ret < 0)
-        return ret;
+    res = ngli_vk_create_compatible_renderpass(s->gctx, &graphics->rt_desc, &render_pass);
+    if (res != VK_SUCCESS)
+        return res;
 
     const VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {
         .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -365,17 +365,14 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
         .renderPass          = render_pass,
         .subpass             = 0,
     };
-    VkResult res = vkCreateGraphicsPipelines(vk->device, NULL, 1, &graphics_pipeline_create_info, NULL, &s_priv->pipeline);
+    res = vkCreateGraphicsPipelines(vk->device, NULL, 1, &graphics_pipeline_create_info, NULL, &s_priv->pipeline);
 
     vkDestroyRenderPass(vk->device, render_pass, NULL);
 
-    if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
-
-    return 0;
+    return res;
 }
 
-static int pipeline_compute_init(struct pipeline *s)
+static VkResult pipeline_compute_init(struct pipeline *s)
 {
     const struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     const struct vkcontext *vk = gctx_vk->vkcontext;
@@ -395,11 +392,7 @@ static int pipeline_compute_init(struct pipeline *s)
         .layout = s_priv->pipeline_layout,
     };
 
-    VkResult res = vkCreateComputePipelines(vk->device, NULL, 1, &compute_pipeline_create_info, NULL, &s_priv->pipeline);
-    if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
-
-    return 0;
+    return  vkCreateComputePipelines(vk->device, NULL, 1, &compute_pipeline_create_info, NULL, &s_priv->pipeline);
 }
 
 static const VkShaderStageFlags stage_flag_map[] = {
@@ -440,7 +433,7 @@ static VkImageLayout get_image_layout(int type)
     return image_layout;
 }
 
-static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipeline_params *params)
+static VkResult create_desc_set_layout_bindings(struct pipeline *s, const struct pipeline_params *params)
 {
     const struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     const struct vkcontext *vk = gctx_vk->vkcontext;
@@ -469,13 +462,13 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
             .stageFlags      = stage_flag_map[desc->stage],
         };
         if (!ngli_darray_push(&s_priv->desc_set_layout_bindings, &binding))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         struct buffer_binding buffer_binding = {
             .desc = *desc,
         };
         if (!ngli_darray_push(&s_priv->buffer_bindings, &buffer_binding))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         desc_pool_size_map[desc->type].descriptorCount += gctx_vk->nb_in_flight_frames;
     }
@@ -491,13 +484,13 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
             .stageFlags      = stage_flag_map[desc->stage],
         };
         if (!ngli_darray_push(&s_priv->desc_set_layout_bindings, &binding))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         const struct texture_binding texture_binding = {
             .desc = *desc,
         };
         if (!ngli_darray_push(&s_priv->texture_bindings, &texture_binding))
-            return NGL_ERROR_MEMORY;
+            return VK_ERROR_OUT_OF_HOST_MEMORY;
 
         desc_pool_size_map[desc->type].descriptorCount += gctx_vk->nb_in_flight_frames;
     }
@@ -510,7 +503,7 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
         }
     }
     if (!nb_desc_pool_sizes)
-        return 0;
+        return VK_SUCCESS;
 
     const VkDescriptorPoolCreateInfo descriptor_pool_create_info = {
         .sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -521,7 +514,7 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
 
     VkResult res = vkCreateDescriptorPool(vk->device, &descriptor_pool_create_info, NULL, &s_priv->desc_pool);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
     const VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {
         .sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -531,11 +524,11 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
 
     res = vkCreateDescriptorSetLayout(vk->device, &descriptor_set_layout_create_info, NULL, &s_priv->desc_set_layout);
     if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
+        return res;
 
     VkDescriptorSetLayout *desc_set_layouts = ngli_calloc(gctx_vk->nb_in_flight_frames, sizeof(*desc_set_layouts));
     if (!desc_set_layouts)
-        return NGL_ERROR_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
 
     for (int i = 0; i < gctx_vk->nb_in_flight_frames; i++)
         desc_set_layouts[i] = s_priv->desc_set_layout;
@@ -550,20 +543,20 @@ static int create_desc_set_layout_bindings(struct pipeline *s, const struct pipe
     s_priv->desc_sets = ngli_calloc(gctx_vk->nb_in_flight_frames, sizeof(*s_priv->desc_sets));
     if (!s_priv->desc_sets) {
         ngli_free(desc_set_layouts);
-        return NGL_ERROR_MEMORY;
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
     }
 
     res = vkAllocateDescriptorSets(vk->device, &descriptor_set_allocate_info, s_priv->desc_sets);
     if (res != VK_SUCCESS) {
         ngli_free(desc_set_layouts);
-        return NGL_ERROR_EXTERNAL;
+        return res;
     }
 
     ngli_free(desc_set_layouts);
-    return 0;
+    return VK_SUCCESS;
 }
 
-static int create_pipeline_layout(struct pipeline *s)
+static VkResult create_pipeline_layout(struct pipeline *s)
 {
     struct gctx_vk *gctx_vk = (struct gctx_vk *)s->gctx;
     struct vkcontext *vk = gctx_vk->vkcontext;
@@ -575,11 +568,7 @@ static int create_pipeline_layout(struct pipeline *s)
         .pSetLayouts    = &s_priv->desc_set_layout,
     };
 
-    VkResult res = vkCreatePipelineLayout(vk->device, &pipeline_layout_create_info, NULL, &s_priv->pipeline_layout);
-    if (res != VK_SUCCESS)
-        return NGL_ERROR_EXTERNAL;
-
-    return 0;
+    return vkCreatePipelineLayout(vk->device, &pipeline_layout_create_info, NULL, &s_priv->pipeline_layout);
 }
 
 static int set_uniforms(struct pipeline *s)
@@ -607,7 +596,7 @@ struct pipeline *ngli_pipeline_vk_create(struct gctx *gctx)
     return (struct pipeline *)s;
 }
 
-int ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *params)
+VkResult ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_vk *s_priv = (struct pipeline_vk *)s;
 
@@ -619,26 +608,27 @@ int ngli_pipeline_vk_init(struct pipeline *s, const struct pipeline_params *para
     ngli_darray_init(&s_priv->buffer_bindings,  sizeof(struct buffer_binding), 0);
     ngli_darray_init(&s_priv->attribute_bindings, sizeof(struct attribute_binding), 0);
 
-    int ret;
-    if ((ret = create_desc_set_layout_bindings(s, params)) < 0)
-        return ret;
+    VkResult res = create_desc_set_layout_bindings(s, params);
+    if (res != VK_SUCCESS)
+        return res;
 
-    if ((ret = create_pipeline_layout(s)) < 0)
-        return ret;
+    res = create_pipeline_layout(s);
+    if (res != VK_SUCCESS)
+        return res;
 
     if (params->type == NGLI_PIPELINE_TYPE_GRAPHICS) {
-        ret = pipeline_graphics_init(s, params);
-        if (ret < 0)
-            return ret;
+        res = pipeline_graphics_init(s, params);
+        if (res != VK_SUCCESS)
+            return res;
     } else if (params->type == NGLI_PIPELINE_TYPE_COMPUTE) {
-        ret = pipeline_compute_init(s);
-        if (ret < 0)
-            return ret;
+        res = pipeline_compute_init(s);
+        if (res != VK_SUCCESS)
+            return res;
     } else {
         ngli_assert(0);
     }
 
-    return 0;
+    return VK_SUCCESS;
 }
 
 int ngli_pipeline_vk_set_resources(struct pipeline *s, const struct pipeline_resource_params *params)

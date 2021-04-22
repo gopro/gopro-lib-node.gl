@@ -42,6 +42,7 @@
 #include "memory.h"
 #include "nodegl.h"
 #include "vkcontext.h"
+#include "vkutils.h"
 
 
 #ifdef DEBUG_VK
@@ -558,9 +559,9 @@ static VkResult create_device(struct vkcontext *s)
         .ppEnabledExtensionNames = my_device_extension_names,
         .pEnabledFeatures        = &dev_features,
     };
-    VkResult ret = vkCreateDevice(s->phy_device, &device_create_info, NULL, &s->device);
-    if (ret != VK_SUCCESS)
-        return ret;
+    VkResult res = vkCreateDevice(s->phy_device, &device_create_info, NULL, &s->device);
+    if (res != VK_SUCCESS)
+        return res;
 
     vkGetDeviceQueue(s->device, s->graphics_queue_index, 0, &s->graphic_queue);
     if (s->present_queue_index != -1)
@@ -667,41 +668,45 @@ struct vkcontext *ngli_vkcontext_create(void)
     return s;
 }
 
-int ngli_vkcontext_init(struct vkcontext *s, const struct ngl_config *config)
+VkResult ngli_vkcontext_init(struct vkcontext *s, const struct ngl_config *config)
 {
     VkResult res = create_instance(s, config->platform);
-    if (res != VK_SUCCESS)
-        return -1; // XXX
+    if (res != VK_SUCCESS) {
+        LOG(ERROR, "failed to create instance: %s", ngli_vk_res2str(res));
+        return res;
+    }
 
     res = create_window_surface(s, config);
-    if (res != VK_SUCCESS)
-        return -1;
+    if (res != VK_SUCCESS) {
+        LOG(ERROR, "failed to create window surface: %s", ngli_vk_res2str(res));
+        return res;
+    }
 
     res = enumerate_physical_devices(s, config);
     if (res != VK_SUCCESS)
-        return -1;
+        return res;
 
     res = select_physical_device(s, config);
     if (res != VK_SUCCESS)
-        return -1;
+        return res;
 
     res = enumerate_extensions(s);
     if (res != VK_SUCCESS)
-        return -1;
+        return res;
 
     res = create_device(s);
     if (res != VK_SUCCESS)
-        return -1;
+        return res;
 
     res = query_swapchain_support(s);
     if (res != VK_SUCCESS)
-        return -1;
+        return res;
 
     res = select_preferred_formats(s);
     if (res != VK_SUCCESS)
-        return -1;
+        return res;
 
-    return 0;
+    return VK_SUCCESS;
 }
 
 void *ngli_vkcontext_get_proc_addr(struct vkcontext *s, const char *name)

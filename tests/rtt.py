@@ -241,7 +241,7 @@ def rtt_load_attachment_nested(cfg):
     return ngl.Group(children=(rtt, foreground))
 
 
-@test_fingerprint(width=512, height=512, nb_keyframes=10)
+@test_fingerprint(width=512, height=512, nb_keyframes=10, tolerance=3)
 @scene()
 def rtt_clear_attachment_with_timeranges(cfg):
     cfg.aspect_ratio = (1, 1)

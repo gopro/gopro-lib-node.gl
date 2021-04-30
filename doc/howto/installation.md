@@ -37,9 +37,9 @@ building and running the complete `node.gl` stack.
   Installer and make sure to select the option to add Graphviz to the system
   `PATH` during its installation
 - Install [Microsoft Visual
-  Studio](https://visualstudio.microsoft.com/downloads/) Community 2019 or
-  greater and make sure the *Desktop development with C++* is included (it
-  should enable MSVC build tools and Windows 10 SDK).
+  Studio](https://visualstudio.microsoft.com/downloads/) and make sure the
+  *Desktop development with C++* is included (it should enable MSVC build tools
+  and Windows 10 SDK).
 - Download and extract [Vcpkg](https://github.com/microsoft/vcpkg) in
   `C:\vcpkg`, then from Windows PowerShell:
     ```shell

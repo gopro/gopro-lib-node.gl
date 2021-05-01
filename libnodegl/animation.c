@@ -56,7 +56,7 @@ int ngli_animation_evaluate(struct animation *s, void *dst, double t)
 
         double tnorm = NGLI_LINEAR_INTERP(t0, t1, t);
         if (kf1->scale_boundaries)
-            tnorm = (kf1->offsets[1] - kf1->offsets[0]) * tnorm + kf1->offsets[0];
+            tnorm = NGLI_MIX(kf1->offsets[0], kf1->offsets[1], tnorm);
         double ratio = kf1->function(tnorm, kf1->nb_args, kf1->args);
         if (kf1->scale_boundaries)
             ratio = NGLI_LINEAR_INTERP(kf1->boundaries[0], kf1->boundaries[1], ratio);

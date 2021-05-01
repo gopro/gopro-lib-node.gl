@@ -229,35 +229,13 @@ static easing_type elastic_out(easing_type t, int args_nb, const easing_type *ar
 
 /* Back */
 
-static easing_type back_in(easing_type t, int args_nb, const easing_type *args)
+static easing_type back_func(easing_type t, easing_type s)
 {
-    const easing_type s = DEFAULT_PARAMETER(0, 1.70158);
     return t * t * ((s + 1.0) * t - s);
 }
 
-static easing_type back_out(easing_type t, int args_nb, const easing_type *args)
-{
-    const easing_type s = DEFAULT_PARAMETER(0, 1.70158);
-    t -= 1.0;
-    return t * t * ((s + 1.0) * t + s) + 1.0;
-}
+DECLARE_EASINGS(back, , back_func(x, DEFAULT_PARAMETER(0, 1.70158)))
 
-static easing_type back_in_out(easing_type t, int args_nb, const easing_type *args)
-{
-    const easing_type s = DEFAULT_PARAMETER(0, 1.70158);
-    t *= 2.0;
-    if (t < 1.0)
-        return t * t * ((s + 1.0) * t - s) / 2.0;
-    t -= 2.0;
-    return (t * t * ((s + 1.0) * t + s) + 2.0) / 2.0;
-}
-
-static easing_type back_out_in(easing_type t, int args_nb, const easing_type *args)
-{
-    if (t < 0.5)
-        return back_out(2.0 * t, args_nb, args) / 2.0;
-    return (back_in(2.0 * t - 1.0, args_nb, args) + 1.0) / 2.0;
-}
 
 static const struct {
     easing_function function;

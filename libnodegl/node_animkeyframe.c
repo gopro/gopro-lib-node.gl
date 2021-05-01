@@ -126,7 +126,7 @@ DECLARE_EASING(base_name##suffix, base_name##_out_in##suffix,   TRANSFORM_OUT_IN
 DECLARE_EASINGS(base_name,            , direct_function)                                    \
 DECLARE_EASINGS(base_name, _resolution, resolution_function)
 
-#define DEFAULT_PARAMETER(index, default_value) (args_nb > index ? args[index] : default_value)
+#define PARAM(index, default_value) (args_nb > index ? args[index] : default_value)
 
 
 /* Linear */
@@ -147,7 +147,7 @@ DECLARE_EASINGS_WITH_RESOLUTIONS(cubic,     x * x * x,          pow(x, 1.0 / 3.0
 DECLARE_EASINGS_WITH_RESOLUTIONS(quartic,   x * x * x * x,      pow(x, 1.0 / 4.0))
 DECLARE_EASINGS_WITH_RESOLUTIONS(quintic,   x * x * x * x * x,  pow(x, 1.0 / 5.0))
 
-DECLARE_EASINGS_WITH_RESOLUTIONS(power, pow(x, DEFAULT_PARAMETER(0, 1.0)), pow(x, 1.0 / DEFAULT_PARAMETER(0, 1.0)))
+DECLARE_EASINGS_WITH_RESOLUTIONS(power, pow(x, PARAM(0, 1.0)), pow(x, 1.0 / PARAM(0, 1.0)))
 
 DECLARE_EASINGS_WITH_RESOLUTIONS(sinus, 1.0 - cos(x * M_PI / 2.0), acos(1.0 - x) / M_PI * 2.0)
 DECLARE_EASINGS_WITH_RESOLUTIONS(circular, 1.0 - sqrt(1.0 - x * x), sqrt(x*(2.0 - x)))
@@ -165,7 +165,7 @@ static inline easing_type exp_resolution_func(easing_type x, easing_type exp_bas
     return log2(x * (exp_base - 1.0) + 1.0) / log2(exp_base);
 }
 
-DECLARE_EASINGS_WITH_RESOLUTIONS(exp, exp_func(x, DEFAULT_PARAMETER(0, 1024.0)), exp_resolution_func(x, DEFAULT_PARAMETER(0, 1024.0)))
+DECLARE_EASINGS_WITH_RESOLUTIONS(exp, exp_func(x, PARAM(0, 1024.0)), exp_resolution_func(x, PARAM(0, 1024.0)))
 
 
 /* Bounce */
@@ -190,13 +190,13 @@ static easing_type bounce_helper(easing_type t, easing_type a)
 
 static easing_type bounce_in(easing_type t, int args_nb, const easing_type *args)
 {
-    const easing_type a = DEFAULT_PARAMETER(0, 1.70158);
+    const easing_type a = PARAM(0, 1.70158);
     return 1.0 - bounce_helper(1.0 - t, a);
 }
 
 static easing_type bounce_out(easing_type t, int args_nb, const easing_type *args)
 {
-    const easing_type a = DEFAULT_PARAMETER(0, 1.70158);
+    const easing_type a = PARAM(0, 1.70158);
     return bounce_helper(t, a);
 }
 
@@ -209,8 +209,8 @@ static easing_type elastic_in(easing_type t, int args_nb, const easing_type *arg
         return 0.0;
     if (t >= 1.0)
         return 1.0;
-    easing_type a = DEFAULT_PARAMETER(0, 0.1); // amplitude
-    const easing_type p = DEFAULT_PARAMETER(1, 0.25); // period
+    easing_type a = PARAM(0, 0.1); // amplitude
+    const easing_type p = PARAM(1, 0.25); // period
     easing_type s;
     if (a < 1.0) {
         a = 1.0;
@@ -234,7 +234,7 @@ static easing_type back_func(easing_type t, easing_type s)
     return t * t * ((s + 1.0) * t - s);
 }
 
-DECLARE_EASINGS(back, , back_func(x, DEFAULT_PARAMETER(0, 1.70158)))
+DECLARE_EASINGS(back, , back_func(x, PARAM(0, 1.70158)))
 
 
 static const struct {

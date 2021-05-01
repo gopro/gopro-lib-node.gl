@@ -223,20 +223,7 @@ static easing_type elastic_in(easing_type t, int args_nb, const easing_type *arg
 
 static easing_type elastic_out(easing_type t, int args_nb, const easing_type *args)
 {
-    if (t <= 0.0)
-        return 0.0;
-    if (t >= 1.0)
-        return 1.0;
-    easing_type a = DEFAULT_PARAMETER(0, 0.1); // amplitude
-    const easing_type p = DEFAULT_PARAMETER(1, 0.25); // period
-    easing_type s;
-    if (a < 1.0) {
-        a = 1.0;
-        s = p / 4.0;
-    } else {
-        s = p / (2.0 * M_PI) * asin(1.0 / a);
-    }
-    return a * exp2(-10.0 * t) * sin((t - s) * (2 * M_PI) / p) + 1.0;
+    return TRANSFORM_OUT(elastic_in, t);
 }
 
 

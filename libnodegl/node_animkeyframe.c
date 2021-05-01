@@ -284,6 +284,24 @@ static const struct {
     [EASING_BACK_OUT_IN]      = {back_out_in,            NULL},
 };
 
+static int check_offsets(double x0, double x1)
+{
+    if (x0 >= x1 || x0 < 0.0 || x1 > 1.0) {
+        LOG(ERROR, "Truncation offsets must met the following requirements: 0 <= off0 < off1 <= 1");
+        return NGL_ERROR_INVALID_ARG;
+    }
+    return 0;
+}
+
+static int check_boundaries(double y0, double y1)
+{
+    if (y0 == y1) {
+        LOG(ERROR, "Boundaries (as defined by the offsets) can not be identical");
+        return NGL_ERROR_UNSUPPORTED;
+    }
+    return 0;
+}
+
 static int animkeyframe_init(struct ngl_node *node)
 {
     struct animkeyframe_priv *s = node->priv_data;
@@ -321,10 +339,21 @@ static int animkeyframe_init(struct ngl_node *node)
     s->function   = easings[easing_id].function;
     s->resolution = easings[easing_id].resolution;
 
-    if (s->offsets[0] || s->offsets[1] != 1.0) {
+    const double x0 = s->offsets[0];
+    const double x1 = s->offsets[1];
+    if (x0 || x1 != 1.0) {
+        int ret = check_offsets(x0, x1);
+        if (ret < 0)
+            return ret;
         s->scale_boundaries = 1;
-        s->boundaries[0] = s->function(s->offsets[0], s->nb_args, s->args);
-        s->boundaries[1] = s->function(s->offsets[1], s->nb_args, s->args);
+
+        const double y0 = s->function(x0, s->nb_args, s->args);
+        const double y1 = s->function(x1, s->nb_args, s->args);
+        ret = check_boundaries(y0, y1);
+        if (ret < 0)
+            return ret;
+        s->boundaries[0] = y0;
+        s->boundaries[1] = y1;
     }
 
     return 0;
@@ -376,13 +405,20 @@ int ngl_easing_evaluate(const char *name, double *args, int nb_args,
     int ret = ngli_params_get_select_val(easing_choices.consts, name, &easing_id);
     if (ret < 0)
         return ret;
-    if (offsets)
+    if (offsets) {
+        ret = check_offsets(offsets[0], offsets[1]);
+        if (ret < 0)
+            return ret;
         t = NGLI_MIX(offsets[0], offsets[1], t);
+    }
     const easing_function eval_func = easings[easing_id].function;
     double value = eval_func(t, nb_args, args);
     if (offsets) {
         const double start_value = eval_func(offsets[0], nb_args, args);
         const double end_value   = eval_func(offsets[1], nb_args, args);
+        ret = check_boundaries(start_value, end_value);
+        if (ret < 0)
+            return ret;
         value = NGLI_LINEAR_INTERP(start_value, end_value, value);
     }
     *v = value;
@@ -401,9 +437,15 @@ int ngl_easing_solve(const char *name, double *args, int nb_args,
         return NGL_ERROR_UNSUPPORTED;
     }
     if (offsets) {
+        ret = check_offsets(offsets[0], offsets[1]);
+        if (ret < 0)
+            return ret;
         const easing_function eval_func = easings[easing_id].function;
         const double start_value = eval_func(offsets[0], nb_args, args);
         const double end_value   = eval_func(offsets[1], nb_args, args);
+        ret = check_boundaries(start_value, end_value);
+        if (ret < 0)
+            return ret;
         v = NGLI_MIX(start_value, end_value, v);
     }
     double time = easings[easing_id].resolution(v, nb_args, args);

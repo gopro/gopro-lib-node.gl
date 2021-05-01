@@ -218,8 +218,7 @@ static easing_type elastic_in(easing_type t, int args_nb, const easing_type *arg
     } else {
         s = p / (2.0 * M_PI) * asin(1.0 / a);
     }
-    t -= 1.0;
-    return -a * exp2(10.0 * t) * sin((-t - s) * (2.0 * M_PI) / p);
+    return -a * exp2(10.0 * (t - 1.0)) * sin((1.0 - t - s) * (2.0 * M_PI) / p);
 }
 
 static easing_type elastic_out(easing_type t, int args_nb, const easing_type *args)

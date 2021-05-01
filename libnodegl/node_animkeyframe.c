@@ -98,12 +98,10 @@ ANIMKEYFRAME_PARAMS(buffer, data, NGLI_PARAM_TYPE_DATA, data);
 #define log2(x)  (log(x) / log(2))
 #endif
 
-#define TRANSFORM_IN(f, x)     f((x), args_nb, args)
-#define TRANSFORM_OUT(f, x)    (1.0 - f(1.0 - (x), args_nb, args))
-#define TRANSFORM_IN_OUT(f, x) ((x) < 0.5 ? f(2.0 * (x), args_nb, args) / 2.0 \
-                                          : 1.0 - f(2.0 * (1.0 - (x)), args_nb, args) / 2.0)
-#define TRANSFORM_OUT_IN(f, x) ((x) < 0.5 ? (1.0 - f(1.0 - 2.0 * (x), args_nb, args)) / 2.0 \
-                                          : (1.0 + f(2.0 * (x) - 1.0, args_nb, args)) / 2.0)
+#define TRANSFORM_IN(f, x)     f(x, args_nb, args)
+#define TRANSFORM_OUT(f, x)    (1.0 - TRANSFORM_IN(f, 1.0 - (x)))
+#define TRANSFORM_IN_OUT(f, x) (((x) < 0.5 ? TRANSFORM_IN(f,  2.0 * (x)) : TRANSFORM_OUT(f, 2.0 * (x) - 1.0) + 1.0) / 2.0)
+#define TRANSFORM_OUT_IN(f, x) (((x) < 0.5 ? TRANSFORM_OUT(f, 2.0 * (x)) : TRANSFORM_IN(f,  2.0 * (x) - 1.0) + 1.0) / 2.0)
 
 #define DECLARE_EASING(base_name, name, transform)                            \
 static easing_type name(easing_type x, int args_nb, const easing_type *args)  \

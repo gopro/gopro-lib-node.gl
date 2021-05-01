@@ -170,34 +170,34 @@ DECLARE_EASINGS_WITH_RESOLUTIONS(exp, exp_func(x, DEFAULT_PARAMETER(0, 1024.0)),
 
 /* Bounce */
 
-static easing_type bounce_helper(easing_type t, easing_type c, easing_type a)
+static easing_type bounce_helper(easing_type t, easing_type a)
 {
     if (t == 1.0) {
-        return c;
+        return 1.0;
     } else if (t < 4.0 / 11.0) {
-        return c * (7.5625 * t * t);
+        return 7.5625 * t * t;
     } else if (t < 8.0 / 11.0) {
         t -= 6.0 / 11.0;
-        return -a * (1.0 - (7.5625 * t * t + 0.75)) + c;
+        return -a * (1.0 - (7.5625 * t * t + 0.75)) + 1.0;
     } else if (t < 10.0 / 11.0) {
         t -= 9.0 / 11.0;
-        return -a * (1.0 - (7.5625 * t * t + 0.9375)) + c;
+        return -a * (1.0 - (7.5625 * t * t + 0.9375)) + 1.0;
     } else {
         t -= 21.0 / 22.0;
-        return -a * (1.0 - (7.5625 * t * t + 0.984375)) + c;
+        return -a * (1.0 - (7.5625 * t * t + 0.984375)) + 1.0;
     }
 }
 
 static easing_type bounce_in(easing_type t, int args_nb, const easing_type *args)
 {
     const easing_type a = DEFAULT_PARAMETER(0, 1.70158);
-    return 1.0 - bounce_helper(1.0 - t, 1.0, a);
+    return 1.0 - bounce_helper(1.0 - t, a);
 }
 
 static easing_type bounce_out(easing_type t, int args_nb, const easing_type *args)
 {
     const easing_type a = DEFAULT_PARAMETER(0, 1.70158);
-    return bounce_helper(t, 1.0, a);
+    return bounce_helper(t, a);
 }
 
 

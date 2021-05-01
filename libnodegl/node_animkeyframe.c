@@ -98,17 +98,17 @@ ANIMKEYFRAME_PARAMS(buffer, data, NGLI_PARAM_TYPE_DATA, data);
 #define log2(x)  (log(x) / log(2))
 #endif
 
-#define TRANSFORM_IN(function) function(x, args_nb, args)
-#define TRANSFORM_OUT(function) (1.0 - function(1.0 - x, args_nb, args))
-#define TRANSFORM_IN_OUT(function) (x < 0.5 ? function(2.0 * x, args_nb, args) / 2.0 \
-                                            : 1.0 - function(2.0 * (1.0 - x), args_nb, args) / 2.0)
-#define TRANSFORM_OUT_IN(function) (x < 0.5 ? (1.0 - function(1.0 - 2.0 * x, args_nb, args)) / 2.0 \
-                                            : (1.0 + function(2.0 * x - 1.0, args_nb, args)) / 2.0)
+#define TRANSFORM_IN(function, x)     function((x), args_nb, args)
+#define TRANSFORM_OUT(function, x)    (1.0 - function(1.0 - (x), args_nb, args))
+#define TRANSFORM_IN_OUT(function, x) ((x) < 0.5 ? function(2.0 * (x), args_nb, args) / 2.0 \
+                                                 : 1.0 - function(2.0 * (1.0 - (x)), args_nb, args) / 2.0)
+#define TRANSFORM_OUT_IN(function, x) ((x) < 0.5 ? (1.0 - function(1.0 - 2.0 * (x), args_nb, args)) / 2.0 \
+                                                 : (1.0 + function(2.0 * (x) - 1.0, args_nb, args)) / 2.0)
 
 #define DECLARE_EASING(base_name, name, transform)                            \
 static easing_type name(easing_type x, int args_nb, const easing_type *args)  \
 {                                                                             \
-    return transform(base_name##_helper);                                     \
+    return transform(base_name##_helper, x);                                  \
 }
 
 #define DECLARE_HELPER(base_name, formula)                                                        \

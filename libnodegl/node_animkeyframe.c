@@ -446,7 +446,7 @@ int ngl_easing_solve(const char *name, double *args, int nb_args,
     }
     double time = easings[easing_id].resolution(v, nb_args, args);
     if (offsets)
-        time = (time - offsets[0]) / (offsets[1] - offsets[0]);
+        time = NGLI_LINEAR_INTERP(offsets[0], offsets[1], time);
     *t = time;
     return 0;
 }

@@ -170,7 +170,7 @@ def anim_resolution_api(nb_points=7):
     return ret
 
 
-def _get_anim_func(size, animated_type, kf_func):
+def _get_anim_func(size, animated_type, kf_func, velocity_type=None):
 
     @test_floats()
     def test_func():
@@ -194,6 +194,8 @@ def _get_anim_func(size, animated_type, kf_func):
                                        easing_start_offset=easing_start_offset,
                                        easing_end_offset=easing_end_offset))
             anim = animated_type(anim_kf)
+            if velocity_type is not None:
+                anim = velocity_type(anim)
 
             # Query between times
             values = [anim.evaluate((t_id + 1) * scale) for t_id in range(nb_queries)]
@@ -223,3 +225,8 @@ anim_forward_vec2  = _get_anim_func(2, ngl.AnimatedVec2,  _vec2_kf_func)
 anim_forward_vec3  = _get_anim_func(3, ngl.AnimatedVec3,  _vec3_kf_func)
 anim_forward_vec4  = _get_anim_func(4, ngl.AnimatedVec4,  _vec4_kf_func)
 anim_forward_quat  = _get_anim_func(4, ngl.AnimatedQuat,  _quat_kf_func)
+
+anim_velocity_float = _get_anim_func(1, ngl.AnimatedFloat, _float_kf_func, velocity_type=ngl.VelocityFloat)
+anim_velocity_vec2  = _get_anim_func(2, ngl.AnimatedVec2,  _vec2_kf_func,  velocity_type=ngl.VelocityVec2)
+anim_velocity_vec3  = _get_anim_func(3, ngl.AnimatedVec3,  _vec3_kf_func,  velocity_type=ngl.VelocityVec3)
+anim_velocity_vec4  = _get_anim_func(4, ngl.AnimatedVec4,  _vec4_kf_func,  velocity_type=ngl.VelocityVec4)

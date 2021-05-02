@@ -267,6 +267,10 @@ cdef class {node}({parent_node}):
                 AnimatedVec3=3,
                 AnimatedVec4=4,
                 AnimatedQuat=4,
+                VelocityFloat=1,
+                VelocityVec2=2,
+                VelocityVec3=3,
+                VelocityVec4=4,
             )
             n = animated_nodes.get(node)
             if n:

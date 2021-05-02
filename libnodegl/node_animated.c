@@ -169,6 +169,12 @@ static ngli_animation_cpy_func_type get_cpy_func(int node_class)
 
 int ngl_anim_evaluate(struct ngl_node *node, void *dst, double t)
 {
+    if (node->cls->id == NGL_NODE_VELOCITYFLOAT ||
+        node->cls->id == NGL_NODE_VELOCITYVEC2 ||
+        node->cls->id == NGL_NODE_VELOCITYVEC3 ||
+        node->cls->id == NGL_NODE_VELOCITYVEC4)
+        return ngli_velocity_evaluate(node, dst, t);
+
     if (node->cls->id != NGL_NODE_ANIMATEDFLOAT &&
         node->cls->id != NGL_NODE_ANIMATEDVEC2 &&
         node->cls->id != NGL_NODE_ANIMATEDVEC3 &&

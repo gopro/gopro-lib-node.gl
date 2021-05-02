@@ -249,6 +249,8 @@ struct variable_priv {
     int last_index;
 };
 
+int ngli_velocity_evaluate(struct ngl_node *node, void *dst, double t);
+
 struct block_priv {
     struct ngl_node **fields;
     int nb_fields;

@@ -59,6 +59,10 @@ foreach backend : backends
     'forward_vec4',
     'forward_quat',
     'derivative_api',
+    'velocity_float',
+    'velocity_vec2',
+    'velocity_vec3',
+    'velocity_vec4',
     'resolution_api',
   ]
 

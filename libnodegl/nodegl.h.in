@@ -637,12 +637,14 @@ NGL_API void ngl_freep(struct ngl_ctx **ss);
  * Evaluate an animation at a given time t.
  *
  * @param anim  the animation node can be any of AnimatedFloat, AnimatedVec2,
- *              AnimatedVec3, or AnimatedVec4
+ *              AnimatedVec3, AnimatedVec4, AnimatedQuat, VelocityFloat,
+ *              VelocityVec2, VelocityVec3 or VelocityVec4
  * @param dst   pointer to the destination for the interpolated value(s), needs
- *              to hold enough space depending on the type of anim
- *              (AnimatedFloat is float[1], AnimatedVec2 is float[2],
- *              AnimatedVec3 is float[3], AnimatedVec4 is float[4],
- *              AnimatedQuat is float[4])
+ *              to hold enough space depending on the type of anim:
+ *              - float[1]: AnimatedFloat, VelocityFloat
+ *              - float[2]: AnimatedVec2, VelocityVec2
+ *              - float[3]: AnimatedVec3, VelocityVec3
+ *              - float[4]: AnimatedVec4, VelocityVec4, AnimatedQuat
  * @param t     the target time at which to interpolate the value(s)
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error

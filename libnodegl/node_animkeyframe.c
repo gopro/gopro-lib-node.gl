@@ -414,12 +414,12 @@ int ngl_easing_evaluate(const char *name, double *args, int nb_args,
     const easing_function eval_func = easings[easing_id].function;
     double value = eval_func(t, nb_args, args);
     if (offsets) {
-        const double start_value = eval_func(offsets[0], nb_args, args);
-        const double end_value   = eval_func(offsets[1], nb_args, args);
-        ret = check_boundaries(start_value, end_value);
+        const double y0 = eval_func(offsets[0], nb_args, args);
+        const double y1 = eval_func(offsets[1], nb_args, args);
+        ret = check_boundaries(y0, y1);
         if (ret < 0)
             return ret;
-        value = NGLI_LINEAR_INTERP(start_value, end_value, value);
+        value = NGLI_LINEAR_INTERP(y0, y1, value);
     }
     *v = value;
     return 0;
@@ -441,12 +441,12 @@ int ngl_easing_solve(const char *name, double *args, int nb_args,
         if (ret < 0)
             return ret;
         const easing_function eval_func = easings[easing_id].function;
-        const double start_value = eval_func(offsets[0], nb_args, args);
-        const double end_value   = eval_func(offsets[1], nb_args, args);
-        ret = check_boundaries(start_value, end_value);
+        const double y0 = eval_func(offsets[0], nb_args, args);
+        const double y1 = eval_func(offsets[1], nb_args, args);
+        ret = check_boundaries(y0, y1);
         if (ret < 0)
             return ret;
-        v = NGLI_MIX(start_value, end_value, v);
+        v = NGLI_MIX(y0, y1, v);
     }
     double time = easings[easing_id].resolution(v, nb_args, args);
     if (offsets)

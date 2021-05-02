@@ -168,7 +168,10 @@ def log_set_min_level(int level):
     ngl_log_set_min_level(level)
 
 
-cdef _eval_solve(name, src, args, offsets, evaluate):
+_ANIM_EVALUATE, _ANIM_SOLVE = range(2)
+
+
+cdef _animate(name, src, args, offsets, mode):
     cdef double c_args[2]
     cdef double *c_args_param = NULL
     cdef int nb_args = 0
@@ -189,24 +192,26 @@ cdef _eval_solve(name, src, args, offsets, evaluate):
 
     cdef double dst
     cdef int ret
-    if evaluate:
+    if mode == _ANIM_EVALUATE:
         ret = ngl_easing_evaluate(name, c_args_param, nb_args, c_offsets_param, src, &dst)
         if ret < 0:
             raise Exception(f'Error evaluating {name}')
-    else:
+    elif mode == _ANIM_SOLVE:
         ret = ngl_easing_solve(name, c_args_param, nb_args, c_offsets_param, src, &dst)
         if ret < 0:
             raise Exception(f'Error solving {name}')
+    else:
+        raise Exception(f'Unknown mode {mode}')
 
     return dst
 
 
 def easing_evaluate(name, t, args=None, offsets=None):
-    return _eval_solve(name, t, args, offsets, True)
+    return _animate(name, t, args, offsets, _ANIM_EVALUATE)
 
 
 def easing_solve(name, v, args=None, offsets=None):
-    return _eval_solve(name, v, args, offsets, False)
+    return _animate(name, v, args, offsets, _ANIM_SOLVE)
 
 
 cdef _set_node_ctx(_Node node, int type):

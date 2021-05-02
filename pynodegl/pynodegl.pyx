@@ -192,11 +192,11 @@ cdef _eval_solve(name, src, args, offsets, evaluate):
     if evaluate:
         ret = ngl_easing_evaluate(name, c_args_param, nb_args, c_offsets_param, src, &dst)
         if ret < 0:
-            raise Exception("Error evaluating %s" % name)
+            raise Exception(f'Error evaluating {name}')
     else:
         ret = ngl_easing_solve(name, c_args_param, nb_args, c_offsets_param, src, &dst)
         if ret < 0:
-            raise Exception("Error solving %s" % name)
+            raise Exception(f'Error solving {name}')
 
     return dst
 

@@ -506,6 +506,34 @@ int ngl_easing_evaluate(const char *name, const double *args, int nb_args,
     return 0;
 }
 
+int ngl_easing_derivate(const char *name, const double *args, int nb_args,
+                        const double *offsets, double t, double *v)
+{
+    int easing_id;
+    int ret = ngli_params_get_select_val(easing_choices.consts, name, &easing_id);
+    if (ret < 0)
+        return ret;
+    if (offsets) {
+        ret = check_offsets(offsets[0], offsets[1]);
+        if (ret < 0)
+            return ret;
+        t = NGLI_MIX(offsets[0], offsets[1], t);
+    }
+    const easing_function derivative_func = easings[easing_id].derivative;
+    double value = derivative_func(t, nb_args, args);
+    if (offsets) {
+        const easing_function eval_func = easings[easing_id].function;
+        const double y0 = eval_func(offsets[0], nb_args, args);
+        const double y1 = eval_func(offsets[1], nb_args, args);
+        ret = check_boundaries(y0, y1);
+        if (ret < 0)
+            return ret;
+        value *= (offsets[1] - offsets[0]) / (y1 - y0);
+    }
+    *v = value;
+    return 0;
+}
+
 int ngl_easing_solve(const char *name, const double *args, int nb_args,
                      const double *offsets, double v, double *t)
 {

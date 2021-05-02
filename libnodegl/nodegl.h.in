@@ -678,6 +678,21 @@ NGL_API int ngl_easing_solve(const char *name, const double *args, int nb_args,
                              const double *offsets, double v, double *t);
 
 /**
+ * Derivate an easing for a given time t.
+ *
+ * @param name      the easing name
+ * @param args      a list of arguments some easings may use, can be NULL
+ * @param nb_args   number of arguments in args
+ * @param offsets   starting and ending offset of the truncation of the easing, can be NULL or point to two doubles
+ * @param t         the target time
+ * @param v         pointer for the resulting derivative value
+ *
+ * @return 0 on success, NGL_ERROR_* (< 0) on error
+ */
+NGL_API int ngl_easing_derivate(const char *name, const double *args, int nb_args,
+                                const double *offsets, double t, double *v);
+
+/**
  * Android
  */
 

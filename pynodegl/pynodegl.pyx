@@ -123,6 +123,8 @@ cdef extern from "nodegl.h":
 
     int ngl_easing_evaluate(const char *name, const double *args, int nb_args,
                             const double *offsets, double t, double *v)
+    int ngl_easing_derivate(const char *name, const double *args, int nb_args,
+                            const double *offsets, double t, double *v)
     int ngl_easing_solve(const char *name, const double *args, int nb_args,
                          const double *offsets, double v, double *t)
 
@@ -168,7 +170,7 @@ def log_set_min_level(int level):
     ngl_log_set_min_level(level)
 
 
-_ANIM_EVALUATE, _ANIM_SOLVE = range(2)
+_ANIM_EVALUATE, _ANIM_DERIVATE, _ANIM_SOLVE = range(3)
 
 
 cdef _animate(name, src, args, offsets, mode):
@@ -196,6 +198,10 @@ cdef _animate(name, src, args, offsets, mode):
         ret = ngl_easing_evaluate(name, c_args_param, nb_args, c_offsets_param, src, &dst)
         if ret < 0:
             raise Exception(f'Error evaluating {name}')
+    elif mode == _ANIM_DERIVATE:
+        ret = ngl_easing_derivate(name, c_args_param, nb_args, c_offsets_param, src, &dst)
+        if ret < 0:
+            raise Exception(f'Error derivating {name}')
     elif mode == _ANIM_SOLVE:
         ret = ngl_easing_solve(name, c_args_param, nb_args, c_offsets_param, src, &dst)
         if ret < 0:
@@ -208,6 +214,10 @@ cdef _animate(name, src, args, offsets, mode):
 
 def easing_evaluate(name, t, args=None, offsets=None):
     return _animate(name, t, args, offsets, _ANIM_EVALUATE)
+
+
+def easing_derivate(name, t, args=None, offsets=None):
+    return _animate(name, t, args, offsets, _ANIM_DERIVATE)
 
 
 def easing_solve(name, v, args=None, offsets=None):

@@ -87,6 +87,72 @@ def anim_forward_api(nb_points=7):
     return ret
 
 
+def _approx_derivative(easing_name, t, easing_args, offsets):
+    delta = 1e-10
+    t0 = max(0, t - delta)
+    t1 = min(1, t + delta)
+    y0 = ngl.easing_evaluate(easing_name, t0, easing_args, offsets)
+    y1 = ngl.easing_evaluate(easing_name, t1, easing_args, offsets)
+    return (y1 - y0) / (t1 - t0)
+
+
+def _test_derivative_approximations(nb_points=20):
+    '''
+    This test approximates the derivatives numerically by using 2 very close
+    points around a given point. This is useful to test the exactitude of the
+    derivative function implementation.
+    '''
+    scale = 1. / float(nb_points)
+
+    times = [i * scale for i in range(nb_points + 1)]
+    max_err = 0.0005
+
+    for easing in _easing_list:
+        easing_name, easing_args = _easing_split(easing)
+        for offsets in _offsets:
+            out_vals = [ngl.easing_derivate(easing_name, t, easing_args, offsets) for t in times]
+            approx_vals = [_approx_derivative(easing_name, t, easing_args, offsets) for t in times]
+            errors = [abs(a - b) for a, b in zip(out_vals, approx_vals)]
+
+            # Special exceptions for a few easings due to infinite derivatives
+            # (vertical slopes) for which the approximation can not come close
+            # enough.
+            if easing_name == 'circular_in_out':
+                errors[nb_points // 2] = -1
+            elif easing_name == 'circular_out_in':
+                errors[0] = errors[-1] = -1
+            elif easing_name in {'circular_in', 'bounce_out', 'elastic_out'}:
+                errors[-1] = -1
+            elif easing_name in {'circular_out', 'bounce_in', 'elastic_in'}:
+                errors[0] = -1
+
+            if max(errors) > max_err:
+                print(f'{easing=}')
+                for t, out, approx, error in zip(times, out_vals, approx_vals, errors):
+                    prefix = '!' if error > max_err else ' '
+                    error = 'ignored' if error < 0 else error
+                    print(f' {prefix} {t=} {out=} {approx=} {error=}')
+                assert False
+
+
+@test_floats()
+def anim_derivative_api(nb_points=7):
+
+    # We slip the approximation test in this function because all the test
+    # functions must have a reference in this file.
+    _test_derivative_approximations()
+
+    scale = 1. / float(nb_points)
+    ret = []
+    times = [i * scale for i in range(nb_points + 1)]
+    for easing in _easing_list:
+        easing_name, easing_args = _easing_split(easing)
+        for offsets in _offsets:
+            values = [ngl.easing_derivate(easing_name, t, easing_args, offsets) for t in times]
+            ret.append([easing_name] + values)
+    return ret
+
+
 @test_floats()
 def anim_resolution_api(nb_points=7):
     scale = 1. / float(nb_points)

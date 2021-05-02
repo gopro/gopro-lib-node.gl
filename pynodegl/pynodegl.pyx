@@ -121,10 +121,10 @@ cdef extern from "nodegl.h":
     char *ngl_dot(ngl_ctx *s, double t) nogil
     void ngl_freep(ngl_ctx **ss)
 
-    int ngl_easing_evaluate(const char *name, double *args, int nb_args,
-                            double *offsets, double t, double *v)
-    int ngl_easing_solve(const char *name, double *args, int nb_args,
-                         double *offsets, double v, double *t)
+    int ngl_easing_evaluate(const char *name, const double *args, int nb_args,
+                            const double *offsets, double t, double *v)
+    int ngl_easing_solve(const char *name, const double *args, int nb_args,
+                         const double *offsets, double v, double *t)
 
 PLATFORM_AUTO    = NGL_PLATFORM_AUTO
 PLATFORM_XLIB    = NGL_PLATFORM_XLIB

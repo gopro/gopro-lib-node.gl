@@ -657,8 +657,8 @@ NGL_API int ngl_anim_evaluate(struct ngl_node *anim, void *dst, double t);
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-NGL_API int ngl_easing_evaluate(const char *name, double *args, int nb_args,
-                        double *offsets, double t, double *v);
+NGL_API int ngl_easing_evaluate(const char *name, const double *args, int nb_args,
+                                const double *offsets, double t, double *v);
 
 /**
  * Solve an easing for a given value t
@@ -674,8 +674,8 @@ NGL_API int ngl_easing_evaluate(const char *name, double *args, int nb_args,
  *
  * @return 0 on success, NGL_ERROR_* (< 0) on error
  */
-NGL_API int ngl_easing_solve(const char *name, double *args, int nb_args,
-                     double *offsets, double v, double *t);
+NGL_API int ngl_easing_solve(const char *name, const double *args, int nb_args,
+                             const double *offsets, double v, double *t);
 
 /**
  * Android

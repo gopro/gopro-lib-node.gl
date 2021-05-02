@@ -394,8 +394,8 @@ static char *animkeyframe_info_str(const struct ngl_node *node)
     return ret;
 }
 
-int ngl_easing_evaluate(const char *name, double *args, int nb_args,
-                        double *offsets, double t, double *v)
+int ngl_easing_evaluate(const char *name, const double *args, int nb_args,
+                        const double *offsets, double t, double *v)
 {
     int easing_id;
     int ret = ngli_params_get_select_val(easing_choices.consts, name, &easing_id);
@@ -421,8 +421,8 @@ int ngl_easing_evaluate(const char *name, double *args, int nb_args,
     return 0;
 }
 
-int ngl_easing_solve(const char *name, double *args, int nb_args,
-                     double *offsets, double v, double *t)
+int ngl_easing_solve(const char *name, const double *args, int nb_args,
+                     const double *offsets, double v, double *t)
 {
     int easing_id;
     int ret = ngli_params_get_select_val(easing_choices.consts, name, &easing_id);

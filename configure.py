@@ -420,14 +420,10 @@ def _get_make_vars(cfg):
         MESON=meson,
     )
 
-    if _SYSTEM == 'Windows':
-        ret['MESON_SETUP'] = '$(MESON) ' + _cmd_join(*meson_setup, '--backend=vs')
-        # Our tests/meson.build logic is not well supported with the VS backend so
-        # we need to fallback on Ninja
-        ret['MESON_SETUP_TESTS'] = '$(MESON) ' + _cmd_join(*meson_setup, '--backend=ninja')
-    else:
-        ret['MESON_SETUP'] = '$(MESON) ' + _cmd_join(*meson_setup)
-        ret['MESON_SETUP_TESTS'] = '$(MESON_SETUP)'
+    ret['MESON_SETUP'] = '$(MESON) ' + _cmd_join(*meson_setup, f'--backend={cfg.args.build_backend}')
+    # Our tests/meson.build logic is not well supported with the VS backend so
+    # we need to fallback on Ninja
+    ret['MESON_SETUP_TESTS'] = '$(MESON) ' + _cmd_join(*meson_setup, '--backend=ninja')
 
     return ret
 
@@ -539,6 +535,7 @@ class _Config:
 
 
 def _run():
+    default_build_backend = 'ninja' if _SYSTEM != 'Windows' else 'vs'
     parser = argparse.ArgumentParser(
         prog='ngl-env',
         description='Create and manage a standalone node.gl virtual environement',
@@ -552,6 +549,8 @@ def _run():
     parser.add_argument('-d', '--debug-opts', nargs='+', default=[],
                         choices=('gl', 'mem', 'scene', 'gpu_capture'),
                         help='Debug options')
+    parser.add_argument('--build-backend', choices=('ninja', 'vs'), default=default_build_backend,
+                        help='Build backend to use')
     if _SYSTEM == 'Windows':
         parser.add_argument('--vcpkg-dir', default=r'C:\vcpkg',
                             help='Vcpkg directory')

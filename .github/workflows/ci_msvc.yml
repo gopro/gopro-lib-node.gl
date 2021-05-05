@@ -16,6 +16,11 @@ jobs:
     env:
         VCPKG_TRIPLET: x64-windows
         VCPKG_INSTALL_PACKAGES: opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
+    strategy:
+      matrix:
+        include:
+          - build_backend: ninja
+          - build_backend: vs
 
     defaults:
       run:
@@ -47,10 +52,10 @@ jobs:
           cd C:\vcpkg
           .\vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
 
-      - name: Build
+      - name: Build (${{matrix.build_backend}})
         run: |
           .\scripts\msvc-env.ps1
-          python.exe .\configure.py --debug-opts gpu_capture
+          python.exe .\configure.py --debug-opts gpu_capture --build-backend ${{matrix.build_backend}}
           nmake
 
       - name: Python import and dylib runtime test

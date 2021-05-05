@@ -421,7 +421,6 @@ def _get_make_vars(cfg):
     )
 
     if _SYSTEM == 'Windows':
-        ret['RM'] = 'del'
         ret['MESON_SETUP'] = '$(MESON) ' + _cmd_join(*meson_setup, '--backend=vs')
         # Our tests/meson.build logic is not well supported with the VS backend so
         # we need to fallback on Ninja

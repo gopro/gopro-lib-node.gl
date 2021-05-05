@@ -5,6 +5,7 @@ import math
 import random
 import pynodegl as ngl
 from pynodegl_utils.misc import scene
+from pynodegl_utils.toolbox.shapes import equilateral_triangle_coords
 
 
 @scene(xsplit=scene.Range(range=[0, 1], unit_base=100),
@@ -87,11 +88,9 @@ def buffer_dove(cfg,
     return ngl.Group(children=(render_bg, render))
 
 
-@scene(size=scene.Range(range=[0, 1.5], unit_base=1000))
-def triangle(cfg, size=0.5):
+@scene(size=scene.Range(range=[0, 2], unit_base=1000))
+def triangle(cfg, size=4/3):
     '''Rotating triangle with edge coloring specified in a vertex attribute'''
-    b = size * math.sqrt(3) / 2.0
-    c = size * 1/2.
     cfg.duration = 3.
     cfg.aspect_ratio = (1, 1)
 
@@ -100,7 +99,8 @@ def triangle(cfg, size=0.5):
                                     1.0, 0.0, 0.0, 1.0])
     colors_buffer = ngl.BufferVec4(data=colors_data)
 
-    triangle = ngl.Triangle((-b, -c, 0), (b, -c, 0), (0, size, 0))
+    p0, p1, p2 = equilateral_triangle_coords(size)
+    triangle = ngl.Triangle(p0, p1, p2)
     p = ngl.Program(fragment=cfg.get_frag('color'), vertex=cfg.get_vert('triangle'))
     p.update_vert_out_vars(color=ngl.IOVec4())
     node = ngl.Render(triangle, p)

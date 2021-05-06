@@ -483,7 +483,7 @@ struct ngl_backend {
 };
 
 /**
- * Returns the available backends for a given configuration
+ * Returns the available backends for a given configuration.
  *
  * @param user_config a ngl_config structure used to intialize the different
  * backends. If ngl_config.backend is set to NGL_BACKEND_AUTO,
@@ -561,7 +561,7 @@ NGL_API int ngl_configure(struct ngl_ctx *s, struct ngl_config *config);
 NGL_API int ngl_resize(struct ngl_ctx *s, int width, int height, const int *viewport);
 
 /**
- * Set a new buffer for offscreen capture
+ * Set a new buffer for offscreen capture.
  *
  * Set a new buffer used for offscreen capture (and replace any previous one).
  * The capture buffer type must match the ngl_config.capture_buffer_type used
@@ -646,7 +646,7 @@ NGL_API void ngl_freep(struct ngl_ctx **ss);
 NGL_API int ngl_anim_evaluate(struct ngl_node *anim, void *dst, double t);
 
 /**
- * Evaluate an easing at a given time t
+ * Evaluate an easing at a given time t.
  *
  * @param name      the easing name
  * @param args      a list of arguments some easings may use, can be NULL
@@ -661,7 +661,7 @@ NGL_API int ngl_easing_evaluate(const char *name, const double *args, int nb_arg
                                 const double *offsets, double t, double *v);
 
 /**
- * Solve an easing for a given value t
+ * Solve an easing for a given value t.
  *
  * @param name      the easing name
  * @param args      a list of arguments some easings may use, can be NULL

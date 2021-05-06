@@ -94,10 +94,6 @@ ANIMKEYFRAME_PARAMS(vec4,  value, NGLI_PARAM_TYPE_VEC4, value);
 ANIMKEYFRAME_PARAMS(quat,  quat,  NGLI_PARAM_TYPE_VEC4, value);
 ANIMKEYFRAME_PARAMS(buffer, data, NGLI_PARAM_TYPE_DATA, data);
 
-#ifdef __ANDROID__
-#define log2(x)  (log(x) / log(2))
-#endif
-
 #define TRANSFORM_IN(f, x)     f(x, args_nb, args)
 #define TRANSFORM_OUT(f, x)    (1.0 - TRANSFORM_IN(f, 1.0 - (x)))
 #define TRANSFORM_IN_OUT(f, x) (((x) < 0.5 ? TRANSFORM_IN(f,  2.0 * (x)) : TRANSFORM_OUT(f, 2.0 * (x) - 1.0) + 1.0) / 2.0)

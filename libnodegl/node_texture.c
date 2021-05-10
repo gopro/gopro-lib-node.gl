@@ -433,7 +433,7 @@ static int texture3d_init(struct ngl_node *node)
 
     if (!(gctx->features & NGLI_FEATURE_TEXTURE_3D)) {
         LOG(ERROR, "context does not support 3D textures");
-        return NGL_ERROR_UNSUPPORTED;
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     struct texture_priv *s = node->priv_data;
@@ -459,7 +459,7 @@ static int texturecube_init(struct ngl_node *node)
 
     if (!(gctx->features & NGLI_FEATURE_TEXTURE_CUBE_MAP)) {
         LOG(ERROR, "context does not support cube map textures");
-        return NGL_ERROR_UNSUPPORTED;
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     struct texture_priv *s = node->priv_data;

@@ -178,6 +178,7 @@ lib_src = files(
   'noise.c',
   'params.c',
   'pass.c',
+  'path.c',
   'pgcache.c',
   'pgcraft.c',
   'pipeline.c',
@@ -558,6 +559,10 @@ test_progs = {
   'Noise': {
     'exe': 'test_noise',
     'src': files('test_noise.c', 'noise.c', 'log.c', 'memory.c'),
+  },
+  'Path': {
+    'exe': 'test_path',
+    'src': files('test_path.c', 'darray.c', 'path.c', 'log.c', 'memory.c', 'math_utils.c'),
   },
   'Utils': {
     'exe': 'test_utils',

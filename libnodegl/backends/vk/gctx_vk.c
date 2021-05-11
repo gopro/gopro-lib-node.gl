@@ -595,6 +595,10 @@ static int vk_init(struct gctx *s)
     const VkPhysicalDeviceLimits *limits = &vk->phy_device_props.limits;
 
     s->limits.max_color_attachments              = limits->maxColorAttachments;
+    s->limits.max_texture_dimension_1d           = limits->maxImageDimension1D;
+    s->limits.max_texture_dimension_2d           = limits->maxImageDimension2D;
+    s->limits.max_texture_dimension_3d           = limits->maxImageDimension3D;
+    s->limits.max_texture_dimension_cube         = limits->maxImageDimensionCube;
     s->limits.max_compute_work_group_count[0]    = limits->maxComputeWorkGroupCount[0];
     s->limits.max_compute_work_group_count[1]    = limits->maxComputeWorkGroupCount[1];
     s->limits.max_compute_work_group_count[2]    = limits->maxComputeWorkGroupCount[2];

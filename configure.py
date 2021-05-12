@@ -293,6 +293,18 @@ def _shaderc_install(cfg):
             cmd += [ f'install_name_tool -id @rpath/{shaderc_lib_filename} $(PREFIX)/lib/{shaderc_lib_filename}' ]
     return cmd
 
+@_block('ngl-debug-tools-install')
+def _ngl_debug_tools_install(cfg):
+    ngl_debug_tools_cmake_setup_options = _get_cmake_setup_options(cfg)
+    ngl_debug_tools_cmake_compile_options = _get_cmake_compile_options(cfg)
+    ngl_debug_tools_cmake_install_options = _get_cmake_install_options(cfg)
+    cmd = [
+        f'$(CMAKE) -S ngl-debug-tools -B $(BUILDDIR)/ngl-debug-tools {ngl_debug_tools_cmake_setup_options}',
+        f'$(CMAKE) --build $(BUILDDIR)/ngl-debug-tools --verbose {ngl_debug_tools_cmake_compile_options}',
+        f'$(CMAKE) --install $(BUILDDIR)/ngl-debug-tools {ngl_debug_tools_cmake_install_options}'
+    ]
+    return cmd
+
 @_block('ngfx-install', [_shaderc_install])
 def _ngfx_install(cfg):
     ngfx_deps = ['nlohmann-json', 'stb']
@@ -785,6 +797,7 @@ def _run():
     blocks = [
         _all, _tests, _clean,
         _nodegl_updatedoc, _nodegl_updatespecs, _nodegl_updateglwrappers,
+        _ngl_debug_tools_install,
     ]
     if _SYSTEM == 'Darwin':
         blocks += [_shaderc_install, _moltenvk_install]

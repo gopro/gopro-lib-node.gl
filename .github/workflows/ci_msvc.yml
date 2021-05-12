@@ -14,36 +14,26 @@ jobs:
     runs-on: windows-latest
     env:
         VCPKG_TRIPLET: x64-windows
-        VCPKG_INSTALL_PACKAGES: opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2 shaderc spirv-cross
-        # Use older version of shaderc
-        # Recent release of vcpkg introduced a regression, where shaderc shared library
-        # is no longer supported
-        # See https://github.com/microsoft/vcpkg/issues/16658
-        VCPKG_SHADERC_COMMIT_ID: 56136ffae69a4a7f8b9cd5452713925417d47367
+        VCPKG_INSTALL_PACKAGES: opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2 spirv-cross
+        VULKAN_SDK_VERSION: 1.2.162.1
 
     defaults:
       run:
-        shell: wsl-bash {0}
+        shell: pwsh
 
     steps:
-      - uses: Vampire/setup-wsl@v1
-        with:
-          distribution: Ubuntu-20.04
-
       - uses: actions/checkout@v2
 
-      - name: Fix shaderc
-        id: fix-shaderc
-        run: |
-          cd /mnt/c/vcpkg
-          git fetch --unshallow
-          git checkout ${{env.VCPKG_SHADERC_COMMIT_ID}} -- ports/shaderc
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
 
       - name: Get vcpkg cache key
+        shell: bash
         id: get-vcpkg-cache-key
         run: |
-          VCPKG_COMMIT_ID=$(cd /mnt/c/vcpkg && git rev-parse HEAD)
-          echo "::set-output name=key::$(echo $VCPKG_COMMIT_ID ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}} ${{env.VCPKG_SHADERC_COMMIT_ID}} | md5sum | cut -f1 -d" ")"
+          VCPKG_COMMIT_ID=$(git -C C:/vcpkg rev-parse HEAD)
+          echo "::set-output name=key::$(echo $VCPKG_COMMIT_ID ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}} | md5sum | cut -f1 -d" ")"
 
       - name: Restore vcpkg binary cache archives
         id: restore_vcpkg_binary_cache
@@ -54,20 +44,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt -y update
-          sudo apt -y install build-essential unzip
-          wget https://sdk.lunarg.com/sdk/download/1.2.162.1/windows/VulkanSDK-1.2.162.1-Installer.exe
-          chmod a+x VulkanSDK-1.2.162.1-Installer.exe
-          ./VulkanSDK-1.2.162.1-Installer.exe /S
-          cd /mnt/c/vcpkg
-          ./vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
+          pip.exe install meson
+          iwr https://sdk.lunarg.com/sdk/download/${{env.VULKAN_SDK_VERSION}}/windows/VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe -OutFile VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe && `
+          ./VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe /S
+          cd C:\vcpkg
+          .\vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
 
       - name: Build
         run: |
-          cd /mnt/c
-          # Workaround for meson issue #8329
-          # Currently meson requires the project to be on the same drive as dependencies
-          cp -Rf /mnt/d/a/gopro-lib-node.gl/gopro-lib-node.gl .
-          cd gopro-lib-node.gl
-          make -j$(($(nproc)+1)) TARGET_OS=Windows DEBUG_GPU_CAPTURE=yes \
-          VCPKG_DIR='C:\\vcpkg'
+          .\scripts\msvc-env.ps1
+          $env:VULKAN_SDK='C:\VulkanSDK\${{env.VULKAN_SDK_VERSION}}'
+          python.exe .\configure.py --buildtype debug --debug gl gpu_capture --enable-ngfx-backend
+          nmake
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: nodegl-msvc-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile

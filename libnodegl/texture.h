@@ -82,6 +82,7 @@ struct texture_params {
     int wrap_r;
     int immutable;
     int usage;
+    int used_as_image;
     int external_storage;
     int external_oes;
     int rectangle;

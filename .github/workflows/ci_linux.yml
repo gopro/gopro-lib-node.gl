@@ -16,9 +16,9 @@ jobs:
       matrix:
         include:
           - backend: "all"
-            run_tests_command: "DEBUG=yes DEBUG_GL=yes make tests"
+            custom_env:
           - backend: "opengles 2"
-            run_tests_command: "MESA_GLES_VERSION_OVERRIDE=2.0 DEBUG=yes DEBUG_GL=yes make tests TESTS_SUITE=opengles"
+            custom_env: MESA_GLES_VERSION_OVERRIDE=2.0
 
     steps:
     - uses: actions/checkout@v2
@@ -36,16 +36,29 @@ jobs:
         #
         sudo apt -y install libsdl2-dev python3-venv
         sudo apt -y install ffmpeg libavcodec-dev libavutil-dev libavformat-dev libavdevice-dev \
-            libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev ninja-build renderdoc
+            libavfilter-dev libswscale-dev libswresample-dev libpostproc-dev ninja-build libglm-dev \
+            libglfw3-dev libglew-dev renderdoc
         # Install Vulkan SDK
         wget -qO - https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
         sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-${{env.VULKAN_SDK_VERSION}}-focal.list https://packages.lunarg.com/vulkan/${{env.VULKAN_SDK_VERSION}}/lunarg-vulkan-${{env.VULKAN_SDK_VERSION}}-focal.list
         sudo apt -y update
         sudo apt install vulkan-sdk
+
     - name: Build
       run: |
-        make -j$(($(nproc)+1)) DEBUG_GPU_CAPTURE=yes
+        ./configure.py --buildtype debug --debug gl gpu_capture --enable-ngfx-backend
+        make
+
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+          name: nodegl-linux-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile
+
     - name: Run tests ${{matrix.backend}}
       run: |
-        ${{matrix.run_tests_command}}
-
+        ${{matrix.custom_env}} make tests

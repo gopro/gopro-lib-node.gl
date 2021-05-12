@@ -1,7 +1,8 @@
 project('ngl-tests', meson_version: '>= 0.56.0')
 
-ngl_test = find_program('ngl-test')
-ngl_probe = find_program('ngl-probe')
+bin_dir = get_option('prefix')/get_option('bindir')
+ngl_test = find_program('ngl-test', dirs: [ bin_dir ])
+ngl_probe = find_program('ngl-probe', dirs: [ bin_dir ])
 
 backends = []
 probe_output = run_command(ngl_probe).stdout()

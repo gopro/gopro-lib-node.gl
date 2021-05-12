@@ -20,8 +20,8 @@ jobs:
 
     - name: Run tests
       run: |
-        DEBUG=yes DEBUG_GL=yes make -j$(($(nproc)+1)) COVERAGE=yes
-        DEBUG=yes DEBUG_GL=yes make tests COVERAGE=yes
+        ./configure.py --buildtype debug --coverage --debug gl
+        make tests
     - name: Get coverage
       run: |
         make coverage-xml

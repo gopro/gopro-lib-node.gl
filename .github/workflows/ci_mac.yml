@@ -16,9 +16,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install python3 curl pkg-config sdl2 ffmpeg
+        brew install python3 curl pkg-config sdl2 ffmpeg glm spirv-cross ninja bash coreutils
 
     - name: Build
       run: |
-        make -j$(($(sysctl -n hw.logicalcpu)+1)) DEBUG_GPU_CAPTURE=yes
+        ./configure.py --buildtype debug --debug gl gpu_capture --enable-ngfx-backend
+        make
 
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+          name: nodegl-mac-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile

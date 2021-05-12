@@ -23,9 +23,12 @@
 import os
 import os.path as op
 import sys
-
+import platform
 from pynodegl_utils.com import load_script
 
+if platform.system() == 'Windows':
+    from pynodegl_utils.com import add_dll_directories
+    add_dll_directories()
 
 def _run_test(func_name, tester, ref_data, out_data):
     err = []

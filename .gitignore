@@ -1,3 +1,4 @@
+Makefile
 builddir
+external
 venv/
-.venv-done

@@ -13,14 +13,13 @@ building and running the complete `node.gl` stack.
     typically named with a `-devel` suffix on Debian based systems)
   - **Graphviz**
   - **SDL2**
-- Build with `make -jN` where `N` is the number of parallel processes
+- Build with `./configure.py && make`
 - Enter the virtual environment with `. venv/bin/activate`
 
 ## Quick user installation on Windows (MinGW64 toolchain)
 
 - Install [MSYS2](https://www.msys2.org/) (which also brings **MinGW64**)
 - Install dependencies via pacman using **MinGW64** shell (*Not* MSYS2,
-- Install [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows) (optional)
 "MINGW64" should be visible in the prompt):
     ```shell
     pacman -Syuu  # and restart the shell
@@ -31,9 +30,8 @@ building and running the complete `node.gl` stack.
     pacman -S mingw-w64-x86_64-pyside2-qt5
     pacman -S mingw-w64-x86_64-meson
     pacman -S mingw-w64-x86_64-graphviz
-    pacman -S mingw-w64-x86_64-shaderc
     ```
-- From MinGW64, build with `make -jN TARGET_OS=MinGW-w64` where `N` is the number of parallel processes
+- From MinGW64, build with `./configure.py && make`
 - Enter the virtual environment with `. venv/bin/activate`
 
 ## Quick user installation on Windows (MSVC toolchain)
@@ -46,40 +44,21 @@ following components are included:
     - Desktop development with C++
     - MSVC - VS 2019 C++ x64/x86 build tools
     - Windows 10 SDK
-- Install [Vcpkg](https://github.com/microsoft/vcpkg) from Windows PowerShell as of commit 56136ff (see issue [16658](https://github.com/microsoft/vcpkg/issues/16658)):
+- Install [Vcpkg](https://github.com/microsoft/vcpkg) from Windows PowerShell:
     ```shell
-    git.exe checkout 56136ffae69a4a7f8b9cd5452713925417d47367 -b shaderc/workaround-16658
     .\bootstrap-vcpkg.bat
     .\vcpkg.exe install opengl-registry:x64-windows ffmpeg[ffmpeg,ffprobe]:x64-windows sdl2:x64-windows
     ```
-- Install [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows) (optional)
-- Enable [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-- Install Ubuntu into WSL from Microsoft Store.
-- In WSL, install other needed dependencies as
-following:
-    ```shell
-    sudo apt -y update
-    sudo apt -y install build-essential unzip
-    ```
 - Add `C:\vcpkg\installed\x64-windows\tools\ffmpeg` path to your windows system `%PATH%` environment variable (`ffmpeg`
 and `ffprobe` binaries must be available in order to run the tests)
-- From WSL, build with `make -jN TARGET_OS=Windows` where `N` is the number of parallel processes
-- From WSL, access powershell with `powershell.exe`
-- Now from powershell, you can enter the virtual environment with:
-    ```shell
-    set-executionpolicy RemoteSigned # to allows special scripts to run
-    .\venv\Scripts\Activate.ps1
-    ```
+- To be allowed to run the build scripts, you will need to run this once in an
+  administrator Powershell: `Set-ExecutionPolicy RemoteSigned`
+- In a Powershell (as user), in the `node.gl` sources, run
+  `.\scripts\msvc-env.ps1` to import all the necessary variables for the MSVC
+  environment. Alternatively, you can open *VS Native Tools Prompt* and spawn a
+  `powershell` from here.
+- Finally, run `python.exe .\configure.py` followed by `nmake`
 
-### Known limitations
-
-Even if both WSL versions have been tested, we encourage to use version 1
-which seems for now faster and more stable in our use case. Indeed we are
-accessing executable files mounted from Windows, which is a drawback for
-[WSL 2 linux kernel needing files entirely stored in Linux file system to
-be efficient][wsl1-vs-wsl2].
-
-[wsl1-vs-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/compare-versions#exceptions-for-using-wsl-1-rather-than-wsl-2
 
 ## Installation of `libnodegl` (the core library)
 

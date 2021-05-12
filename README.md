@@ -50,6 +50,7 @@ Following are how-to guides on various specific usages:
 
 ### ⚙️ Discussions and explanations
 
+- [node.gl standalone build environment][expl-ngl-env]
 - [How the Python binding is created][expl-pynodegl]
 - [What happens in a draw call?][expl-draw-call]
 - [Technical choices][expl-techchoices]

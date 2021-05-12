@@ -21,8 +21,8 @@
 
 project(
   'libnodegl',
-  'c',
-   default_options: ['c_std=c99'],
+  [ 'c', 'cpp' ],
+   default_options: ['c_std=c99', 'b_lundef=false', 'b_vscrt=md'],
    license: 'Apache',
    meson_version: '>= 0.54.0',
    version: '0.0.0',
@@ -37,6 +37,12 @@ conf_data.set('version_micro', version_array[2])
 host_system = host_machine.system()
 cpu_family = host_machine.cpu_family()
 cc = meson.get_compiler('c')
+
+if cc.get_id() == 'msvc'
+  add_global_arguments('/std:c++latest', language: 'cpp')
+else
+  add_global_arguments('-std=gnu++2a', language: 'cpp')
+endif
 
 # meson currently (0.56.0) doesn't distinguish between macOS and iOS (the
 # "darwin" identifier is shared), so we need to test explicitely.
@@ -174,6 +180,7 @@ lib_src = files(
   'pgcache.c',
   'pgcraft.c',
   'pipeline.c',
+  'pipeline_util.c',
   'precision.c',
   'program.c',
   'rendertarget.c',
@@ -276,6 +283,40 @@ endif
 # Graphic backend dependencies
 #
 
+ngfx_src = [
+  'backends/ngfx/buffer_ngfx.cpp',
+  'backends/ngfx/format_ngfx.cpp',
+  'backends/ngfx/gctx_ngfx.cpp',
+  'backends/ngfx/pipeline_ngfx.cpp',
+  'backends/ngfx/program_ngfx.cpp',
+  'backends/ngfx/rendertarget_ngfx.cpp',
+  'backends/ngfx/texture_ngfx.cpp',
+  'backends/ngfx/topology_ngfx.cpp',
+  'backends/ngfx/util_ngfx.cpp',
+]
+
+enable_ngfx_backend = get_option('enable_ngfx_backend')
+if host_system == 'windows' and cc.get_id() != 'msvc'
+  enable_ngfx_backend = false
+endif
+
+if enable_ngfx_backend
+  ngfx_graphics_backend = get_option('ngfx_graphics_backend')
+  if ngfx_graphics_backend == 'NGFX_GRAPHICS_BACKEND_DIRECT3D12' and host_system == 'windows'
+    ngfx_src += 'backends/ngfx/surface_util_ngfx_d3d.cpp'
+    ngfx_src += 'backends/ngfx/swapchain_util_ngfx_d3d.cpp'
+  elif ngfx_graphics_backend == 'NGFX_GRAPHICS_BACKEND_VULKAN'
+    ngfx_src += 'backends/ngfx/surface_util_ngfx_vk.cpp'
+    ngfx_src += 'backends/ngfx/swapchain_util_ngfx_vk.cpp'
+  elif ngfx_graphics_backend == 'NGFX_GRAPHICS_BACKEND_METAL' and host_system == 'darwin'
+    ngfx_src += 'backends/ngfx/surface_util_ngfx_mtl.mm'
+    ngfx_src += 'backends/ngfx/swapchain_util_ngfx_mtl.mm'
+    ngfx_src += 'backends/ngfx/hwupload_videotoolbox_darwin_ngfx.mm'
+  else
+    error('invalid value for ngfx_graphics_backend: @0@'.format(ngfx_graphics_backend))
+  endif
+endif
+
 gbackends = []
 
 gbackends_cfg = {
@@ -358,10 +399,29 @@ gbackends_cfg = {
       },
     },
   },
+  'ngfx': {
+    'src': files(ngfx_src),
+    'cfg': 'BACKEND_NGFX',
+    'hosts_cfg': {
+      'linux': {
+        'deps': ['ngfx'],
+      },
+      'darwin': {
+        'deps': ['ngfx'],
+      },
+      'android': {},
+      'iphone': {},
+      'windows': {
+        'deps': ['ngfx'],
+      },
+    },
+  },
 }
 
 if host_system in ['darwin', 'iphone']
   add_languages('objc')
+  add_languages('objcpp')
+  add_global_arguments('-std=gnu++2a', language: 'objcpp')
 endif
 
 # Additional search paths for find_library
@@ -390,8 +450,13 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   foreach dep : gbackend_deps
     all_dep_found = all_dep_found and dep.found()
   endforeach
-  message('backend: @0@ enabled: @1@'.format(gbackend_name, all_dep_found.to_string()))
-  if all_dep_found
+  enable_backend = all_dep_found
+  if gbackend_name == 'ngfx' and not enable_ngfx_backend
+    enable_backend = false
+  endif
+  message('backend: @0@ enabled: @1@'.format(gbackend_name, enable_backend))
+
+  if enable_backend
     gbackends += gbackend_name
 
     if gbackend_name == 'gl' and vaapi_enabled
@@ -423,7 +488,7 @@ enable_gpu_capture = false
 if 'gpu_capture' in debug_opts
   if host_system == 'darwin'
     if 'vk' in gbackends
-      lib_src += files('gpu_capture_metal.m')
+      lib_src += files('gpu_capture_metal.mm')
       enable_gpu_capture = true
     endif
   else
@@ -504,30 +569,33 @@ install_data(files('android/java/OnFrameAvailableListener.java'), install_dir: d
 # between the library and these tools?
 # https://git.archlinux.org/pacman.git/tree/meson.build?id=4533c6a8e0f39c7707e671b7f9687607b46f1417#n310
 # seem to imply some extract_all_objects(recursive: true)
-gen_specs = executable(
-  'gen_specs',
-  lib_src + files('gen_specs.c'),
-  dependencies: lib_deps,
-  build_by_default: false,
-  native: true,
-)
-specs_file = custom_target(
-  specs_filename,
-  command: gen_specs,
-  capture: true,
-  output: specs_filename,
-)
-run_target(
-  'updatespecs',
-  command: [copyfile, specs_file, meson.current_source_dir()],
-)
+
+if meson.backend() != 'xcode'
+  gen_specs = executable(
+    'gen_specs',
+    lib_src + files('gen_specs.c'),
+    dependencies: lib_deps,
+    build_by_default: false,
+    native: true,
+  )
+  specs_file = custom_target(
+    specs_filename,
+    command: gen_specs,
+    capture: true,
+    output: specs_filename,
+  )
+  run_target(
+    'updatespecs',
+    command: [copyfile, specs_file, meson.current_source_dir()],
+  )
+endif
 
 
 #
 # Doc
 #
 
-if not get_option('small')
+if not get_option('small') and meson.backend() != 'xcode'
   gen_doc = executable(
     'gen_doc',
     lib_src + files('gen_doc.c'),
@@ -619,7 +687,7 @@ test_progs = {
   },
 }
 
-if get_option('tests')
+if get_option('tests') and meson.backend() != 'xcode'
   foreach test_key, test_data : test_progs
     exe = executable(
       test_data.get('exe'),

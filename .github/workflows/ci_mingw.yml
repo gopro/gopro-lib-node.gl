@@ -28,7 +28,7 @@ jobs:
           pacman -S --noconfirm --needed git make
           pacman -S --noconfirm --needed mingw-w64-x86_64-{toolchain,ffmpeg,python}
           pacman -S --noconfirm --needed mingw-w64-x86_64-python3-pillow
-          pacman -S --noconfirm --needed mingw-w64-x86_64-meson
+          pacman -S --noconfirm --needed mingw-w64-x86_64-{meson,cmake}
           pacman -S --noconfirm --needed mingw-w64-x86_64-shaderc
 
       - name: Install Vulkan SDK
@@ -40,4 +40,5 @@ jobs:
 
       - name: Build
         run: |
-          make -j$(($(nproc)+1)) TARGET_OS=MinGW-w64
+          ./configure.py
+          make

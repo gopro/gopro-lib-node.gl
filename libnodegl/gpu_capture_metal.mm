@@ -20,15 +20,24 @@
  */
 
 #include <Metal/Metal.h>
+extern "C" {
 #include "gpu_capture.h"
 #include "config.h"
 #include "log.h"
 #include "memory.h"
 #include "utils.h"
+}
 
 #if defined(BACKEND_VK)
+extern "C" {
 #include <MoltenVK/vk_mvk_moltenvk.h>
 #include "backends/vk/gctx_vk.h"
+}
+#endif
+
+#if defined(BACKEND_NGFX)
+#include "backends/ngfx/gctx_ngfx.h"
+#include "ngfx/porting/metal/MTLGraphicsContext.h"
 #endif
 
 struct gpu_capture_ctx {
@@ -37,7 +46,7 @@ struct gpu_capture_ctx {
 
 struct gpu_capture_ctx *gpu_capture_ctx_create(struct gctx *gctx)
 {
-    struct gpu_capture_ctx *s = ngli_calloc(1, sizeof(*s));
+    struct gpu_capture_ctx *s = (struct gpu_capture_ctx *)ngli_calloc(1, sizeof(*s));
     s->gctx = gctx;
     return s;
 }
@@ -60,6 +69,15 @@ int gpu_capture_begin(struct gpu_capture_ctx *s)
         struct vkcontext *vkcontext = gctx_vk->vkcontext;
         id<MTLDevice> mtl_device;
         vkGetMTLDeviceMVK(vkcontext->phy_device, &mtl_device);
+        capture_descriptor.captureObject = mtl_device;
+    }
+#endif
+#if defined(BACKEND_NGFX)
+    if (s->gctx->config.backend == NGL_BACKEND_NGFX) {
+        struct gctx_ngfx *gctx_ngfx = (struct gctx_ngfx *)s->gctx;
+        ngfx::GraphicsContext *ngfx_ctx = gctx_ngfx->graphics_context;
+        auto *ngfx_ctx_mtl = mtl(ngfx_ctx);
+        id<MTLDevice> mtl_device = ngfx_ctx_mtl->mtlDevice.v;
         capture_descriptor.captureObject = mtl_device;
     }
 #endif

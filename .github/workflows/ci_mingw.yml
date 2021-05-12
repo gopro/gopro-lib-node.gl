@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pacman -S --noconfirm --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python3-pillow,meson,shaderc}
+          pacman -S --noconfirm --needed git make mingw-w64-x86_64-{toolchain,ffmpeg,python,python3-pillow,meson,cmake,shaderc}
 
       - name: Install Vulkan SDK
         shell: pwsh

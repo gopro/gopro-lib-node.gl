@@ -479,6 +479,12 @@ def _get_make_vars(cfg):
         # Workaround Debian/Ubuntu bug; see https://github.com/mesonbuild/meson/issues/5925
         meson_setup += ['--libdir=lib']
 
+    if _SYSTEM == 'Windows':
+        # Use Multithreaded DLL runtime library for debug and release configurations
+        # Third party libs are compiled in release mode
+        # Visual Studio toolchain requires all libraries to use the same runtime library
+        meson_setup += ['-Db_vscrt=md']
+
     ret = dict(
         PIP=_cmd_join(python, '-m', 'pip'),
         MESON=meson,

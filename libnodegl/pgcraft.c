@@ -561,6 +561,15 @@ static int inject_ublock(struct pgcraft *s, struct bstr *b, int stage)
     if (!block->size)
         return 0;
 
+    struct ngl_ctx *ctx = s->ctx;
+    struct gctx *gctx = ctx->gctx;
+    const struct limits *limits = &gctx->limits;
+    if (block->size > limits->max_uniform_block_size) {
+        LOG(ERROR, "uniform block size (%d) exceeds device limits (%d)",
+            block->size, limits->max_uniform_block_size);
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
+    }
+
     struct buffer *ubuffer = ngli_buffer_create(s->ctx->gctx);
     if (!ubuffer)
         return NGL_ERROR_MEMORY;
@@ -575,7 +584,6 @@ static int inject_ublock(struct pgcraft *s, struct bstr *b, int stage)
     struct pgcraft_block named_block = {
         /* instance name is empty to make field accesses identical to uniform accesses */
         .instance_name = "",
-        /* FIXME: need to fallback on storage buffer if needed, similarly to pass */
         .type          = NGLI_TYPE_UNIFORM_BUFFER,
         .stage         = stage,
         .block         = block,

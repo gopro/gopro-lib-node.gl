@@ -24,10 +24,10 @@
 
 struct gpu_capture_ctx;
 
-struct gpu_capture_ctx *gpu_capture_ctx_create(void);
-int gpu_capture_init(struct gpu_capture_ctx *s);
-int gpu_capture_begin(struct gpu_capture_ctx *s);
-int gpu_capture_end(struct gpu_capture_ctx *s);
-void gpu_capture_freep(struct gpu_capture_ctx **sp);
+struct gpu_capture_ctx *ngli_gpu_capture_ctx_create(void);
+int ngli_gpu_capture_init(struct gpu_capture_ctx *s);
+int ngli_gpu_capture_begin(struct gpu_capture_ctx *s);
+int ngli_gpu_capture_end(struct gpu_capture_ctx *s);
+void ngli_gpu_capture_freep(struct gpu_capture_ctx **sp);
 
 #endif

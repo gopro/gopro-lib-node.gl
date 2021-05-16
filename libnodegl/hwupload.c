@@ -121,6 +121,7 @@ static int exec_hwconv(struct ngl_node *node)
 {
     struct texture_priv *s = node->priv_data;
     struct texture *texture = s->texture;
+    const struct texture_params *texture_params = &texture->params;
     struct hwupload *hwupload = &s->hwupload;
     struct image *mapped_image = &hwupload->mapped_image;
     struct hwconv *hwconv = &hwupload->hwconv;
@@ -129,7 +130,7 @@ static int exec_hwconv(struct ngl_node *node)
     if (ret < 0)
         return ret;
 
-    if (ngli_texture_has_mipmap(texture))
+    if (texture_params->mipmap_filter != NGLI_MIPMAP_FILTER_NONE)
         ngli_texture_generate_mipmap(texture);
 
     return 0;

@@ -32,11 +32,6 @@ int ngli_texture_init(struct texture *s, const struct texture_params *params)
     return s->gctx->cls->texture_init(s, params);
 }
 
-int ngli_texture_has_mipmap(const struct texture *s)
-{
-    return s->gctx->cls->texture_has_mipmap(s);
-}
-
 int ngli_texture_upload(struct texture *s, const uint8_t *data, int linesize)
 {
     return s->gctx->cls->texture_upload(s, data, linesize);

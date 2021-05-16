@@ -196,7 +196,7 @@ static void texture_set_storage(struct texture *s)
     switch (s_priv->target) {
     case GL_TEXTURE_2D: {
         int mipmap_levels = 1;
-        if (ngli_texture_gl_has_mipmap(s))
+        if (params->mipmap_filter != NGLI_MIPMAP_FILTER_NONE)
             while ((params->width | params->height) >> mipmap_levels)
                 mipmap_levels += 1;
         ngli_glTexStorage2D(gl, s_priv->target, mipmap_levels, s_priv->internal_format, params->width, params->height);
@@ -411,11 +411,6 @@ void ngli_texture_gl_set_dimensions(struct texture *s, int width, int height, in
     params->depth = depth;
 }
 
-int ngli_texture_gl_has_mipmap(const struct texture *s)
-{
-    return s->params.mipmap_filter != NGLI_MIPMAP_FILTER_NONE;
-}
-
 int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
@@ -431,7 +426,7 @@ int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize)
     ngli_glBindTexture(gl, s_priv->target, s_priv->id);
     if (data) {
         texture_set_sub_image(s, data, linesize);
-        if (ngli_texture_gl_has_mipmap(s))
+        if (params->mipmap_filter != NGLI_MIPMAP_FILTER_NONE)
             ngli_glGenerateMipmap(gl, s_priv->target);
     }
     ngli_glBindTexture(gl, s_priv->target, 0);

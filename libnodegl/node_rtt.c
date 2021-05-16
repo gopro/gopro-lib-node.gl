@@ -455,7 +455,8 @@ static void rtt_draw(struct ngl_node *node)
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
         struct texture *texture = texture_priv->texture;
-        if (ngli_texture_has_mipmap(texture))
+        const struct texture_params *texture_params = &texture->params;
+        if (texture_params->mipmap_filter != NGLI_MIPMAP_FILTER_NONE)
             ngli_texture_generate_mipmap(texture);
     }
 }

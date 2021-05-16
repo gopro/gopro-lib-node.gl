@@ -100,8 +100,6 @@ struct texture *ngli_texture_create(struct gctx *gctx);
 int ngli_texture_init(struct texture *s,
                       const struct texture_params *params);
 
-int ngli_texture_has_mipmap(const struct texture *s);
-
 int ngli_texture_upload(struct texture *s, const uint8_t *data, int linesize);
 int ngli_texture_generate_mipmap(struct texture *s);
 

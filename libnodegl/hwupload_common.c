@@ -84,8 +84,9 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
 static int common_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct texture_priv *s = node->priv_data;
+    const struct texture_params *texture_params = &s->texture->params;
 
-    if (!ngli_texture_match_dimensions(s->texture, frame->width, frame->height, 0)) {
+    if (texture_params->width != frame->width || texture_params->height != frame->height) {
         ngli_texture_freep(&s->texture);
 
         int ret = common_init(node, frame);

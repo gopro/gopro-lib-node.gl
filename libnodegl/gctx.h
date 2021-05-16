@@ -91,7 +91,6 @@ struct gctx_class {
     struct texture *(*texture_create)(struct gctx *ctx);
     int (*texture_init)(struct texture *s, const struct texture_params *params);
     int (*texture_has_mipmap)(const struct texture *s);
-    int (*texture_match_dimensions)(const struct texture *s, int width, int height, int depth);
     int (*texture_upload)(struct texture *s, const uint8_t *data, int linesize);
     int (*texture_generate_mipmap)(struct texture *s);
     void (*texture_freep)(struct texture **sp);

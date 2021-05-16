@@ -37,11 +37,6 @@ int ngli_texture_has_mipmap(const struct texture *s)
     return s->gctx->cls->texture_has_mipmap(s);
 }
 
-int ngli_texture_match_dimensions(const struct texture *s, int width, int height, int depth)
-{
-    return s->gctx->cls->texture_match_dimensions(s, width, height, depth);
-}
-
 int ngli_texture_upload(struct texture *s, const uint8_t *data, int linesize)
 {
     return s->gctx->cls->texture_upload(s, data, linesize);

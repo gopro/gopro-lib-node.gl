@@ -416,12 +416,6 @@ int ngli_texture_gl_has_mipmap(const struct texture *s)
     return s->params.mipmap_filter != NGLI_MIPMAP_FILTER_NONE;
 }
 
-int ngli_texture_gl_match_dimensions(const struct texture *s, int width, int height, int depth)
-{
-    const struct texture_params *params = &s->params;
-    return params->width == width && params->height == height && params->depth == depth;
-}
-
 int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;

@@ -51,7 +51,6 @@ void ngli_texture_gl_set_id(struct texture *s, GLuint id);
 void ngli_texture_gl_set_dimensions(struct texture *s, int width, int height, int depth);
 
 int ngli_texture_gl_has_mipmap(const struct texture *s);
-int ngli_texture_gl_match_dimensions(const struct texture *s, int width, int height, int depth);
 
 int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize);
 int ngli_texture_gl_generate_mipmap(struct texture *s);

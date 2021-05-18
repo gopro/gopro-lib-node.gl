@@ -312,46 +312,55 @@ static int glcontext_check_mandatory_extensions(struct glcontext *glcontext)
     return 0;
 }
 
+#define GET(name, value) do {                         \
+    GLint gl_value;                                   \
+    ngli_glGetIntegerv(glcontext, (name), &gl_value); \
+    *(value) = gl_value;                              \
+} while (0)                                           \
+
+#define GET_I(name, index, value) do {                           \
+    GLint gl_value;                                              \
+    ngli_glGetIntegeri_v(glcontext, (name), (index), &gl_value); \
+    *(value) = gl_value;                                         \
+} while (0)                                                      \
+
 static int glcontext_probe_settings(struct glcontext *glcontext)
 {
     struct limits *limits = &glcontext->limits;
 
-    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_IMAGE_UNITS, &limits->max_texture_image_units);
-    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_1d);
-    ngli_glGetIntegerv(glcontext, GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_2d);
+    GET(GL_MAX_TEXTURE_IMAGE_UNITS, &limits->max_texture_image_units);
+    GET(GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_1d);
+    GET(GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_2d);
     if (glcontext->features & NGLI_FEATURE_TEXTURE_3D)
-        ngli_glGetIntegerv(glcontext, GL_MAX_3D_TEXTURE_SIZE, &limits->max_texture_dimension_3d);
+        GET(GL_MAX_3D_TEXTURE_SIZE, &limits->max_texture_dimension_3d);
     if (glcontext->features & NGLI_FEATURE_TEXTURE_CUBE_MAP)
-        ngli_glGetIntegerv(glcontext, GL_MAX_CUBE_MAP_TEXTURE_SIZE, &limits->max_texture_dimension_cube);
+        GET(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &limits->max_texture_dimension_cube);
 
     limits->max_color_attachments = 1;
     if (glcontext->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) {
-        ngli_glGetIntegerv(glcontext, GL_MAX_SAMPLES, &limits->max_samples);
-        ngli_glGetIntegerv(glcontext, GL_MAX_COLOR_ATTACHMENTS, &limits->max_color_attachments);
+        GET(GL_MAX_SAMPLES, &limits->max_samples);
+        GET(GL_MAX_COLOR_ATTACHMENTS, &limits->max_color_attachments);
     }
 
     if (glcontext->features & NGLI_FEATURE_UNIFORM_BUFFER_OBJECT) {
-        ngli_glGetIntegerv(glcontext, GL_MAX_UNIFORM_BLOCK_SIZE, &limits->max_uniform_block_size);
+        GET(GL_MAX_UNIFORM_BLOCK_SIZE, &limits->max_uniform_block_size);
     }
 
     if (glcontext->features & NGLI_FEATURE_COMPUTE_SHADER) {
         for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_count); i++) {
-            ngli_glGetIntegeri_v(glcontext, GL_MAX_COMPUTE_WORK_GROUP_COUNT,
-                                 i, &limits->max_compute_work_group_count[i]);
+            GET_I(GL_MAX_COMPUTE_WORK_GROUP_COUNT, i, &limits->max_compute_work_group_count[i]);
         }
 
-        ngli_glGetIntegerv(glcontext, GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,
-                           &limits->max_compute_work_group_invocations);
+        GET(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &limits->max_compute_work_group_invocations);
 
         for (int i = 0; i < NGLI_ARRAY_NB(limits->max_compute_work_group_size); i++) {
-            ngli_glGetIntegeri_v(glcontext, GL_MAX_COMPUTE_WORK_GROUP_SIZE,
-                                 i, &limits->max_compute_work_group_size[i]);
+            GET_I(GL_MAX_COMPUTE_WORK_GROUP_SIZE, i, &limits->max_compute_work_group_size[i]);
         }
     }
 
     limits->max_draw_buffers = 1;
     if (glcontext->features & NGLI_FEATURE_DRAW_BUFFERS) {
-        ngli_glGetIntegerv(glcontext, GL_MAX_DRAW_BUFFERS, &limits->max_draw_buffers);
+        GET(GL_MAX_DRAW_BUFFERS, &limits->max_draw_buffers);
     }
 
     return 0;

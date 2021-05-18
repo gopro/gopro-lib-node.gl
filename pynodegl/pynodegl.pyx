@@ -23,6 +23,7 @@
 from libc.stdlib cimport calloc
 from libc.string cimport memset
 from libc.stdint cimport uint8_t
+from libc.stdint cimport uint32_t
 from libc.stdint cimport uintptr_t
 
 cdef extern from "nodegl.h":
@@ -75,7 +76,7 @@ cdef extern from "nodegl.h":
     cdef struct ngl_cap:
         unsigned id
         const char *string_id
-        int value
+        uint32_t value
 
     cdef struct ngl_backend:
         int id

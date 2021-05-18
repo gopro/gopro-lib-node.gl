@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
             printf("    caps:\n");
             for (int j = 0; j < backend->nb_caps; j++) {
                 const struct ngl_cap *cap = &backends->caps[j];
-                printf("      %s: %d\n", cap->string_id, cap->value);
+                printf("      %s: %u\n", cap->string_id, cap->value);
             }
         }
     }

@@ -22,19 +22,21 @@
 #ifndef LIMIT_H
 #define LIMIT_H
 
+#include <stdint.h>
+
 struct limits {
-    int max_texture_image_units;
-    int max_compute_work_group_count[3];
-    int max_compute_work_group_invocations;
-    int max_compute_work_group_size[3];
-    int max_uniform_block_size;
-    int max_samples;
-    int max_texture_dimension_1d;
-    int max_texture_dimension_2d;
-    int max_texture_dimension_3d;
-    int max_texture_dimension_cube;
-    int max_color_attachments;
-    int max_draw_buffers;
+    uint32_t max_texture_image_units;
+    uint32_t max_compute_work_group_count[3];
+    uint32_t max_compute_work_group_invocations;
+    uint32_t max_compute_work_group_size[3];
+    uint32_t max_uniform_block_size;
+    uint32_t max_samples;
+    uint32_t max_texture_dimension_1d;
+    uint32_t max_texture_dimension_2d;
+    uint32_t max_texture_dimension_3d;
+    uint32_t max_texture_dimension_cube;
+    uint32_t max_color_attachments;
+    uint32_t max_draw_buffers;
 };
 
 #endif

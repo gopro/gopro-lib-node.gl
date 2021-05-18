@@ -478,7 +478,7 @@ struct ngl_config {
 struct ngl_cap {
     unsigned id;            /* any of NGL_CAP_* */
     const char *string_id;  /* unique capability identifier string */
-    int value;
+    uint32_t value;
 };
 
 struct ngl_backend {

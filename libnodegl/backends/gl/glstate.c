@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glcontext.h"
 #include "glincludes.h"
 #include "glstate.h"
@@ -283,24 +283,24 @@ static int honor_state(const struct glcontext *gl,
     return 1;
 }
 
-void ngli_glstate_update(struct gctx *gctx, const struct graphicstate *state)
+void ngli_glstate_update(struct gpu_ctx *gpu_ctx, const struct graphicstate *state)
 {
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     struct glstate glstate = {0};
     init_state(&glstate, state);
 
-    int ret = honor_state(gl, &glstate, &gctx_gl->glstate);
+    int ret = honor_state(gl, &glstate, &gpu_ctx_gl->glstate);
     if (ret > 0)
-        gctx_gl->glstate = glstate;
+        gpu_ctx_gl->glstate = glstate;
 }
 
-void ngli_glstate_use_program(struct gctx *gctx, GLuint program_id)
+void ngli_glstate_use_program(struct gpu_ctx *gpu_ctx, GLuint program_id)
 {
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
-    struct glstate *glstate = &gctx_gl->glstate;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
+    struct glstate *glstate = &gpu_ctx_gl->glstate;
 
     if (glstate->program_id != program_id) {
         ngli_glUseProgram(gl, program_id);
@@ -308,18 +308,18 @@ void ngli_glstate_use_program(struct gctx *gctx, GLuint program_id)
     }
 }
 
-void ngli_glstate_update_scissor(struct gctx *gctx, const int *scissor)
+void ngli_glstate_update_scissor(struct gpu_ctx *gpu_ctx, const int *scissor)
 {
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
-    struct glstate *glstate = &gctx_gl->glstate;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
+    struct glstate *glstate = &gpu_ctx_gl->glstate;
 
     int tmp[4];
     memcpy(tmp, scissor, sizeof(tmp));
 
-    struct ngl_config *config = &gctx->config;
+    struct ngl_config *config = &gpu_ctx->config;
     if (config->offscreen) {
-        const int height = gctx_gl->rendertarget ? gctx_gl->rendertarget->height : gl->height;
+        const int height = gpu_ctx_gl->rendertarget ? gpu_ctx_gl->rendertarget->height : gl->height;
         tmp[1] = NGLI_MAX(height - tmp[1] - tmp[3], 0);
     }
 

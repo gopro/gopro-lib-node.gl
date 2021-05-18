@@ -33,7 +33,7 @@
 #endif
 
 #include "darray.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "graphicstate.h"
 #include "log.h"
 #include "math_utils.h"
@@ -50,7 +50,7 @@
 
 #if defined(TARGET_DARWIN) || defined(TARGET_IPHONE)
 #if defined(BACKEND_GL)
-#include "backends/gl/gctx_gl.h"
+#include "backends/gl/gpu_ctx_gl.h"
 #endif
 #endif
 
@@ -82,8 +82,8 @@ static int get_default_platform(void)
 
 static int cmd_stop(struct ngl_ctx *s, void *arg)
 {
-    if (s->gctx)
-        ngli_gctx_wait_idle(s->gctx);
+    if (s->gpu_ctx)
+        ngli_gpu_ctx_wait_idle(s->gpu_ctx);
     if (s->scene) {
         ngli_node_detach_ctx(s->scene, s);
         if (*(int *)arg == UNREF_SCENE)
@@ -99,7 +99,7 @@ static int cmd_stop(struct ngl_ctx *s, void *arg)
     ngli_texture_freep(&s->font_atlas); // allocated by the first node text
     ngli_pgcache_reset(&s->pgcache);
     ngli_hud_freep(&s->hud);
-    ngli_gctx_freep(&s->gctx);
+    ngli_gpu_ctx_freep(&s->gpu_ctx);
 
     return 0;
 }
@@ -121,41 +121,41 @@ static int cmd_configure(struct ngl_ctx *s, void *arg)
 
     s->config = *config;
 
-    s->gctx = ngli_gctx_create(config);
-    if (!s->gctx)
+    s->gpu_ctx = ngli_gpu_ctx_create(config);
+    if (!s->gpu_ctx)
         return NGL_ERROR_MEMORY;
 
-    int ret = ngli_gctx_init(s->gctx);
+    int ret = ngli_gpu_ctx_init(s->gpu_ctx);
     if (ret < 0) {
         LOG(ERROR, "unable to initialize gpu context");
-        ngli_gctx_freep(&s->gctx);
+        ngli_gpu_ctx_freep(&s->gpu_ctx);
         return ret;
     }
 
     ngli_rnode_init(&s->rnode);
     s->rnode_pos = &s->rnode;
     s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
-    s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);
+    s->rnode_pos->rendertarget_desc = *ngli_gpu_ctx_get_default_rendertarget_desc(s->gpu_ctx);
 
-    ret = ngli_pgcache_init(&s->pgcache, s->gctx);
+    ret = ngli_pgcache_init(&s->pgcache, s->gpu_ctx);
     if (ret < 0)
         return ret;
 
 #if defined(HAVE_VAAPI)
-    ret = ngli_vaapi_ctx_init(s->gctx, &s->vaapi_ctx);
+    ret = ngli_vaapi_ctx_init(s->gpu_ctx, &s->vaapi_ctx);
     if (ret < 0)
         LOG(WARNING, "could not initialize vaapi context");
 #endif
 
 #if defined(TARGET_ANDROID)
     struct android_ctx *android_ctx = &s->android_ctx;
-    ret = ngli_android_ctx_init(s->gctx, android_ctx);
+    ret = ngli_android_ctx_init(s->gpu_ctx, android_ctx);
     if (ret < 0)
         LOG(WARNING, "could not initialize Android context");
 #endif
 
     NGLI_ALIGNED_MAT(matrix) = NGLI_MAT4_IDENTITY;
-    ngli_gctx_transform_projection_matrix(s->gctx, matrix);
+    ngli_gpu_ctx_transform_projection_matrix(s->gpu_ctx, matrix);
     ngli_darray_clear(&s->projection_matrix_stack);
     if (!ngli_darray_push(&s->projection_matrix_stack, matrix))
         return NGL_ERROR_MEMORY;
@@ -191,14 +191,14 @@ struct resize_params {
 static int cmd_resize(struct ngl_ctx *s, void *arg)
 {
     const struct resize_params *params = arg;
-    return ngli_gctx_resize(s->gctx, params->width, params->height, params->viewport);
+    return ngli_gpu_ctx_resize(s->gpu_ctx, params->width, params->height, params->viewport);
 }
 
 static int cmd_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer)
 {
     struct ngl_config *config = &s->config;
 
-    int ret = ngli_gctx_set_capture_buffer(s->gctx, capture_buffer);
+    int ret = ngli_gpu_ctx_set_capture_buffer(s->gpu_ctx, capture_buffer);
     if (ret < 0) {
         if (s->scene) {
             ngli_node_detach_ctx(s->scene, s);
@@ -215,7 +215,7 @@ static int cmd_set_capture_buffer(struct ngl_ctx *s, void *capture_buffer)
 
 static int cmd_set_scene(struct ngl_ctx *s, void *arg)
 {
-    ngli_gctx_wait_idle(s->gctx);
+    ngli_gpu_ctx_wait_idle(s->gpu_ctx);
 
     if (s->scene) {
         ngli_node_detach_ctx(s->scene, s);
@@ -226,7 +226,7 @@ static int cmd_set_scene(struct ngl_ctx *s, void *arg)
     ngli_rnode_init(&s->rnode);
     s->rnode_pos = &s->rnode;
     s->rnode_pos->graphicstate = NGLI_GRAPHICSTATE_DEFAULTS;
-    s->rnode_pos->rendertarget_desc = *ngli_gctx_get_default_rendertarget_desc(s->gctx);
+    s->rnode_pos->rendertarget_desc = *ngli_gpu_ctx_get_default_rendertarget_desc(s->gpu_ctx);
 
     struct ngl_node *scene = arg;
     if (!scene)
@@ -295,13 +295,13 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         return ret;
 
-    ret = ngli_gctx_begin_draw(s->gctx, t);
+    ret = ngli_gpu_ctx_begin_draw(s->gpu_ctx, t);
     if (ret < 0)
         goto end;
 
     const int64_t cpu_start_time = s->hud ? ngli_gettime_relative() : 0;
 
-    struct rendertarget *rt = ngli_gctx_get_default_rendertarget(s->gctx);
+    struct rendertarget *rt = ngli_gpu_ctx_get_default_rendertarget(s->gpu_ctx);
     s->available_rendertargets[0] = rt;
     s->available_rendertargets[1] = rt;
     s->current_rendertarget = rt;
@@ -317,17 +317,17 @@ static int cmd_draw(struct ngl_ctx *s, void *arg)
         s->cpu_draw_time = ngli_gettime_relative() - cpu_start_time;
 
         if (!s->begin_render_pass) {
-            ngli_gctx_end_render_pass(s->gctx);
+            ngli_gpu_ctx_end_render_pass(s->gpu_ctx);
             s->current_rendertarget = s->available_rendertargets[1];
             s->begin_render_pass = 1;
         }
-        ngli_gctx_query_draw_time(s->gctx, &s->gpu_draw_time);
+        ngli_gpu_ctx_query_draw_time(s->gpu_ctx, &s->gpu_draw_time);
 
         ngli_hud_draw(s->hud);
     }
 
 end:;
-    int end_ret = ngli_gctx_end_draw(s->gctx, t);
+    int end_ret = ngli_gpu_ctx_end_draw(s->gpu_ctx, t);
     if (end_ret < 0)
         return end_ret;
 
@@ -378,8 +378,8 @@ static int cmd_make_current(struct ngl_ctx *s, void *arg)
     if (config->backend == NGL_BACKEND_OPENGL ||
         config->backend == NGL_BACKEND_OPENGLES) {
         const int current = *(int *)arg;
-        struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-        ngli_glcontext_make_current(gctx_gl->glcontext, current);
+        struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+        ngli_glcontext_make_current(gpu_ctx_gl->glcontext, current);
     }
 #endif
     return 0;
@@ -445,18 +445,18 @@ static const char *get_cap_string_id(unsigned cap_id)
 #define ALL_FEATURES(features, mask) ((features & (mask)) == mask)
 #define ANY_FEATURES(features, mask) ((features & (mask)) != 0)
 
-static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
+static int load_caps(struct ngl_backend *backend, const struct gpu_ctx *gpu_ctx)
 {
-    const int has_block          = ANY_FEATURES(gctx->features, NGLI_FEATURE_BUFFER_OBJECTS_ALL);
-    const int has_compute        = ALL_FEATURES(gctx->features, NGLI_FEATURE_COMPUTE_SHADER_ALL);
-    const int has_instanced_draw = ALL_FEATURES(gctx->features, NGLI_FEATURE_INSTANCED_ARRAY);
-    const int has_npot_texture   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_NPOT);
-    const int has_shader_texture_lod = ALL_FEATURES(gctx->features, NGLI_FEATURE_SHADER_TEXTURE_LOD);
-    const int has_texture_3d     = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_3D);
-    const int has_texture_cube   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_CUBE_MAP);
-    const int has_uint_uniforms  = ALL_FEATURES(gctx->features, NGLI_FEATURE_UINT_UNIFORMS);
+    const int has_block          = ANY_FEATURES(gpu_ctx->features, NGLI_FEATURE_BUFFER_OBJECTS_ALL);
+    const int has_compute        = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_COMPUTE_SHADER_ALL);
+    const int has_instanced_draw = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_INSTANCED_ARRAY);
+    const int has_npot_texture   = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_TEXTURE_NPOT);
+    const int has_shader_texture_lod = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_SHADER_TEXTURE_LOD);
+    const int has_texture_3d     = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_TEXTURE_3D);
+    const int has_texture_cube   = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_TEXTURE_CUBE_MAP);
+    const int has_uint_uniforms  = ALL_FEATURES(gpu_ctx->features, NGLI_FEATURE_UINT_UNIFORMS);
 
-    const struct gpu_limits *limits = &gctx->limits;
+    const struct gpu_limits *limits = &gpu_ctx->limits;
     const struct ngl_cap caps[] = {
         CAP(NGL_CAP_BLOCK,                         has_block),
         CAP(NGL_CAP_COMPUTE,                       has_compute),
@@ -497,30 +497,30 @@ enum {
 
 static int backend_probe(struct ngl_backend *backend, const struct ngl_config *config, int mode)
 {
-    struct gctx *gctx = ngli_gctx_create(config);
-    if (!gctx)
+    struct gpu_ctx *gpu_ctx = ngli_gpu_ctx_create(config);
+    if (!gpu_ctx)
         return NGL_ERROR_MEMORY;
 
-    ngli_assert(gctx->backend_str);
-    ngli_assert(gctx->cls);
+    ngli_assert(gpu_ctx->backend_str);
+    ngli_assert(gpu_ctx->cls);
 
     backend->id         = config->backend;
-    backend->string_id  = gctx->backend_str;
-    backend->name       = gctx->cls->name;
+    backend->string_id  = gpu_ctx->backend_str;
+    backend->name       = gpu_ctx->cls->name;
 
     if (mode == PROBE_MODE_NO_GRAPHICS)
         return 0;
 
-    int ret = ngli_gctx_init(gctx);
+    int ret = ngli_gpu_ctx_init(gpu_ctx);
     if (ret < 0)
         goto end;
 
-    ret = load_caps(backend, gctx);
+    ret = load_caps(backend, gpu_ctx);
     if (ret < 0)
         goto end;
 
 end:
-    ngli_gctx_freep(&gctx);
+    ngli_gpu_ctx_freep(&gpu_ctx);
     return ret;
 }
 

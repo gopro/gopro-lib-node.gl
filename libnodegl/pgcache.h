@@ -26,12 +26,12 @@
 #include "program.h"
 
 struct pgcache {
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
     struct hmap *graphics_cache;
     struct hmap *compute_cache;
 };
 
-int ngli_pgcache_init(struct pgcache *s, struct gctx *ctx);
+int ngli_pgcache_init(struct pgcache *s, struct gpu_ctx *ctx);
 int ngli_pgcache_get_graphics_program(struct pgcache *s, struct program **dstp, const char *vert, const char *frag);
 int ngli_pgcache_get_compute_program(struct pgcache *s, struct program **dstp, const char *comp);
 void ngli_pgcache_reset(struct pgcache *s);

@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include "android_ctx.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "log.h"
 #include "nodes.h"
 
@@ -79,7 +79,7 @@ done:
     return NGL_ERROR_UNSUPPORTED;
 }
 
-int ngli_android_ctx_init(struct gctx *gctx, struct android_ctx *s)
+int ngli_android_ctx_init(struct gpu_ctx *gpu_ctx, struct android_ctx *s)
 {
     memset(s, 0, sizeof(*s));
 
@@ -95,10 +95,10 @@ int ngli_android_ctx_init(struct gctx *gctx, struct android_ctx *s)
         return ret;
     }
 
-    const struct ngl_config *config = &gctx->config;
+    const struct ngl_config *config = &gpu_ctx->config;
     const int features = NGLI_FEATURE_OES_EGL_EXTERNAL_IMAGE |
                          NGLI_FEATURE_EGL_ANDROID_GET_IMAGE_NATIVE_CLIENT_BUFFER;
-    if (config->backend == NGL_BACKEND_OPENGLES && (gctx->features & features) == features)
+    if (config->backend == NGL_BACKEND_OPENGLES && (gpu_ctx->features & features) == features)
         s->has_native_imagereader_api = 1;
 
     return 0;

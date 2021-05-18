@@ -26,7 +26,7 @@
 #include "config.h"
 #include "rendertarget.h"
 #include "format.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
@@ -136,7 +136,7 @@ static void get_renderpass_children_info(const struct ngl_node *node, struct ren
 static int rtt_prepare(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct rnode *rnode = ctx->rnode_pos;
     struct rtt_priv *s = node->priv_data;
 
@@ -172,9 +172,9 @@ static int rtt_prepare(struct ngl_node *node)
     } else {
         int depth_format = NGLI_FORMAT_UNDEFINED;
         if (s->features & FEATURE_STENCIL)
-            depth_format = ngli_gctx_get_preferred_depth_stencil_format(gctx);
+            depth_format = ngli_gpu_ctx_get_preferred_depth_stencil_format(gpu_ctx);
         else if (s->features & FEATURE_DEPTH)
-            depth_format = ngli_gctx_get_preferred_depth_format(gctx);
+            depth_format = ngli_gpu_ctx_get_preferred_depth_format(gpu_ctx);
         desc.depth_stencil.format = depth_format;
     }
     rnode->rendertarget_desc = desc;
@@ -186,10 +186,10 @@ static int rtt_prefetch(struct ngl_node *node)
 {
     int ret = 0;
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct rtt_priv *s = node->priv_data;
 
-    if (!(gctx->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && s->samples > 0) {
+    if (!(gpu_ctx->features & NGLI_FEATURE_FRAMEBUFFER_OBJECT) && s->samples > 0) {
         LOG(WARNING, "context does not support the framebuffer object feature, "
             "multisample anti-aliasing will be disabled");
         s->samples = 0;
@@ -242,7 +242,7 @@ static int rtt_prefetch(struct ngl_node *node)
         const int n = params->type == NGLI_TEXTURE_TYPE_CUBE ? 6 : 1;
         for (int j = 0; j < n; j++) {
             if (s->samples) {
-                struct texture *ms_texture = ngli_texture_create(gctx);
+                struct texture *ms_texture = ngli_texture_create(gpu_ctx);
                 if (!ms_texture)
                     return NGL_ERROR_MEMORY;
                 s->ms_colors[s->nb_ms_colors++] = ms_texture;
@@ -284,7 +284,7 @@ static int rtt_prefetch(struct ngl_node *node)
         struct texture_params *params = &texture->params;
 
         if (s->samples) {
-            struct texture *ms_texture = ngli_texture_create(gctx);
+            struct texture *ms_texture = ngli_texture_create(gpu_ctx);
             if (!ms_texture)
                 return NGL_ERROR_MEMORY;
             s->ms_depth = ms_texture;
@@ -310,12 +310,12 @@ static int rtt_prefetch(struct ngl_node *node)
         }
     } else {
         if (s->features & FEATURE_STENCIL)
-            depth_format = ngli_gctx_get_preferred_depth_stencil_format(gctx);
+            depth_format = ngli_gpu_ctx_get_preferred_depth_stencil_format(gpu_ctx);
         else if (s->features & FEATURE_DEPTH)
-            depth_format = ngli_gctx_get_preferred_depth_format(gctx);
+            depth_format = ngli_gpu_ctx_get_preferred_depth_format(gpu_ctx);
 
         if (depth_format != NGLI_FORMAT_UNDEFINED) {
-            struct texture *depth = ngli_texture_create(gctx);
+            struct texture *depth = ngli_texture_create(gpu_ctx);
             if (!depth)
                 return NGL_ERROR_MEMORY;
             s->depth = depth;
@@ -336,7 +336,7 @@ static int rtt_prefetch(struct ngl_node *node)
         }
     }
 
-    s->rt = ngli_rendertarget_create(gctx);
+    s->rt = ngli_rendertarget_create(gpu_ctx);
     if (!s->rt)
         return NGL_ERROR_MEMORY;
 
@@ -353,7 +353,7 @@ static int rtt_prefetch(struct ngl_node *node)
         rt_params.depth_stencil.load_op = NGLI_LOAD_OP_LOAD;
         rt_params.depth_stencil.store_op = s->depth_texture ? NGLI_STORE_OP_STORE : NGLI_LOAD_OP_DONT_CARE;
 
-        s->rt_resume = ngli_rendertarget_create(gctx);
+        s->rt_resume = ngli_rendertarget_create(gpu_ctx);
         if (!s->rt_resume)
             return NGL_ERROR_MEMORY;
 
@@ -368,13 +368,13 @@ static int rtt_prefetch(struct ngl_node *node)
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;
         struct image *image = &texture_priv->image;
-        ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, image->coordinates_matrix);
+        ngli_gpu_ctx_get_rendertarget_uvcoord_matrix(gpu_ctx, image->coordinates_matrix);
     }
 
     if (s->depth_texture) {
         struct texture_priv *depth_texture_priv = s->depth_texture->priv_data;
         struct image *depth_image = &depth_texture_priv->image;
-        ngli_gctx_get_rendertarget_uvcoord_matrix(gctx, depth_image->coordinates_matrix);
+        ngli_gpu_ctx_get_rendertarget_uvcoord_matrix(gpu_ctx, depth_image->coordinates_matrix);
     }
 
     return 0;
@@ -405,20 +405,20 @@ static int rtt_update(struct ngl_node *node, double t)
 static void rtt_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct rtt_priv *s = node->priv_data;
 
     int prev_vp[4] = {0};
-    ngli_gctx_get_viewport(gctx, prev_vp);
+    ngli_gpu_ctx_get_viewport(gpu_ctx, prev_vp);
 
     const int vp[4] = {0, 0, s->width, s->height};
-    ngli_gctx_set_viewport(gctx, vp);
+    ngli_gpu_ctx_set_viewport(gpu_ctx, vp);
 
     int prev_scissor[4] = {0};
-    ngli_gctx_get_scissor(gctx, prev_scissor);
+    ngli_gpu_ctx_get_scissor(gpu_ctx, prev_scissor);
 
     const int scissor[4] = {0, 0, s->width, s->height};
-    ngli_gctx_set_scissor(gctx, scissor);
+    ngli_gpu_ctx_set_scissor(gpu_ctx, scissor);
 
     struct rendertarget *prev_rendertargets[2] = {
         ctx->available_rendertargets[0],
@@ -427,7 +427,7 @@ static void rtt_draw(struct ngl_node *node)
 
     struct rendertarget *prev_rendertarget = ctx->current_rendertarget;
     if (!ctx->begin_render_pass) {
-        ngli_gctx_end_render_pass(gctx);
+        ngli_gpu_ctx_end_render_pass(gpu_ctx);
         prev_rendertarget = ctx->available_rendertargets[1];
     }
 
@@ -439,18 +439,18 @@ static void rtt_draw(struct ngl_node *node)
     ngli_node_draw(s->child);
 
     if (ctx->begin_render_pass) {
-        ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
+        ngli_gpu_ctx_begin_render_pass(gpu_ctx, ctx->current_rendertarget);
         ctx->begin_render_pass = 0;
     }
-    ngli_gctx_end_render_pass(gctx);
+    ngli_gpu_ctx_end_render_pass(gpu_ctx);
 
     ctx->current_rendertarget = prev_rendertarget;
     ctx->available_rendertargets[0] = prev_rendertargets[0];
     ctx->available_rendertargets[1] = prev_rendertargets[1];
     ctx->begin_render_pass = 1;
 
-    ngli_gctx_set_viewport(gctx, prev_vp);
-    ngli_gctx_set_scissor(gctx, prev_scissor);
+    ngli_gpu_ctx_set_viewport(gpu_ctx, prev_vp);
+    ngli_gpu_ctx_set_scissor(gpu_ctx, prev_scissor);
 
     for (int i = 0; i < s->nb_color_textures; i++) {
         struct texture_priv *texture_priv = s->color_textures[i]->priv_data;

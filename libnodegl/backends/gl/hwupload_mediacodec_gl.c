@@ -30,7 +30,7 @@
 #include "android_surface.h"
 #include "egl.h"
 #include "format.h"
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -70,8 +70,8 @@ static int support_direct_rendering(struct ngl_node *node)
 static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     const struct texture_params *params = &s->params;
     struct media_priv *media = s->data_src->priv_data;
@@ -132,8 +132,8 @@ static int mc_map_frame_imagereader(struct ngl_node *node, struct sxplayer_frame
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;
 
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct media_priv *media = s->data_src->priv_data;
 
     AVMediaCodecBuffer *buffer = (AVMediaCodecBuffer *)frame->data;
@@ -198,8 +198,8 @@ static void mc_uninit(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
     struct android_ctx *android_ctx = &ctx->android_ctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;

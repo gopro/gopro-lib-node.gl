@@ -22,7 +22,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-struct gctx;
+struct gpu_ctx;
 
 enum {
     NGLI_BUFFER_USAGE_DYNAMIC_BIT        = 1 << 0,
@@ -36,12 +36,12 @@ enum {
 };
 
 struct buffer {
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
     int size;
     int usage;
 };
 
-struct buffer *ngli_buffer_create(struct gctx *gctx);
+struct buffer *ngli_buffer_create(struct gpu_ctx *gpu_ctx);
 int ngli_buffer_init(struct buffer *s, int size, int usage);
 int ngli_buffer_upload(struct buffer *s, const void *data, int size, int offset);
 void ngli_buffer_freep(struct buffer **sp);

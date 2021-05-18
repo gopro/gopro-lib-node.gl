@@ -19,32 +19,32 @@
  * under the License.
  */
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "texture.h"
 
-struct texture *ngli_texture_create(struct gctx *gctx)
+struct texture *ngli_texture_create(struct gpu_ctx *gpu_ctx)
 {
-    return gctx->cls->texture_create(gctx);
+    return gpu_ctx->cls->texture_create(gpu_ctx);
 }
 
 int ngli_texture_init(struct texture *s, const struct texture_params *params)
 {
-    return s->gctx->cls->texture_init(s, params);
+    return s->gpu_ctx->cls->texture_init(s, params);
 }
 
 int ngli_texture_upload(struct texture *s, const uint8_t *data, int linesize)
 {
-    return s->gctx->cls->texture_upload(s, data, linesize);
+    return s->gpu_ctx->cls->texture_upload(s, data, linesize);
 }
 
 int ngli_texture_generate_mipmap(struct texture *s)
 {
-    return s->gctx->cls->texture_generate_mipmap(s);
+    return s->gpu_ctx->cls->texture_generate_mipmap(s);
 }
 
 void ngli_texture_freep(struct texture **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->cls->texture_freep(sp);
+    (*sp)->gpu_ctx->cls->texture_freep(sp);
 }

@@ -39,7 +39,7 @@ struct rendertarget_gl {
     void (*resolve)(struct rendertarget *s);
 };
 
-struct rendertarget *ngli_rendertarget_gl_create(struct gctx *gctx);
+struct rendertarget *ngli_rendertarget_gl_create(struct gpu_ctx *gpu_ctx);
 int ngli_rendertarget_gl_init(struct rendertarget *s, const struct rendertarget_params *params);
 void ngli_rendertarget_gl_resolve(struct rendertarget *s);
 void ngli_rendertarget_gl_clear(struct rendertarget *s);

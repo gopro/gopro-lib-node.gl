@@ -26,7 +26,7 @@
 #include "nodes.h"
 #include "darray.h"
 #include "drawutils.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "log.h"
 #include "math_utils.h"
 #include "pgcache.h"
@@ -215,7 +215,7 @@ static void get_char_box_dim(const char *s, int *wp, int *hp, int *np)
 static int update_character_geometries(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct text_priv *s = node->priv_data;
 
     int ret = 0;
@@ -345,9 +345,9 @@ static int update_character_geometries(struct ngl_node *node)
         ngli_buffer_freep(&s->uvcoords);
         ngli_buffer_freep(&s->indices);
 
-        s->vertices = ngli_buffer_create(gctx);
-        s->uvcoords = ngli_buffer_create(gctx);
-        s->indices  = ngli_buffer_create(gctx);
+        s->vertices = ngli_buffer_create(gpu_ctx);
+        s->uvcoords = ngli_buffer_create(gpu_ctx);
+        s->indices  = ngli_buffer_create(gpu_ctx);
         if (!s->vertices || !s->uvcoords || !s->indices) {
             ret = NGL_ERROR_MEMORY;
             goto end;
@@ -385,7 +385,7 @@ end:
 static int init_bounding_box_geometry(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct text_priv *s = node->priv_data;
 
     static const short indices[] = { 0, 1, 2, 0, 2, 3 };
@@ -396,8 +396,8 @@ static int init_bounding_box_geometry(struct ngl_node *node)
         BC(0) + BH(0),         BC(1) + BH(1),         BC(2) + BH(2),
     };
 
-    s->bg_vertices = ngli_buffer_create(gctx);
-    s->bg_indices  = ngli_buffer_create(gctx);
+    s->bg_vertices = ngli_buffer_create(gpu_ctx);
+    s->bg_indices  = ngli_buffer_create(gpu_ctx);
     if (!s->bg_vertices || !s->bg_indices)
         return NGL_ERROR_MEMORY;
 
@@ -418,7 +418,7 @@ static int init_bounding_box_geometry(struct ngl_node *node)
 static int atlas_create(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     if (ctx->font_atlas)
         return 0;
@@ -441,7 +441,7 @@ static int atlas_create(struct ngl_node *node)
                        | NGLI_TEXTURE_USAGE_SAMPLED_BIT,
     };
 
-    ctx->font_atlas = ngli_texture_create(gctx); // freed at context reconfiguration/destruction
+    ctx->font_atlas = ngli_texture_create(gpu_ctx); // freed at context reconfiguration/destruction
     if (!ctx->font_atlas) {
         ret = NGL_ERROR_MEMORY;
         goto end;
@@ -487,7 +487,7 @@ static int init_subdesc(struct ngl_node *node,
                         const struct pgcraft_params *crafter_params)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     desc->crafter = ngli_pgcraft_create(ctx);
     if (!desc->crafter)
@@ -498,7 +498,7 @@ static int init_subdesc(struct ngl_node *node,
     if (ret < 0)
         return ret;
 
-    desc->pipeline = ngli_pipeline_create(gctx);
+    desc->pipeline = ngli_pipeline_create(gpu_ctx);
     if (!desc->pipeline)
         return NGL_ERROR_MEMORY;
 
@@ -686,8 +686,8 @@ static void text_draw(struct ngl_node *node)
     struct pipeline_desc *desc = &descs[ctx->rnode_pos->id];
 
     if (ctx->begin_render_pass) {
-        struct gctx *gctx = ctx->gctx;
-        ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
+        struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+        ngli_gpu_ctx_begin_render_pass(gpu_ctx, ctx->current_rendertarget);
         ctx->begin_render_pass = 0;
     }
 

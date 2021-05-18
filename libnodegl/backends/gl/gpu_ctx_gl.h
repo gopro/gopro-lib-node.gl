@@ -34,15 +34,15 @@
 #include "rendertarget.h"
 #include "pgcache.h"
 #include "pipeline.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 
 struct ngl_ctx;
 struct rendertarget;
 
-typedef void (*capture_func_type)(struct gctx *s);
+typedef void (*capture_func_type)(struct gpu_ctx *s);
 
-struct gctx_gl {
-    struct gctx parent;
+struct gpu_ctx_gl {
+    struct gpu_ctx parent;
     struct glcontext *glcontext;
     struct glstate glstate;
     struct graphicstate default_graphicstate;

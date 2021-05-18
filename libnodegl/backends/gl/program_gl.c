@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glincludes.h"
 #include "log.h"
 #include "memory.h"
@@ -243,12 +243,12 @@ static struct hmap *program_probe_buffer_blocks(struct glcontext *gl, GLuint pid
     return bmap;
 }
 
-struct program *ngli_program_gl_create(struct gctx *gctx)
+struct program *ngli_program_gl_create(struct gpu_ctx *gpu_ctx)
 {
     struct program_gl *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->parent.gctx = gctx;
+    s->parent.gpu_ctx = gpu_ctx;
     return (struct program *)s;
 }
 
@@ -267,8 +267,8 @@ int ngli_program_gl_init(struct program *s, const char *vertex, const char *frag
         [NGLI_PROGRAM_SHADER_COMP] = {GL_COMPUTE_SHADER,  compute,  0},
     };
 
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     if (compute && (gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
         LOG(ERROR, "context does not support compute shaders");
@@ -330,8 +330,8 @@ void ngli_program_gl_freep(struct program **sp)
     ngli_hmap_freep(&s->uniforms);
     ngli_hmap_freep(&s->attributes);
     ngli_hmap_freep(&s->buffer_blocks);
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     ngli_glDeleteProgram(gl, s_priv->id);
     ngli_freep(sp);
 }

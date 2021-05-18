@@ -33,19 +33,19 @@
 #include <va/va_wayland.h>
 #endif
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "log.h"
 #include "nodes.h"
 #include "vaapi_ctx.h"
 
-int ngli_vaapi_ctx_init(struct gctx *gctx, struct vaapi_ctx *s)
+int ngli_vaapi_ctx_init(struct gpu_ctx *gpu_ctx, struct vaapi_ctx *s)
 {
-    const struct ngl_config *config = &gctx->config;
+    const struct ngl_config *config = &gpu_ctx->config;
 
-    if (gctx->features & NGLI_FEATURE_SOFTWARE)
+    if (gpu_ctx->features & NGLI_FEATURE_SOFTWARE)
         return -1;
 
-    if (!(gctx->features & (NGLI_FEATURE_OES_EGL_IMAGE |
+    if (!(gpu_ctx->features & (NGLI_FEATURE_OES_EGL_IMAGE |
                             NGLI_FEATURE_EGL_IMAGE_BASE_KHR |
                             NGLI_FEATURE_EGL_EXT_IMAGE_DMA_BUF_IMPORT))) {
         LOG(ERROR, "context does not support required extensions for vaapi");
@@ -66,7 +66,7 @@ int ngli_vaapi_ctx_init(struct gctx *gctx, struct vaapi_ctx *s)
 #endif
     } else if (config->platform == NGL_PLATFORM_WAYLAND) {
 #if defined(HAVE_VAAPI_WAYLAND)
-        struct wl_display *wl_display = (struct wl_display *)gctx->config.display;
+        struct wl_display *wl_display = (struct wl_display *)gpu_ctx->config.display;
         if (!wl_display) {
             wl_display = wl_display_connect(NULL);
             if (!wl_display) {

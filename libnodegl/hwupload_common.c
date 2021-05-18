@@ -186,7 +186,7 @@ static int support_direct_rendering(struct ngl_node *node, const struct format_d
 static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
@@ -205,7 +205,7 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
         params.height = i == 0 ? frame->height : NGLI_CEIL_RSHIFT(frame->height, desc->log2_chroma_height);
         params.format = desc->formats[i];
 
-        common->planes[i] = ngli_texture_create(gctx);
+        common->planes[i] = ngli_texture_create(gpu_ctx);
         if (!common->planes[i])
             return NGL_ERROR_MEMORY;
 

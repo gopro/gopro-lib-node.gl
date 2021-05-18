@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "hmap.h"
 #include "memory.h"
 #include "nodegl.h"
@@ -1163,7 +1163,7 @@ int ngli_hud_init(struct hud *s)
 {
     struct ngl_ctx *ctx = s->ctx;
     const struct ngl_config *config = &ctx->config;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     s->scale = config->hud_scale;
     s->measure_window = config->hud_measure_window;
@@ -1201,7 +1201,7 @@ int ngli_hud_init(struct hud *s)
          1.0f,  1.0f, 1.0f, 0.0f,
     };
 
-    s->coords = ngli_buffer_create(gctx);
+    s->coords = ngli_buffer_create(gpu_ctx);
     if (!s->coords)
         return NGL_ERROR_MEMORY;
 
@@ -1225,7 +1225,7 @@ int ngli_hud_init(struct hud *s)
         .mag_filter    = NGLI_FILTER_NEAREST,
         .usage         = NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT | NGLI_TEXTURE_USAGE_SAMPLED_BIT,
     };
-    s->texture = ngli_texture_create(gctx);
+    s->texture = ngli_texture_create(gpu_ctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
     ret = ngli_texture_init(s->texture, &tex_params);
@@ -1295,7 +1295,7 @@ int ngli_hud_init(struct hud *s)
     if (ret < 0)
         return ret;
 
-    s->pipeline = ngli_pipeline_create(gctx);
+    s->pipeline = ngli_pipeline_create(gpu_ctx);
     if (!s->pipeline)
         return NGL_ERROR_MEMORY;
 
@@ -1316,7 +1316,7 @@ int ngli_hud_init(struct hud *s)
 void ngli_hud_draw(struct hud *s)
 {
     struct ngl_ctx *ctx = s->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     widgets_make_stats(s);
     if (s->export_filename) {
@@ -1333,7 +1333,7 @@ void ngli_hud_draw(struct hud *s)
     }
 
     int viewport[4];
-    ngli_gctx_get_viewport(gctx, viewport);
+    ngli_gpu_ctx_get_viewport(gpu_ctx, viewport);
     const int scale = s->scale > 0 ? s->scale : 1;
     const float ratio_w = scale * s->canvas.w / (double)viewport[2];
     const float ratio_h = scale * s->canvas.h / (double)viewport[3];
@@ -1355,8 +1355,8 @@ void ngli_hud_draw(struct hud *s)
         return;
 
     if (ctx->begin_render_pass) {
-        struct gctx *gctx = ctx->gctx;
-        ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
+        struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+        ngli_gpu_ctx_begin_render_pass(gpu_ctx, ctx->current_rendertarget);
         ctx->begin_render_pass = 0;
     }
 

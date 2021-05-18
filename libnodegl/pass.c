@@ -27,7 +27,7 @@
 
 #include "block.h"
 #include "buffer.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "hmap.h"
 #include "image.h"
 #include "log.h"
@@ -171,8 +171,8 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
     }
 
     struct ngl_ctx *ctx = s->ctx;
-    struct gctx *gctx = ctx->gctx;
-    const struct gpu_limits *limits = &gctx->limits;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    const struct gpu_limits *limits = &gpu_ctx->limits;
 
     struct block_priv *block_priv = block_node->priv_data;
     struct block *block = &block_priv->block;
@@ -440,7 +440,7 @@ static int pass_compute_init(struct pass *s)
 int ngli_pass_prepare(struct pass *s)
 {
     struct ngl_ctx *ctx = s->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct rnode *rnode = ctx->rnode_pos;
 
     const int format = rnode->rendertarget_desc.depth_stencil.format;
@@ -517,7 +517,7 @@ int ngli_pass_prepare(struct pass *s)
     if (ret < 0)
         return ret;
 
-    desc->pipeline = ngli_pipeline_create(gctx);
+    desc->pipeline = ngli_pipeline_create(gpu_ctx);
     if (!desc->pipeline)
         return NGL_ERROR_MEMORY;
 
@@ -749,8 +749,8 @@ int ngli_pass_exec(struct pass *s)
 
     if (s->pipeline_type == NGLI_PIPELINE_TYPE_GRAPHICS) {
         if (ctx->begin_render_pass) {
-            struct gctx *gctx = ctx->gctx;
-            ngli_gctx_begin_render_pass(gctx, ctx->current_rendertarget);
+            struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+            ngli_gpu_ctx_begin_render_pass(gpu_ctx, ctx->current_rendertarget);
             ctx->begin_render_pass = 0;
         }
 
@@ -760,8 +760,8 @@ int ngli_pass_exec(struct pass *s)
             ngli_pipeline_draw(pipeline, s->nb_vertices, s->nb_instances);
     } else {
         if (!ctx->begin_render_pass) {
-            struct gctx *gctx = ctx->gctx;
-            ngli_gctx_end_render_pass(gctx);
+            struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+            ngli_gpu_ctx_end_render_pass(gpu_ctx);
             ctx->current_rendertarget = ctx->available_rendertargets[1];
             ctx->begin_render_pass = 1;
         }

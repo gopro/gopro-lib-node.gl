@@ -24,7 +24,7 @@
 
 #include "utils.h"
 
-struct gctx;
+struct gpu_ctx;
 
 enum {
     NGLI_MIPMAP_FILTER_NONE,
@@ -88,14 +88,14 @@ struct texture_params {
 };
 
 struct texture {
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
     struct texture_params params;
     int wrapped;
     int external_storage;
     int bytes_per_pixel;
 };
 
-struct texture *ngli_texture_create(struct gctx *gctx);
+struct texture *ngli_texture_create(struct gpu_ctx *gpu_ctx);
 
 int ngli_texture_init(struct texture *s,
                       const struct texture_params *params);

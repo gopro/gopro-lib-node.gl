@@ -25,7 +25,7 @@
 #include "pipeline.h"
 #include "glincludes.h"
 
-struct gctx;
+struct gpu_ctx;
 struct glcontext;
 
 struct pipeline_gl {
@@ -43,7 +43,7 @@ struct pipeline_gl {
     void (*insert_memory_barriers)(struct pipeline *s);
 };
 
-struct pipeline *ngli_pipeline_gl_create(struct gctx *gctx);
+struct pipeline *ngli_pipeline_gl_create(struct gpu_ctx *gpu_ctx);
 int ngli_pipeline_gl_init(struct pipeline *s, const struct pipeline_params *params);
 int ngli_pipeline_gl_set_resources(struct pipeline *s, const struct pipeline_resource_params *data_params);
 int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buffer *buffer);

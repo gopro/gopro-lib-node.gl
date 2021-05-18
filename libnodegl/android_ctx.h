@@ -25,7 +25,7 @@
 #include <android/native_window_jni.h>
 #include <media/NdkImageReader.h>
 
-struct gctx;
+struct gpu_ctx;
 
 struct android_ctx {
     void *libandroid_handle;
@@ -48,7 +48,7 @@ struct android_ctx {
     int has_native_imagereader_api;
 };
 
-int ngli_android_ctx_init(struct gctx *gctx, struct android_ctx *s);
+int ngli_android_ctx_init(struct gpu_ctx *gpu_ctx, struct android_ctx *s);
 void ngli_android_ctx_reset(struct android_ctx *s);
 
 #endif

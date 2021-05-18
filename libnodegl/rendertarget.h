@@ -70,13 +70,13 @@ struct rendertarget_params {
 };
 
 struct rendertarget {
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
     struct rendertarget_params params;
     int width;
     int height;
 };
 
-struct rendertarget *ngli_rendertarget_create(struct gctx *gctx);
+struct rendertarget *ngli_rendertarget_create(struct gpu_ctx *gpu_ctx);
 int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params);
 void ngli_rendertarget_read_pixels(struct rendertarget *s, uint8_t *data);
 void ngli_rendertarget_freep(struct rendertarget **sp);

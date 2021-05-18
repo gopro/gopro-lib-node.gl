@@ -28,8 +28,8 @@
 #endif
 
 #include "buffer_gl.h"
-#include "gctx.h"
-#include "gctx_gl.h"
+#include "gpu_ctx.h"
+#include "gpu_ctx_gl.h"
 #include "glcontext.h"
 #include "log.h"
 #include "math_utils.h"
@@ -43,30 +43,30 @@
 #include "gpu_capture.h"
 #endif
 
-static void capture_cpu(struct gctx *s)
+static void capture_cpu(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct ngl_config *config = &s->config;
     struct rendertarget *rt = s_priv->rt;
 
     ngli_rendertarget_read_pixels(rt, config->capture_buffer);
 }
 
-static void capture_corevideo(struct gctx *s)
+static void capture_corevideo(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     ngli_glFinish(gl);
 }
 
 #if defined(TARGET_IPHONE)
-static int wrap_capture_cvpixelbuffer(struct gctx *s,
+static int wrap_capture_cvpixelbuffer(struct gpu_ctx *s,
                                       CVPixelBufferRef buffer,
                                       struct texture **texturep,
                                       CVOpenGLESTextureRef *cv_texturep)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     CVOpenGLESTextureRef cv_texture = NULL;
@@ -122,9 +122,9 @@ static int wrap_capture_cvpixelbuffer(struct gctx *s,
     return 0;
 }
 
-static void reset_capture_cvpixelbuffer(struct gctx *s)
+static void reset_capture_cvpixelbuffer(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
 
     if (s_priv->capture_cvbuffer) {
         CFRelease(s_priv->capture_cvbuffer);
@@ -137,9 +137,9 @@ static void reset_capture_cvpixelbuffer(struct gctx *s)
 }
 #endif
 
-static int offscreen_rendertarget_init(struct gctx *s)
+static int offscreen_rendertarget_init(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     struct ngl_config *config = &s->config;
 
@@ -263,14 +263,14 @@ static int offscreen_rendertarget_init(struct gctx *s)
     s_priv->capture_func = capture_func_map[config->capture_buffer_type];
 
     const int vp[4] = {0, 0, config->width, config->height};
-    ngli_gctx_set_viewport(s, vp);
+    ngli_gpu_ctx_set_viewport(s, vp);
 
     return 0;
 }
 
-static int onscreen_rendertarget_init(struct gctx *s)
+static int onscreen_rendertarget_init(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     const struct ngl_config *config = &s->config;
 
     const struct rendertarget_params rt_params = {
@@ -301,9 +301,9 @@ static int onscreen_rendertarget_init(struct gctx *s)
     return ngli_default_rendertarget_gl_init(s_priv->rt, &rt_params);
 }
 
-static void rendertarget_reset(struct gctx *s)
+static void rendertarget_reset(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     ngli_rendertarget_freep(&s_priv->rt);
     ngli_texture_freep(&s_priv->color);
     ngli_texture_freep(&s_priv->ms_color);
@@ -318,9 +318,9 @@ static void noop(const struct glcontext *gl, ...)
 {
 }
 
-static int timer_init(struct gctx *s)
+static int timer_init(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     if (gl->features & NGLI_FEATURE_TIMER_QUERY) {
@@ -350,21 +350,21 @@ static int timer_init(struct gctx *s)
     return 0;
 }
 
-static void timer_reset(struct gctx *s)
+static void timer_reset(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     if (s_priv->glDeleteQueries)
         s_priv->glDeleteQueries(gl, 2, s_priv->queries);
 }
 
-static struct gctx *gl_create(const struct ngl_config *config)
+static struct gpu_ctx *gl_create(const struct ngl_config *config)
 {
-    struct gctx_gl *s = ngli_calloc(1, sizeof(*s));
+    struct gpu_ctx_gl *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    return (struct gctx *)s;
+    return (struct gpu_ctx *)s;
 }
 
 #if DEBUG_GL
@@ -384,11 +384,11 @@ static void NGLI_GL_APIENTRY gl_debug_message_callback(GLenum source,
 }
 #endif
 
-static int gl_init(struct gctx *s)
+static int gl_init(struct gpu_ctx *s)
 {
     int ret;
     const struct ngl_config *config = &s->config;
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
 
 #if DEBUG_GPU_CAPTURE
     const char *var = getenv("NGL_GPU_CAPTURE");
@@ -451,21 +451,21 @@ static int gl_init(struct gctx *s)
 
     const int *viewport = config->viewport;
     if (viewport[2] > 0 && viewport[3] > 0) {
-        ngli_gctx_set_viewport(s, viewport);
+        ngli_gpu_ctx_set_viewport(s, viewport);
     } else {
         const int default_viewport[] = {0, 0, gl->width, gl->height};
-        ngli_gctx_set_viewport(s, default_viewport);
+        ngli_gpu_ctx_set_viewport(s, default_viewport);
     }
 
     const GLint scissor[] = {0, 0, gl->width, gl->height};
-    ngli_gctx_set_scissor(s, scissor);
+    ngli_gpu_ctx_set_scissor(s, scissor);
 
     return 0;
 }
 
-static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
+static int gl_resize(struct gpu_ctx *s, int width, int height, const int *viewport)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     if (gl->offscreen)
         return NGL_ERROR_INVALID_USAGE;
@@ -485,22 +485,22 @@ static int gl_resize(struct gctx *s, int width, int height, const int *viewport)
     rt_gl->id = ngli_glcontext_get_default_framebuffer(gl);
 
     if (viewport && viewport[2] > 0 && viewport[3] > 0) {
-        ngli_gctx_set_viewport(s, viewport);
+        ngli_gpu_ctx_set_viewport(s, viewport);
     } else {
         const int default_viewport[] = {0, 0, gl->width, gl->height};
-        ngli_gctx_set_viewport(s, default_viewport);
+        ngli_gpu_ctx_set_viewport(s, default_viewport);
     }
 
     const int scissor[] = {0, 0, gl->width, gl->height};
-    ngli_gctx_set_scissor(s, scissor);
+    ngli_gpu_ctx_set_scissor(s, scissor);
 
     return 0;
 }
 
 #if defined(TARGET_IPHONE)
-static int update_capture_cvpixelbuffer(struct gctx *s, CVPixelBufferRef capture_buffer)
+static int update_capture_cvpixelbuffer(struct gpu_ctx *s, CVPixelBufferRef capture_buffer)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct ngl_config *config = &s->config;
 
     struct texture *texture = NULL;
@@ -583,9 +583,9 @@ fail:
 }
 #endif
 
-static int gl_set_capture_buffer(struct gctx *s, void *capture_buffer)
+static int gl_set_capture_buffer(struct gpu_ctx *s, void *capture_buffer)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     if (!gl->offscreen)
@@ -608,9 +608,9 @@ static int gl_set_capture_buffer(struct gctx *s, void *capture_buffer)
     return 0;
 }
 
-static int gl_begin_draw(struct gctx *s, double t)
+static int gl_begin_draw(struct gpu_ctx *s, double t)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     const struct ngl_config *config = &s->config;
 
@@ -621,7 +621,7 @@ static int gl_begin_draw(struct gctx *s, double t)
         s_priv->glQueryCounter(gl, s_priv->queries[0], GL_TIMESTAMP);
 #endif
 
-    ngli_gctx_begin_render_pass(s, s_priv->rt);
+    ngli_gpu_ctx_begin_render_pass(s, s_priv->rt);
 
     const float *color = config->clear_color;
     ngli_glClearColor(gl, color[0], color[1], color[2], color[3]);
@@ -629,15 +629,15 @@ static int gl_begin_draw(struct gctx *s, double t)
     return 0;
 }
 
-static int gl_end_draw(struct gctx *s, double t)
+static int gl_end_draw(struct gpu_ctx *s, double t)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     struct ngl_config *config = &s->config;
 
     ngli_glstate_update(s, &s_priv->default_graphicstate);
 
-    ngli_gctx_end_render_pass(s);
+    ngli_gpu_ctx_end_render_pass(s);
 
     if (s_priv->capture_func && config->capture_buffer)
         s_priv->capture_func(s);
@@ -654,9 +654,9 @@ static int gl_end_draw(struct gctx *s, double t)
     return ret;
 }
 
-static int gl_query_draw_time(struct gctx *s, int64_t *time)
+static int gl_query_draw_time(struct gpu_ctx *s, int64_t *time)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     const struct ngl_config *config = &s->config;
@@ -682,16 +682,16 @@ static int gl_query_draw_time(struct gctx *s, int64_t *time)
     return 0;
 }
 
-static void gl_wait_idle(struct gctx *s)
+static void gl_wait_idle(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     ngli_glFinish(gl);
 }
 
-static void gl_destroy(struct gctx *s)
+static void gl_destroy(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     timer_reset(s);
     rendertarget_reset(s);
 #if DEBUG_GPU_CAPTURE
@@ -702,7 +702,7 @@ static void gl_destroy(struct gctx *s)
     ngli_glcontext_freep(&s_priv->glcontext);
 }
 
-static int gl_transform_cull_mode(struct gctx *s, int cull_mode)
+static int gl_transform_cull_mode(struct gpu_ctx *s, int cull_mode)
 {
     const struct ngl_config *config = &s->config;
     if (!config->offscreen)
@@ -715,7 +715,7 @@ static int gl_transform_cull_mode(struct gctx *s, int cull_mode)
     return cull_mode_map[cull_mode];
 }
 
-static void gl_transform_projection_matrix(struct gctx *s, float *dst)
+static void gl_transform_projection_matrix(struct gpu_ctx *s, float *dst)
 {
     const struct ngl_config *config = &s->config;
     if (!config->offscreen)
@@ -729,7 +729,7 @@ static void gl_transform_projection_matrix(struct gctx *s, float *dst)
     ngli_mat4_mul(dst, matrix, dst);
 }
 
-static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
+static void gl_get_rendertarget_uvcoord_matrix(struct gpu_ctx *s, float *dst)
 {
     const struct ngl_config *config = &s->config;
     if (config->offscreen)
@@ -743,21 +743,21 @@ static void gl_get_rendertarget_uvcoord_matrix(struct gctx *s, float *dst)
     memcpy(dst, matrix, 4 * 4 * sizeof(float));
 }
 
-static struct rendertarget *gl_get_default_rendertarget(struct gctx *s)
+static struct rendertarget *gl_get_default_rendertarget(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     return s_priv->rt;
 }
 
-static const struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gctx *s)
+static const struct rendertarget_desc *gl_get_default_rendertarget_desc(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     return &s_priv->default_rendertarget_desc;
 }
 
-static void gl_begin_render_pass(struct gctx *s, struct rendertarget *rt)
+static void gl_begin_render_pass(struct gpu_ctx *s, struct rendertarget *rt)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
 
     ngli_assert(rt);
@@ -773,9 +773,9 @@ static void gl_begin_render_pass(struct gctx *s, struct rendertarget *rt)
     s_priv->rendertarget = rt;
 }
 
-static void gl_end_render_pass(struct gctx *s)
+static void gl_end_render_pass(struct gpu_ctx *s)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
 
     if (s_priv->rendertarget) {
         ngli_rendertarget_gl_resolve(s_priv->rendertarget);
@@ -785,43 +785,43 @@ static void gl_end_render_pass(struct gctx *s)
     s_priv->rendertarget = NULL;
 }
 
-static void gl_set_viewport(struct gctx *s, const int *viewport)
+static void gl_set_viewport(struct gpu_ctx *s, const int *viewport)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     struct glcontext *gl = s_priv->glcontext;
     ngli_glViewport(gl, viewport[0], viewport[1], viewport[2], viewport[3]);
     memcpy(&s_priv->viewport, viewport, sizeof(s_priv->viewport));
 }
 
-static void gl_get_viewport(struct gctx *s, int *viewport)
+static void gl_get_viewport(struct gpu_ctx *s, int *viewport)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     memcpy(viewport, &s_priv->viewport, sizeof(s_priv->viewport));
 }
 
-static void gl_set_scissor(struct gctx *s, const int *scissor)
+static void gl_set_scissor(struct gpu_ctx *s, const int *scissor)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     memcpy(&s_priv->scissor, scissor, sizeof(s_priv->scissor));
 }
 
-static void gl_get_scissor(struct gctx *s, int *scissor)
+static void gl_get_scissor(struct gpu_ctx *s, int *scissor)
 {
-    struct gctx_gl *s_priv = (struct gctx_gl *)s;
+    struct gpu_ctx_gl *s_priv = (struct gpu_ctx_gl *)s;
     memcpy(scissor, &s_priv->scissor, sizeof(s_priv->scissor));
 }
 
-static int gl_get_preferred_depth_format(struct gctx *s)
+static int gl_get_preferred_depth_format(struct gpu_ctx *s)
 {
     return NGLI_FORMAT_D16_UNORM;
 }
 
-static int gl_get_preferred_depth_stencil_format(struct gctx *s)
+static int gl_get_preferred_depth_stencil_format(struct gpu_ctx *s)
 {
     return NGLI_FORMAT_D24_UNORM_S8_UINT;
 }
 
-const struct gctx_class ngli_gctx_gl = {
+const struct gpu_ctx_class ngli_gpu_ctx_gl = {
     .name         = "OpenGL",
     .create       = gl_create,
     .init         = gl_init,
@@ -883,7 +883,7 @@ const struct gctx_class ngli_gctx_gl = {
     .texture_freep            = ngli_texture_gl_freep,
 };
 
-const struct gctx_class ngli_gctx_gles = {
+const struct gpu_ctx_class ngli_gpu_ctx_gles = {
     .name         = "OpenGL ES",
     .create       = gl_create,
     .init         = gl_init,

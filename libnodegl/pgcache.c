@@ -38,9 +38,9 @@ static void reset_cached_frag_map(void *user_arg, void *data)
     ngli_hmap_freep(&p);
 }
 
-int ngli_pgcache_init(struct pgcache *s, struct gctx *gctx)
+int ngli_pgcache_init(struct pgcache *s, struct gpu_ctx *gpu_ctx)
 {
-    s->gctx = gctx;
+    s->gpu_ctx = gpu_ctx;
     s->graphics_cache = ngli_hmap_create();
     s->compute_cache = ngli_hmap_create();
     if (!s->graphics_cache || !s->compute_cache)
@@ -54,19 +54,19 @@ static int query_cache(struct pgcache *s, struct program **dstp,
                        struct hmap *cache, const char *cache_key,
                        const char *vert, const char *frag, const char *comp)
 {
-    struct gctx *gctx = s->gctx;
+    struct gpu_ctx *gpu_ctx = s->gpu_ctx;
 
     struct program *cached_program = ngli_hmap_get(cache, cache_key);
     if (cached_program) {
         /* make sure the cached program has not been reset by the user */
-        ngli_assert(cached_program->gctx);
+        ngli_assert(cached_program->gpu_ctx);
 
         *dstp = cached_program;
         return 0;
     }
 
     /* this is free'd by the reset_cached_program() when destroying the cache */
-    struct program *new_program = ngli_program_create(gctx);
+    struct program *new_program = ngli_program_create(gpu_ctx);
     if (!new_program)
         return NGL_ERROR_MEMORY;
 
@@ -117,7 +117,7 @@ int ngli_pgcache_get_compute_program(struct pgcache *s, struct program **dstp, c
 
 void ngli_pgcache_reset(struct pgcache *s)
 {
-    if (!s->gctx)
+    if (!s->gpu_ctx)
         return;
     ngli_hmap_freep(&s->compute_cache);
     ngli_hmap_freep(&s->graphics_cache);

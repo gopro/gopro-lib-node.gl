@@ -29,7 +29,7 @@
 #include "rendertarget.h"
 #include "texture.h"
 
-struct gctx;
+struct gpu_ctx;
 
 enum {
     NGLI_ACCESS_UNDEFINED,
@@ -111,14 +111,14 @@ struct pipeline_resource_params {
 };
 
 struct pipeline {
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
 
     int type;
     struct pipeline_graphics graphics;
     const struct program *program;
 };
 
-struct pipeline *ngli_pipeline_create(struct gctx *gctx);
+struct pipeline *ngli_pipeline_create(struct gpu_ctx *gpu_ctx);
 int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params);
 int ngli_pipeline_set_resources(struct pipeline *s, const struct pipeline_resource_params *data_params);
 int ngli_pipeline_update_attribute(struct pipeline *s, int index, struct buffer *buffer);

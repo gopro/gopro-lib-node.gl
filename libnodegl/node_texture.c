@@ -25,7 +25,7 @@
 #include <sxplayer.h>
 
 #include "format.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "hwupload.h"
 #include "image.h"
 #include "log.h"
@@ -243,14 +243,14 @@ static const struct node_param texturecube_params[] = {
 static int texture_prefetch(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct texture_priv *s = node->priv_data;
     struct texture_params *params = &s->params;
 
     if (params->type == NGLI_TEXTURE_TYPE_CUBE)
         params->height = params->width;
 
-    if (gctx->features & NGLI_FEATURE_TEXTURE_STORAGE)
+    if (gpu_ctx->features & NGLI_FEATURE_TEXTURE_STORAGE)
         params->immutable = 1;
 
     params->usage |= NGLI_TEXTURE_USAGE_TRANSFER_DST_BIT | NGLI_TEXTURE_USAGE_SAMPLED_BIT;
@@ -320,7 +320,7 @@ static int texture_prefetch(struct ngl_node *node)
         }
     }
 
-    s->texture = ngli_texture_create(gctx);
+    s->texture = ngli_texture_create(gpu_ctx);
     if (!s->texture)
         return NGL_ERROR_MEMORY;
 
@@ -397,13 +397,13 @@ static void texture_release(struct ngl_node *node)
     ngli_image_reset(&s->image);
 }
 
-static int get_preferred_format(struct gctx *gctx, int format)
+static int get_preferred_format(struct gpu_ctx *gpu_ctx, int format)
 {
     switch (format) {
     case NGLI_FORMAT_AUTO_DEPTH:
-        return ngli_gctx_get_preferred_depth_format(gctx);
+        return ngli_gpu_ctx_get_preferred_depth_format(gpu_ctx);
     case NGLI_FORMAT_AUTO_DEPTH_STENCIL:
-        return ngli_gctx_get_preferred_depth_stencil_format(gctx);
+        return ngli_gpu_ctx_get_preferred_depth_stencil_format(gpu_ctx);
     default:
         return format;
     }
@@ -412,9 +412,9 @@ static int get_preferred_format(struct gctx *gctx, int format)
 static int texture2d_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct texture_priv *s = node->priv_data;
-    const int max_dimension = gctx->limits.max_texture_dimension_2d;
+    const int max_dimension = gpu_ctx->limits.max_texture_dimension_2d;
     if (s->params.width  > max_dimension ||
         s->params.height > max_dimension) {
         LOG(ERROR, "texture dimensions (%d,%d) exceeds device limits (%d,%d)",
@@ -422,7 +422,7 @@ static int texture2d_init(struct ngl_node *node)
         return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
     s->params.type = NGLI_TEXTURE_TYPE_2D;
-    s->params.format = get_preferred_format(gctx, s->format);
+    s->params.format = get_preferred_format(gpu_ctx, s->format);
     s->supported_image_layouts = s->direct_rendering ? -1 : (1 << NGLI_IMAGE_LAYOUT_DEFAULT);
     return 0;
 }
@@ -430,15 +430,15 @@ static int texture2d_init(struct ngl_node *node)
 static int texture3d_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
-    if (!(gctx->features & NGLI_FEATURE_TEXTURE_3D)) {
+    if (!(gpu_ctx->features & NGLI_FEATURE_TEXTURE_3D)) {
         LOG(ERROR, "context does not support 3D textures");
         return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     struct texture_priv *s = node->priv_data;
-    const int max_dimension = gctx->limits.max_texture_dimension_3d;
+    const int max_dimension = gpu_ctx->limits.max_texture_dimension_3d;
     if (s->params.width  > max_dimension ||
         s->params.height > max_dimension ||
         s->params.depth  > max_dimension) {
@@ -448,7 +448,7 @@ static int texture3d_init(struct ngl_node *node)
         return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
     s->params.type = NGLI_TEXTURE_TYPE_3D;
-    s->params.format = get_preferred_format(gctx, s->format);
+    s->params.format = get_preferred_format(gpu_ctx, s->format);
 
     return 0;
 }
@@ -456,15 +456,15 @@ static int texture3d_init(struct ngl_node *node)
 static int texturecube_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
-    if (!(gctx->features & NGLI_FEATURE_TEXTURE_CUBE_MAP)) {
+    if (!(gpu_ctx->features & NGLI_FEATURE_TEXTURE_CUBE_MAP)) {
         LOG(ERROR, "context does not support cube map textures");
         return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
 
     struct texture_priv *s = node->priv_data;
-    const int max_dimension = gctx->limits.max_texture_dimension_cube;
+    const int max_dimension = gpu_ctx->limits.max_texture_dimension_cube;
     if (s->params.width  > max_dimension ||
         s->params.height > max_dimension) {
         LOG(ERROR, "texture dimensions (%d,%d) exceeds device limits (%d,%d)",
@@ -472,7 +472,7 @@ static int texturecube_init(struct ngl_node *node)
         return NGL_ERROR_GRAPHICS_UNSUPPORTED;
     }
     s->params.type = NGLI_TEXTURE_TYPE_CUBE;
-    s->params.format = get_preferred_format(gctx, s->format);
+    s->params.format = get_preferred_format(gpu_ctx, s->format);
 
     return 0;
 }

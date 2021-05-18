@@ -23,7 +23,7 @@
 
 #include "buffer_gl.h"
 #include "format.h"
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glcontext.h"
 #include "log.h"
 #include "memory.h"
@@ -155,8 +155,8 @@ static int build_uniform_bindings(struct pipeline *s, const struct pipeline_para
     if (!program->uniforms)
         return 0;
 
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     for (int i = 0; i < params->nb_uniforms; i++) {
         const struct pipeline_uniform_desc *uniform_desc = &params->uniforms_desc[i];
@@ -207,8 +207,8 @@ static int build_texture_bindings(struct pipeline *s, const struct pipeline_para
         const struct pipeline_texture_desc *texture_desc = &params->textures_desc[i];
 
         if (texture_desc->type == NGLI_TYPE_IMAGE_2D) {
-            struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-            struct glcontext *gl = gctx_gl->glcontext;
+            struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+            struct glcontext *gl = gpu_ctx_gl->glcontext;
             const struct gpu_limits *limits = &gl->limits;
 
             if (!(gl->features & NGLI_FEATURE_SHADER_IMAGE_LOAD_STORE)) {
@@ -318,8 +318,8 @@ static void set_buffers(struct pipeline *s, struct glcontext *gl)
 static int build_buffer_bindings(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     for (int i = 0; i < params->nb_buffers; i++) {
         const struct pipeline_buffer_desc *pipeline_buffer_desc = &params->buffers_desc[i];
@@ -391,8 +391,8 @@ static void reset_vertex_attribs(const struct pipeline *s, struct glcontext *gl)
 static int build_attribute_bindings(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     for (int i = 0; i < params->nb_attributes; i++) {
         const struct pipeline_attribute_desc *pipeline_attribute_desc = &params->attributes_desc[i];
@@ -455,8 +455,8 @@ static void unbind_vertex_attribs(const struct pipeline *s, struct glcontext *gl
 static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_params *params)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     int ret = build_attribute_bindings(s, params);
     if (ret < 0)
@@ -473,8 +473,8 @@ static int pipeline_graphics_init(struct pipeline *s, const struct pipeline_para
 
 static int pipeline_compute_init(struct pipeline *s)
 {
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     if ((gl->features & NGLI_FEATURE_COMPUTE_SHADER_ALL) != NGLI_FEATURE_COMPUTE_SHADER_ALL) {
         LOG(ERROR, "context does not support compute shaders");
@@ -491,17 +491,17 @@ static void insert_memory_barriers_noop(struct pipeline *s)
 static void insert_memory_barriers(struct pipeline *s)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     ngli_glMemoryBarrier(gl, s_priv->barriers);
 }
 
-struct pipeline *ngli_pipeline_gl_create(struct gctx *gctx)
+struct pipeline *ngli_pipeline_gl_create(struct gpu_ctx *gpu_ctx)
 {
     struct pipeline_gl *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->parent.gctx = gctx;
+    s->parent.gpu_ctx = gpu_ctx;
     return (struct pipeline *)s;
 }
 
@@ -580,9 +580,9 @@ int ngli_pipeline_gl_set_resources(struct pipeline *s, const struct pipeline_res
 
 int ngli_pipeline_gl_update_attribute(struct pipeline *s, int index, struct buffer *buffer)
 {
-    struct gctx *gctx = s->gctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx *gpu_ctx = s->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
 
     if (index == -1)
@@ -625,11 +625,11 @@ int ngli_pipeline_gl_update_uniform(struct pipeline *s, int index, const void *d
     struct uniform_binding *uniform_binding = ngli_darray_get(&s_priv->uniform_bindings, index);
 
     if (data) {
-        struct gctx *gctx = s->gctx;
-        struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-        struct glcontext *gl = gctx_gl->glcontext;
+        struct gpu_ctx *gpu_ctx = s->gpu_ctx;
+        struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+        struct glcontext *gl = gpu_ctx_gl->glcontext;
         struct program_gl *program_gl = (struct program_gl *)s->program;
-        ngli_glstate_use_program(gctx, program_gl->id);
+        ngli_glstate_use_program(gpu_ctx, program_gl->id);
         uniform_binding->set(gl, uniform_binding->location, uniform_binding->desc.count, data);
     }
     uniform_binding->data = NULL;
@@ -660,8 +660,8 @@ int ngli_pipeline_gl_update_buffer(struct pipeline *s, int index, struct buffer 
     struct buffer_binding *buffer_binding = ngli_darray_get(&s_priv->buffer_bindings, index);
 
     if (buffer) {
-        struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-        struct glcontext *gl = gctx_gl->glcontext;
+        struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+        struct glcontext *gl = gpu_ctx_gl->glcontext;
         const struct gpu_limits *limits = &gl->limits;
         if (buffer_binding->type == NGLI_TYPE_UNIFORM_BUFFER &&
             buffer->size > limits->max_uniform_block_size) {
@@ -679,15 +679,15 @@ int ngli_pipeline_gl_update_buffer(struct pipeline *s, int index, struct buffer 
 void ngli_pipeline_gl_draw(struct pipeline *s, int nb_vertices, int nb_instances)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx *gctx = s->gctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx *gpu_ctx = s->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct pipeline_graphics *graphics = &s->graphics;
     struct program_gl *program_gl = (struct program_gl *)s->program;
 
-    ngli_glstate_update(gctx, &graphics->state);
-    ngli_glstate_update_scissor(gctx, gctx_gl->scissor);
-    ngli_glstate_use_program(gctx, program_gl->id);
+    ngli_glstate_update(gpu_ctx, &graphics->state);
+    ngli_glstate_update_scissor(gpu_ctx, gpu_ctx_gl->scissor);
+    ngli_glstate_use_program(gpu_ctx, program_gl->id);
     set_uniforms(s, gl);
     set_buffers(s, gl);
     set_textures(s, gl);
@@ -717,15 +717,15 @@ void ngli_pipeline_gl_draw(struct pipeline *s, int nb_vertices, int nb_instances
 void ngli_pipeline_gl_draw_indexed(struct pipeline *s, struct buffer *indices, int indices_format, int nb_indices, int nb_instances)
 {
     struct pipeline_gl *s_priv = (struct pipeline_gl *)s;
-    struct gctx *gctx = s->gctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx *gpu_ctx = s->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct pipeline_graphics *graphics = &s->graphics;
     struct program_gl *program_gl = (struct program_gl *)s->program;
 
-    ngli_glstate_update(gctx, &graphics->state);
-    ngli_glstate_update_scissor(gctx, gctx_gl->scissor);
-    ngli_glstate_use_program(gctx, program_gl->id);
+    ngli_glstate_update(gpu_ctx, &graphics->state);
+    ngli_glstate_update_scissor(gpu_ctx, gpu_ctx_gl->scissor);
+    ngli_glstate_use_program(gpu_ctx, program_gl->id);
     set_uniforms(s, gl);
     set_buffers(s, gl);
     set_textures(s, gl);
@@ -759,12 +759,12 @@ void ngli_pipeline_gl_draw_indexed(struct pipeline *s, struct buffer *indices, i
 
 void ngli_pipeline_gl_dispatch(struct pipeline *s, int nb_group_x, int nb_group_y, int nb_group_z)
 {
-    struct gctx *gctx = s->gctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx *gpu_ctx = s->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct program_gl *program_gl = (struct program_gl *)s->program;
 
-    ngli_glstate_use_program(gctx, program_gl->id);
+    ngli_glstate_use_program(gpu_ctx, program_gl->id);
     set_uniforms(s, gl);
     set_buffers(s, gl);
     set_textures(s, gl);
@@ -787,9 +787,9 @@ void ngli_pipeline_gl_freep(struct pipeline **sp)
     ngli_darray_reset(&s_priv->buffer_bindings);
     ngli_darray_reset(&s_priv->attribute_bindings);
 
-    struct gctx *gctx = s->gctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx *gpu_ctx = s->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     ngli_glDeleteVertexArrays(gl, 1, &s_priv->vao_id);
 
     ngli_freep(sp);

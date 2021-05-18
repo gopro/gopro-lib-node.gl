@@ -19,22 +19,22 @@
  * under the License.
  */
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "program.h"
 
-struct program *ngli_program_create(struct gctx *gctx)
+struct program *ngli_program_create(struct gpu_ctx *gpu_ctx)
 {
-    return gctx->cls->program_create(gctx);
+    return gpu_ctx->cls->program_create(gpu_ctx);
 }
 
 int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute)
 {
-    return s->gctx->cls->program_init(s, vertex, fragment, compute);
+    return s->gpu_ctx->cls->program_init(s, vertex, fragment, compute);
 }
 
 void ngli_program_freep(struct program **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->cls->program_freep(sp);
+    (*sp)->gpu_ctx->cls->program_freep(sp);
 }

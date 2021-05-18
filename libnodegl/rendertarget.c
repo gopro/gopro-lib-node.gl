@@ -19,27 +19,27 @@
  * under the License.
  */
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "rendertarget.h"
 
-struct rendertarget *ngli_rendertarget_create(struct gctx *gctx)
+struct rendertarget *ngli_rendertarget_create(struct gpu_ctx *gpu_ctx)
 {
-    return gctx->cls->rendertarget_create(gctx);
+    return gpu_ctx->cls->rendertarget_create(gpu_ctx);
 }
 
 int ngli_rendertarget_init(struct rendertarget *s, const struct rendertarget_params *params)
 {
-    return s->gctx->cls->rendertarget_init(s, params);
+    return s->gpu_ctx->cls->rendertarget_init(s, params);
 }
 
 void ngli_rendertarget_read_pixels(struct rendertarget *s, uint8_t *data)
 {
-    s->gctx->cls->rendertarget_read_pixels(s, data);
+    s->gpu_ctx->cls->rendertarget_read_pixels(s, data);
 }
 
 void ngli_rendertarget_freep(struct rendertarget **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->cls->rendertarget_freep(sp);
+    (*sp)->gpu_ctx->cls->rendertarget_freep(sp);
 }

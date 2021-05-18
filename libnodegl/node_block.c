@@ -24,7 +24,7 @@
 
 #include "block.h"
 #include "buffer.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"
@@ -118,11 +118,11 @@ static const struct node_param block_params[] = {
 int ngli_node_block_ref(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct block_priv *s = node->priv_data;
 
     if (s->buffer_refcount++ == 0) {
-        s->buffer = ngli_buffer_create(gctx);
+        s->buffer = ngli_buffer_create(gpu_ctx);
         if (!s->buffer)
             return NGL_ERROR_MEMORY;
         s->buffer_last_upload_time = -1.;
@@ -289,15 +289,15 @@ static int check_dup_labels(const char *block_name, struct ngl_node * const *nod
 static int block_init(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct block_priv *s = node->priv_data;
 
-    if (s->layout == NGLI_BLOCK_LAYOUT_STD140 && !(gctx->features & FEATURES_STD140)) {
+    if (s->layout == NGLI_BLOCK_LAYOUT_STD140 && !(gpu_ctx->features & FEATURES_STD140)) {
         LOG(ERROR, "std140 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }
 
-    if (s->layout == NGLI_BLOCK_LAYOUT_STD430 && !(gctx->features & FEATURES_STD430)) {
+    if (s->layout == NGLI_BLOCK_LAYOUT_STD430 && !(gpu_ctx->features & FEATURES_STD430)) {
         LOG(ERROR, "std430 blocks are not supported by this context");
         return NGL_ERROR_UNSUPPORTED;
     }

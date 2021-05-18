@@ -36,7 +36,7 @@
 #include "nodes.h"
 
 #if defined(TARGET_ANDROID)
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "backends/gl/texture_gl.h"
 #endif
 
@@ -169,7 +169,7 @@ static int media_init(struct ngl_node *node)
     struct ngl_ctx *ctx = node->ctx;
     struct android_ctx *android_ctx = &ctx->android_ctx;
     const struct ngl_config *config = &ctx->config;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     if (config->backend == NGL_BACKEND_OPENGLES) {
         struct texture_params params = {
@@ -184,7 +184,7 @@ static int media_init(struct ngl_node *node)
             .external_oes = 1,
         };
 
-        s->android_texture = ngli_texture_create(gctx);
+        s->android_texture = ngli_texture_create(gpu_ctx);
         if (!s->android_texture)
             return NGL_ERROR_MEMORY;
 

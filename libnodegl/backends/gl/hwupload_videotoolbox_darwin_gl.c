@@ -29,7 +29,7 @@
 #include <OpenGL/CGLIOSurface.h>
 
 #include "format.h"
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -47,8 +47,8 @@ struct hwupload_vt_darwin {
 static int vt_darwin_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
@@ -110,7 +110,7 @@ static int support_direct_rendering(struct ngl_node *node)
 static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
@@ -124,7 +124,7 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
             .external_storage = 1,
         };
 
-        vt->planes[i] = ngli_texture_create(gctx);
+        vt->planes[i] = ngli_texture_create(gpu_ctx);
         if (!vt->planes[i])
             return NGL_ERROR_MEMORY;
 

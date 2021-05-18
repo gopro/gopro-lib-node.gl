@@ -24,7 +24,7 @@
 
 #include "hmap.h"
 
-struct gctx;
+struct gpu_ctx;
 
 #define MAX_ID_LEN 128
 
@@ -41,13 +41,13 @@ enum {
 };
 
 struct program {
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
     struct hmap *uniforms;
     struct hmap *attributes;
     struct hmap *buffer_blocks;
 };
 
-struct program *ngli_program_create(struct gctx *gctx);
+struct program *ngli_program_create(struct gpu_ctx *gpu_ctx);
 int ngli_program_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
 void ngli_program_freep(struct program **sp);
 

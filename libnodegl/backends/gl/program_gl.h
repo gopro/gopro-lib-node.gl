@@ -25,14 +25,14 @@
 #include "glincludes.h"
 #include "program.h"
 
-struct gctx;
+struct gpu_ctx;
 
 struct program_gl {
     struct program parent;
     GLuint id;
 };
 
-struct program *ngli_program_gl_create(struct gctx *gctx);
+struct program *ngli_program_gl_create(struct gpu_ctx *gpu_ctx);
 int ngli_program_gl_init(struct program *s, const char *vertex, const char *fragment, const char *compute);
 void ngli_program_gl_freep(struct program **sp);
 

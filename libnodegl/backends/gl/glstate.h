@@ -25,7 +25,7 @@
 #include "glcontext.h"
 #include "glincludes.h"
 
-struct gctx;
+struct gpu_ctx;
 struct graphicstate;
 
 struct glstate {
@@ -64,13 +64,13 @@ struct glstate {
 void ngli_glstate_probe(const struct glcontext *gl,
                         struct glstate *glstate);
 
-void ngli_glstate_update(struct gctx *gctx,
+void ngli_glstate_update(struct gpu_ctx *gpu_ctx,
                          const struct graphicstate *state);
 
-void ngli_glstate_use_program(struct gctx *gctx,
+void ngli_glstate_use_program(struct gpu_ctx *gpu_ctx,
                               GLuint program_id);
 
-void ngli_glstate_update_scissor(struct gctx *gctx,
+void ngli_glstate_update_scissor(struct gpu_ctx *gpu_ctx,
                                  const int *scissor);
 
 #endif

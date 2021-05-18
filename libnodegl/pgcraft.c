@@ -24,7 +24,7 @@
 #include <stddef.h>
 
 #include "config.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "format.h"
 #include "hmap.h"
 #include "log.h"
@@ -530,8 +530,8 @@ static int params_have_images(struct pgcraft *s, const struct pgcraft_params *pa
 static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcraft_params *params, int stage)
 {
     struct ngl_ctx *ctx = s->ctx;
-    struct gctx *gctx = ctx->gctx;
-    const struct ngl_config *config = &gctx->config;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    const struct ngl_config *config = &gpu_ctx->config;
 
     ngli_bstr_printf(b, "#version %d%s\n", s->glsl_version, s->glsl_version_suffix);
 
@@ -541,8 +541,8 @@ static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcr
     const int require_image_external_feature       = ngli_darray_count(&s->texture_infos) > 0 && s->glsl_version  < 300;
     const int require_image_external_essl3_feature = ngli_darray_count(&s->texture_infos) > 0 && s->glsl_version >= 300;
 #endif
-    const int enable_shader_texture_lod = (gctx->features & NGLI_FEATURE_SHADER_TEXTURE_LOD) == NGLI_FEATURE_SHADER_TEXTURE_LOD;
-    const int enable_texture_3d         = (gctx->features & NGLI_FEATURE_TEXTURE_3D) == NGLI_FEATURE_TEXTURE_3D;
+    const int enable_shader_texture_lod = (gpu_ctx->features & NGLI_FEATURE_SHADER_TEXTURE_LOD) == NGLI_FEATURE_SHADER_TEXTURE_LOD;
+    const int enable_texture_3d         = (gpu_ctx->features & NGLI_FEATURE_TEXTURE_3D) == NGLI_FEATURE_TEXTURE_3D;
 
     const struct {
         int backend;
@@ -1048,15 +1048,15 @@ static void setup_glsl_info_gl(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
     const struct ngl_config *config = &ctx->config;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     s->sym_vertex_index   = "gl_VertexID";
     s->sym_instance_index = "gl_InstanceID";
 
-    s->glsl_version = gctx->language_version;
+    s->glsl_version = gpu_ctx->language_version;
 
     if (config->backend == NGL_BACKEND_OPENGLES) {
-        if (gctx->version >= 300) {
+        if (gpu_ctx->version >= 300) {
             s->glsl_version_suffix = " es";
         } else {
             s->rg = "ra";
@@ -1069,7 +1069,7 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
 
     s->has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420) ||
-                               (gctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
+                               (gpu_ctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
     if (s->has_explicit_bindings) {
         /* Bindings are unique across stages and types */
         for (int i = 0; i < NB_BINDINGS; i++)

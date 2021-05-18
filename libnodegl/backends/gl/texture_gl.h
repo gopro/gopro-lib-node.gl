@@ -38,7 +38,7 @@ struct texture_gl {
     GLenum format_type;
 };
 
-struct texture *ngli_texture_gl_create(struct gctx *gctx);
+struct texture *ngli_texture_gl_create(struct gpu_ctx *gpu_ctx);
 
 int ngli_texture_gl_init(struct texture *s,
                       const struct texture_params *params);

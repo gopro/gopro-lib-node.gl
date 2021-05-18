@@ -23,7 +23,7 @@
 
 #include "buffer.h"
 #include "hwconv.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "image.h"
 #include "log.h"
 #include "nodes.h"
@@ -55,7 +55,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
                      const struct image *dst_image,
                      const struct image_params *src_params)
 {
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     hwconv->ctx = ctx;
     hwconv->src_params = *src_params;
 
@@ -81,7 +81,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
             .store_op   = NGLI_STORE_OP_STORE,
         }
     };
-    hwconv->rt = ngli_rendertarget_create(gctx);
+    hwconv->rt = ngli_rendertarget_create(gpu_ctx);
     if (!hwconv->rt)
         return NGL_ERROR_MEMORY;
     int ret = ngli_rendertarget_init(hwconv->rt, &rt_params);
@@ -103,7 +103,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
         -1.0f,  1.0f, 0.0f, 1.0f,
          1.0f,  1.0f, 1.0f, 1.0f,
     };
-    hwconv->vertices = ngli_buffer_create(gctx);
+    hwconv->vertices = ngli_buffer_create(gpu_ctx);
     if (!hwconv->vertices)
         return NGL_ERROR_MEMORY;
     ret = ngli_buffer_init(hwconv->vertices, sizeof(vertices), NGLI_BUFFER_USAGE_TRANSFER_DST_BIT |
@@ -158,7 +158,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
     if (ret < 0)
         return ret;
 
-    hwconv->pipeline = ngli_pipeline_create(gctx);
+    hwconv->pipeline = ngli_pipeline_create(gpu_ctx);
     if (!hwconv->pipeline)
         return NGL_ERROR_MEMORY;
 
@@ -176,17 +176,17 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
 int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
 {
     struct ngl_ctx *ctx = hwconv->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     ngli_assert(hwconv->src_params.layout == image->params.layout);
 
     struct rendertarget *rt = hwconv->rt;
-    ngli_gctx_begin_render_pass(gctx, rt);
+    ngli_gpu_ctx_begin_render_pass(gpu_ctx, rt);
 
     int prev_vp[4] = {0};
-    ngli_gctx_get_viewport(gctx, prev_vp);
+    ngli_gpu_ctx_get_viewport(gpu_ctx, prev_vp);
 
     const int vp[4] = {0, 0, rt->width, rt->height};
-    ngli_gctx_set_viewport(gctx, vp);
+    ngli_gpu_ctx_set_viewport(gpu_ctx, vp);
 
     struct pipeline *pipeline = hwconv->pipeline;
 
@@ -229,8 +229,8 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
 
     ngli_pipeline_draw(hwconv->pipeline, 4, 1);
 
-    ngli_gctx_end_render_pass(gctx);
-    ngli_gctx_set_viewport(gctx, prev_vp);
+    ngli_gpu_ctx_end_render_pass(gpu_ctx);
+    ngli_gpu_ctx_set_viewport(gpu_ctx, prev_vp);
 
     return 0;
 }

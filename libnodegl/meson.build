@@ -126,7 +126,7 @@ lib_src = files(
   'dot.c',
   'drawutils.c',
   'format.c',
-  'gctx.c',
+  'gpu_ctx.c',
   'hmap.c',
   'hud.c',
   'hwconv.c',
@@ -308,7 +308,7 @@ gbackends_cfg = {
     'src': files(
       'backends/gl/buffer_gl.c',
       'backends/gl/format_gl.c',
-      'backends/gl/gctx_gl.c',
+      'backends/gl/gpu_ctx_gl.c',
       'backends/gl/glcontext.c',
       'backends/gl/glstate.c',
       'backends/gl/pipeline_gl.c',

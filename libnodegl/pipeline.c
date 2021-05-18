@@ -20,62 +20,62 @@
  */
 
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "pipeline.h"
 
-struct pipeline *ngli_pipeline_create(struct gctx *gctx)
+struct pipeline *ngli_pipeline_create(struct gpu_ctx *gpu_ctx)
 {
-    return gctx->cls->pipeline_create(gctx);
+    return gpu_ctx->cls->pipeline_create(gpu_ctx);
 }
 
 int ngli_pipeline_init(struct pipeline *s, const struct pipeline_params *params)
 {
-    return s->gctx->cls->pipeline_init(s, params);
+    return s->gpu_ctx->cls->pipeline_init(s, params);
 }
 
 int ngli_pipeline_set_resources(struct pipeline *s, const struct pipeline_resource_params *data_params)
 {
-    return s->gctx->cls->pipeline_set_resources(s, data_params);
+    return s->gpu_ctx->cls->pipeline_set_resources(s, data_params);
 }
 
 int ngli_pipeline_update_attribute(struct pipeline *s, int index, struct buffer *buffer)
 {
-    return s->gctx->cls->pipeline_update_attribute(s, index, buffer);
+    return s->gpu_ctx->cls->pipeline_update_attribute(s, index, buffer);
 }
 
 int ngli_pipeline_update_uniform(struct pipeline *s, int index, const void *value)
 {
-    return s->gctx->cls->pipeline_update_uniform(s, index, value);
+    return s->gpu_ctx->cls->pipeline_update_uniform(s, index, value);
 }
 
 int ngli_pipeline_update_texture(struct pipeline *s, int index, struct texture *texture)
 {
-    return s->gctx->cls->pipeline_update_texture(s, index, texture);
+    return s->gpu_ctx->cls->pipeline_update_texture(s, index, texture);
 }
 
 int ngli_pipeline_update_buffer(struct pipeline *s, int index, struct buffer *buffer)
 {
-    return s->gctx->cls->pipeline_update_buffer(s, index, buffer);
+    return s->gpu_ctx->cls->pipeline_update_buffer(s, index, buffer);
 }
 
 void ngli_pipeline_draw(struct pipeline *s, int nb_vertices, int nb_instances)
 {
-    s->gctx->cls->pipeline_draw(s, nb_vertices, nb_instances);
+    s->gpu_ctx->cls->pipeline_draw(s, nb_vertices, nb_instances);
 }
 
 void ngli_pipeline_draw_indexed(struct pipeline *s, struct buffer *indices, int indices_format, int nb_indices, int nb_instances)
 {
-    s->gctx->cls->pipeline_draw_indexed(s, indices, indices_format, nb_indices, nb_instances);
+    s->gpu_ctx->cls->pipeline_draw_indexed(s, indices, indices_format, nb_indices, nb_instances);
 }
 
 void ngli_pipeline_dispatch(struct pipeline *s, int nb_group_x, int nb_group_y, int nb_group_z)
 {
-    s->gctx->cls->pipeline_dispatch(s, nb_group_x, nb_group_y, nb_group_z);
+    s->gpu_ctx->cls->pipeline_dispatch(s, nb_group_x, nb_group_y, nb_group_z);
 }
 
 void ngli_pipeline_freep(struct pipeline **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->cls->pipeline_freep(sp);
+    (*sp)->gpu_ctx->cls->pipeline_freep(sp);
 }

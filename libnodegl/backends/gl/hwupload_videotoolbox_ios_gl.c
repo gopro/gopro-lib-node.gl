@@ -27,7 +27,7 @@
 #include <CoreVideo/CoreVideo.h>
 
 #include "format.h"
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glincludes.h"
 #include "hwupload.h"
 #include "image.h"
@@ -90,8 +90,8 @@ static int vt_get_format_desc(OSType format, struct format_desc *desc)
 static int vt_ios_map_plane(struct ngl_node *node, CVPixelBufferRef cvpixbuf, int index)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)ctx->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
@@ -221,7 +221,7 @@ static int support_direct_rendering(struct ngl_node *node, struct sxplayer_frame
 static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vt_ios *vt = hwupload->hwmap_priv_data;
@@ -245,7 +245,7 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
         plane_params.format = format_desc.planes[i].format;
         plane_params.usage = NGLI_TEXTURE_USAGE_SAMPLED_BIT;
 
-        vt->planes[i] = ngli_texture_create(gctx);
+        vt->planes[i] = ngli_texture_create(gpu_ctx);
         if (!vt->planes[i])
             return NGL_ERROR_MEMORY;
 

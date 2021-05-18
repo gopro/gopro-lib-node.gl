@@ -69,7 +69,7 @@ struct ngl_ctx {
     pthread_t worker_tid;
 
     /* Worker-only fields */
-    struct gctx *gctx;
+    struct gpu_ctx *gpu_ctx;
     struct rnode rnode;
     struct rnode *rnode_pos;
     struct ngl_node *scene;

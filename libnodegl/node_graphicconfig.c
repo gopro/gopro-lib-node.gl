@@ -22,7 +22,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "graphicstate.h"
 #include "log.h"
 #include "nodegl.h"
@@ -246,7 +246,7 @@ static int graphicconfig_update(struct ngl_node *node, double t)
 static void honor_config(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct rnode *rnode = ctx->rnode_pos;
     struct graphicconfig_priv *s = node->priv_data;
     struct graphicstate *pending = &rnode->graphicstate;
@@ -277,7 +277,7 @@ static void honor_config(struct ngl_node *node)
     COPY_PARAM(stencil_depth_pass);
 
     if (s->cull_mode != -1)
-        pending->cull_mode = ngli_gctx_transform_cull_mode(gctx, s->cull_mode);
+        pending->cull_mode = ngli_gpu_ctx_transform_cull_mode(gpu_ctx, s->cull_mode);
 
     COPY_PARAM(scissor_test);
 }
@@ -294,20 +294,20 @@ static int graphicconfig_prepare(struct ngl_node *node)
 static void graphicconfig_draw(struct ngl_node *node)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gctx *gctx = ctx->gctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
     struct graphicconfig_priv *s = node->priv_data;
     struct ngl_node *child = s->child;
 
     int prev_scissor[4];
     if (s->use_scissor) {
-        ngli_gctx_get_scissor(gctx, prev_scissor);
-        ngli_gctx_set_scissor(gctx, s->scissor);
+        ngli_gpu_ctx_get_scissor(gpu_ctx, prev_scissor);
+        ngli_gpu_ctx_set_scissor(gpu_ctx, s->scissor);
     }
 
     ngli_node_draw(child);
 
     if (s->use_scissor)
-        ngli_gctx_set_scissor(gctx, prev_scissor);
+        ngli_gpu_ctx_set_scissor(gpu_ctx, prev_scissor);
 }
 
 const struct node_class ngli_graphicconfig_class = {

@@ -22,26 +22,26 @@
 #include <string.h>
 
 #include "buffer.h"
-#include "gctx.h"
+#include "gpu_ctx.h"
 
-struct buffer *ngli_buffer_create(struct gctx *gctx)
+struct buffer *ngli_buffer_create(struct gpu_ctx *gpu_ctx)
 {
-    return gctx->cls->buffer_create(gctx);
+    return gpu_ctx->cls->buffer_create(gpu_ctx);
 }
 
 int ngli_buffer_init(struct buffer *s, int size, int usage)
 {
-    return s->gctx->cls->buffer_init(s, size, usage);
+    return s->gpu_ctx->cls->buffer_init(s, size, usage);
 }
 
 int ngli_buffer_upload(struct buffer *s, const void *data, int size, int offset)
 {
-    return s->gctx->cls->buffer_upload(s, data, size, offset);
+    return s->gpu_ctx->cls->buffer_upload(s, data, size, offset);
 }
 
 void ngli_buffer_freep(struct buffer **sp)
 {
     if (!*sp)
         return;
-    (*sp)->gctx->cls->buffer_freep(sp);
+    (*sp)->gpu_ctx->cls->buffer_freep(sp);
 }

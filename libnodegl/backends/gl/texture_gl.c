@@ -24,7 +24,7 @@
 #include "log.h"
 #include "utils.h"
 #include "format_gl.h"
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glincludes.h"
 #include "glcontext.h"
 #include "memory.h"
@@ -68,8 +68,8 @@ GLint ngli_texture_get_gl_wrap(int wrap)
 static void texture_set_image(struct texture *s, const uint8_t *data)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     switch (s_priv->target) {
@@ -93,8 +93,8 @@ static void texture_set_image(struct texture *s, const uint8_t *data)
 static void texture2d_set_sub_image(struct texture *s, const uint8_t *data, int linesize, int row_upload)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     if (row_upload) {
@@ -110,8 +110,8 @@ static void texture2d_set_sub_image(struct texture *s, const uint8_t *data, int 
 static void texture3d_set_sub_image(struct texture *s, const uint8_t *data, int linesize, int row_upload)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     if (row_upload) {
@@ -129,8 +129,8 @@ static void texture3d_set_sub_image(struct texture *s, const uint8_t *data, int 
 static void texturecube_set_sub_image(struct texture *s, const uint8_t *data, int linesize, int row_upload)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     if (row_upload) {
@@ -152,8 +152,8 @@ static void texturecube_set_sub_image(struct texture *s, const uint8_t *data, in
 static void texture_set_sub_image(struct texture *s, const uint8_t *data, int linesize)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     if (!linesize)
@@ -189,8 +189,8 @@ static void texture_set_sub_image(struct texture *s, const uint8_t *data, int li
 static void texture_set_storage(struct texture *s)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     switch (s_priv->target) {
@@ -215,8 +215,8 @@ static void texture_set_storage(struct texture *s)
 static int renderbuffer_check_samples(struct texture *s)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct gpu_limits *limits = &gl->limits;
     const struct texture_params *params = &s->params;
 
@@ -236,8 +236,8 @@ static int renderbuffer_check_samples(struct texture *s)
 static void renderbuffer_set_storage(struct texture *s)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     if (params->samples > 0)
@@ -249,8 +249,8 @@ static void renderbuffer_set_storage(struct texture *s)
 static int texture_init_fields(struct texture *s)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     if (params->usage == NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT ||
@@ -308,12 +308,12 @@ static int is_pow2(int x)
     return x && !(x & (x - 1));
 }
 
-struct texture *ngli_texture_gl_create(struct gctx *gctx)
+struct texture *ngli_texture_gl_create(struct gpu_ctx *gpu_ctx)
 {
     struct texture_gl *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->parent.gctx = gctx;
+    s->parent.gpu_ctx = gpu_ctx;
     return (struct texture *)s;
 }
 
@@ -326,8 +326,8 @@ int ngli_texture_gl_init(struct texture *s, const struct texture_params *params)
         return ret;
 
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     if (s_priv->target == GL_RENDERBUFFER) {
         ngli_glGenRenderbuffers(gl, 1, &s_priv->id);
@@ -414,8 +414,8 @@ void ngli_texture_gl_set_dimensions(struct texture *s, int width, int height, in
 int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     /* texture with external storage (including wrapped textures and render
@@ -437,8 +437,8 @@ int ngli_texture_gl_upload(struct texture *s, const uint8_t *data, int linesize)
 int ngli_texture_gl_generate_mipmap(struct texture *s)
 {
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct texture_params *params = &s->params;
 
     ngli_assert(params->usage & NGLI_TEXTURE_USAGE_TRANSFER_SRC_BIT);
@@ -456,8 +456,8 @@ void ngli_texture_gl_freep(struct texture **sp)
 
     struct texture *s = *sp;
     struct texture_gl *s_priv = (struct texture_gl *)s;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
 
     if (!s->wrapped) {
         if (s_priv->target == GL_RENDERBUFFER)

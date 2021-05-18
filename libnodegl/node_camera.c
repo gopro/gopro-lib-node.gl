@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
@@ -116,8 +116,8 @@ static int update_matrices(struct ngl_node *node, double t)
         ngli_mat4_identity(s->projection_matrix);
     }
 
-    struct gctx *gctx = ctx->gctx;
-    ngli_gctx_transform_projection_matrix(gctx, s->projection_matrix);
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    ngli_gpu_ctx_transform_projection_matrix(gpu_ctx, s->projection_matrix);
 
     return 0;
 }

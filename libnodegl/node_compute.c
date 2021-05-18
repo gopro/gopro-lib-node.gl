@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "gctx.h"
+#include "gpu_ctx.h"
 #include "gpu_limits.h"
 #include "hmap.h"
 #include "log.h"
@@ -109,8 +109,8 @@ static int compute_init(struct ngl_node *node)
         LOG(ERROR, "number of group must be > 0 for x, y and z");
         return NGL_ERROR_INVALID_ARG;
     }
-    const struct gctx *gctx = ctx->gctx;
-    const struct gpu_limits *limits = &gctx->limits;
+    const struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    const struct gpu_limits *limits = &gpu_ctx->limits;
 
     if (s->workgroup_count[0] > limits->max_compute_work_group_count[0] ||
         s->workgroup_count[1] > limits->max_compute_work_group_count[1] ||

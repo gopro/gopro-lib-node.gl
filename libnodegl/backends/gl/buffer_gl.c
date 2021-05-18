@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "buffer_gl.h"
-#include "gctx_gl.h"
+#include "gpu_ctx_gl.h"
 #include "glcontext.h"
 #include "glincludes.h"
 #include "memory.h"
@@ -35,19 +35,19 @@ static GLenum get_gl_usage(int usage)
     return GL_STATIC_DRAW;
 }
 
-struct buffer *ngli_buffer_gl_create(struct gctx *gctx)
+struct buffer *ngli_buffer_gl_create(struct gpu_ctx *gpu_ctx)
 {
     struct buffer_gl *s = ngli_calloc(1, sizeof(*s));
     if (!s)
         return NULL;
-    s->parent.gctx = gctx;
+    s->parent.gpu_ctx = gpu_ctx;
     return (struct buffer *)s;
 }
 
 int ngli_buffer_gl_init(struct buffer *s, int size, int usage)
 {
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct buffer_gl *s_priv = (struct buffer_gl *)s;
 
     s->size = size;
@@ -60,8 +60,8 @@ int ngli_buffer_gl_init(struct buffer *s, int size, int usage)
 
 int ngli_buffer_gl_upload(struct buffer *s, const void *data, int size, int offset)
 {
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     const struct buffer_gl *s_priv = (struct buffer_gl *)s;
     ngli_glBindBuffer(gl, GL_ARRAY_BUFFER, s_priv->id);
     ngli_glBufferSubData(gl, GL_ARRAY_BUFFER, offset, size, data);
@@ -73,8 +73,8 @@ void ngli_buffer_gl_freep(struct buffer **sp)
     if (!*sp)
         return;
     struct buffer *s = *sp;
-    struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
-    struct glcontext *gl = gctx_gl->glcontext;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)s->gpu_ctx;
+    struct glcontext *gl = gpu_ctx_gl->glcontext;
     struct buffer_gl *s_priv = (struct buffer_gl *)s;
     ngli_glDeleteBuffers(gl, 1, &s_priv->id);
     ngli_freep(sp);

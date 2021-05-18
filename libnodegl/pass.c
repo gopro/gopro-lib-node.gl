@@ -172,7 +172,7 @@ static int register_block(struct pass *s, const char *name, struct ngl_node *blo
 
     struct ngl_ctx *ctx = s->ctx;
     struct gctx *gctx = ctx->gctx;
-    const struct limits *limits = &gctx->limits;
+    const struct gpu_limits *limits = &gctx->limits;
 
     struct block_priv *block_priv = block_node->priv_data;
     struct block *block = &block_priv->block;

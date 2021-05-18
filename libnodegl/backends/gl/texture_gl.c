@@ -217,7 +217,7 @@ static int renderbuffer_check_samples(struct texture *s)
     struct texture_gl *s_priv = (struct texture_gl *)s;
     struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
     struct glcontext *gl = gctx_gl->glcontext;
-    const struct limits *limits = &gl->limits;
+    const struct gpu_limits *limits = &gl->limits;
     const struct texture_params *params = &s->params;
 
     int max_samples = limits->max_samples;

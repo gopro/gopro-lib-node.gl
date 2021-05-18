@@ -209,7 +209,7 @@ static int build_texture_bindings(struct pipeline *s, const struct pipeline_para
         if (texture_desc->type == NGLI_TYPE_IMAGE_2D) {
             struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
             struct glcontext *gl = gctx_gl->glcontext;
-            const struct limits *limits = &gl->limits;
+            const struct gpu_limits *limits = &gl->limits;
 
             if (!(gl->features & NGLI_FEATURE_SHADER_IMAGE_LOAD_STORE)) {
                 LOG(ERROR, "context does not support shader image load store operations");
@@ -662,7 +662,7 @@ int ngli_pipeline_gl_update_buffer(struct pipeline *s, int index, struct buffer 
     if (buffer) {
         struct gctx_gl *gctx_gl = (struct gctx_gl *)s->gctx;
         struct glcontext *gl = gctx_gl->glcontext;
-        const struct limits *limits = &gl->limits;
+        const struct gpu_limits *limits = &gl->limits;
         if (buffer_binding->type == NGLI_TYPE_UNIFORM_BUFFER &&
             buffer->size > limits->max_uniform_block_size) {
             LOG(ERROR, "buffer %s size (%d) exceeds max uniform block size (%d)",

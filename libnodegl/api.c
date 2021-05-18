@@ -456,7 +456,7 @@ static int load_caps(struct ngl_backend *backend, const struct gctx *gctx)
     const int has_texture_cube   = ALL_FEATURES(gctx->features, NGLI_FEATURE_TEXTURE_CUBE_MAP);
     const int has_uint_uniforms  = ALL_FEATURES(gctx->features, NGLI_FEATURE_UINT_UNIFORMS);
 
-    const struct limits *limits = &gctx->limits;
+    const struct gpu_limits *limits = &gctx->limits;
     const struct ngl_cap caps[] = {
         CAP(NGL_CAP_BLOCK,                         has_block),
         CAP(NGL_CAP_COMPUTE,                       has_compute),

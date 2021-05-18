@@ -26,7 +26,7 @@
 
 #include "feature.h"
 #include "glfunctions.h"
-#include "limit.h"
+#include "gpu_limits.h"
 #include "nodegl.h"
 
 struct glcontext_class;
@@ -54,7 +54,7 @@ struct glcontext {
     uint64_t features;
 
     /* GL limits */
-    struct limits limits;
+    struct gpu_limits limits;
 
     /* GL functions */
     struct glfunctions funcs;

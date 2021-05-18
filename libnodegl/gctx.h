@@ -26,7 +26,7 @@
 
 #include "buffer.h"
 #include "feature.h"
-#include "limit.h"
+#include "gpu_limits.h"
 #include "nodegl.h"
 #include "pipeline.h"
 #include "rendertarget.h"
@@ -102,7 +102,7 @@ struct gctx {
     int version;
     int language_version;
     uint64_t features;
-    struct limits limits;
+    struct gpu_limits limits;
 #if DEBUG_GPU_CAPTURE
     struct gpu_capture_ctx *gpu_capture_ctx;
     int gpu_capture;

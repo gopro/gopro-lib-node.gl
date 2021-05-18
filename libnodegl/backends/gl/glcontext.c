@@ -26,7 +26,7 @@
 #include "bstr.h"
 #include "config.h"
 #include "glcontext.h"
-#include "limit.h"
+#include "gpu_limits.h"
 #include "log.h"
 #include "memory.h"
 #include "nodegl.h"
@@ -326,7 +326,7 @@ static int glcontext_check_mandatory_extensions(struct glcontext *glcontext)
 
 static int glcontext_probe_settings(struct glcontext *glcontext)
 {
-    struct limits *limits = &glcontext->limits;
+    struct gpu_limits *limits = &glcontext->limits;
 
     GET(GL_MAX_TEXTURE_IMAGE_UNITS, &limits->max_texture_image_units);
     GET(GL_MAX_TEXTURE_SIZE, &limits->max_texture_dimension_1d);

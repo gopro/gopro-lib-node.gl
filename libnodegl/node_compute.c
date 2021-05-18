@@ -24,8 +24,8 @@
 #include <string.h>
 
 #include "gctx.h"
+#include "gpu_limits.h"
 #include "hmap.h"
-#include "limit.h"
 #include "log.h"
 #include "nodegl.h"
 #include "nodes.h"
@@ -110,7 +110,7 @@ static int compute_init(struct ngl_node *node)
         return NGL_ERROR_INVALID_ARG;
     }
     const struct gctx *gctx = ctx->gctx;
-    const struct limits *limits = &gctx->limits;
+    const struct gpu_limits *limits = &gctx->limits;
 
     if (s->workgroup_count[0] > limits->max_compute_work_group_count[0] ||
         s->workgroup_count[1] > limits->max_compute_work_group_count[1] ||

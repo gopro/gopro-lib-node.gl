@@ -19,12 +19,12 @@
  * under the License.
  */
 
-#ifndef LIMIT_H
-#define LIMIT_H
+#ifndef GPU_LIMITS_H
+#define GPU_LIMITS_H
 
 #include <stdint.h>
 
-struct limits {
+struct gpu_limits {
     uint32_t max_texture_image_units;
     uint32_t max_compute_work_group_count[3];
     uint32_t max_compute_work_group_invocations;

@@ -336,8 +336,9 @@ def _nodegl_setup(cfg):
         debug_opts = ','.join(cfg.args.debug_opts)
         nodegl_debug_opts += [f'-Ddebug_opts={debug_opts}']
         if 'gpu_capture' in cfg.args.debug_opts:
-            renderdoc_dir = cfg.externals[_RENDERDOC_ID]
-            nodegl_debug_opts += [f'-Drenderdoc_dir={renderdoc_dir}']
+            if _SYSTEM in ('Linux', 'Windows'):
+                renderdoc_dir = cfg.externals[_RENDERDOC_ID]
+                nodegl_debug_opts += [f'-Drenderdoc_dir={renderdoc_dir}']
         nodegl_setup_opts += nodegl_debug_opts
 
     if cfg.args.enable_ngfx_backend:

@@ -87,14 +87,14 @@ _EXTERNAL_DEPS = dict(
 def _get_external_deps(args):
     deps = ['sxplayer']
     if _SYSTEM == 'Windows':
-        deps.append('pkgconf')
+        deps += ['pkgconf', 'shaderc']
     if 'gpu_capture' in args.debug_opts:
         if _SYSTEM  in {'Windows', 'Linux'}:
             deps.append(_RENDERDOC_ID)
     if _SYSTEM == 'Darwin':
         deps += ['shaderc', 'moltenvk']
     if args.enable_ngfx_backend:
-        deps += ['shaderc', 'ngfx']
+        deps += ['ngfx']
     return {dep: _EXTERNAL_DEPS[dep] for dep in deps}
 
 

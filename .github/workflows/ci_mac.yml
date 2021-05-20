@@ -17,7 +17,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install python3 curl pkg-config sdl2 ffmpeg
+        brew install python3 curl pkg-config sdl2 ffmpeg glm spirv-cross ninja bash coreutils
 
     - name: Build
       run: |

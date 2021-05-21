@@ -342,7 +342,11 @@ def _nodegl_setup(cfg):
         nodegl_setup_opts += nodegl_debug_opts
 
     if cfg.args.enable_ngfx_backend:
+        nodegl_setup_opts += [f'-Denable_ngfx_backend=true']
         nodegl_setup_opts += [f'-Dngfx_graphics_backend=$(NGFX_GRAPHICS_BACKEND)']
+    else:
+        nodegl_setup_opts += [f'-Denable_ngfx_backend=false']
+
 
     return ['$(MESON_SETUP) ' + _cmd_join(*nodegl_setup_opts, 'libnodegl', op.join('$(BUILDDIR)', 'libnodegl'))]
 

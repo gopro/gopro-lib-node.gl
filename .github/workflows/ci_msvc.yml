@@ -52,6 +52,8 @@ jobs:
         run: |
           iwr https://sdk.lunarg.com/sdk/download/${{env.VULKAN_SDK_VERSION}}/windows/VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe -OutFile VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe
           ./VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe /S
+          iwr https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-runtime.exe -OutFile vulkan-runtime.exe
+          ./vulkan-runtime.exe /S
           cd C:\vcpkg
           .\vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
 

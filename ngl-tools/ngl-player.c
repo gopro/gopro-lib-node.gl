@@ -40,6 +40,7 @@ struct ctx {
     int direct_rendering;
     int player_ui;
     int framerate[2];
+    int hwaccel;
 
     struct sxplayer_info media_info;
 };
@@ -54,6 +55,7 @@ static const struct opt options[] = {
     {"-m", "--samples",          OPT_TYPE_INT,      .offset=OFFSET(cfg.samples)},
     {"-u", "--disable-ui",       OPT_TYPE_TOGGLE,   .offset=OFFSET(player_ui)},
     {"-r", "--framerate",        OPT_TYPE_RATIONAL, .offset=OFFSET(framerate)},
+    {NULL, "--hwaccel",          OPT_TYPE_INT,      .offset=OFFSET(hwaccel)},
 };
 
 static const char *media_vertex =
@@ -69,7 +71,7 @@ static const char *media_fragment =
 "    ngl_out_color = ngl_texvideo(tex0, var_tex0_coord);"               "\n"
 "}";
 
-static struct ngl_node *get_scene(const char *filename, int direct_rendering)
+static struct ngl_node *get_scene(const char *filename, int direct_rendering, int hwaccel)
 {
     static const float corner[3] = {-1.0, -1.0, 0.0};
     static const float width[3]  = { 2.0,  0.0, 0.0};
@@ -83,6 +85,7 @@ static struct ngl_node *get_scene(const char *filename, int direct_rendering)
     struct ngl_node *var_tex0_coord = ngl_node_create(NGL_NODE_IOVEC2);
 
     ngl_node_param_set(media, "filename", filename);
+    ngl_node_param_set(media, "hwaccel", hwaccel ? "auto" : "disabled");
 
     ngl_node_param_set(quad, "corner", corner);
     ngl_node_param_set(quad, "width", width);
@@ -137,6 +140,7 @@ int main(int argc, char *argv[])
         .player_ui          = 1,
         .framerate[0]       = 60,
         .framerate[1]       = 1,
+        .hwaccel            = 1,
     };
 
     int ret = opts_parse(argc, argc - 1, argv, options, ARRAY_NB(options), &s);
@@ -152,7 +156,7 @@ int main(int argc, char *argv[])
     if (ret < 0)
         return ret;
 
-    struct ngl_node *scene = get_scene(filename, s.direct_rendering);
+    struct ngl_node *scene = get_scene(filename, s.direct_rendering, s.hwaccel);
     if (!scene)
         return -1;
 

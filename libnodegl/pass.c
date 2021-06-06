@@ -717,6 +717,11 @@ int ngli_pass_exec(struct pass *s)
         case NGLI_IMAGE_LAYOUT_MEDIACODEC:
             ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_OES_SAMPLER].index, image->planes[0]);
             break;
+        case NGLI_IMAGE_LAYOUT_YUV:
+            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
+            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_U_SAMPLER].index, image->planes[1]);
+            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_V_SAMPLER].index, image->planes[2]);
+            break;
         default:
             break;
         }

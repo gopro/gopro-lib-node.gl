@@ -154,7 +154,7 @@ static int media_init(struct ngl_node *node)
     sxplayer_set_option(s->player, "stream_idx", s->stream_idx);
     sxplayer_set_option(s->player, "auto_hwaccel", s->hwaccel);
 
-    sxplayer_set_option(s->player, "sw_pix_fmt", SXPLAYER_PIXFMT_RGBA);
+    sxplayer_set_option(s->player, "sw_pix_fmt", SXPLAYER_PIXFMT_AUTO);
 #if defined(TARGET_IPHONE) || defined(TARGET_DARWIN)
     sxplayer_set_option(s->player, "vt_pix_fmt", "nv12");
 #endif
@@ -260,6 +260,10 @@ static const char * const pix_fmt_names[] = {
     [SXPLAYER_PIXFMT_VT]         = "vt",
     [SXPLAYER_PIXFMT_MEDIACODEC] = "mediacodec",
     [SXPLAYER_PIXFMT_VAAPI]      = "vaapi",
+    [SXPLAYER_PIXFMT_NV12]       = "nv12",
+    [SXPLAYER_PIXFMT_YUV420P]    = "yuv420p",
+    [SXPLAYER_PIXFMT_YUV422P]    = "yuv422p",
+    [SXPLAYER_PIXFMT_YUV444P]    = "yuv444p",
 };
 
 static int media_update(struct ngl_node *node, double t)

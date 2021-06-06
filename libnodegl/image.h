@@ -49,6 +49,7 @@ enum image_layout {
     NGLI_IMAGE_LAYOUT_MEDIACODEC     = 2,
     NGLI_IMAGE_LAYOUT_NV12           = 3,
     NGLI_IMAGE_LAYOUT_NV12_RECTANGLE = 4,
+    NGLI_IMAGE_LAYOUT_YUV            = 5,
     NGLI_NB_IMAGE_LAYOUTS
 };
 

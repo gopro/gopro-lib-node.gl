@@ -208,6 +208,8 @@ static const char * const texture_info_suffixes[NGLI_INFO_FIELD_NB] = {
     [NGLI_INFO_FIELD_OES_SAMPLER]       = "_external_sampler",
     [NGLI_INFO_FIELD_Y_SAMPLER]         = "_y_sampler",
     [NGLI_INFO_FIELD_UV_SAMPLER]        = "_uv_sampler",
+    [NGLI_INFO_FIELD_U_SAMPLER]         = "_u_sampler",
+    [NGLI_INFO_FIELD_V_SAMPLER]         = "_v_sampler",
     [NGLI_INFO_FIELD_Y_RECT_SAMPLER]    = "_y_rect_sampler",
     [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = "_uv_rect_sampler",
 };
@@ -218,19 +220,17 @@ static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FI
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
         [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
-#if defined(TARGET_ANDROID)
-        [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
-        [NGLI_INFO_FIELD_OES_SAMPLER]       = NGLI_TYPE_SAMPLER_EXTERNAL_OES,
-#elif defined(TARGET_IPHONE) || defined(TARGET_LINUX)
         [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
         [NGLI_INFO_FIELD_Y_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_U_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_V_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_UV_SAMPLER]        = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_COLOR_MATRIX]      = NGLI_TYPE_MAT4,
+#if defined(TARGET_ANDROID)
+        [NGLI_INFO_FIELD_OES_SAMPLER]       = NGLI_TYPE_SAMPLER_EXTERNAL_OES,
 #elif defined(TARGET_DARWIN)
-        [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
         [NGLI_INFO_FIELD_Y_RECT_SAMPLER]    = NGLI_TYPE_SAMPLER_2D_RECT,
         [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D_RECT,
-        [NGLI_INFO_FIELD_COLOR_MATRIX]      = NGLI_TYPE_MAT4,
 #endif
     },
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE2D] = {
@@ -682,27 +682,31 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
         ngli_bstr_print(dst, "(");
 #if defined(TARGET_ANDROID)
         ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "ngl_tex2d(%.*s_external_sampler, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
-        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
-#elif defined(TARGET_IPHONE) || defined(TARGET_LINUX)
-        ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler,  %.*s).r, "
-                                                       "ngl_tex2d(%.*s_uv_sampler, %.*s).%s, 1.0)",
-                         ARG_FMT(arg0),
-                         ARG_FMT(arg0), ARG_FMT(coords),
-                         ARG_FMT(arg0), ARG_FMT(coords), s->rg);
-        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+        ngli_bstr_printf(dst, "ngl_tex2d(%.*s_external_sampler, %.*s) : ", ARG_FMT(arg0), ARG_FMT(coords));
 #elif defined(TARGET_DARWIN)
-        ngli_bstr_printf(dst, "%.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, " %.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_rect_sampler,  (%.*s) * %.*s_dimensions).r, "
-                                                       "ngl_tex2d(%.*s_uv_rect_sampler, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0)",
+                                                       "ngl_tex2d(%.*s_uv_rect_sampler, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0) : ",
                          ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0));
-        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
-#else
-        ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #endif
+        ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler,  %.*s).r, "
+                                                       "ngl_tex2d(%.*s_uv_sampler, %.*s).%s, 1.0) : ",
+                         ARG_FMT(arg0),
+                         ARG_FMT(arg0), ARG_FMT(coords),
+                         ARG_FMT(arg0), ARG_FMT(coords), s->rg);
+        ngli_bstr_printf(dst, "%.*s_sampling_mode == 5 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler, %.*s).r, "
+                                                       "ngl_tex2d(%.*s_u_sampler, %.*s).r, "
+                                                       "ngl_tex2d(%.*s_v_sampler, %.*s).r, 1.0)",
+                         ARG_FMT(arg0),
+                         ARG_FMT(arg0), ARG_FMT(coords),
+                         ARG_FMT(arg0), ARG_FMT(coords),
+                         ARG_FMT(arg0), ARG_FMT(coords));
+        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+
         ngli_bstr_print(dst, ")");
         ngli_bstr_print(dst, p);
     } else {

@@ -90,6 +90,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
 
     enum image_layout src_layout = src_params->layout;
     if (src_layout != NGLI_IMAGE_LAYOUT_NV12 &&
+        src_layout != NGLI_IMAGE_LAYOUT_YUV &&
         src_layout != NGLI_IMAGE_LAYOUT_NV12_RECTANGLE &&
         src_layout != NGLI_IMAGE_LAYOUT_MEDIACODEC) {
         LOG(ERROR, "unsupported texture layout: 0x%x", src_layout);
@@ -212,6 +213,11 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
         break;
     case NGLI_IMAGE_LAYOUT_MEDIACODEC:
         ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_OES_SAMPLER].index, image->planes[0]);
+        break;
+    case NGLI_IMAGE_LAYOUT_YUV:
+        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
+        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_U_SAMPLER].index, image->planes[1]);
+        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_V_SAMPLER].index, image->planes[2]);
         break;
     default:
         ngli_assert(0);

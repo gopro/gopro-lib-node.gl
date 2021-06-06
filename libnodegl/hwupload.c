@@ -52,6 +52,10 @@ static const struct hwmap_class *hwupload_gl_class_map[] = {
 #elif defined(HAVE_VAAPI)
     [SXPLAYER_PIXFMT_VAAPI]       = &ngli_hwmap_vaapi_gl_class,
 #endif
+    [SXPLAYER_PIXFMT_NV12]        = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_YUV420P]     = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_YUV422P]     = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_YUV444P]     = &ngli_hwmap_common_class,
 #endif
 };
 

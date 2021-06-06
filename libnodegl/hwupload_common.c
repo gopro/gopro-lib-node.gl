@@ -28,27 +28,100 @@
 #include "hwupload.h"
 #include "image.h"
 #include "log.h"
+#include "math_utils.h"
 #include "nodegl.h"
 #include "nodes.h"
 
 struct hwupload_common {
     int width;
     int height;
-    struct texture *planes[1];
+    int nb_planes;
+    struct texture *planes[4];
 };
 
-static int common_get_data_format(int pix_fmt)
+static const struct format_desc {
+    int layout;
+    int nb_planes;
+    int log2_chroma_width;
+    int log2_chroma_height;
+    int formats[4];
+} format_descs[] = {
+    [SXPLAYER_PIXFMT_RGBA] = {
+        .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .nb_planes = 1,
+        .formats[0] = NGLI_FORMAT_R8G8B8A8_UNORM,
+    },
+    [SXPLAYER_PIXFMT_BGRA] = {
+        .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .nb_planes = 1,
+        .formats[0] = NGLI_FORMAT_B8G8R8A8_UNORM,
+    },
+    [SXPLAYER_SMPFMT_FLT] = {
+        .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .nb_planes = 1,
+        .formats[0] = NGLI_FORMAT_R32_SFLOAT,
+    },
+    [SXPLAYER_PIXFMT_NV12] = {
+        .layout = NGLI_IMAGE_LAYOUT_NV12,
+        .nb_planes = 2,
+        .log2_chroma_width = 1,
+        .log2_chroma_height = 1,
+        .formats[0] = NGLI_FORMAT_R8_UNORM,
+        .formats[1] = NGLI_FORMAT_R8G8_UNORM,
+    },
+    [SXPLAYER_PIXFMT_YUV420P] = {
+        .layout = NGLI_IMAGE_LAYOUT_YUV,
+        .nb_planes = 3,
+        .log2_chroma_width = 1,
+        .log2_chroma_height = 1,
+        .formats[0] = NGLI_FORMAT_R8_UNORM,
+        .formats[1] = NGLI_FORMAT_R8_UNORM,
+        .formats[2] = NGLI_FORMAT_R8_UNORM,
+    },
+    [SXPLAYER_PIXFMT_YUV422P] = {
+        .layout = NGLI_IMAGE_LAYOUT_YUV,
+        .nb_planes = 3,
+        .log2_chroma_width = 1,
+        .log2_chroma_height = 0,
+        .formats[0] = NGLI_FORMAT_R8_UNORM,
+        .formats[1] = NGLI_FORMAT_R8_UNORM,
+        .formats[2] = NGLI_FORMAT_R8_UNORM,
+    },
+    [SXPLAYER_PIXFMT_YUV444P] = {
+        .layout = NGLI_IMAGE_LAYOUT_YUV,
+        .nb_planes = 3,
+        .log2_chroma_width = 0,
+        .log2_chroma_height = 0,
+        .formats[0] = NGLI_FORMAT_R8_UNORM,
+        .formats[1] = NGLI_FORMAT_R8_UNORM,
+        .formats[2] = NGLI_FORMAT_R8_UNORM,
+    },
+};
+
+static const struct format_desc *common_get_format_desc(int pix_fmt)
 {
-    switch (pix_fmt) {
-    case SXPLAYER_PIXFMT_RGBA:
-        return NGLI_FORMAT_R8G8B8A8_UNORM;
-    case SXPLAYER_PIXFMT_BGRA:
-        return NGLI_FORMAT_B8G8R8A8_UNORM;
-    case SXPLAYER_SMPFMT_FLT:
-        return NGLI_FORMAT_R32_SFLOAT;
-    default:
-        return -1;
+    if (pix_fmt < 0 || pix_fmt >= NGLI_ARRAY_NB(format_descs))
+        return NULL;
+
+    const struct format_desc *desc = &format_descs[pix_fmt];
+    if (!desc->layout)
+        return NULL;
+
+    return desc;
+}
+
+static int support_direct_rendering(struct ngl_node *node, const struct format_desc *desc)
+{
+    struct texture_priv *s = node->priv_data;
+
+    int direct_rendering = 1;
+    if (desc->layout != NGLI_IMAGE_LAYOUT_DEFAULT) {
+        direct_rendering = (s->supported_image_layouts & (1 << desc->layout));
+        if (s->params.mipmap_filter)
+            direct_rendering = 0;
     }
+
+    return direct_rendering;
 }
 
 static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
@@ -59,34 +132,38 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
+    const struct format_desc *desc = common_get_format_desc(frame->pix_fmt);
+    if (!desc)
+        return NGL_ERROR_UNSUPPORTED;
+
     common->width = frame->width;
     common->height = frame->height;
+    common->nb_planes = desc->nb_planes;
 
-    struct texture_params params = s->params;
-    params.width  = frame->width;
-    params.height = frame->height;
+    for (int i = 0; i < common->nb_planes; i++) {
+        struct texture_params params = s->params;
+        params.width  = i == 0 ? frame->width : NGLI_CEIL_RSHIFT(frame->width, desc->log2_chroma_width);
+        params.height = i == 0 ? frame->height : NGLI_CEIL_RSHIFT(frame->height, desc->log2_chroma_height);
+        params.format = desc->formats[i];
 
-    params.format = common_get_data_format(frame->pix_fmt);
-    if (params.format < 0)
-        return -1;
+        common->planes[i] = ngli_texture_create(gctx);
+        if (!common->planes[i])
+            return NGL_ERROR_MEMORY;
 
-    common->planes[0] = ngli_texture_create(gctx);
-    if (!common->planes[0])
-        return NGL_ERROR_MEMORY;
-
-    int ret = ngli_texture_init(common->planes[0], &params);
-    if (ret < 0)
-        return ret;
+        int ret = ngli_texture_init(common->planes[i], &params);
+        if (ret < 0)
+            return ret;
+    }
 
     struct image_params image_params = {
         .width = frame->width,
         .height = frame->height,
-        .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .layout = desc->layout,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
     ngli_image_init(&hwupload->mapped_image, &image_params, common->planes);
 
-    hwupload->require_hwconv = 0;
+    hwupload->require_hwconv = !support_direct_rendering(node, desc);
 
     return 0;
 }
@@ -107,8 +184,16 @@ static int common_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
-    const int linesize = frame->linesize >> 2;
-    return ngli_texture_upload(common->planes[0], frame->data, linesize);
+    for (int i = 0; i < common->nb_planes; i++) {
+        struct texture *plane = common->planes[i];
+        struct texture_params *params = &plane->params;
+        const int linesize = frame->linesizep[i] / ngli_format_get_bytes_per_pixel(params->format);
+        int ret = ngli_texture_upload(plane, frame->datap[i], linesize);
+        if (ret < 0)
+            return ret;
+    }
+
+    return 0;
 }
 
 const struct hwmap_class ngli_hwmap_common_class = {

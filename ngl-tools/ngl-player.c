@@ -41,6 +41,7 @@ struct ctx {
     int player_ui;
     int framerate[2];
     int hwaccel;
+    int mipmap;
 
     struct sxplayer_info media_info;
 };
@@ -56,6 +57,7 @@ static const struct opt options[] = {
     {"-u", "--disable-ui",       OPT_TYPE_TOGGLE,   .offset=OFFSET(player_ui)},
     {"-r", "--framerate",        OPT_TYPE_RATIONAL, .offset=OFFSET(framerate)},
     {NULL, "--hwaccel",          OPT_TYPE_INT,      .offset=OFFSET(hwaccel)},
+    {NULL, "--mipmap",           OPT_TYPE_INT,      .offset=OFFSET(mipmap)},
 };
 
 static const char *media_vertex =
@@ -71,7 +73,7 @@ static const char *media_fragment =
 "    ngl_out_color = ngl_texvideo(tex0, var_tex0_coord);"               "\n"
 "}";
 
-static struct ngl_node *get_scene(const char *filename, int direct_rendering, int hwaccel)
+static struct ngl_node *get_scene(const char *filename, int direct_rendering, int hwaccel, int mipmap)
 {
     static const float corner[3] = {-1.0, -1.0, 0.0};
     static const float width[3]  = { 2.0,  0.0, 0.0};
@@ -94,6 +96,8 @@ static struct ngl_node *get_scene(const char *filename, int direct_rendering, in
     ngl_node_param_set(texture, "data_src", media);
     ngl_node_param_set(texture, "min_filter", "linear");
     ngl_node_param_set(texture, "mag_filter", "linear");
+    if (mipmap)
+        ngl_node_param_set(texture, "mipmap_filter", "linear");
     if (direct_rendering != -1)
         ngl_node_param_set(texture, "direct_rendering", direct_rendering);
 
@@ -141,6 +145,7 @@ int main(int argc, char *argv[])
         .framerate[0]       = 60,
         .framerate[1]       = 1,
         .hwaccel            = 1,
+        .mipmap             = 0,
     };
 
     int ret = opts_parse(argc, argc - 1, argv, options, ARRAY_NB(options), &s);
@@ -156,7 +161,7 @@ int main(int argc, char *argv[])
     if (ret < 0)
         return ret;
 
-    struct ngl_node *scene = get_scene(filename, s.direct_rendering, s.hwaccel);
+    struct ngl_node *scene = get_scene(filename, s.direct_rendering, s.hwaccel, s.mipmap);
     if (!scene)
         return -1;
 

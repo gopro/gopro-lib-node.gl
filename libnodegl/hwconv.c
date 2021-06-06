@@ -44,7 +44,7 @@ static const char *vert_base =
 static const char *frag_base =
     "void main()"                                                               "\n"
     "{"                                                                         "\n"
-    "    ngl_out_color = ngli_texvideo(tex, var_tex_coord);"                    "\n"
+    "    ngl_out_color = ngl_texvideo(tex, var_tex_coord);"                     "\n"
     "}";
 
 static const struct pgcraft_iovar vert_out_vars[] = {
@@ -217,6 +217,7 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
         ngli_assert(0);
     }
     ngli_assert(ret == 0);
+    ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_SAMPLING_MODE].index, &image->params.layout);
     ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COORDINATE_MATRIX].index, image->coordinates_matrix);
     ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_COLOR_MATRIX].index, image->color_matrix);
 

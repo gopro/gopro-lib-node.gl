@@ -666,11 +666,7 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
     p = skip_arg(p);
     ptrdiff_t arg0_len = p - arg0_start;
 
-    /* The internal ngli_texvideo() is used as a fast-path to skip the check
-     * for the sampling mode and directly do the picking */
-    const int fast_picking = !strcmp(token->id, "ngli_texvideo");
-
-    if (fast_picking || !strcmp(token->id, "ngl_texvideo")) {
+    if (!strcmp(token->id, "ngl_texvideo")) {
         if (*p != ',')
             return NGL_ERROR_INVALID_ARG;
         p++;
@@ -685,31 +681,25 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
 
         ngli_bstr_print(dst, "(");
 #if defined(TARGET_ANDROID)
-        if (!fast_picking)
-            ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "ngl_tex2d(%.*s_external_sampler, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
-        if (!fast_picking)
-            ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #elif defined(TARGET_IPHONE) || defined(TARGET_LINUX)
-        if (!fast_picking)
-            ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler,  %.*s).r, "
                                                        "ngl_tex2d(%.*s_uv_sampler, %.*s).%s, 1.0)",
                          ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords),
                          ARG_FMT(arg0), ARG_FMT(coords), s->rg);
-        if (!fast_picking)
-            ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #elif defined(TARGET_DARWIN)
-        if (!fast_picking)
-            ngli_bstr_printf(dst, "%.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
+        ngli_bstr_printf(dst, "%.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_rect_sampler,  (%.*s) * %.*s_dimensions).r, "
                                                        "ngl_tex2d(%.*s_uv_rect_sampler, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0)",
                          ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0));
-        if (!fast_picking)
-            ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+        ngli_bstr_printf(dst, " : ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #else
         ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
 #endif

@@ -31,6 +31,7 @@
 #define NGLI_DEG2RAD(x) ((x) * (2.f * M_PI / 360.f))
 #define NGLI_MIX(x, y, a) ((x)*(1.-(a)) + (y)*(a))
 #define NGLI_LINEAR_INTERP(x, y, a) (((a) - (x)) / ((y) - (x)))
+#define NGLI_CEIL_RSHIFT(a, b) -((-(a)) >> (b))
 
 float ngli_vec2_length(const float *v);
 void ngli_vec2_scale(float *dst, const float *v, const float s);

@@ -56,6 +56,10 @@ static const struct hwmap_class *hwupload_gl_class_map[] = {
     [SXPLAYER_PIXFMT_YUV420P]     = &ngli_hwmap_common_class,
     [SXPLAYER_PIXFMT_YUV422P]     = &ngli_hwmap_common_class,
     [SXPLAYER_PIXFMT_YUV444P]     = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_P010LE]      = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_YUV420P10LE] = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_YUV422P10LE] = &ngli_hwmap_common_class,
+    [SXPLAYER_PIXFMT_YUV444P10LE] = &ngli_hwmap_common_class,
 #endif
 };
 

@@ -264,6 +264,10 @@ static const char * const pix_fmt_names[] = {
     [SXPLAYER_PIXFMT_YUV420P]    = "yuv420p",
     [SXPLAYER_PIXFMT_YUV422P]    = "yuv422p",
     [SXPLAYER_PIXFMT_YUV444P]    = "yuv444p",
+    [SXPLAYER_PIXFMT_P010LE]     = "p010le",
+    [SXPLAYER_PIXFMT_YUV420P10LE] = "yuv420p10le",
+    [SXPLAYER_PIXFMT_YUV422P10LE] = "yuv422p10le",
+    [SXPLAYER_PIXFMT_YUV444P10LE] = "yuv444p10le",
 };
 
 static int media_update(struct ngl_node *node, double t)

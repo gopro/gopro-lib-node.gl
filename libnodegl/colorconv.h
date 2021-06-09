@@ -24,6 +24,6 @@
 
 #include "image.h"
 
-int ngli_colorconv_get_ycbcr_to_rgb_color_matrix(float *dst, const struct color_info *info);
+int ngli_colorconv_get_ycbcr_to_rgb_color_matrix(float *dst, const struct color_info *info, float scale);
 
 #endif

@@ -59,7 +59,7 @@ void ngli_image_init(struct image *s, const struct image_params *params, struct 
     if (params->layout == NGLI_IMAGE_LAYOUT_NV12 ||
         params->layout == NGLI_IMAGE_LAYOUT_NV12_RECTANGLE ||
         params->layout == NGLI_IMAGE_LAYOUT_YUV) {
-        ngli_colorconv_get_ycbcr_to_rgb_color_matrix(s->color_matrix, &params->color_info);
+        ngli_colorconv_get_ycbcr_to_rgb_color_matrix(s->color_matrix, &params->color_info, params->color_scale);
     }
 }
 

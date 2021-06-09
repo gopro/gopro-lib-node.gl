@@ -57,6 +57,7 @@ struct image_params {
     int width;
     int height;
     int depth;
+    float color_scale;
     enum image_layout layout;
     struct color_info color_info;
 };

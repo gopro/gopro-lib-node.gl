@@ -41,19 +41,26 @@ struct hwupload_common {
 
 static const struct format_desc {
     int layout;
+    int depth;
+    int shift;
     int nb_planes;
     int log2_chroma_width;
     int log2_chroma_height;
+    int format_depth;
     int formats[4];
 } format_descs[] = {
     [SXPLAYER_PIXFMT_RGBA] = {
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .depth = 8,
         .nb_planes = 1,
+        .format_depth = 8,
         .formats[0] = NGLI_FORMAT_R8G8B8A8_UNORM,
     },
     [SXPLAYER_PIXFMT_BGRA] = {
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .depth = 8,
         .nb_planes = 1,
+        .format_depth = 8,
         .formats[0] = NGLI_FORMAT_B8G8R8A8_UNORM,
     },
     [SXPLAYER_SMPFMT_FLT] = {
@@ -63,35 +70,43 @@ static const struct format_desc {
     },
     [SXPLAYER_PIXFMT_NV12] = {
         .layout = NGLI_IMAGE_LAYOUT_NV12,
+        .depth = 8,
         .nb_planes = 2,
         .log2_chroma_width = 1,
         .log2_chroma_height = 1,
+        .format_depth = 8,
         .formats[0] = NGLI_FORMAT_R8_UNORM,
         .formats[1] = NGLI_FORMAT_R8G8_UNORM,
     },
     [SXPLAYER_PIXFMT_YUV420P] = {
         .layout = NGLI_IMAGE_LAYOUT_YUV,
+        .depth = 8,
         .nb_planes = 3,
         .log2_chroma_width = 1,
         .log2_chroma_height = 1,
+        .format_depth = 8,
         .formats[0] = NGLI_FORMAT_R8_UNORM,
         .formats[1] = NGLI_FORMAT_R8_UNORM,
         .formats[2] = NGLI_FORMAT_R8_UNORM,
     },
     [SXPLAYER_PIXFMT_YUV422P] = {
         .layout = NGLI_IMAGE_LAYOUT_YUV,
+        .depth = 8,
         .nb_planes = 3,
         .log2_chroma_width = 1,
         .log2_chroma_height = 0,
+        .format_depth = 8,
         .formats[0] = NGLI_FORMAT_R8_UNORM,
         .formats[1] = NGLI_FORMAT_R8_UNORM,
         .formats[2] = NGLI_FORMAT_R8_UNORM,
     },
     [SXPLAYER_PIXFMT_YUV444P] = {
         .layout = NGLI_IMAGE_LAYOUT_YUV,
+        .depth = 8,
         .nb_planes = 3,
         .log2_chroma_width = 0,
         .log2_chroma_height = 0,
+        .format_depth = 8,
         .formats[0] = NGLI_FORMAT_R8_UNORM,
         .formats[1] = NGLI_FORMAT_R8_UNORM,
         .formats[2] = NGLI_FORMAT_R8_UNORM,
@@ -155,10 +170,15 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
             return ret;
     }
 
+    const int src_max = ((1 << desc->depth) - 1) << desc->shift;
+    const int dst_max = (1 << desc->format_depth) - 1;
+    const float color_scale = (float)(dst_max)/(src_max);
+
     struct image_params image_params = {
         .width = frame->width,
         .height = frame->height,
         .layout = desc->layout,
+        .color_scale = color_scale,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
     ngli_image_init(&hwupload->mapped_image, &image_params, common->planes);

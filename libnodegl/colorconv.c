@@ -111,7 +111,7 @@ static const struct range_info {
     {219, 224, 16},
 };
 
-int ngli_colorconv_get_ycbcr_to_rgb_color_matrix(float *dst, const struct color_info *info)
+int ngli_colorconv_get_ycbcr_to_rgb_color_matrix(float *dst, const struct color_info *info, float scale)
 {
     const int colormatrix = get_colormatrix_from_sxplayer(info->space);
     const int video_range = info->range != SXPLAYER_COL_RNG_FULL;
@@ -125,20 +125,20 @@ int ngli_colorconv_get_ycbcr_to_rgb_color_matrix(float *dst, const struct color_
     const float y_off    = -range.y_off / range.y;
 
     /* Y factor */
-    dst[ 0 /* R */] = y_factor;
-    dst[ 1 /* G */] = y_factor;
-    dst[ 2 /* B */] = y_factor;
+    dst[ 0 /* R */] = y_factor * scale;
+    dst[ 1 /* G */] = y_factor * scale;
+    dst[ 2 /* B */] = y_factor * scale;
     dst[ 3 /* A */] = 0;
 
     /* Cb factor */
     dst[ 4 /* R */] = 0;
-    dst[ 5 /* G */] = -255 * g_scale * k.b * (1 - k.b);
-    dst[ 6 /* B */] =  255 * b_scale;
+    dst[ 5 /* G */] = -255 * g_scale * scale * k.b * (1 - k.b);
+    dst[ 6 /* B */] =  255 * b_scale * scale;
     dst[ 7 /* A */] = 0;
 
     /* Cr factor */
-    dst[ 8 /* R */] =  255 * r_scale;
-    dst[ 9 /* G */] = -255 * g_scale * k.r * (1 - k.r);
+    dst[ 8 /* R */] =  255 * r_scale * scale;
+    dst[ 9 /* G */] = -255 * g_scale * scale * k.r * (1 - k.r);
     dst[10 /* B */] = 0;
     dst[11 /* A */] = 0;
 

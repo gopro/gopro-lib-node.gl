@@ -336,6 +336,7 @@ static int texture_prefetch(struct ngl_node *node)
         .width = params->width,
         .height = params->height,
         .depth = params->depth,
+        .color_scale = 1.f,
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
     };
     ngli_image_init(&s->image, &image_params, &s->texture);

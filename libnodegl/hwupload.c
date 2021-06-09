@@ -104,6 +104,7 @@ static int init_hwconv(struct ngl_node *node)
         .width = mapped_image->params.width,
         .height = mapped_image->params.height,
         .layout = NGLI_IMAGE_LAYOUT_DEFAULT,
+        .color_scale = 1.f,
         .color_info = NGLI_COLOR_INFO_DEFAULTS,
     };
     ngli_image_init(&s->image, &image_params, &hwupload->texture);

@@ -107,7 +107,7 @@ int main(void)
         cinfo.range = ranges[r].val;
         for (int s = 0; s < NGLI_ARRAY_NB(spaces); s++) {
             cinfo.space = spaces[s].val;
-            if (ngli_colorconv_get_ycbcr_to_rgb_color_matrix(mat, &cinfo) < 0)
+            if (ngli_colorconv_get_ycbcr_to_rgb_color_matrix(mat, &cinfo, 1.f) < 0)
                 return 1;
             printf("%s %s:\n" NGLI_FMT_MAT4 "\n\n", spaces[s].name, ranges[r].name, NGLI_ARG_MAT4(mat));
             if (compare_matrices(mat, expected_colormatrices[r][s]) < 0) {

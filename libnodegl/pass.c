@@ -701,30 +701,50 @@ int ngli_pass_exec(struct pass *s)
             ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_DIMENSIONS].index, dimensions);
         }
 
-        int ret = -1;
+        struct texture *textures[NGLI_INFO_FIELD_NB] = {0};
         switch (image->params.layout) {
         case NGLI_IMAGE_LAYOUT_DEFAULT:
-            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_DEFAULT_SAMPLER].index, image->planes[0]);
+            textures[NGLI_INFO_FIELD_DEFAULT_SAMPLER] = image->planes[0];
             break;
         case NGLI_IMAGE_LAYOUT_NV12:
-            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_UV_SAMPLER].index, image->planes[1]);
+            textures[NGLI_INFO_FIELD_Y_SAMPLER]  = image->planes[0];
+            textures[NGLI_INFO_FIELD_UV_SAMPLER] = image->planes[1];
             break;
         case NGLI_IMAGE_LAYOUT_NV12_RECTANGLE:
-            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_RECT_SAMPLER].index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_UV_RECT_SAMPLER].index, image->planes[1]);
+            textures[NGLI_INFO_FIELD_Y_RECT_SAMPLER]  = image->planes[0];
+            textures[NGLI_INFO_FIELD_UV_RECT_SAMPLER] = image->planes[1];
             break;
         case NGLI_IMAGE_LAYOUT_MEDIACODEC:
-            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_OES_SAMPLER].index, image->planes[0]);
+            textures[NGLI_INFO_FIELD_OES_SAMPLER] = image->planes[0];
             break;
         case NGLI_IMAGE_LAYOUT_YUV:
-            ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
-            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_U_SAMPLER].index, image->planes[1]);
-            ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_V_SAMPLER].index, image->planes[2]);
+            textures[NGLI_INFO_FIELD_Y_SAMPLER] = image->planes[0];
+            textures[NGLI_INFO_FIELD_U_SAMPLER] = image->planes[1];
+            textures[NGLI_INFO_FIELD_V_SAMPLER] = image->planes[2];
             break;
         default:
             break;
         }
+
+        static const int samplers[] = {
+            NGLI_INFO_FIELD_DEFAULT_SAMPLER,
+            NGLI_INFO_FIELD_OES_SAMPLER,
+            NGLI_INFO_FIELD_Y_SAMPLER,
+            NGLI_INFO_FIELD_UV_SAMPLER,
+            NGLI_INFO_FIELD_U_SAMPLER,
+            NGLI_INFO_FIELD_V_SAMPLER,
+            NGLI_INFO_FIELD_Y_RECT_SAMPLER,
+            NGLI_INFO_FIELD_UV_RECT_SAMPLER,
+        };
+
+        int ret = 1;
+        for (int i = 0; i < NGLI_ARRAY_NB(samplers); i++) {
+            const int sampler = samplers[i];
+            const int index = fields[sampler].index;
+            struct texture *texture = textures[sampler];
+            ret &= ngli_pipeline_update_texture(pipeline, index, texture);
+        };
+
         const int layout = ret < 0 ? NGLI_IMAGE_LAYOUT_NONE : image->params.layout;
         ngli_pipeline_update_uniform(pipeline, fields[NGLI_INFO_FIELD_SAMPLING_MODE].index, &layout);
     }

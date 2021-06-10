@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <sxplayer.h>
 
-#include <va/va_x11.h>
+#include <va/va.h>
 #include <va/va_drmcommon.h>
 
 #include "egl.h"

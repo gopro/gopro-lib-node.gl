@@ -223,7 +223,7 @@ hosts_cfg = {
 
 lib_deps = [
   cc.find_library('m', required: false),
-  dependency('libsxplayer', version: '>= 9.8.1'),
+  dependency('libsxplayer', version: '>= 9.9.0'),
   dependency('threads'),
 ]
 

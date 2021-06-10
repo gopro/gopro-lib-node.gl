@@ -107,14 +107,6 @@ static int common_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
-    if (common->width != frame->width || common->height != frame->height) {
-        common_uninit(node);
-
-        int ret = common_init(node, frame);
-        if (ret < 0)
-            return ret;
-    }
-
     const int linesize = frame->linesize >> 2;
     return ngli_texture_upload(common->planes[0], frame->data, linesize);
 }

@@ -44,6 +44,8 @@ struct hwupload {
     const struct hwmap_class *hwmap_class;
     void *hwmap_priv_data;
     int pix_fmt;
+    int width;
+    int height;
     struct image mapped_image;
     int require_hwconv;
     struct hwconv hwconv;

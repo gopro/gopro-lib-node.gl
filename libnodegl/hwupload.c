@@ -155,8 +155,8 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
     }
     ngli_assert(hwmap_class->priv_size);
 
-    if (frame->width  != hwupload->mapped_image.params.width ||
-        frame->height != hwupload->mapped_image.params.height ||
+    if (frame->width  != hwupload->width ||
+        frame->height != hwupload->height ||
         frame->pix_fmt != hwupload->pix_fmt ||
         hwmap_class != hwupload->hwmap_class) {
         ngli_hwupload_uninit(node);
@@ -174,6 +174,8 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
         }
         hwupload->hwmap_class = hwmap_class;
         hwupload->pix_fmt = frame->pix_fmt;
+        hwupload->width = frame->width;
+        hwupload->height = frame->height;
 
         LOG(DEBUG, "mapping texture '%s' with method: %s", node->label, hwmap_class->name);
     }
@@ -219,4 +221,6 @@ void ngli_hwupload_uninit(struct ngl_node *node)
     hwupload->hwmap_class = NULL;
     ngli_image_reset(&s->image);
     hwupload->pix_fmt = 0;
+    hwupload->width = 0;
+    hwupload->height = 0;
 }

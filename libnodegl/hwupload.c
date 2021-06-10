@@ -157,7 +157,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
 
     if (frame->width  != hwupload->mapped_image.params.width ||
         frame->height != hwupload->mapped_image.params.height ||
-        hwupload->hwmap_class != hwmap_class) {
+        hwmap_class != hwupload->hwmap_class) {
         ngli_hwupload_uninit(node);
 
         hwupload->hwmap_priv_data = ngli_calloc(1, hwmap_class->priv_size);

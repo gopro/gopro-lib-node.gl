@@ -200,51 +200,47 @@ static int inject_uniform(struct pgcraft *s, struct bstr *b,
 
 static const char * const texture_info_suffixes[NGLI_INFO_FIELD_NB] = {
     [NGLI_INFO_FIELD_SAMPLING_MODE]     = "_sampling_mode",
-    [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = "",
     [NGLI_INFO_FIELD_COORDINATE_MATRIX] = "_coord_matrix",
     [NGLI_INFO_FIELD_COLOR_MATRIX]      = "_color_matrix",
     [NGLI_INFO_FIELD_DIMENSIONS]        = "_dimensions",
     [NGLI_INFO_FIELD_TIMESTAMP]         = "_ts",
-    [NGLI_INFO_FIELD_OES_SAMPLER]       = "_external_sampler",
-    [NGLI_INFO_FIELD_Y_SAMPLER]         = "_y_sampler",
-    [NGLI_INFO_FIELD_UV_SAMPLER]        = "_uv_sampler",
-    [NGLI_INFO_FIELD_U_SAMPLER]         = "_u_sampler",
-    [NGLI_INFO_FIELD_V_SAMPLER]         = "_v_sampler",
-    [NGLI_INFO_FIELD_Y_RECT_SAMPLER]    = "_y_rect_sampler",
-    [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = "_uv_rect_sampler",
+    [NGLI_INFO_FIELD_SAMPLER_0]         = "",
+    [NGLI_INFO_FIELD_SAMPLER_1]         = "_1",
+    [NGLI_INFO_FIELD_SAMPLER_2]         = "_2",
+    [NGLI_INFO_FIELD_SAMPLER_OES]       = "_oes",
+    [NGLI_INFO_FIELD_SAMPLER_RECT_0]    = "_rect_0",
+    [NGLI_INFO_FIELD_SAMPLER_RECT_1]    = "_rect_1",
 };
 
 static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D] = {
-        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
         [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
-        [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
-        [NGLI_INFO_FIELD_Y_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
-        [NGLI_INFO_FIELD_U_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
-        [NGLI_INFO_FIELD_V_SAMPLER]         = NGLI_TYPE_SAMPLER_2D,
-        [NGLI_INFO_FIELD_UV_SAMPLER]        = NGLI_TYPE_SAMPLER_2D,
         [NGLI_INFO_FIELD_COLOR_MATRIX]      = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
+        [NGLI_INFO_FIELD_SAMPLER_0]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_SAMPLER_1]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_SAMPLER_2]         = NGLI_TYPE_SAMPLER_2D,
 #if defined(TARGET_ANDROID)
-        [NGLI_INFO_FIELD_OES_SAMPLER]       = NGLI_TYPE_SAMPLER_EXTERNAL_OES,
+        [NGLI_INFO_FIELD_SAMPLER_OES]       = NGLI_TYPE_SAMPLER_EXTERNAL_OES,
 #elif defined(TARGET_DARWIN)
-        [NGLI_INFO_FIELD_Y_RECT_SAMPLER]    = NGLI_TYPE_SAMPLER_2D_RECT,
-        [NGLI_INFO_FIELD_UV_RECT_SAMPLER]   = NGLI_TYPE_SAMPLER_2D_RECT,
+        [NGLI_INFO_FIELD_SAMPLER_RECT_0]    = NGLI_TYPE_SAMPLER_2D_RECT,
+        [NGLI_INFO_FIELD_SAMPLER_RECT_1]    = NGLI_TYPE_SAMPLER_2D_RECT,
 #endif
     },
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE2D] = {
-        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_IMAGE_2D,
+        [NGLI_INFO_FIELD_SAMPLER_0]         = NGLI_TYPE_IMAGE_2D,
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
         [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
     },
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D] = {
-        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_3D,
+        [NGLI_INFO_FIELD_SAMPLER_0]         = NGLI_TYPE_SAMPLER_3D,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC3,
     },
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE] = {
-        [NGLI_INFO_FIELD_DEFAULT_SAMPLER]   = NGLI_TYPE_SAMPLER_CUBE,
+        [NGLI_INFO_FIELD_SAMPLER_0]         = NGLI_TYPE_SAMPLER_CUBE,
     },
 };
 
@@ -682,25 +678,25 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
         ngli_bstr_print(dst, "(");
 #if defined(TARGET_ANDROID)
         ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "ngl_tex2d(%.*s_external_sampler, %.*s) : ", ARG_FMT(arg0), ARG_FMT(coords));
+        ngli_bstr_printf(dst, "ngl_tex2d(%.*s_oes, %.*s) : ", ARG_FMT(arg0), ARG_FMT(coords));
 #elif defined(TARGET_DARWIN)
         ngli_bstr_printf(dst, " %.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_rect_sampler,  (%.*s) * %.*s_dimensions).r, "
-                                                       "ngl_tex2d(%.*s_uv_rect_sampler, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0) : ",
+        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_rect_0, (%.*s) * %.*s_dimensions).r, "
+                                                       "ngl_tex2d(%.*s_rect_1, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0) : ",
                          ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0));
 #endif
         ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler,  %.*s).r, "
-                                                       "ngl_tex2d(%.*s_uv_sampler, %.*s).%s, 1.0) : ",
+        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s,   %.*s).r, "
+                                                       "ngl_tex2d(%.*s_1, %.*s).%s, 1.0) : ",
                          ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords),
                          ARG_FMT(arg0), ARG_FMT(coords), s->rg);
         ngli_bstr_printf(dst, "%.*s_sampling_mode == 5 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_y_sampler, %.*s).r, "
-                                                       "ngl_tex2d(%.*s_u_sampler, %.*s).r, "
-                                                       "ngl_tex2d(%.*s_v_sampler, %.*s).r, 1.0)",
+        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s,   %.*s).r, "
+                                                       "ngl_tex2d(%.*s_1, %.*s).r, "
+                                                       "ngl_tex2d(%.*s_2, %.*s).r, 1.0)",
                          ARG_FMT(arg0),
                          ARG_FMT(arg0), ARG_FMT(coords),
                          ARG_FMT(arg0), ARG_FMT(coords),

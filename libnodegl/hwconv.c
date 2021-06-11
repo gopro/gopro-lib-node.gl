@@ -204,20 +204,20 @@ int ngli_hwconv_convert_image(struct hwconv *hwconv, const struct image *image)
     int ret = -1;
     switch (image->params.layout) {
     case NGLI_IMAGE_LAYOUT_NV12:
-        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
-        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_UV_SAMPLER].index, image->planes[1]);
+        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_0].index, image->planes[0]);
+        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_1].index, image->planes[1]);
         break;
     case NGLI_IMAGE_LAYOUT_NV12_RECTANGLE:
-        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_RECT_SAMPLER].index, image->planes[0]);
-        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_UV_RECT_SAMPLER].index, image->planes[1]);
+        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_RECT_0].index, image->planes[0]);
+        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_RECT_1].index, image->planes[1]);
         break;
     case NGLI_IMAGE_LAYOUT_MEDIACODEC:
-        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_OES_SAMPLER].index, image->planes[0]);
+        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_OES].index, image->planes[0]);
         break;
     case NGLI_IMAGE_LAYOUT_YUV:
-        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_Y_SAMPLER].index, image->planes[0]);
-        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_U_SAMPLER].index, image->planes[1]);
-        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_V_SAMPLER].index, image->planes[2]);
+        ret = ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_0].index, image->planes[0]);
+        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_1].index, image->planes[1]);
+        ret &= ngli_pipeline_update_texture(pipeline, fields[NGLI_INFO_FIELD_SAMPLER_2].index, image->planes[2]);
         break;
     default:
         ngli_assert(0);

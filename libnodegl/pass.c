@@ -704,37 +704,35 @@ int ngli_pass_exec(struct pass *s)
         struct texture *textures[NGLI_INFO_FIELD_NB] = {0};
         switch (image->params.layout) {
         case NGLI_IMAGE_LAYOUT_DEFAULT:
-            textures[NGLI_INFO_FIELD_DEFAULT_SAMPLER] = image->planes[0];
+            textures[NGLI_INFO_FIELD_SAMPLER_0] = image->planes[0];
             break;
         case NGLI_IMAGE_LAYOUT_NV12:
-            textures[NGLI_INFO_FIELD_Y_SAMPLER]  = image->planes[0];
-            textures[NGLI_INFO_FIELD_UV_SAMPLER] = image->planes[1];
+            textures[NGLI_INFO_FIELD_SAMPLER_0] = image->planes[0];
+            textures[NGLI_INFO_FIELD_SAMPLER_1] = image->planes[1];
             break;
         case NGLI_IMAGE_LAYOUT_NV12_RECTANGLE:
-            textures[NGLI_INFO_FIELD_Y_RECT_SAMPLER]  = image->planes[0];
-            textures[NGLI_INFO_FIELD_UV_RECT_SAMPLER] = image->planes[1];
+            textures[NGLI_INFO_FIELD_SAMPLER_RECT_0] = image->planes[0];
+            textures[NGLI_INFO_FIELD_SAMPLER_RECT_1] = image->planes[1];
             break;
         case NGLI_IMAGE_LAYOUT_MEDIACODEC:
-            textures[NGLI_INFO_FIELD_OES_SAMPLER] = image->planes[0];
+            textures[NGLI_INFO_FIELD_SAMPLER_OES] = image->planes[0];
             break;
         case NGLI_IMAGE_LAYOUT_YUV:
-            textures[NGLI_INFO_FIELD_Y_SAMPLER] = image->planes[0];
-            textures[NGLI_INFO_FIELD_U_SAMPLER] = image->planes[1];
-            textures[NGLI_INFO_FIELD_V_SAMPLER] = image->planes[2];
+            textures[NGLI_INFO_FIELD_SAMPLER_0] = image->planes[0];
+            textures[NGLI_INFO_FIELD_SAMPLER_1] = image->planes[1];
+            textures[NGLI_INFO_FIELD_SAMPLER_2] = image->planes[2];
             break;
         default:
             break;
         }
 
         static const int samplers[] = {
-            NGLI_INFO_FIELD_DEFAULT_SAMPLER,
-            NGLI_INFO_FIELD_OES_SAMPLER,
-            NGLI_INFO_FIELD_Y_SAMPLER,
-            NGLI_INFO_FIELD_UV_SAMPLER,
-            NGLI_INFO_FIELD_U_SAMPLER,
-            NGLI_INFO_FIELD_V_SAMPLER,
-            NGLI_INFO_FIELD_Y_RECT_SAMPLER,
-            NGLI_INFO_FIELD_UV_RECT_SAMPLER,
+            NGLI_INFO_FIELD_SAMPLER_0,
+            NGLI_INFO_FIELD_SAMPLER_1,
+            NGLI_INFO_FIELD_SAMPLER_2,
+            NGLI_INFO_FIELD_SAMPLER_OES,
+            NGLI_INFO_FIELD_SAMPLER_RECT_0,
+            NGLI_INFO_FIELD_SAMPLER_RECT_1,
         };
 
         int ret = 1;

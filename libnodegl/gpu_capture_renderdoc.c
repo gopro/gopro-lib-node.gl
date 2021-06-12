@@ -41,13 +41,13 @@ struct gpu_capture_ctx {
 #endif
 };
 
-struct gpu_capture_ctx *gpu_capture_ctx_create(struct gpu_ctx *gpu_ctx)
+struct gpu_capture_ctx *ngli_gpu_capture_ctx_create(struct gpu_ctx *gpu_ctx)
 {
     struct gpu_capture_ctx *s = ngli_calloc(1, sizeof(*s));
     return s;
 }
 
-int gpu_capture_init(struct gpu_capture_ctx *s)
+int ngli_gpu_capture_init(struct gpu_capture_ctx *s)
 {
 #ifdef _WIN32
     s->mod = LoadLibraryA("renderdoc.dll");
@@ -75,13 +75,13 @@ int gpu_capture_init(struct gpu_capture_ctx *s)
     return 0;
 }
 
-int gpu_capture_begin(struct gpu_capture_ctx *s)
+int ngli_gpu_capture_begin(struct gpu_capture_ctx *s)
 {
     s->rdoc_api->StartFrameCapture(NULL, NULL);
     return 0;
 }
 
-int gpu_capture_end(struct gpu_capture_ctx *s)
+int ngli_gpu_capture_end(struct gpu_capture_ctx *s)
 {
     int ret = s->rdoc_api->EndFrameCapture(NULL, NULL);
     if (ret == 0) {
@@ -91,7 +91,7 @@ int gpu_capture_end(struct gpu_capture_ctx *s)
     return 0;
 }
 
-void gpu_capture_freep(struct gpu_capture_ctx **sp)
+void ngli_gpu_capture_freep(struct gpu_capture_ctx **sp)
 {
     if (!*sp)
         return;

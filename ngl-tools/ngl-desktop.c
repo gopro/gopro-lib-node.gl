@@ -281,20 +281,30 @@ static int handle_tag_reconfigure(const uint8_t *data, int size)
     return 0;
 }
 
-static int handle_tag_info(const uint8_t *data, int size, int fd, struct ctx *s)
+static const char *get_backend_str(int backend)
 {
-    if (size != 0)
-        return NGL_ERROR_INVALID_DATA;
     static const char * const backend_map[] = {
         [NGL_BACKEND_OPENGL]   = "opengl",
         [NGL_BACKEND_OPENGLES] = "opengles",
     };
+
+    if (backend < 0 || backend >= ARRAY_NB(backend_map))
+        return NULL;
+    const char *backend_str = backend_map[backend];
+    if (!backend_str)
+        return NULL;
+
+    return backend_str;
+}
+
+static int handle_tag_info(const uint8_t *data, int size, int fd, struct ctx *s)
+{
+    if (size != 0)
+        return NGL_ERROR_INVALID_DATA;
     /* Note: we use the player ngl_config and not the local config because the
      * former contains the backend in use after the configure call */
     const struct ngl_config *cfg = &s->p.ngl_config;
-    if (cfg->backend < 0 || cfg->backend >= ARRAY_NB(backend_map))
-        return NGL_ERROR_BUG;
-    const char *backend_str = backend_map[cfg->backend];
+    const char *backend_str = get_backend_str(cfg->backend);
     if (!backend_str)
         return NGL_ERROR_BUG;
 

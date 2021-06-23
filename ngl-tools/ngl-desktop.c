@@ -164,6 +164,15 @@ static int handle_tag_scene(const uint8_t *data, int size)
     return send_player_signal(PLAYER_SIGNAL_SCENE, scene, size);
 }
 
+static int file_exists(const char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    if (!file)
+        return 0;
+    fclose(file);
+    return 1;
+}
+
 static int handle_tag_file(struct ctx *s, const uint8_t *data, int size)
 {
     if (size < 1 || data[size - 1] != 0) // check if string is nul-terminated
@@ -191,6 +200,10 @@ static int handle_tag_file(struct ctx *s, const uint8_t *data, int size)
     int ret = snprintf(s->upload_path, sizeof(s->upload_path), "%s%s", s->files_dir, filename);
     if (ret < 0 || ret >= sizeof(s->upload_path))
         return NGL_ERROR_MEMORY;
+
+    const int exists = file_exists(s->upload_path);
+    if (exists)
+        return ipc_pkt_add_rtag_fileend(s->send_pkt, s->upload_path);
 
     s->upload_fp = fopen(s->upload_path, "wb");
     if (!s->upload_fp) {

@@ -40,7 +40,7 @@ def sync_file(session_id, ifile, ofile):
     host, port = session_id.rsplit('-', maxsplit=1)
     if host == 'localhost':
         return ifile
-    return _ipc_exec('-x', host, '-p', port, '-u', f'{ofile}={ifile}')
+    return _ipc_exec('-x', host, '-p', port, '-u', f'{ofile}={ifile}').rstrip()
 
 
 def scene_change(session_id, scenefile, duration, aspect_ratio, framerate, clear_color, samples):

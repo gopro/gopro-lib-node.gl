@@ -134,6 +134,13 @@ static int probe(const char *filename, struct sxplayer_info *media_info)
     return 0;
 }
 
+static void update_window_title(SDL_Window *window, const char *filename)
+{
+    char title[256];
+    snprintf(title, sizeof(title), "ngl-player - %s", filename);
+    SDL_SetWindowTitle(window, title);
+}
+
 int main(int argc, char *argv[])
 {
     struct ctx s = {
@@ -172,6 +179,8 @@ int main(int argc, char *argv[])
     if (ret < 0)
         goto end;
     ngl_node_unrefp(&scene);
+
+    update_window_title(p.window, filename);
 
     player_main_loop();
 

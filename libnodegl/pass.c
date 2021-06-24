@@ -125,9 +125,18 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     snprintf(crafter_texture.name, sizeof(crafter_texture.name), "%s", name);
 
     switch (texture->cls->id) {
-    case NGL_NODE_TEXTURE2D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO;     break;
-    case NGL_NODE_TEXTURE3D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_3D;        break;
-    case NGL_NODE_TEXTURECUBE: crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE;      break;
+    case NGL_NODE_TEXTURE2D:
+        if (texture_priv->data_src && texture_priv->data_src->cls->id == NGL_NODE_MEDIA)
+            crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO;
+        else
+            crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_2D;
+        break;
+    case NGL_NODE_TEXTURE3D:
+        crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_3D;
+        break;
+    case NGL_NODE_TEXTURECUBE:
+        crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE;
+        break;
     default:
         ngli_assert(0);
     }

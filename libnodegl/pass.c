@@ -126,7 +126,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
 
     switch (texture->cls->id) {
     case NGL_NODE_TEXTURE2D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO;     break;
-    case NGL_NODE_TEXTURE3D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D; break;
+    case NGL_NODE_TEXTURE3D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_3D;        break;
     case NGL_NODE_TEXTURECUBE: crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE;      break;
     default:
         ngli_assert(0);
@@ -146,7 +146,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
                 texture_priv->supported_image_layouts = 1 << NGLI_IMAGE_LAYOUT_DEFAULT;
                 texture_priv->params.usage |= NGLI_TEXTURE_USAGE_STORAGE_BIT;
 
-                crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE2D;
+                crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE_2D;
             }
             crafter_texture.writable  = resprops->writable;
             crafter_texture.precision = resprops->precision;

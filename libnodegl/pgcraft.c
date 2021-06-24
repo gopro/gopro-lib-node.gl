@@ -743,8 +743,7 @@ static int samplers_preproc(struct pgcraft *s, struct bstr *b)
     while ((p = strstr(p, "ngl"))) {
         struct token token = {.pos = p - base_str};
         p = read_token_id(p, token.id, sizeof(token.id));
-        if (strcmp(token.id, "ngl_texvideo") &&
-            strcmp(token.id, "ngli_texvideo"))
+        if (strcmp(token.id, "ngl_texvideo"))
             continue;
         ngli_darray_push(&token_stack, &token);
     }

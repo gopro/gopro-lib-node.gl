@@ -42,6 +42,7 @@ struct pgcraft_uniform { // also buffers (for arrays)
 };
 
 enum pgcraft_shader_tex_type {
+    NGLI_PGCRAFT_SHADER_TEX_TYPE_NONE,
     NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO,
     NGLI_PGCRAFT_SHADER_TEX_TYPE_2D,
     NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE_2D,

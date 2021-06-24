@@ -602,6 +602,17 @@ static void set_glsl_header(struct pgcraft *s, struct bstr *b, const struct pgcr
     ngli_bstr_print(b, "\n");
 }
 
+static enum pgcraft_shader_tex_type get_texture_type(const struct pgcraft_params *params,
+                                                     const char *name, int name_len)
+{
+    for (int i = 0; i < params->nb_textures; i++) {
+        const struct pgcraft_texture *pgcraft_texture = &params->textures[i];
+        if (!strncmp(name, pgcraft_texture->name, name_len))
+            return pgcraft_texture->type;
+    }
+    return NGLI_PGCRAFT_SHADER_TEX_TYPE_NONE;
+}
+
 #define WHITESPACES     "\r\n\t "
 #define TOKEN_ID_CHARS  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"
 
@@ -653,7 +664,8 @@ struct token {
 
 #define ARG_FMT(x) (int)x##_len, x##_start
 
-static int handle_token(struct pgcraft *s, const struct token *token, const char *p, struct bstr *dst)
+static int handle_token(struct pgcraft *s, const struct pgcraft_params *params,
+                        const struct token *token, const char *p, struct bstr *dst)
 {
     /* Skip "ngl_XXX(" and the whitespaces */
     p += strlen(token->id);
@@ -680,6 +692,13 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
         if (*p != ')')
             return NGL_ERROR_INVALID_ARG;
         p++;
+
+        const enum pgcraft_shader_tex_type texture_type = get_texture_type(params, arg0_start, arg0_len);
+        if (texture_type != NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO) {
+            ngli_bstr_printf(dst, "ngl_tex2d(%.*s, %.*s)", ARG_FMT(arg0), ARG_FMT(coords));
+            ngli_bstr_print(dst, p);
+            return 0;
+        }
 
         ngli_bstr_print(dst, "(");
 #if defined(TARGET_ANDROID)
@@ -726,7 +745,7 @@ static int handle_token(struct pgcraft *s, const struct token *token, const char
  * Instead, we do a simple search & replace for our custom texture helpers. We
  * make sure it supports basic nesting, but aside from that, it's pretty basic.
  */
-static int samplers_preproc(struct pgcraft *s, struct bstr *b)
+static int samplers_preproc(struct pgcraft *s, const struct pgcraft_params *params, struct bstr *b)
 {
     /*
      * If there is no texture, no point in looking for these custom "ngl_"
@@ -771,7 +790,7 @@ static int samplers_preproc(struct pgcraft *s, struct bstr *b)
          * hand wouldn't change since we're doing the replacements backward.
          */
         p = ngli_bstr_strptr(b);
-        ret = handle_token(s, token, p + token->pos, tmp_buf);
+        ret = handle_token(s, params, token, p + token->pos, tmp_buf);
         if (ret < 0)
             break;
 
@@ -832,7 +851,7 @@ static int craft_vert(struct pgcraft *s, const struct pgcraft_params *params)
         return ret;
 
     ngli_bstr_print(b, params->vert_base);
-    return samplers_preproc(s, b);
+    return samplers_preproc(s, params, b);
 }
 
 static int craft_frag(struct pgcraft *s, const struct pgcraft_params *params)
@@ -881,7 +900,7 @@ static int craft_frag(struct pgcraft *s, const struct pgcraft_params *params)
         return ret;
 
     ngli_bstr_print(b, params->frag_base);
-    return samplers_preproc(s, b);
+    return samplers_preproc(s, params, b);
 }
 
 static int craft_comp(struct pgcraft *s, const struct pgcraft_params *params)
@@ -901,7 +920,7 @@ static int craft_comp(struct pgcraft *s, const struct pgcraft_params *params)
         return ret;
 
     ngli_bstr_print(b, params->comp_base);
-    return samplers_preproc(s, b);
+    return samplers_preproc(s, params, b);
 }
 
 static int probe_pipeline_uniform(const struct hmap *info_map, void *arg)

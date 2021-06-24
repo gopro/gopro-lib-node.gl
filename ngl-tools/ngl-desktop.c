@@ -622,6 +622,19 @@ static int setup_paths(struct ctx *s)
     return 0;
 }
 
+static int update_window_title(const struct ctx *s)
+{
+    const struct ngl_config *cfg = &s->p.ngl_config;
+    const char *backend_str = get_backend_str(cfg->backend);
+    if (!backend_str)
+        return NGL_ERROR_BUG;
+
+    char title[256];
+    snprintf(title, sizeof(title), "ngl-desktop %s:%s [%s]", s->host, s->port, backend_str);
+    SDL_SetWindowTitle(s->p.window, title);
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     struct ctx s = {
@@ -667,6 +680,10 @@ int main(int argc, char *argv[])
     struct ngl_node *scene = get_default_scene(s.host, s.port);
     ret = player_init(&s.p, "ngl-desktop", scene, &s.cfg, 0, s.framerate, s.player_ui);
     ngl_node_unrefp(&scene);
+    if (ret < 0)
+        goto end;
+
+    ret = update_window_title(&s);
     if (ret < 0)
         goto end;
 

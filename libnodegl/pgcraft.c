@@ -213,7 +213,7 @@ static const char * const texture_info_suffixes[NGLI_INFO_FIELD_NB] = {
 };
 
 static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
-    [NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D] = {
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO] = {
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
         [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,

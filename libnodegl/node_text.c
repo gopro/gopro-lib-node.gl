@@ -575,7 +575,7 @@ static int fg_prepare(struct ngl_node *node, struct pipeline_subdesc *desc)
     const struct pgcraft_texture textures[] = {
         {
             .name     = "tex",
-            .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D,
+            .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO,
             .stage    = NGLI_PROGRAM_SHADER_FRAG,
             .texture  = ctx->font_atlas,
         },

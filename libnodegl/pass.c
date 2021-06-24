@@ -125,7 +125,7 @@ static int register_texture(struct pass *s, const char *name, struct ngl_node *t
     snprintf(crafter_texture.name, sizeof(crafter_texture.name), "%s", name);
 
     switch (texture->cls->id) {
-    case NGL_NODE_TEXTURE2D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D; break;
+    case NGL_NODE_TEXTURE2D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO;     break;
     case NGL_NODE_TEXTURE3D:   crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE3D; break;
     case NGL_NODE_TEXTURECUBE: crafter_texture.type = NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE;      break;
     default:

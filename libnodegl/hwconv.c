@@ -116,7 +116,7 @@ int ngli_hwconv_init(struct hwconv *hwconv, struct ngl_ctx *ctx,
         return ret;
 
     struct pgcraft_texture textures[] = {
-        {.name = "tex", .type = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D, .stage = NGLI_PROGRAM_SHADER_FRAG, .texture = texture},
+        {.name = "tex", .type = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO, .stage = NGLI_PROGRAM_SHADER_FRAG, .texture = texture},
     };
 
     const struct pgcraft_attribute attributes[] = {

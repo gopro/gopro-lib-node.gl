@@ -1240,7 +1240,7 @@ int ngli_hud_init(struct hud *s)
     struct pgcraft_texture textures[] = {
         {
             .name     = "tex",
-            .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_TEXTURE2D,
+            .type     = NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO,
             .stage    = NGLI_PROGRAM_SHADER_FRAG,
             .texture  = s->texture,
         },

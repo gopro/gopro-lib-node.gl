@@ -392,7 +392,11 @@ static void ngfx_transform_projection_matrix(struct gpu_ctx *s, float *dst)
 {
     static const NGLI_ALIGNED_MAT(matrix) = {
         1.0f, 0.0f, 0.0f, 0.0f,
+#if defined(NGFX_GRAPHICS_BACKEND_DIRECT3D12)
+        0.0f, 1.0f, 0.0f, 0.0f,
+#else
         0.0f,-1.0f, 0.0f, 0.0f,
+#endif
         0.0f, 0.0f, 0.5f, 0.0f,
         0.0f, 0.0f, 0.5f, 1.0f,
     };

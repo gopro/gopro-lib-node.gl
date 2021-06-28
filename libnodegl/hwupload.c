@@ -157,18 +157,17 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
         return 0;
     media->frame = NULL;
 
-    const struct hwmap_class *hwmap_class = get_hwmap_class(config->backend, frame);
-    if (!hwmap_class) {
-        sxplayer_release_frame(frame);
-        return NGL_ERROR_UNSUPPORTED;
-    }
-    ngli_assert(hwmap_class->priv_size);
-
     if (frame->width  != hwupload->width ||
         frame->height != hwupload->height ||
-        frame->pix_fmt != hwupload->pix_fmt ||
-        hwmap_class != hwupload->hwmap_class) {
+        frame->pix_fmt != hwupload->pix_fmt) {
         ngli_hwupload_uninit(node);
+
+        const struct hwmap_class *hwmap_class = get_hwmap_class(config->backend, frame);
+        if (!hwmap_class) {
+            sxplayer_release_frame(frame);
+            return NGL_ERROR_UNSUPPORTED;
+        }
+        ngli_assert(hwmap_class->priv_size);
 
         hwupload->hwmap_priv_data = ngli_calloc(1, hwmap_class->priv_size);
         if (!hwupload->hwmap_priv_data) {
@@ -189,7 +188,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
         LOG(DEBUG, "mapping texture '%s' with method: %s", node->label, hwmap_class->name);
     }
 
-    int ret = hwmap_class->map_frame(node, frame);
+    int ret = hwupload->hwmap_class->map_frame(node, frame);
     if (ret < 0)
         goto end;
 
@@ -210,7 +209,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
 end:
     s->image.ts = frame->ts;
 
-    if (!(hwmap_class->flags &  HWMAP_FLAG_FRAME_OWNER))
+    if (!(hwupload->hwmap_class->flags &  HWMAP_FLAG_FRAME_OWNER))
         sxplayer_release_frame(frame);
     return ret;
 }

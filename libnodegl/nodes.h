@@ -318,6 +318,7 @@ struct media_priv {
     int nb_parents;
 
 #if defined(TARGET_ANDROID)
+    /* FIXME: disable GL */
     struct texture *android_texture;
     struct android_surface *android_surface;
     struct android_handlerthread *android_handlerthread;

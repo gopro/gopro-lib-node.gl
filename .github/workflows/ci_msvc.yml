@@ -15,7 +15,8 @@ jobs:
     runs-on: windows-latest
     env:
         VCPKG_TRIPLET: x64-windows
-        VCPKG_INSTALL_PACKAGES: opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2
+        VCPKG_INSTALL_PACKAGES: opengl-registry ffmpeg[ffmpeg,ffprobe] sdl2 spirv-cross
+        VULKAN_SDK_VERSION: 1.2.162.1
     strategy:
       matrix:
         include:
@@ -49,13 +50,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          iwr https://sdk.lunarg.com/sdk/download/${{env.VULKAN_SDK_VERSION}}/windows/VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe -OutFile VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe
+          ./VulkanSDK-${{env.VULKAN_SDK_VERSION}}-Installer.exe /S
+          iwr https://sdk.lunarg.com/sdk/download/latest/windows/vulkan-runtime.exe -OutFile vulkan-runtime.exe
+          ./vulkan-runtime.exe /S
           cd C:\vcpkg
           .\vcpkg.exe install --triplet ${{env.VCPKG_TRIPLET}} ${{env.VCPKG_INSTALL_PACKAGES}}
 
       - name: Build (${{matrix.build_backend}})
         run: |
           .\scripts\msvc-env.ps1
-          python.exe .\configure.py --debug-opts gpu_capture --build-backend ${{matrix.build_backend}}
+          $env:VULKAN_SDK='C:\VulkanSDK\${{env.VULKAN_SDK_VERSION}}'
+          python.exe .\configure.py --buildtype debug --debug-opts gl gpu_capture --build-backend ${{matrix.build_backend}} --enable-ngfx-backend
           nmake
 
       - name: Python import and dylib runtime test
@@ -63,3 +69,13 @@ jobs:
           .\venv\Scripts\Activate.ps1
           python.exe -c "import pynodegl, pynodegl_utils"
           ngl-python.exe -h
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: nodegl-msvc-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile

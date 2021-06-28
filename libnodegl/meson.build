@@ -21,8 +21,8 @@
 
 project(
   'libnodegl',
-  'c',
-   default_options: ['c_std=c99'],
+  [ 'c', 'cpp' ],
+   default_options: ['c_std=c99', 'b_lundef=false', 'b_vscrt=md'],
    license: 'Apache',
    meson_version: '>= 0.54.0',
    version: '0.0.0',
@@ -37,6 +37,12 @@ conf_data.set('version_micro', version_array[2])
 host_system = host_machine.system()
 cpu_family = host_machine.cpu_family()
 cc = meson.get_compiler('c')
+
+if cc.get_id() == 'msvc'
+  add_global_arguments('/std:c++latest', language: 'cpp')
+else
+  add_global_arguments('-std=gnu++2a', language: 'cpp')
+endif
 
 # meson currently (0.56.0) doesn't distinguish between macOS and iOS (the
 # "darwin" identifier is shared), so we need to test explicitly.
@@ -59,9 +65,9 @@ conf_data.set10('TARGET_' + host_system.to_upper(), true)
 conf_data.set10('ARCH_' + cpu_family.to_upper(), true)
 conf_data.set10('CONFIG_SMALL', get_option('small'))
 conf_data.set10('DEBUG_GL', 'gl' in debug_opts)
+conf_data.set10('DEBUG_VK', 'vk' in debug_opts)
 conf_data.set10('DEBUG_MEM', 'mem' in debug_opts)
 conf_data.set10('DEBUG_SCENE', 'scene' in debug_opts)
-conf_data.set10('DEBUG_GPU_CAPTURE', 'gpu_capture' in debug_opts)
 
 if host_system == 'windows'
   if cc.get_id() == 'msvc'
@@ -181,6 +187,7 @@ lib_src = files(
   'pgcache.c',
   'pgcraft.c',
   'pipeline.c',
+  'pipeline_util.c',
   'precision.c',
   'program.c',
   'rendertarget.c',
@@ -280,28 +287,44 @@ endif
 
 
 #
-# GPU Capture Options
+# Graphic backend dependencies
 #
 
-if 'gpu_capture' in debug_opts
-  renderdoc_dir = get_option('renderdoc_dir')
-  renderdoc_include_dir = ''
-  if host_system == 'windows'
-    renderdoc_include_dir = renderdoc_dir
+ngfx_src = [
+  'backends/ngfx/buffer_ngfx.cpp',
+  'backends/ngfx/format_ngfx.cpp',
+  'backends/ngfx/gpu_ctx_ngfx.cpp',
+  'backends/ngfx/pipeline_ngfx.cpp',
+  'backends/ngfx/program_ngfx.cpp',
+  'backends/ngfx/rendertarget_ngfx.cpp',
+  'backends/ngfx/texture_ngfx.cpp',
+  'backends/ngfx/topology_ngfx.cpp',
+  'backends/ngfx/util_ngfx.cpp',
+]
+
+enable_ngfx_backend = get_option('enable_ngfx_backend')
+if host_system == 'windows' and cc.get_id() != 'msvc'
+  enable_ngfx_backend = false
+endif
+
+if enable_ngfx_backend
+  ngfx_graphics_backend = get_option('ngfx_graphics_backend')
+  if ngfx_graphics_backend == 'NGFX_GRAPHICS_BACKEND_DIRECT3D12' and host_system == 'windows'
+    ngfx_src += 'backends/ngfx/surface_util_ngfx_d3d.cpp'
+    ngfx_src += 'backends/ngfx/swapchain_util_ngfx_d3d.cpp'
+  elif ngfx_graphics_backend == 'NGFX_GRAPHICS_BACKEND_VULKAN'
+    ngfx_src += 'backends/ngfx/surface_util_ngfx_vk.cpp'
+    ngfx_src += 'backends/ngfx/swapchain_util_ngfx_vk.cpp'
+  elif ngfx_graphics_backend == 'NGFX_GRAPHICS_BACKEND_METAL' and host_system == 'darwin'
+    ngfx_src += 'backends/ngfx/surface_util_ngfx_mtl.mm'
+    ngfx_src += 'backends/ngfx/swapchain_util_ngfx_mtl.mm'
+    ngfx_src += 'backends/ngfx/hwupload_videotoolbox_darwin_ngfx.mm'
   else
-    renderdoc_include_dir = renderdoc_dir / 'include'
-  endif
-  if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: true)
-    lib_src += files('gpu_capture_renderdoc.c')
-    lib_deps += declare_dependency(include_directories: renderdoc_include_dir)
-    lib_deps += cc.find_library('dl', required: host_system == 'linux')
+    error('invalid value for ngfx_graphics_backend: @0@'.format(ngfx_graphics_backend))
   endif
 endif
 
-
-#
-# Graphic backend dependencies
-#
+gbackends = []
 
 gbackends_cfg = {
   'gl': {
@@ -346,11 +369,70 @@ gbackends_cfg = {
       },
     },
   },
+  'vk': {
+    'src': files(
+      'backends/vk/buffer_vk.c',
+      'backends/vk/format_vk.c',
+      'backends/vk/gpu_ctx_vk.c',
+      'backends/vk/pipeline_vk.c',
+      'backends/vk/program_vk.c',
+      'backends/vk/texture_vk.c',
+      'backends/vk/rendertarget_vk.c',
+      'backends/vk/vkcontext.c',
+      'backends/vk/vkutils.c',
+    ),
+    'cfg': 'BACKEND_VK',
+    'hosts_cfg': {
+      'linux': {
+        'deps': ['shaderc', 'vulkan'],
+      },
+      'darwin': {
+        'src': files('backends/vk/hwupload_videotoolbox_darwin_vk.m'),
+        'deps': ['shaderc'],
+        'libs': ['MoltenVK'],
+        'frameworks': ['Metal'],
+      },
+      'android': {
+        'deps': ['shaderc'],
+      },
+      'iphone': {
+        'src': files('backends/vk/hwupload_videotoolbox_darwin_vk.m'),
+        'deps': ['shaderc'],
+        'libs': ['MoltenVK'],
+        'frameworks': ['Metal'],
+      },
+      'windows': {
+        'deps': ['shaderc', 'vulkan'],
+      },
+    },
+  },
+  'ngfx': {
+    'src': files(ngfx_src),
+    'cfg': 'BACKEND_NGFX',
+    'hosts_cfg': {
+      'linux': {
+        'deps': ['ngfx'],
+      },
+      'darwin': {
+        'deps': ['ngfx'],
+      },
+      'android': {},
+      'iphone': {},
+      'windows': {
+        'deps': ['ngfx'],
+      },
+    },
+  },
 }
 
 if host_system in ['darwin', 'iphone']
   add_languages('objc')
+  add_languages('objcpp')
+  add_global_arguments('-std=gnu++2a', language: 'objcpp')
 endif
+
+# Additional search paths for find_library
+library_dirs = [ get_option('prefix') / get_option('libdir') ]
 
 foreach gbackend_name, gbackend_cfg : gbackends_cfg
   opt_gbackend = get_option('gbackend-' + gbackend_name)
@@ -360,8 +442,12 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   foreach dep : host_backend_cfg.get('deps', [])
     gbackend_deps += dependency(dep, required: opt_gbackend)
   endforeach
-  foreach dep : host_backend_cfg.get('libs', [])
-    gbackend_deps += cc.find_library(dep, required: opt_gbackend)
+  foreach lib : host_backend_cfg.get('libs', [])
+    dep = cc.find_library(lib, required: opt_gbackend)
+    if not opt_gbackend.disabled() and not dep.found()
+        dep = cc.find_library(lib, required: opt_gbackend, dirs: library_dirs)
+    endif
+    gbackend_deps += dep
   endforeach
   if 'frameworks' in host_backend_cfg
     gbackend_deps += dependency('appleframeworks', modules: host_backend_cfg.get('frameworks'), required: opt_gbackend)
@@ -371,20 +457,65 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
   foreach dep : gbackend_deps
     all_dep_found = all_dep_found and dep.found()
   endforeach
-  message('backend: @0@ enabled: @1@'.format(gbackend_name, all_dep_found.to_string()))
-  if all_dep_found
+  enable_backend = all_dep_found
+  if gbackend_name == 'ngfx' and not enable_ngfx_backend
+    enable_backend = false
+  endif
+  message('backend: @0@ enabled: @1@'.format(gbackend_name, enable_backend))
+
+  if enable_backend
+    gbackends += gbackend_name
 
     if gbackend_name == 'gl' and vaapi_enabled
       lib_src += files('backends/gl/hwupload_vaapi_gl.c')
     endif
 
-    lib_src += gbackend_cfg.get('src')
-    lib_src += host_backend_cfg.get('src')
+    if 'src' in gbackend_cfg
+      lib_src += gbackend_cfg.get('src')
+    endif
+    if 'src' in host_backend_cfg
+      lib_src += host_backend_cfg.get('src')
+    endif
     lib_deps += gbackend_deps
-    conf_data.set10(gbackend_cfg.get('cfg'), true)
-    conf_data.set10(host_backend_cfg.get('cfg'), true)
+    if 'cfg' in gbackend_cfg
+      conf_data.set10(gbackend_cfg.get('cfg'), true)
+    endif
+    if 'cfg' in host_backend_cfg
+      conf_data.set10(host_backend_cfg.get('cfg'), true)
+    endif
   endif
 endforeach
+
+
+#
+# GPU Capture Options
+#
+
+enable_gpu_capture = false
+if 'gpu_capture' in debug_opts
+  if host_system == 'darwin'
+    if 'vk' in gbackends
+      lib_src += files('gpu_capture_metal.mm')
+      enable_gpu_capture = true
+    endif
+  else
+    renderdoc_dir = get_option('renderdoc_dir')
+    renderdoc_include_dir = ''
+    if host_system == 'windows'
+      renderdoc_include_dir = renderdoc_dir
+    else
+      renderdoc_include_dir = renderdoc_dir / 'include'
+    endif
+    if cc.has_header(renderdoc_include_dir / 'renderdoc_app.h', required: true)
+      lib_src += files('gpu_capture_renderdoc.c')
+      lib_deps += declare_dependency(include_directories: renderdoc_include_dir)
+      lib_deps += cc.find_library('dl', required: host_system == 'linux')
+      enable_gpu_capture = true
+    endif
+  endif
+endif
+
+conf_data.set10('DEBUG_GPU_CAPTURE', enable_gpu_capture)
 
 
 #
@@ -425,7 +556,7 @@ endif
 pkg.generate(
   libnodegl,
   name: 'libnodegl',  # not specifying the name would fallback on "nodegl.pc" instead of "libnodegl.pc"
-  description: 'Node/Graph based OpenGL engine',
+  description: 'Node/Graph based graphic engine',
   extra_cflags: pkg_extra_cflags,
   variables: ['datarootdir=${prefix}/share'],
 )
@@ -445,30 +576,33 @@ install_data(files('android/java/OnFrameAvailableListener.java'), install_dir: d
 # between the library and these tools?
 # https://git.archlinux.org/pacman.git/tree/meson.build?id=4533c6a8e0f39c7707e671b7f9687607b46f1417#n310
 # seem to imply some extract_all_objects(recursive: true)
-gen_specs = executable(
-  'gen_specs',
-  lib_src + files('gen_specs.c'),
-  dependencies: lib_deps,
-  build_by_default: false,
-  native: true,
-)
-specs_file = custom_target(
-  specs_filename,
-  command: gen_specs,
-  capture: true,
-  output: specs_filename,
-)
-run_target(
-  'updatespecs',
-  command: [copyfile, specs_file, meson.current_source_dir()],
-)
+
+if meson.backend() != 'xcode'
+  gen_specs = executable(
+    'gen_specs',
+    lib_src + files('gen_specs.c'),
+    dependencies: lib_deps,
+    build_by_default: false,
+    native: true,
+  )
+  specs_file = custom_target(
+    specs_filename,
+    command: gen_specs,
+    capture: true,
+    output: specs_filename,
+  )
+  run_target(
+    'updatespecs',
+    command: [copyfile, specs_file, meson.current_source_dir()],
+  )
+endif
 
 
 #
 # Doc
 #
 
-if not get_option('small')
+if not get_option('small') and meson.backend() != 'xcode'
   gen_doc = executable(
     'gen_doc',
     lib_src + files('gen_doc.c'),
@@ -565,7 +699,7 @@ test_progs = {
   },
 }
 
-if get_option('tests')
+if get_option('tests') and meson.backend() != 'xcode'
   foreach test_key, test_data : test_progs
     exe = executable(
       test_data.get('exe'),

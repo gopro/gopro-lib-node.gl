@@ -172,11 +172,26 @@ static const char *get_precision_qualifier(const struct pgcraft *s, int type, in
     return ret ? ret : defaultp;
 }
 
+static int inject_block_uniform(struct pgcraft *s, struct bstr *b,
+                                const struct pgcraft_uniform *uniform, int stage)
+{
+    struct block *block = &s->ublock[stage];
+
+    /* Lazily initialize the block containing the uniforms */
+    if (!block->size)
+        ngli_block_init(block, NGLI_BLOCK_LAYOUT_STD140);
+
+    return ngli_block_add_field(block, uniform->name, uniform->type, uniform->count);
+}
+
 static int inject_uniform(struct pgcraft *s, struct bstr *b,
                           const struct pgcraft_uniform *uniform, int stage)
 {
     if (uniform->stage != stage)
         return 0;
+
+    if (s->use_ublock)
+        return inject_block_uniform(s, b, uniform, stage);
 
     struct pipeline_uniform_desc pl_uniform_desc = {
         .type  = uniform->type,
@@ -212,7 +227,7 @@ static const char * const texture_info_suffixes[NGLI_INFO_FIELD_NB] = {
     [NGLI_INFO_FIELD_SAMPLER_RECT_1]    = "_rect_1",
 };
 
-static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
+static const int texture_types_map_gl[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
     [NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO] = {
         [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
         [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
@@ -250,11 +265,47 @@ static const int texture_types_map[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FI
     },
 };
 
+// FIXME
+static const int texture_types_map_default[NGLI_PGCRAFT_SHADER_TEX_TYPE_NB][NGLI_INFO_FIELD_NB] = {
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_VIDEO] = {
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+        [NGLI_INFO_FIELD_COLOR_MATRIX]      = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_SAMPLING_MODE]     = NGLI_TYPE_INT,
+        [NGLI_INFO_FIELD_SAMPLER_0]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_SAMPLER_1]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_SAMPLER_2]         = NGLI_TYPE_SAMPLER_2D,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_2D] = {
+        [NGLI_INFO_FIELD_SAMPLER_0]         = NGLI_TYPE_SAMPLER_2D,
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_IMAGE_2D] = {
+        [NGLI_INFO_FIELD_SAMPLER_0]   = NGLI_TYPE_IMAGE_2D,
+        [NGLI_INFO_FIELD_COORDINATE_MATRIX] = NGLI_TYPE_MAT4,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC2,
+        [NGLI_INFO_FIELD_TIMESTAMP]         = NGLI_TYPE_FLOAT,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_3D] = {
+        [NGLI_INFO_FIELD_SAMPLER_0]   = NGLI_TYPE_SAMPLER_3D,
+        [NGLI_INFO_FIELD_DIMENSIONS]        = NGLI_TYPE_VEC3,
+    },
+    [NGLI_PGCRAFT_SHADER_TEX_TYPE_CUBE] = {
+        [NGLI_INFO_FIELD_SAMPLER_0]   = NGLI_TYPE_SAMPLER_CUBE,
+    },
+};
+
 static int prepare_texture_info_fields(struct pgcraft *s, const struct pgcraft_params *params, int graphics,
                                         const struct pgcraft_texture *texture,
                                         struct pgcraft_texture_info *info)
 {
-    const int *types_map = texture_types_map[texture->type];
+    const struct ngl_config *config = &s->ctx->config;
+    const int *types_map = config->backend == NGL_BACKEND_OPENGL ||
+                           config->backend == NGL_BACKEND_OPENGLES ? texture_types_map_gl[texture->type]
+                                                                   : texture_types_map_default[texture->type];
 
     for (int i = 0; i < NGLI_INFO_FIELD_NB; i++) {
         struct pgcraft_texture_info_field *field = &info->fields[i];
@@ -508,6 +559,48 @@ const char *ublock_names[] = {
     [NGLI_PROGRAM_SHADER_COMP] = "comp",
 };
 
+static int inject_ublock(struct pgcraft *s, struct bstr *b, int stage)
+{
+    if (!s->use_ublock)
+        return 0;
+
+    struct block *block = &s->ublock[stage];
+    if (!block->size)
+        return 0;
+
+    struct ngl_ctx *ctx = s->ctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    const struct gpu_limits *limits = &gpu_ctx->limits;
+    if (block->size > limits->max_uniform_block_size) {
+        LOG(ERROR, "uniform block size (%d) exceeds device limits (%d)",
+            block->size, limits->max_uniform_block_size);
+        return NGL_ERROR_GRAPHICS_UNSUPPORTED;
+    }
+
+    struct buffer *ubuffer = ngli_buffer_create(s->ctx->gpu_ctx);
+    if (!ubuffer)
+        return NGL_ERROR_MEMORY;
+    s->ubuffer[stage] = ubuffer;
+
+    int ret = ngli_buffer_init(ubuffer, block->size, NGLI_BUFFER_USAGE_DYNAMIC_BIT      |
+                                                     NGLI_BUFFER_USAGE_TRANSFER_DST_BIT |
+                                                     NGLI_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    if (ret < 0)
+        return ret;
+
+    struct pgcraft_block named_block = {
+        /* instance name is empty to make field accesses identical to uniform accesses */
+        .instance_name = "",
+        .type          = NGLI_TYPE_UNIFORM_BUFFER,
+        .stage         = stage,
+        .block         = block,
+        .buffer        = ubuffer,
+    };
+    snprintf(named_block.name, sizeof(named_block.name), "ngl_%s", ublock_names[stage]);
+
+    return inject_block(s, b, &named_block, stage);
+}
+
 static int params_have_ssbos(struct pgcraft *s, const struct pgcraft_params *params, int stage)
 {
     for (int i = 0; i < params->nb_blocks; i++) {
@@ -701,16 +794,23 @@ static int handle_token(struct pgcraft *s, const struct pgcraft_params *params,
         }
 
         ngli_bstr_print(dst, "(");
+
 #if defined(TARGET_ANDROID)
-        ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "ngl_tex2d(%.*s_oes, %.*s) : ", ARG_FMT(arg0), ARG_FMT(coords));
+        const struct ngl_config *config = &s->ctx->config;
+        if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES) {
+            ngli_bstr_printf(dst, "%.*s_sampling_mode == 2 ? ", ARG_FMT(arg0));
+            ngli_bstr_printf(dst, "ngl_tex2d(%.*s_oes, %.*s) : ", ARG_FMT(arg0), ARG_FMT(coords));
+        }
 #elif defined(TARGET_DARWIN)
-        ngli_bstr_printf(dst, " %.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
-        ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_rect_0, (%.*s) * %.*s_dimensions).r, "
-                                                       "ngl_tex2d(%.*s_rect_1, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0) : ",
-                         ARG_FMT(arg0),
-                         ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0),
-                         ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0));
+        const struct ngl_config *config = &s->ctx->config;
+        if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES) {
+            ngli_bstr_printf(dst, " %.*s_sampling_mode == 4 ? ", ARG_FMT(arg0));
+            ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s_rect_0, (%.*s) * %.*s_dimensions).r, "
+                                                           "ngl_tex2d(%.*s_rect_1, (%.*s) * %.*s_dimensions / 2.0).rg, 1.0) : ",
+                             ARG_FMT(arg0),
+                             ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0),
+                             ARG_FMT(arg0), ARG_FMT(coords), ARG_FMT(arg0));
+        }
 #endif
         ngli_bstr_printf(dst, "%.*s_sampling_mode == 3 ? ", ARG_FMT(arg0));
         ngli_bstr_printf(dst, "%.*s_color_matrix * vec4(ngl_tex2d(%.*s,   %.*s).r, "
@@ -847,7 +947,8 @@ static int craft_vert(struct pgcraft *s, const struct pgcraft_params *params)
         (ret = inject_uniforms(s, b, params, NGLI_PROGRAM_SHADER_VERT)) < 0 ||
         (ret = inject_texture_infos(s, params, NGLI_PROGRAM_SHADER_VERT)) < 0 ||
         (ret = inject_blocks(s, b, params, NGLI_PROGRAM_SHADER_VERT)) < 0 ||
-        (ret = inject_attributes(s, b, params, NGLI_PROGRAM_SHADER_VERT)) < 0)
+        (ret = inject_attributes(s, b, params, NGLI_PROGRAM_SHADER_VERT)) < 0 ||
+        (ret = inject_ublock(s, b, NGLI_PROGRAM_SHADER_VERT)))
         return ret;
 
     ngli_bstr_print(b, params->vert_base);
@@ -896,7 +997,8 @@ static int craft_frag(struct pgcraft *s, const struct pgcraft_params *params)
     if ((ret = inject_iovars(s, b, NGLI_PROGRAM_SHADER_FRAG)) < 0 ||
         (ret = inject_uniforms(s, b, params, NGLI_PROGRAM_SHADER_FRAG)) < 0 ||
         (ret = inject_texture_infos(s, params, NGLI_PROGRAM_SHADER_FRAG)) < 0 ||
-        (ret = inject_blocks(s, b, params, NGLI_PROGRAM_SHADER_FRAG)) < 0)
+        (ret = inject_blocks(s, b, params, NGLI_PROGRAM_SHADER_FRAG)) < 0 ||
+        (ret = inject_ublock(s, b, NGLI_PROGRAM_SHADER_FRAG)) < 0)
         return ret;
 
     ngli_bstr_print(b, params->frag_base);
@@ -916,7 +1018,8 @@ static int craft_comp(struct pgcraft *s, const struct pgcraft_params *params)
     int ret;
     if ((ret = inject_uniforms(s, b, params, NGLI_PROGRAM_SHADER_COMP)) < 0 ||
         (ret = inject_texture_infos(s, params, NGLI_PROGRAM_SHADER_COMP)) < 0 ||
-        (ret = inject_blocks(s, b, params, NGLI_PROGRAM_SHADER_COMP)) < 0)
+        (ret = inject_blocks(s, b, params, NGLI_PROGRAM_SHADER_COMP)) < 0 ||
+        (ret = inject_ublock(s, b, NGLI_PROGRAM_SHADER_COMP)) < 0)
         return ret;
 
     ngli_bstr_print(b, params->comp_base);
@@ -1018,6 +1121,16 @@ static int get_texture_index(const struct pgcraft *s, const char *name)
     return -1;
 }
 
+static int get_ublock_index(const struct pgcraft *s, const char *name, int stage)
+{
+    const struct darray *fields_array = &s->ublock[stage].fields;
+    const struct block_field *fields = ngli_darray_data(fields_array);
+    for (int i = 0; i < ngli_darray_count(fields_array); i++)
+        if (!strcmp(fields[i].name, name))
+            return stage << 16 | i;
+    return -1;
+}
+
 static void probe_texture_info_elems(const struct pgcraft *s, struct pgcraft_texture_info_field *fields)
 {
     for (int i = 0; i < NGLI_INFO_FIELD_NB; i++) {
@@ -1027,7 +1140,7 @@ static void probe_texture_info_elems(const struct pgcraft *s, struct pgcraft_tex
         else if (is_sampler_or_image(field->type))
             field->index = get_texture_index(s, field->name);
         else
-            field->index = get_uniform_index(s, field->name);
+            field->index = s->use_ublock ? get_ublock_index(s, field->name, field->stage): get_uniform_index(s, field->name);
     }
 }
 
@@ -1091,6 +1204,7 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     s->has_in_out_layout_qualifiers = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(410);
     s->has_precision_qualifiers     = IS_GLSL_ES_MIN(100);
     s->has_modern_texture_picking   = IS_GLSL_ES_MIN(300) || IS_GLSL_MIN(330);
+    s->use_ublock                   = 0;
 
     s->has_explicit_bindings = IS_GLSL_ES_MIN(310) || IS_GLSL_MIN(420) ||
                                (gpu_ctx->features & NGLI_FEATURE_SHADING_LANGUAGE_420PACK);
@@ -1115,6 +1229,30 @@ static void setup_glsl_info_gl(struct pgcraft *s)
     }
 }
 
+static void setup_glsl_info_vk(struct pgcraft *s)
+{
+    s->glsl_version = 450;
+
+    s->sym_vertex_index   = "gl_VertexIndex";
+    s->sym_instance_index = "gl_InstanceIndex";
+
+    s->has_in_out_qualifiers        = 1;
+    s->has_in_out_layout_qualifiers = 1;
+    s->has_precision_qualifiers     = 0;
+    s->has_modern_texture_picking   = 1;
+    s->use_ublock                   = 1;
+
+    /* Bindings are shared across stages and types */
+    for (int i = 0; i < NB_BINDINGS; i++)
+        s->next_bindings[i] = &s->bindings[0];
+}
+
+static void setup_glsl_info_ngfx(struct pgcraft *s)
+{
+    setup_glsl_info_vk(s);
+}
+
+
 static void setup_glsl_info(struct pgcraft *s)
 {
     struct ngl_ctx *ctx = s->ctx;
@@ -1125,6 +1263,10 @@ static void setup_glsl_info(struct pgcraft *s)
 
     if (config->backend == NGL_BACKEND_OPENGL || config->backend == NGL_BACKEND_OPENGLES)
         setup_glsl_info_gl(s);
+    else if (config->backend == NGL_BACKEND_VULKAN)
+        setup_glsl_info_vk(s);
+    else if (config->backend == NGL_BACKEND_NGFX)
+        setup_glsl_info_ngfx(s);
     else
         ngli_assert(0);
 }
@@ -1138,6 +1280,9 @@ struct pgcraft *ngli_pgcraft_create(struct ngl_ctx *ctx)
     s->ctx = ctx;
 
     setup_glsl_info(s);
+
+    if (s->use_ublock)
+        ngli_block_init(s->ublock, NGLI_BLOCK_LAYOUT_STD140);
 
     ngli_darray_init(&s->texture_infos, sizeof(struct pgcraft_texture_info), 0);
 
@@ -1248,12 +1393,26 @@ int ngli_pgcraft_craft(struct pgcraft *s,
     dst_data_params->buffers            = ngli_darray_data(&s->filtered_pipeline_info.data.buffers);
     dst_data_params->nb_buffers         = ngli_darray_count(&s->filtered_pipeline_info.data.buffers);
 
+    if (s->use_ublock) {
+        ngli_assert(dst_data_params->nb_uniforms == 0);
+        for (int i = 0; i < NGLI_ARRAY_NB(s->ublock); i++) {
+            struct block *block = &s->ublock[i];
+            if (block->size) {
+                struct buffer *buffer = s->ubuffer[i];
+                dst_data_params->ublock[i]  = block;
+                dst_data_params->ubuffer[i] = buffer;
+            }
+        }
+    } else {
+        memset(dst_data_params->ublock, 0, sizeof(dst_data_params->ublock));
+    }
+
     return 0;
 }
 
 int ngli_pgcraft_get_uniform_index(const struct pgcraft *s, const char *name, int stage)
 {
-    return get_uniform_index(s, name);
+    return s->use_ublock ? get_ublock_index(s, name, stage) : get_uniform_index(s, name);
 }
 
 void ngli_pgcraft_freep(struct pgcraft **sp)
@@ -1264,6 +1423,13 @@ void ngli_pgcraft_freep(struct pgcraft **sp)
 
     ngli_darray_reset(&s->texture_infos);
     ngli_darray_reset(&s->vert_out_vars);
+
+    if (s->use_ublock) {
+        for (int i = 0; i < NGLI_ARRAY_NB(s->ublock); i++) {
+            ngli_block_reset(&s->ublock[i]);
+            ngli_buffer_freep(&s->ubuffer[i]);
+        }
+    }
 
     for (int i = 0; i < NGLI_ARRAY_NB(s->shaders); i++)
         ngli_bstr_freep(&s->shaders[i]);

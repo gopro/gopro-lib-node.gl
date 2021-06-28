@@ -17,11 +17,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install python3 curl pkg-config sdl2 ffmpeg
+        brew install python3 curl pkg-config sdl2 ffmpeg glm spirv-cross ninja bash coreutils
 
     - name: Build
       run: |
-        ./configure.py
+        ./configure.py --buildtype debug --debug-opts gl gpu_capture --enable-ngfx-backend
         make
 
     - name: Python import and dylib runtime test
@@ -29,3 +29,13 @@ jobs:
         . venv/bin/activate
         python -c 'import pynodegl, pynodegl_utils'
         ngl-python -h
+
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+          name: nodegl-mac-build-logs
+          path: |
+            builddir/**/*.txt
+            builddir/**/*.cmake
+            builddir/**/*.log
+            builddir/Makefile

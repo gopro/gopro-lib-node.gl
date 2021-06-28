@@ -29,6 +29,8 @@
 
 extern const struct gpu_ctx_class ngli_gpu_ctx_gl;
 extern const struct gpu_ctx_class ngli_gpu_ctx_gles;
+extern const struct gpu_ctx_class ngli_gpu_ctx_vk;
+extern const struct gpu_ctx_class ngli_gpu_ctx_ngfx;
 
 static const struct {
     const char *string_id;
@@ -44,6 +46,18 @@ static const struct {
         .string_id = "opengles",
 #ifdef BACKEND_GL
         .cls = &ngli_gpu_ctx_gles,
+#endif
+    },
+    [NGL_BACKEND_VULKAN] = {
+        .string_id = "vulkan",
+#ifdef BACKEND_VK
+        .cls = &ngli_gpu_ctx_vk,
+#endif
+    },
+    [NGL_BACKEND_NGFX] = {
+        .string_id = "ngfx",
+#ifdef BACKEND_NGFX
+        .cls = &ngli_gpu_ctx_ngfx,
 #endif
     },
 };
@@ -85,6 +99,21 @@ int ngli_gpu_ctx_set_capture_buffer(struct gpu_ctx *s, void *capture_buffer)
 {
     const struct gpu_ctx_class *cls = s->cls;
     return cls->set_capture_buffer(s, capture_buffer);
+}
+
+int ngli_gpu_ctx_update(struct gpu_ctx *s, struct ngl_node *scene, double t)
+{
+    const struct gpu_ctx_class *cls = s->cls;
+
+    int ret = cls->begin_update(s, t);
+    if (ret < 0)
+        return ret;
+
+    ret = ngli_node_update(scene, t);
+    if (ret < 0)
+        return ret;
+
+    return cls->end_update(s, t);
 }
 
 int ngli_gpu_ctx_begin_draw(struct gpu_ctx *s, double t)

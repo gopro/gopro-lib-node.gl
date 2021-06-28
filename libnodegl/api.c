@@ -57,7 +57,11 @@
 #if defined(TARGET_IPHONE) || defined(TARGET_ANDROID)
 # define DEFAULT_BACKEND NGL_BACKEND_OPENGLES
 #else
-# define DEFAULT_BACKEND NGL_BACKEND_OPENGL
+# if defined(BACKEND_VK)
+#  define DEFAULT_BACKEND NGL_BACKEND_VULKAN
+# else
+#  define DEFAULT_BACKEND NGL_BACKEND_OPENGL
+# endif
 #endif
 
 static int get_default_platform(void)
@@ -278,7 +282,7 @@ static int cmd_prepare_draw(struct ngl_ctx *s, void *arg)
     if (ret < 0)
         return ret;
 
-    ret = ngli_node_update(scene, t);
+    ret = ngli_gpu_ctx_update(s->gpu_ctx, scene, t);
     if (ret < 0)
         return ret;
 
@@ -528,6 +532,12 @@ static const int backend_ids[] = {
 #ifdef BACKEND_GL
     NGL_BACKEND_OPENGL,
     NGL_BACKEND_OPENGLES,
+#endif
+#ifdef BACKEND_VK
+    NGL_BACKEND_VULKAN,
+#endif
+#ifdef BACKEND_NGFX
+    NGL_BACKEND_NGFX,
 #endif
 };
 

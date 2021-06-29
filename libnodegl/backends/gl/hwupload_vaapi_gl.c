@@ -264,6 +264,7 @@ static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 
 const struct hwmap_class ngli_hwmap_vaapi_gl_class = {
     .name      = "vaapi (dma buf → egl image)",
+    .hwformat  = SXPLAYER_PIXFMT_VAAPI,
     .flags     = HWMAP_FLAG_FRAME_OWNER,
     .priv_size = sizeof(struct hwupload_vaapi),
     .init      = vaapi_init,

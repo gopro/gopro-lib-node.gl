@@ -168,6 +168,7 @@ static void vt_darwin_uninit(struct ngl_node *node)
 
 const struct hwmap_class ngli_hwmap_vt_darwin_gl_class = {
     .name      = "videotoolbox (iosurface → nv12)",
+    .hwformat  = SXPLAYER_PIXFMT_VT,
     .flags     = HWMAP_FLAG_FRAME_OWNER,
     .priv_size = sizeof(struct hwupload_vt_darwin),
     .init      = vt_darwin_init,

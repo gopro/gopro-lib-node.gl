@@ -34,6 +34,7 @@
 struct hwmap_class {
     const char *name;
     int flags;
+    int hwformat;
     size_t priv_size;
     int (*init)(struct ngl_node *node, struct sxplayer_frame *frame);
     int (*map_frame)(struct ngl_node *node, struct sxplayer_frame *frame);

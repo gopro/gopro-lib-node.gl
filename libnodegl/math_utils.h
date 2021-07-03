@@ -28,6 +28,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define NGLI_POLY1(a, b, x)       ((a) * (x) + (b))
+#define NGLI_POLY2(a, b, c, x)    (NGLI_POLY1(a, b, x) * (x) + (c))
+#define NGLI_POLY3(a, b, c, d, x) (NGLI_POLY2(a, b, c, x) * (x) + (d))
+
 #define NGLI_DEG2RAD(x) ((x) * (2.f * M_PI / 360.f))
 #define NGLI_MIX(x, y, a) ((x)*(1.-(a)) + (y)*(a))
 #define NGLI_LINEAR_INTERP(x, y, a) (((a) - (x)) / ((y) - (x)))

@@ -33,6 +33,18 @@
 #define NGLI_LINEAR_INTERP(x, y, a) (((a) - (x)) / ((y) - (x)))
 #define NGLI_CEIL_RSHIFT(a, b) -((-(a)) >> (b))
 
+#define NGLI_VEC2_ADD(a, b) {(a)[0] + (b)[0], (a)[1] + (b)[1]}
+#define NGLI_VEC3_ADD(a, b) {(a)[0] + (b)[0], (a)[1] + (b)[1], (a)[2] + (b)[2]}
+#define NGLI_VEC4_ADD(a, b) {(a)[0] + (b)[0], (a)[1] + (b)[1], (a)[2] + (b)[2], (a)[3] + (b)[3]}
+
+#define NGLI_VEC2_SUB(a, b) {(a)[0] - (b)[0], (a)[1] - (b)[1]}
+#define NGLI_VEC3_SUB(a, b) {(a)[0] - (b)[0], (a)[1] - (b)[1], (a)[2] - (b)[2]}
+#define NGLI_VEC4_SUB(a, b) {(a)[0] - (b)[0], (a)[1] - (b)[1], (a)[2] - (b)[2], (a)[3] - (b)[3]}
+
+#define NGLI_VEC2_SCALE(v, s) {(v)[0] * (s), (v)[1] * (s)}
+#define NGLI_VEC3_SCALE(v, s) {(v)[0] * (s), (v)[1] * (s), (v)[2] * (s)}
+#define NGLI_VEC4_SCALE(v, s) {(v)[0] * (s), (v)[1] * (s), (v)[2] * (s), (v)[3] * (s)}
+
 float ngli_vec2_length(const float *v);
 void ngli_vec2_scale(float *dst, const float *v, const float s);
 void ngli_vec2_sub(float *dst, const float *v1, const float *v2);

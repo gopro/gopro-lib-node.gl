@@ -341,13 +341,7 @@ void ngli_mat4_look_at(float *dst, float *eye, float *center, float *up)
 
 void ngli_mat4_identity(float *dst)
 {
-    static const float id[4*4] = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f,
-    };
-
+    static const float id[4*4] = NGLI_MAT4_IDENTITY;
     memcpy(dst, id, sizeof(id));
 }
 

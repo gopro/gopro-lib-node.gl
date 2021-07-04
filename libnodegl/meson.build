@@ -123,6 +123,7 @@ lib_src = files(
   'colorconv.c',
   'darray.c',
   'deserialize.c',
+  'distmap.c',
   'dot.c',
   'drawutils.c',
   'format.c',
@@ -389,6 +390,27 @@ foreach gbackend_name, gbackend_cfg : gbackends_cfg
     conf_data.set10(host_backend_cfg.get('cfg'), true)
   endif
 endforeach
+
+
+#
+# GLSL to C (header)
+#
+shaders = {
+  'distmap.frag': 'distmap_frag.h',
+  'distmap.vert': 'distmap_vert.h',
+}
+glsl2c = find_program('scripts/glsl2c.py')
+shaders_h = []
+foreach frag_file, header_file : shaders
+  shaders_h += custom_target(
+    frag_file,
+    command: [glsl2c, '@INPUT@'],
+    capture: true,
+    input: files('glsl' / frag_file),
+    output: header_file,
+  )
+endforeach
+lib_src += shaders_h
 
 
 #

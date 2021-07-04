@@ -23,6 +23,7 @@
 #define HWUPLOAD_H
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <sxplayer.h>
 
 #include "hwconv.h"
@@ -31,16 +32,19 @@
 
 #define HWMAP_FLAG_FRAME_OWNER (1 << 0)
 
-struct hwmap_class {
-    const char *name;
-    int flags;
-    size_t priv_size;
-    int (*init)(struct ngl_node *node, struct sxplayer_frame *frame);
-    int (*map_frame)(struct ngl_node *node, struct sxplayer_frame *frame);
-    void (*uninit)(struct ngl_node *node);
+struct hwupload_params {
+    uint32_t output_image_layouts;
+    struct texture_params output_texture_params;
+#if defined(TARGET_ANDROID)
+    struct android_surface *android_surface;
+    struct android_imagereader *android_imagereader;
+#endif
 };
 
 struct hwupload {
+    struct ngl_ctx *ctx;
+    struct gpu_ctx *gpu_ctx;
+    struct hwupload_params params;
     const struct hwmap_class *hwmap_class;
     void *hwmap_priv_data;
     int pix_fmt;
@@ -53,7 +57,18 @@ struct hwupload {
     int hwconv_initialized;
 };
 
-int ngli_hwupload_upload_frame(struct ngl_node *node);
+struct hwmap_class {
+    const char *name;
+    int flags;
+    size_t priv_size;
+    int (*init)(struct hwupload *hwupload, struct sxplayer_frame *frame);
+    int (*map_frame)(struct hwupload *hwupload, struct sxplayer_frame *frame);
+    void (*uninit)(struct hwupload *hwupload);
+};
+
+int ngli_hwupload_init(struct ngl_node *node, struct hwupload_params *params);
+int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame,
+                               struct image *image);
 void ngli_hwupload_uninit(struct ngl_node *node);
 
 #endif /* HWUPLOAD_H */

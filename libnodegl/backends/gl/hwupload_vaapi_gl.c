@@ -50,12 +50,13 @@ struct hwupload_vaapi {
     int surface_acquired;
 };
 
-static int support_direct_rendering(struct ngl_node *node)
+static int support_direct_rendering(struct hwupload *hwupload)
 {
-    const struct texture_priv *s = node->priv_data;
-    int direct_rendering = s->supported_image_layouts & (1 << NGLI_IMAGE_LAYOUT_NV12);
+    const struct hwupload_params *params = &hwupload->params;
 
-    if (direct_rendering && s->params.mipmap_filter) {
+    int direct_rendering = params->output_image_layouts & (1 << NGLI_IMAGE_LAYOUT_NV12);
+
+    if (direct_rendering && params->output_texture_params.mipmap_filter) {
         LOG(WARNING,
             "vaapi direct rendering does not support mipmapping: "
             "disabling direct rendering");
@@ -65,14 +66,12 @@ static int support_direct_rendering(struct ngl_node *node)
     return direct_rendering;
 }
 
-static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
+static int vaapi_init(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    struct hwupload_params *params = &hwupload->params;
+    struct gpu_ctx *gpu_ctx = hwupload->gpu_ctx;
     struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
     struct glcontext *gl = gpu_ctx_gl->glcontext;
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
 
     if (!(gl->features & (NGLI_FEATURE_OES_EGL_IMAGE |
@@ -83,19 +82,19 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
     }
 
     for (int i = 0; i < 2; i++) {
-        const struct texture_params *params = &s->params;
+        const struct texture_params *texture_params = &params->output_texture_params;
 
         int format = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM;
 
         const struct texture_params plane_params = {
             .type             = NGLI_TEXTURE_TYPE_2D,
             .format           = format,
-            .min_filter       = params->min_filter,
-            .mag_filter       = params->mag_filter,
+            .min_filter       = texture_params->min_filter,
+            .mag_filter       = texture_params->mag_filter,
             .mipmap_filter    = NGLI_MIPMAP_FILTER_NONE,
-            .wrap_s           = params->wrap_s,
-            .wrap_t           = params->wrap_t,
-            .wrap_r           = params->wrap_r,
+            .wrap_s           = texture_params->wrap_s,
+            .wrap_t           = texture_params->wrap_t,
+            .wrap_r           = texture_params->wrap_r,
             .usage            = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
             .external_storage = 1,
         };
@@ -118,18 +117,16 @@ static int vaapi_init(struct ngl_node *node, struct sxplayer_frame *frame)
     };
     ngli_image_init(&hwupload->mapped_image, &image_params, vaapi->planes);
 
-    hwupload->require_hwconv = !support_direct_rendering(node);
+    hwupload->require_hwconv = !support_direct_rendering(hwupload);
 
     return 0;
 }
 
-static void vaapi_uninit(struct ngl_node *node)
+static void vaapi_uninit(struct hwupload *hwupload)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct gpu_ctx *gpu_ctx = hwupload->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
     struct glcontext *gl = gpu_ctx_gl->glcontext;
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < 2; i++)
@@ -152,15 +149,13 @@ static void vaapi_uninit(struct ngl_node *node)
     vaapi->frame = NULL;
 }
 
-static int vaapi_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
+static int vaapi_map_frame(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    struct ngl_ctx *ctx = hwupload->ctx;
     struct vaapi_ctx *vaapi_ctx = &ctx->vaapi_ctx;
+    struct gpu_ctx *gpu_ctx = hwupload->gpu_ctx;
     struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
     struct glcontext *gl = gpu_ctx_gl->glcontext;
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
     struct hwupload_vaapi *vaapi = hwupload->hwmap_priv_data;
 
     sxplayer_release_frame(vaapi->frame);

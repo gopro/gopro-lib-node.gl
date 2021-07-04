@@ -169,26 +169,24 @@ static const struct format_desc *common_get_format_desc(int pix_fmt)
     return desc;
 }
 
-static int support_direct_rendering(struct ngl_node *node, const struct format_desc *desc)
+static int support_direct_rendering(struct hwupload *hwupload, const struct format_desc *desc)
 {
-    struct texture_priv *s = node->priv_data;
+    const struct hwupload_params *params = &hwupload->params;
 
     int direct_rendering = 1;
     if (desc->layout != NGLI_IMAGE_LAYOUT_DEFAULT) {
-        direct_rendering = (s->supported_image_layouts & (1 << desc->layout));
-        if (s->params.mipmap_filter)
+        direct_rendering = (params->output_image_layouts & (1 << desc->layout));
+        if (params->output_texture_params.mipmap_filter)
             direct_rendering = 0;
     }
 
     return direct_rendering;
 }
 
-static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
+static int common_init(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct ngl_ctx *ctx = node->ctx;
-    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
+    struct gpu_ctx *gpu_ctx = hwupload->gpu_ctx;
+    struct hwupload_params *params = &hwupload->params;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
     const struct format_desc *desc = common_get_format_desc(frame->pix_fmt);
@@ -200,16 +198,16 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
     common->nb_planes = desc->nb_planes;
 
     for (int i = 0; i < common->nb_planes; i++) {
-        struct texture_params params = s->params;
-        params.width  = i == 0 ? frame->width : NGLI_CEIL_RSHIFT(frame->width, desc->log2_chroma_width);
-        params.height = i == 0 ? frame->height : NGLI_CEIL_RSHIFT(frame->height, desc->log2_chroma_height);
-        params.format = desc->formats[i];
+        struct texture_params plane_params = params->output_texture_params;
+        plane_params.width  = i == 0 ? frame->width : NGLI_CEIL_RSHIFT(frame->width, desc->log2_chroma_width);
+        plane_params.height = i == 0 ? frame->height : NGLI_CEIL_RSHIFT(frame->height, desc->log2_chroma_height);
+        plane_params.format = desc->formats[i];
 
         common->planes[i] = ngli_texture_create(gpu_ctx);
         if (!common->planes[i])
             return NGL_ERROR_MEMORY;
 
-        int ret = ngli_texture_init(common->planes[i], &params);
+        int ret = ngli_texture_init(common->planes[i], &plane_params);
         if (ret < 0)
             return ret;
     }
@@ -227,25 +225,21 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
     };
     ngli_image_init(&hwupload->mapped_image, &image_params, common->planes);
 
-    hwupload->require_hwconv = !support_direct_rendering(node, desc);
+    hwupload->require_hwconv = !support_direct_rendering(hwupload, desc);
 
     return 0;
 }
 
-static void common_uninit(struct ngl_node *node)
+static void common_uninit(struct hwupload *hwupload)
 {
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < NGLI_ARRAY_NB(common->planes); i++)
         ngli_texture_freep(&common->planes[i]);
 }
 
-static int common_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
+static int common_map_frame(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < common->nb_planes; i++) {

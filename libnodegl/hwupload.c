@@ -91,7 +91,7 @@ static int init_hwconv(struct ngl_node *node)
 
     LOG(DEBUG, "converting texture '%s' from %s to rgba", node->label, hwupload->hwmap_class->name);
 
-    struct texture_params params = s->params;
+    struct texture_params params = hwupload->params.output_texture_params;
     params.format = NGLI_FORMAT_R8G8B8A8_UNORM;
     params.width  = mapped_image->params.width;
     params.height = mapped_image->params.height;
@@ -145,7 +145,22 @@ static int exec_hwconv(struct ngl_node *node)
     return 0;
 }
 
-int ngli_hwupload_upload_frame(struct ngl_node *node)
+int ngli_hwupload_init(struct ngl_node *node, struct hwupload_params *params)
+{
+    struct ngl_ctx *ctx = node->ctx;
+    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
+    struct texture_priv *s = node->priv_data;
+    struct hwupload *hwupload = &s->hwupload;
+
+    hwupload->ctx = node->ctx;
+    hwupload->gpu_ctx = gpu_ctx;
+    hwupload->params = *params;
+
+    return 0;
+}
+
+int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame,
+                               struct image *image)
 {
     struct ngl_ctx *ctx = node->ctx;
     const struct ngl_config *config = &ctx->config;
@@ -175,7 +190,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
             return NGL_ERROR_MEMORY;
         }
 
-        int ret = hwmap_class->init(node, frame);
+        int ret = hwmap_class->init(hwupload, frame);
         if (ret < 0) {
             sxplayer_release_frame(frame);
             return ret;
@@ -188,7 +203,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node)
         LOG(DEBUG, "mapping texture '%s' with method: %s", node->label, hwmap_class->name);
     }
 
-    int ret = hwupload->hwmap_class->map_frame(node, frame);
+    int ret = hwupload->hwmap_class->map_frame(hwupload, frame);
     if (ret < 0)
         goto end;
 
@@ -223,7 +238,7 @@ void ngli_hwupload_uninit(struct ngl_node *node)
     hwupload->require_hwconv = 0;
     ngli_image_reset(&hwupload->mapped_image);
     if (hwupload->hwmap_class && hwupload->hwmap_class->uninit) {
-        hwupload->hwmap_class->uninit(node);
+        hwupload->hwmap_class->uninit(hwupload);
     }
     ngli_freep(&hwupload->hwmap_priv_data);
     hwupload->hwmap_class = NULL;

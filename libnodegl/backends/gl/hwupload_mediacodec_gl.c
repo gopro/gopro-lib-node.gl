@@ -46,19 +46,18 @@ struct hwupload_mc {
     struct texture *texture;
 };
 
-static int support_direct_rendering(struct ngl_node *node)
+static int support_direct_rendering(struct hwupload *hwupload)
 {
-    struct texture_priv *s = node->priv_data;
-    int direct_rendering = s->supported_image_layouts & (1 << NGLI_IMAGE_LAYOUT_MEDIACODEC);
+    struct hwupload_params *params = &hwupload->params;
+
+    int direct_rendering = params->output_image_layouts & (1 << NGLI_IMAGE_LAYOUT_MEDIACODEC);
 
     if (direct_rendering) {
-        const struct texture_params *params = &s->params;
-
-        if (params->mipmap_filter) {
+        if (params->output_texture_params.mipmap_filter) {
             LOG(WARNING, "external textures do not support mipmapping: "
                 "disabling direct rendering");
             direct_rendering = 0;
-        } else if (params->wrap_s != NGLI_WRAP_CLAMP_TO_EDGE || params->wrap_t != NGLI_WRAP_CLAMP_TO_EDGE) {
+        } else if (params->output_texture_params.wrap_s != NGLI_WRAP_CLAMP_TO_EDGE || params->output_texture_params.wrap_t != NGLI_WRAP_CLAMP_TO_EDGE) {
             LOG(WARNING, "external textures only support clamp to edge wrapping: "
                 "disabling direct rendering");
             direct_rendering = 0;
@@ -68,22 +67,19 @@ static int support_direct_rendering(struct ngl_node *node)
     return direct_rendering;
 }
 
-static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
+static int mc_init(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct ngl_ctx *ctx = node->ctx;
+    struct ngl_ctx *ctx = hwupload->ctx;
     struct android_ctx *android_ctx = &ctx->android_ctx;
-    struct gpu_ctx *gpu_ctx = (struct gpu_ctx *)ctx->gpu_ctx;
-    struct texture_priv *s = node->priv_data;
-    const struct texture_params *params = &s->params;
-    struct media_priv *media = s->data_src->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
+    struct gpu_ctx *gpu_ctx = (struct gpu_ctx *)hwupload->gpu_ctx;
+    struct hwupload_params *params = &hwupload->params;
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;
 
     struct texture_params texture_params = {
         .type         = NGLI_TEXTURE_TYPE_2D,
         .format       = NGLI_FORMAT_UNDEFINED,
-        .min_filter   = params->min_filter,
-        .mag_filter   = params->mag_filter,
+        .min_filter   = params->output_texture_params.min_filter,
+        .mag_filter   = params->output_texture_params.mag_filter,
         .wrap_s       = NGLI_WRAP_CLAMP_TO_EDGE,
         .wrap_t       = NGLI_WRAP_CLAMP_TO_EDGE,
         .wrap_r       = NGLI_WRAP_CLAMP_TO_EDGE,
@@ -108,11 +104,11 @@ static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
     };
     ngli_image_init(&hwupload->mapped_image, &image_params, &mc->texture);
 
-    hwupload->require_hwconv = !support_direct_rendering(node);
+    hwupload->require_hwconv = !support_direct_rendering(hwupload);
 
     if (!android_ctx->has_native_imagereader_api) {
         struct texture_gl *texture_gl = (struct texture_gl *)mc->texture;
-        ret = ngli_android_surface_attach_to_gl_context(media->android_surface, texture_gl->id);
+        ret = ngli_android_surface_attach_to_gl_context(params->android_surface, texture_gl->id);
         if (ret < 0)
             return ret;
     }
@@ -120,12 +116,10 @@ static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
     return 0;
 }
 
-static int mc_map_frame_surfacetexture(struct ngl_node *node, struct sxplayer_frame *frame)
+static int mc_map_frame_surfacetexture(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
+    struct hwupload_params *params = &hwupload->params;
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;
-    struct media_priv *media = s->data_src->priv_data;
     AVMediaCodecBuffer *buffer = (AVMediaCodecBuffer *)frame->data;
 
     NGLI_ALIGNED_MAT(flip_matrix) = {
@@ -136,7 +130,7 @@ static int mc_map_frame_surfacetexture(struct ngl_node *node, struct sxplayer_fr
     };
 
     float *matrix = hwupload->mapped_image.coordinates_matrix;
-    ngli_android_surface_render_buffer(media->android_surface, buffer, matrix);
+    ngli_android_surface_render_buffer(params->android_surface, buffer, matrix);
     ngli_mat4_mul(matrix, matrix, flip_matrix);
 
     ngli_texture_gl_set_dimensions(mc->texture, frame->width, frame->height, 0);
@@ -144,16 +138,13 @@ static int mc_map_frame_surfacetexture(struct ngl_node *node, struct sxplayer_fr
     return 0;
 }
 
-static int mc_map_frame_imagereader(struct ngl_node *node, struct sxplayer_frame *frame)
+static int mc_map_frame_imagereader(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
+    struct hwupload_params *params = &hwupload->params;
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;
-
-    struct ngl_ctx *ctx = node->ctx;
-    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct gpu_ctx *gpu_ctx = hwupload->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
     struct glcontext *gl = gpu_ctx_gl->glcontext;
-    struct media_priv *media = s->data_src->priv_data;
 
     AVMediaCodecBuffer *buffer = (AVMediaCodecBuffer *)frame->data;
     int ret = av_mediacodec_release_buffer(buffer, 1);
@@ -161,7 +152,7 @@ static int mc_map_frame_imagereader(struct ngl_node *node, struct sxplayer_frame
         return ret;
 
     struct android_image *android_image;
-    ret = ngli_android_imagereader_acquire_next_image(media->android_imagereader, &android_image);
+    ret = ngli_android_imagereader_acquire_next_image(params->android_imagereader, &android_image);
     if (ret < 0)
         return ret;
 
@@ -202,25 +193,24 @@ static int mc_map_frame_imagereader(struct ngl_node *node, struct sxplayer_frame
     return 0;
 }
 
-static int mc_map_frame(struct ngl_node *node, struct sxplayer_frame *frame)
+static int mc_map_frame(struct hwupload *hwupload, struct sxplayer_frame *frame)
 {
-    struct ngl_ctx *ctx = node->ctx;
+    struct ngl_ctx *ctx = hwupload->ctx;
     struct android_ctx *android_ctx = &ctx->android_ctx;
 
     if (android_ctx->has_native_imagereader_api)
-        return mc_map_frame_imagereader(node, frame);
+        return mc_map_frame_imagereader(hwupload, frame);
 
-    return mc_map_frame_surfacetexture(node, frame);
+    return mc_map_frame_surfacetexture(hwupload, frame);
 }
 
-static void mc_uninit(struct ngl_node *node)
+static void mc_uninit(struct hwupload *hwupload)
 {
-    struct ngl_ctx *ctx = node->ctx;
+    struct ngl_ctx *ctx = hwupload->ctx;
     struct android_ctx *android_ctx = &ctx->android_ctx;
-    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
+    struct gpu_ctx *gpu_ctx = hwupload->gpu_ctx;
+    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)gpu_ctx;
     struct glcontext *gl = gpu_ctx_gl->glcontext;
-    struct texture_priv *s = node->priv_data;
-    struct hwupload *hwupload = &s->hwupload;
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;
 
     ngli_texture_freep(&mc->texture);

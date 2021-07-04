@@ -262,8 +262,13 @@ static int texture_prefetch(struct ngl_node *node)
 
     if (s->data_src) {
         switch (s->data_src->cls->id) {
-        case NGL_NODE_MEDIA:
-            return 0;
+        case NGL_NODE_MEDIA: {
+            struct hwupload_params hwupload_params = {
+                .output_image_layouts = s->supported_image_layouts,
+                .output_texture_params = *params,
+            };
+            return ngli_hwupload_init(node, &hwupload_params);
+        }
         case NGL_NODE_ANIMATEDBUFFERFLOAT:
         case NGL_NODE_ANIMATEDBUFFERVEC2:
         case NGL_NODE_ANIMATEDBUFFERVEC4:

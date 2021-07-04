@@ -87,7 +87,7 @@ static int init_hwconv(struct ngl_node *node)
 
     ngli_hwconv_reset(hwconv);
     ngli_image_reset(hwconv_image);
-    ngli_texture_freep(&hwupload->texture);
+    ngli_texture_freep(&hwupload->hwconv_texture);
 
     LOG(DEBUG, "converting texture '%s' from %s to rgba", node->label, hwupload->hwmap_class->name);
 
@@ -97,10 +97,10 @@ static int init_hwconv(struct ngl_node *node)
     params.height = mapped_image->params.height;
     params.usage |= NGLI_TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    hwupload->texture = ngli_texture_create(gpu_ctx);
-    if (!hwupload->texture)
+    hwupload->hwconv_texture = ngli_texture_create(gpu_ctx);
+    if (!hwupload->hwconv_texture)
         return NGL_ERROR_MEMORY;
-    int ret = ngli_texture_init(hwupload->texture, &params);
+    int ret = ngli_texture_init(hwupload->hwconv_texture, &params);
     if (ret < 0)
         goto end;
 
@@ -111,7 +111,7 @@ static int init_hwconv(struct ngl_node *node)
         .color_scale = 1.f,
         .color_info = NGLI_COLOR_INFO_DEFAULTS,
     };
-    ngli_image_init(hwconv_image, &image_params, &hwupload->texture);
+    ngli_image_init(hwconv_image, &image_params, &hwupload->hwconv_texture);
 
     ret = ngli_hwconv_init(hwconv, ctx, hwconv_image, &mapped_image->params);
     if (ret < 0)
@@ -122,7 +122,7 @@ static int init_hwconv(struct ngl_node *node)
 end:
     ngli_hwconv_reset(hwconv);
     ngli_image_reset(hwconv_image);
-    ngli_texture_freep(&hwupload->texture);
+    ngli_texture_freep(&hwupload->hwconv_texture);
     return ret;
 }
 
@@ -130,7 +130,7 @@ static int exec_hwconv(struct ngl_node *node)
 {
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
-    struct texture *texture = hwupload->texture;
+    struct texture *texture = hwupload->hwconv_texture;
     const struct texture_params *texture_params = &texture->params;
     struct image *mapped_image = &hwupload->mapped_image;
     struct hwconv *hwconv = &hwupload->hwconv;

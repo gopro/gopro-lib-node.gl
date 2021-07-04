@@ -351,13 +351,19 @@ static void handle_media_frame(struct ngl_node *node)
         LOG(ERROR, "could not map media frame");
 }
 
-static void handle_buffer_frame(struct ngl_node *node)
+static int handle_buffer_frame(struct ngl_node *node)
 {
     struct texture_priv *s = node->priv_data;
     struct buffer_priv *buffer = s->data_src->priv_data;
     const uint8_t *data = buffer->data;
 
-    ngli_texture_upload(s->texture, data, 0);
+    int ret = ngli_texture_upload(s->texture, data, 0);
+    if (ret < 0) {
+        LOG(ERROR, "could not upload texture buffer");
+        return ret;
+    }
+
+    return 0;
 }
 
 static int texture_update(struct ngl_node *node, double t)
@@ -381,7 +387,9 @@ static int texture_update(struct ngl_node *node, double t)
             ret = ngli_node_update(s->data_src, t);
             if (ret < 0)
                 return ret;
-            handle_buffer_frame(node);
+            ret = handle_buffer_frame(node);
+            if (ret < 0)
+                return ret;
             break;
     }
 

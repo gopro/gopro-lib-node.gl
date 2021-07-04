@@ -100,6 +100,7 @@
     action(NGL_NODE_NOISEVEC3,              ngli_noisevec3_class)               \
     action(NGL_NODE_NOISEVEC4,              ngli_noisevec4_class)               \
     action(NGL_NODE_PATH,                   ngli_path_class)                    \
+    action(NGL_NODE_PATHDRAW,               ngli_pathdraw_class)                \
     action(NGL_NODE_PATHKEYBEZIER2,         ngli_pathkeybezier2_class)          \
     action(NGL_NODE_PATHKEYBEZIER3,         ngli_pathkeybezier3_class)          \
     action(NGL_NODE_PATHKEYLINE,            ngli_pathkeyline_class)             \

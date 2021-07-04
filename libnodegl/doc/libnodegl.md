@@ -432,6 +432,17 @@ Parameter | Live-chg. | Type | Description | Default
 **Source**: [node_path.c](/libnodegl/node_path.c)
 
 
+## PathDraw
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`path` |  | [`Node`](#parameter-types) ([Path](#path), [SmoothPath](#smoothpath)) | path to draw | 
+`fill` |  | [`bool`](#parameter-types) | fill the content of the path | `0`
+
+
+**Source**: [node_pathdraw.c](/libnodegl/node_pathdraw.c)
+
+
 ## PathKeyBezier2
 
 Parameter | Live-chg. | Type | Description | Default

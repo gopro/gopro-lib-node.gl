@@ -289,6 +289,10 @@
     - [keyframes, NodeList]
     - [precision, int]
 
+- PathDraw:
+    - [path, Node]
+    - [fill, bool]
+
 - PathKeyBezier2:
     - [control, vec3]
     - [to, vec3]

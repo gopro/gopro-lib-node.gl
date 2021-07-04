@@ -51,7 +51,7 @@ static const struct node_param path_params[] = {
     {NULL}
 };
 
-/* We must have the struct path in 1st position for AnimatedPath */
+/* We must have the struct path in 1st position for AnimatedPath and PathDraw */
 NGLI_STATIC_ASSERT(path_1st_field, OFFSET(path) == 0);
 
 static int path_init(struct ngl_node *node)

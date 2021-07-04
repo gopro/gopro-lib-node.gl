@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "darray.h"
+#include "distmap.h"
 #include "log.h"
 #include "math_utils.h"
 #include "memory.h"
@@ -393,6 +394,42 @@ int ngli_path_init(struct path *s, int precision)
     ngli_darray_reset(&s->steps);
 
     return 0;
+}
+
+/*
+ * Normalize from [-1;1] to [0;1]
+ * FIXME: screen coordinate might not always be [-1;1]
+ */
+static struct path_segment get_normed_segment(const struct path_segment *segment)
+{
+    const float *x = segment->poly_x;
+    const float *y = segment->poly_y;
+    const struct path_segment normed = {
+        .poly_x = {x[0] * .5f, x[1] * .5f, x[2] * .5f, (x[3] + 1.f) * .5f},
+        .poly_y = {y[0] * .5f, y[1] * .5f, y[2] * .5f, (y[3] + 1.f) * .5f},
+    };
+    return normed;
+}
+
+#define DISTMAP_SIZE 256
+#define DISTMAP_SPREAD 32
+
+int ngli_path_init_distmap(const struct path *s, struct distmap *d)
+{
+    int ret = ngli_distmap_init(d, DISTMAP_SPREAD, DISTMAP_SIZE, DISTMAP_SIZE);
+    if (ret < 0)
+        return ret;
+
+    const struct path_segment *segments = ngli_darray_data(&s->segments);
+    for (int i = 0; i < ngli_darray_count(&s->segments); i++) {
+        const struct path_segment *segment = &segments[i];
+        const struct path_segment nseg = get_normed_segment(segment);
+        ret = ngli_distmap_add_poly3(d, 0, nseg.poly_x, nseg.poly_y);
+        if (ret < 0)
+            return ret;
+    }
+
+    return ngli_distmap_generate_texture(d);
 }
 
 void ngli_path_freep(struct path **sp)

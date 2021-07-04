@@ -26,7 +26,7 @@ from pynodegl_utils.tests.debug import get_debug_points
 from pynodegl_utils.toolbox.colors import COLORS
 
 
-def _path_scene(cfg, path, points=None, controls=None, easing='linear'):
+def _path_scene(cfg, path, points=None, controls=None, fill=None, easing='linear'):
     cfg.aspect_ratio = (1, 1)
 
     anim_kf = [
@@ -41,7 +41,7 @@ def _path_scene(cfg, path, points=None, controls=None, easing='linear'):
 
     moving_shape = ngl.Translate(shape, anim=ngl.AnimatedPath(anim_kf, path))
 
-    objects = []
+    objects = [ngl.PathDraw(path, fill=fill)]
 
     if points:
         debug_points = {f'P{i}': p[:2] for i, p in enumerate(points)}
@@ -209,6 +209,46 @@ def lines(cfg):
 
 
 @scene()
+def line(cfg):
+    cfg.duration = 3
+
+    points = (
+        (-1/2,  -1/6, 0),
+        ( 1/3,  1/2, 0),
+    )
+
+    keyframes = [
+        ngl.PathKeyMove(to=points[0]),
+        ngl.PathKeyLine(to=points[1]),
+    ]
+    path = ngl.Path(keyframes)
+
+    return _path_scene(cfg, path, points, fill=True)
+
+
+@scene()
+def quadratic0(cfg):
+    cfg.duration = 3
+
+    points = (
+        (-2/3, 0, 0),
+        ( 2/3, 0, 0),
+    )
+
+    controls = (
+        (0, 5/6, 0),
+    )
+
+    keyframes = [
+        ngl.PathKeyMove(to=points[0]),
+        ngl.PathKeyBezier2(control=controls[0], to=points[1]),
+    ]
+    path = ngl.Path(keyframes, precision=64)
+
+    return _path_scene(cfg, path) #, points, controls)
+
+
+@scene()
 def quadratic_arcs(cfg):
     cfg.duration = 3
 
@@ -276,7 +316,7 @@ def character_otf(cfg):
     ]
 
     path = ngl.Path(keyframes)
-    return ngl.Scale(_path_scene(cfg, path), factors=(2,2,0), anchor=(1,1,0))
+    return ngl.Scale(_path_scene(cfg, path, fill=True), factors=(2,2,0), anchor=(1,1,0))
 
 @scene()
 def character_ttf(cfg):
@@ -319,4 +359,4 @@ def character_ttf(cfg):
     ]
 
     path = ngl.Path(keyframes)
-    return ngl.Scale(_path_scene(cfg, path), factors=(2,2,0), anchor=(1,1,0))
+    return ngl.Scale(_path_scene(cfg, path, fill=True), factors=(2,2,0), anchor=(1,1,0))

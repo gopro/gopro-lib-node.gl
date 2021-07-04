@@ -289,6 +289,17 @@
     - [keyframes, NodeList]
     - [precision, int]
 
+- PathDraw:
+    - [path, Node]
+    - [color, Node]
+    - [outline, Node]
+    - [glow, Node]
+    - [glow_color, Node]
+    - [blur, Node]
+    - [poly_corner, vec2]
+    - [poly_width, vec2]
+    - [poly_height, vec2]
+
 - PathKeyBezier2:
     - [control, vec3]
     - [to, vec3]

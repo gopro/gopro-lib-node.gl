@@ -22,6 +22,8 @@
 #ifndef PATH_H
 #define PATH_H
 
+#include "distmap.h"
+
 struct path;
 
 struct path *ngli_path_create(void);
@@ -34,6 +36,10 @@ int ngli_path_bezier3_to(struct path *s, const float *ctl0, const float *ctl1, c
 int ngli_path_init(struct path *s, int precision);
 
 void ngli_path_evaluate(struct path *s, float *dst, float distance);
+
+int ngli_path_add_to_distmap(const struct path *s, struct distmap *d, int shape_id);
+
+void ngli_path_clear(struct path *s);
 void ngli_path_freep(struct path **sp);
 
 #endif

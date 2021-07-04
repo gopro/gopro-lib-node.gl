@@ -179,6 +179,7 @@ struct ngl_node;
 #define NGL_NODE_NOISEVEC3              NGLI_FOURCC('N','z','f','3')
 #define NGL_NODE_NOISEVEC4              NGLI_FOURCC('N','z','f','4')
 #define NGL_NODE_PATH                   NGLI_FOURCC('P','a','t','h')
+#define NGL_NODE_PATHDRAW               NGLI_FOURCC('P','D','r','w')
 #define NGL_NODE_PATHKEYBEZIER2         NGLI_FOURCC('P','h','K','2')
 #define NGL_NODE_PATHKEYBEZIER3         NGLI_FOURCC('P','h','K','3')
 #define NGL_NODE_PATHKEYLINE            NGLI_FOURCC('P','h','K','1')

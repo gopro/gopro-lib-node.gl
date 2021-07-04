@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "darray.h"
+#include "distmap.h"
 #include "log.h"
 #include "math_utils.h"
 #include "memory.h"
@@ -388,12 +389,35 @@ void ngli_path_evaluate(struct path *s, float *dst, float distance)
     poly_eval(dst, segment, t);
 }
 
+int ngli_path_add_to_distmap(const struct path *s, struct distmap *d, int shape_id)
+{
+    const struct path_segment *segments = ngli_darray_data(&s->segments);
+    for (int i = 0; i < ngli_darray_count(&s->segments); i++) {
+        const struct path_segment *segment = &segments[i];
+        int ret = ngli_distmap_add_poly3(d, shape_id, segment->poly_x, segment->poly_y);
+        if (ret < 0)
+            return ret;
+    }
+    return 0;
+}
+
+void ngli_path_clear(struct path *s)
+{
+    s->precision = 0;
+    s->current_arc = 0;
+    ngli_freep(&s->arc_to_segment);
+    ngli_darray_clear(&s->segments);
+    ngli_darray_clear(&s->steps);
+    ngli_darray_clear(&s->steps_dist);
+    memset(s->cursor, 0, sizeof(*s->cursor));
+    s->segment_flags = 0;
+}
+
 void ngli_path_freep(struct path **sp)
 {
     struct path *s = *sp;
     if (!s)
         return;
-    ngli_freep(&s->arc_to_segment);
     ngli_darray_reset(&s->segments);
     ngli_darray_reset(&s->steps);
     ngli_darray_reset(&s->steps_dist);

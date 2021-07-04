@@ -154,6 +154,7 @@ lib_src = files(
   'node_media.c',
   'node_noise.c',
   'node_path.c',
+  'node_pathdraw.c',
   'node_pathkey.c',
   'node_program.c',
   'node_quad.c',
@@ -398,6 +399,8 @@ endforeach
 shaders = {
   'distmap.frag': 'distmap_frag.h',
   'distmap.vert': 'distmap_vert.h',
+  'path.frag': 'path_frag.h',
+  'path.vert': 'path_vert.h',
 }
 glsl2c = find_program('scripts/glsl2c.py')
 shaders_h = []
@@ -587,7 +590,7 @@ test_progs = {
   },
   'Path': {
     'exe': 'test_path',
-    'src': files('test_path.c', 'darray.c', 'path.c', 'log.c', 'memory.c', 'math_utils.c'),
+    'src': files('test_path.c', 'darray.c', 'path.c', 'log.c', 'memory.c', 'math_utils.c', 'distmap.c') + shaders_h,
   },
   'Utils': {
     'exe': 'test_utils',

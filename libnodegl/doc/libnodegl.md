@@ -432,6 +432,24 @@ Parameter | Live-chg. | Type | Description | Default
 **Source**: [node_path.c](/libnodegl/node_path.c)
 
 
+## PathDraw
+
+Parameter | Live-chg. | Type | Description | Default
+--------- | :-------: | ---- | ----------- | :-----:
+`path` |  | [`Node`](#parameter-types) ([Path](#path), [SmoothPath](#smoothpath)) | path to draw | 
+`color` |  | [`Node`](#parameter-types) ([UniformVec4](#uniformvec4), [AnimatedVec4](#animatedvec4)) | characters fill color | 
+`outline` |  | [`Node`](#parameter-types) ([UniformFloat](#uniformfloat), [AnimatedFloat](#animatedfloat), [NoiseFloat](#noise)) | characters outline width | 
+`glow` |  | [`Node`](#parameter-types) ([UniformFloat](#uniformfloat), [AnimatedFloat](#animatedfloat), [NoiseFloat](#noise)) | characters stroke width | 
+`glow_color` |  | [`Node`](#parameter-types) ([UniformVec4](#uniformvec4), [AnimatedVec4](#animatedvec4)) | characters stroke color | 
+`blur` |  | [`Node`](#parameter-types) ([UniformFloat](#uniformfloat), [AnimatedFloat](#animatedfloat), [NoiseFloat](#noise)) | characters blur | 
+`poly_corner` |  | [`vec2`](#parameter-types) | origin coordinates of `poly_width` and `poly_height` vectors | (`-1`,`-1`)
+`poly_width` |  | [`vec2`](#parameter-types) | width vector of the coordinate space | (`2`,`0`)
+`poly_height` |  | [`vec2`](#parameter-types) | height vector of the coordinate space | (`0`,`2`)
+
+
+**Source**: [node_pathdraw.c](/libnodegl/node_pathdraw.c)
+
+
 ## PathKeyBezier2
 
 Parameter | Live-chg. | Type | Description | Default

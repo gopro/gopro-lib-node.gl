@@ -145,17 +145,12 @@ static int exec_hwconv(struct ngl_node *node)
     return 0;
 }
 
-int ngli_hwupload_upload_frame(struct ngl_node *node)
+int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
     const struct ngl_config *config = &ctx->config;
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
-    struct media_priv *media = s->data_src->priv_data;
-    struct sxplayer_frame *frame = media->frame;
-    if (!frame)
-        return 0;
-    media->frame = NULL;
 
     if (frame->width  != hwupload->width ||
         frame->height != hwupload->height ||

@@ -54,7 +54,7 @@ struct hwupload {
     int hwconv_initialized;
 };
 
-int ngli_hwupload_upload_frame(struct ngl_node *node);
+int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame);
 void ngli_hwupload_uninit(struct ngl_node *node);
 
 #endif /* HWUPLOAD_H */

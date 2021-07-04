@@ -346,7 +346,17 @@ static int texture_prefetch(struct ngl_node *node)
 
 static void handle_media_frame(struct ngl_node *node)
 {
-    int ret = ngli_hwupload_upload_frame(node);
+    struct texture_priv *s = node->priv_data;
+    struct media_priv *media = s->data_src->priv_data;
+    struct sxplayer_frame *frame = media->frame;
+    if (!frame)
+        return;
+
+    /* Transfer frame ownership to hwupload and ensure it cannot be re-used
+     * later on */
+    media->frame = NULL;
+
+    int ret = ngli_hwupload_map_frame(node, frame);
     if (ret < 0)
         LOG(ERROR, "could not map media frame");
 }

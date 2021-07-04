@@ -145,7 +145,7 @@ static int exec_hwconv(struct ngl_node *node)
     return 0;
 }
 
-int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame)
+int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame, struct image *image)
 {
     struct ngl_ctx *ctx = node->ctx;
     const struct ngl_config *config = &ctx->config;
@@ -197,13 +197,13 @@ int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *fra
         ret = exec_hwconv(node);
         if (ret < 0)
             return ret;
-        s->image = hwupload->hwconv_image;
+        *image = hwupload->hwconv_image;
     } else {
-        s->image = hwupload->mapped_image;
+        *image = hwupload->mapped_image;
     }
 
 end:
-    s->image.ts = frame->ts;
+    image->ts = frame->ts;
 
     if (!(hwupload->hwmap_class->flags &  HWMAP_FLAG_FRAME_OWNER))
         sxplayer_release_frame(frame);
@@ -223,7 +223,6 @@ void ngli_hwupload_uninit(struct ngl_node *node)
     }
     ngli_freep(&hwupload->hwmap_priv_data);
     hwupload->hwmap_class = NULL;
-    ngli_image_reset(&s->image);
     hwupload->pix_fmt = 0;
     hwupload->width = 0;
     hwupload->height = 0;

@@ -356,7 +356,10 @@ static void handle_media_frame(struct ngl_node *node)
      * later on */
     media->frame = NULL;
 
-    int ret = ngli_hwupload_map_frame(node, frame);
+    /* Reset destination image */
+    ngli_image_reset(&s->image);
+
+    int ret = ngli_hwupload_upload_frame(node, frame, &s->image);
     if (ret < 0)
         LOG(ERROR, "could not map media frame");
 }

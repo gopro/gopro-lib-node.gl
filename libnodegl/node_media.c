@@ -216,7 +216,7 @@ static int media_init(struct ngl_node *node)
             if (!s->android_surface)
                 return NGL_ERROR_MEMORY;
 
-            void *android_surface = ngli_android_surface_get_surface(s->android_surface);
+            android_surface = ngli_android_surface_get_surface(s->android_surface);
             if (!android_surface)
                 return NGL_ERROR_EXTERNAL;
         }

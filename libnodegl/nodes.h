@@ -318,7 +318,6 @@ struct media_priv {
     int nb_parents;
 
 #if defined(TARGET_ANDROID)
-    struct texture *android_texture;
     struct android_surface *android_surface;
     struct android_handlerthread *android_handlerthread;
     struct android_imagereader *android_imagereader;

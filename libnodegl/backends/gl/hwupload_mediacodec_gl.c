@@ -43,6 +43,7 @@
 struct hwupload_mc {
     struct android_image *android_image;
     EGLImageKHR egl_image;
+    struct texture *texture;
 };
 
 static int support_direct_rendering(struct ngl_node *node)
@@ -70,23 +71,33 @@ static int support_direct_rendering(struct ngl_node *node)
 static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
 {
     struct ngl_ctx *ctx = node->ctx;
-    struct gpu_ctx_gl *gpu_ctx_gl = (struct gpu_ctx_gl *)ctx->gpu_ctx;
-    struct glcontext *gl = gpu_ctx_gl->glcontext;
+    struct android_ctx *android_ctx = &ctx->android_ctx;
+    struct gpu_ctx *gpu_ctx = (struct gpu_ctx *)ctx->gpu_ctx;
     struct texture_priv *s = node->priv_data;
     const struct texture_params *params = &s->params;
     struct media_priv *media = s->data_src->priv_data;
     struct hwupload *hwupload = &s->hwupload;
-    struct texture_gl *android_texture_gl = (struct texture_gl *)media->android_texture;
+    struct hwupload_mc *mc = hwupload->hwmap_priv_data;
 
-    GLint id = android_texture_gl->id;
-    GLenum target = android_texture_gl->target;
-    const GLint min_filter = ngli_texture_get_gl_min_filter(params->min_filter, params->mipmap_filter);
-    const GLint mag_filter = ngli_texture_get_gl_mag_filter(params->mag_filter);
+    struct texture_params texture_params = {
+        .type         = NGLI_TEXTURE_TYPE_2D,
+        .format       = NGLI_FORMAT_UNDEFINED,
+        .min_filter   = params->min_filter,
+        .mag_filter   = params->mag_filter,
+        .wrap_s       = NGLI_WRAP_CLAMP_TO_EDGE,
+        .wrap_t       = NGLI_WRAP_CLAMP_TO_EDGE,
+        .wrap_r       = NGLI_WRAP_CLAMP_TO_EDGE,
+        .usage        = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
+        .external_oes = 1,
+    };
 
-    ngli_glBindTexture(gl, target, id);
-    ngli_glTexParameteri(gl, target, GL_TEXTURE_MIN_FILTER, min_filter);
-    ngli_glTexParameteri(gl, target, GL_TEXTURE_MAG_FILTER, mag_filter);
-    ngli_glBindTexture(gl, target, 0);
+    mc->texture = ngli_texture_create(gpu_ctx);
+    if (!mc->texture)
+        return NGL_ERROR_MEMORY;
+
+    int ret = ngli_texture_init(mc->texture, &texture_params);
+    if (ret < 0)
+        return ret;
 
     struct image_params image_params = {
         .width = frame->width,
@@ -95,9 +106,16 @@ static int mc_init(struct ngl_node *node, struct sxplayer_frame *frame)
         .color_scale = 1.f,
         .color_info = ngli_color_info_from_sxplayer_frame(frame),
     };
-    ngli_image_init(&hwupload->mapped_image, &image_params, &media->android_texture);
+    ngli_image_init(&hwupload->mapped_image, &image_params, &mc->texture);
 
     hwupload->require_hwconv = !support_direct_rendering(node);
+
+    if (!android_ctx->has_native_imagereader_api) {
+        struct texture_gl *texture_gl = (struct texture_gl *)mc->texture;
+        ret = ngli_android_surface_attach_to_gl_context(media->android_surface, texture_gl->id);
+        if (ret < 0)
+            return ret;
+    }
 
     return 0;
 }
@@ -106,6 +124,7 @@ static int mc_map_frame_surfacetexture(struct ngl_node *node, struct sxplayer_fr
 {
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
+    struct hwupload_mc *mc = hwupload->hwmap_priv_data;
     struct media_priv *media = s->data_src->priv_data;
     AVMediaCodecBuffer *buffer = (AVMediaCodecBuffer *)frame->data;
 
@@ -120,7 +139,7 @@ static int mc_map_frame_surfacetexture(struct ngl_node *node, struct sxplayer_fr
     ngli_android_surface_render_buffer(media->android_surface, buffer, matrix);
     ngli_mat4_mul(matrix, matrix, flip_matrix);
 
-    ngli_texture_gl_set_dimensions(media->android_texture, frame->width, frame->height, 0);
+    ngli_texture_gl_set_dimensions(mc->texture, frame->width, frame->height, 0);
 
     return 0;
 }
@@ -166,7 +185,7 @@ static int mc_map_frame_imagereader(struct ngl_node *node, struct sxplayer_frame
         EGL_NONE,
     };
 
-    const struct texture_gl *texture_gl = (struct texture_gl *)media->android_texture;
+    const struct texture_gl *texture_gl = (struct texture_gl *)mc->texture;
     const GLuint id = texture_gl->id;
 
     mc->egl_image = ngli_eglCreateImageKHR(gl, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID, egl_buffer, attrs);
@@ -178,7 +197,7 @@ static int mc_map_frame_imagereader(struct ngl_node *node, struct sxplayer_frame
     ngli_glBindTexture(gl, GL_TEXTURE_EXTERNAL_OES, id);
     ngli_glEGLImageTargetTexture2DOES(gl, GL_TEXTURE_EXTERNAL_OES, mc->egl_image);
 
-    ngli_texture_gl_set_dimensions(media->android_texture, frame->width, frame->height, 0);
+    ngli_texture_gl_set_dimensions(mc->texture, frame->width, frame->height, 0);
 
     return 0;
 }
@@ -203,6 +222,8 @@ static void mc_uninit(struct ngl_node *node)
     struct texture_priv *s = node->priv_data;
     struct hwupload *hwupload = &s->hwupload;
     struct hwupload_mc *mc = hwupload->hwmap_priv_data;
+
+    ngli_texture_freep(&mc->texture);
 
     if (android_ctx->has_native_imagereader_api) {
         ngli_eglDestroyImageKHR(gl, mc->egl_image);

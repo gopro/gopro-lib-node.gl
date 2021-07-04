@@ -169,29 +169,8 @@ static int media_init(struct ngl_node *node)
     struct ngl_ctx *ctx = node->ctx;
     struct android_ctx *android_ctx = &ctx->android_ctx;
     const struct ngl_config *config = &ctx->config;
-    struct gpu_ctx *gpu_ctx = ctx->gpu_ctx;
 
     if (config->backend == NGL_BACKEND_OPENGLES) {
-        struct texture_params params = {
-            .type         = NGLI_TEXTURE_TYPE_2D,
-            .format       = NGLI_FORMAT_UNDEFINED,
-            .min_filter   = NGLI_FILTER_NEAREST,
-            .mag_filter   = NGLI_FILTER_NEAREST,
-            .wrap_s       = NGLI_WRAP_CLAMP_TO_EDGE,
-            .wrap_t       = NGLI_WRAP_CLAMP_TO_EDGE,
-            .wrap_r       = NGLI_WRAP_CLAMP_TO_EDGE,
-            .usage        = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
-            .external_oes = 1,
-        };
-
-        s->android_texture = ngli_texture_create(gpu_ctx);
-        if (!s->android_texture)
-            return NGL_ERROR_MEMORY;
-
-        int ret = ngli_texture_init(s->android_texture, &params);
-        if (ret < 0)
-            return ret;
-
         void *android_surface = NULL;
         if (android_ctx->has_native_imagereader_api) {
             s->android_imagereader = ngli_android_imagereader_create(android_ctx, 1, 1,
@@ -199,7 +178,7 @@ static int media_init(struct ngl_node *node)
             if (!s->android_imagereader)
                 return NGL_ERROR_MEMORY;
 
-            ret = ngli_android_imagereader_get_window(s->android_imagereader, &android_surface);
+            int ret = ngli_android_imagereader_get_window(s->android_imagereader, &android_surface);
             if (ret < 0)
                 return ret;
         } else {
@@ -211,8 +190,7 @@ static int media_init(struct ngl_node *node)
             if (!handler)
                 return NGL_ERROR_EXTERNAL;
 
-            struct texture_gl *texture_gl = (struct texture_gl *)s->android_texture;
-            s->android_surface = ngli_android_surface_new(texture_gl->id, handler);
+            s->android_surface = ngli_android_surface_new(0, handler);
             if (!s->android_surface)
                 return NGL_ERROR_MEMORY;
 
@@ -344,7 +322,6 @@ static void media_uninit(struct ngl_node *node)
         ngli_android_surface_free(&s->android_surface);
         ngli_android_handlerthread_free(&s->android_handlerthread);
     }
-    ngli_texture_freep(&s->android_texture);
 #endif
 }
 

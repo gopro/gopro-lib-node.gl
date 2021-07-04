@@ -50,6 +50,7 @@ struct hwupload {
     int require_hwconv;
     struct hwconv hwconv;
     struct texture *texture;
+    struct image hwconv_image;
     int hwconv_initialized;
 };
 

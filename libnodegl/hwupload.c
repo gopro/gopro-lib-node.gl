@@ -191,12 +191,12 @@ int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *fra
         if (!hwupload->hwconv_initialized) {
             ret = init_hwconv(node);
             if (ret < 0)
-                return ret;
+                goto end;
             hwupload->hwconv_initialized = 1;
         }
         ret = exec_hwconv(node);
         if (ret < 0)
-            return ret;
+            goto end;
         *image = hwupload->hwconv_image;
     } else {
         *image = hwupload->mapped_image;

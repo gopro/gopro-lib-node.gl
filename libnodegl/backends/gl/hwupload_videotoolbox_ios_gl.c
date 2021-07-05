@@ -206,14 +206,15 @@ static int support_direct_rendering(struct ngl_node *node, struct sxplayer_frame
         break;
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
         direct_rendering = s->supported_image_layouts & (1 << NGLI_IMAGE_LAYOUT_NV12);
-        if (direct_rendering && s->params.mipmap_filter) {
-            LOG(WARNING, "IOSurface NV12 buffers do not support mipmapping: "
-                "disabling direct rendering");
-            direct_rendering = 0;
-        }
         break;
     default:
         ngli_assert(0);
+    }
+
+    if (direct_rendering && s->params.mipmap_filter) {
+        LOG(WARNING, "Videotoolbox textures do not support mipmapping: "
+            "disabling direct rendering");
+        direct_rendering = 0;
     }
 
     return direct_rendering;
@@ -230,20 +231,15 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
     CVPixelBufferRef cvpixbuf = (CVPixelBufferRef)frame->data;
     vt->format = CVPixelBufferGetPixelFormatType(cvpixbuf);
 
-    struct texture_params plane_params = s->params;
-    if (plane_params.mipmap_filter) {
-        LOG(WARNING, "IOSurface RGBA/BGRA buffers do not support mipmapping: "
-            "disabling mipmapping");
-        plane_params.mipmap_filter = NGLI_MIPMAP_FILTER_NONE;
-    }
-
     struct format_desc format_desc = {0};
     int ret = vt_get_format_desc(vt->format, &format_desc);
     if (ret < 0)
         return ret;
 
     for (int i = 0; i < format_desc.nb_planes; i++) {
+        struct texture_params plane_params = s->params;
         plane_params.format = format_desc.planes[i].format;
+        plane_params.mipmap_filter = NGLI_MIPMAP_FILTER_NONE;
         plane_params.usage = NGLI_TEXTURE_USAGE_SAMPLED_BIT;
 
         vt->planes[i] = ngli_texture_create(gpu_ctx);

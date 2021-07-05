@@ -118,7 +118,7 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
     for (int i = 0; i < 2; i++) {
         const struct texture_params *texture_params = &s->params;
 
-        struct texture_params plane_params = {
+        const struct texture_params plane_params = {
             .type             = NGLI_TEXTURE_TYPE_2D,
             .format           = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM,
             .min_filter       = texture_params->min_filter,

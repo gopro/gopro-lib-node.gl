@@ -237,10 +237,17 @@ static int vt_ios_init(struct ngl_node *node, struct sxplayer_frame *frame)
         return ret;
 
     for (int i = 0; i < format_desc.nb_planes; i++) {
-        struct texture_params plane_params = s->params;
-        plane_params.format = format_desc.planes[i].format;
-        plane_params.mipmap_filter = NGLI_MIPMAP_FILTER_NONE;
-        plane_params.usage = NGLI_TEXTURE_USAGE_SAMPLED_BIT;
+        const struct texture_params texture_params = &s->params;
+
+        const struct texture_params plane_params = {
+            .type             = NGLI_TEXTURE_TYPE_2D,
+            .format           = format_desc.planes[i].format;
+            .min_filter       = texture_params->min_filter,
+            .mag_filter       = texture_params->mag_filter,
+            .wrap_s           = texture_params->wrap_s,
+            .wrap_t           = texture_params->wrap_t,
+            .usage            = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
+        };
 
         vt->planes[i] = ngli_texture_create(gpu_ctx);
         if (!vt->planes[i])

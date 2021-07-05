@@ -116,9 +116,15 @@ static int vt_darwin_init(struct ngl_node *node, struct sxplayer_frame * frame)
     struct hwupload_vt_darwin *vt = hwupload->hwmap_priv_data;
 
     for (int i = 0; i < 2; i++) {
+        const struct texture_params *texture_params = &s->params;
+
         struct texture_params plane_params = {
             .type             = NGLI_TEXTURE_TYPE_2D,
             .format           = i == 0 ? NGLI_FORMAT_R8_UNORM : NGLI_FORMAT_R8G8_UNORM,
+            .min_filter       = texture_params->min_filter,
+            .mag_filter       = texture_params->mag_filter,
+            .wrap_s           = texture_params->wrap_s,
+            .wrap_t           = texture_params->wrap_t,
             .usage            = NGLI_TEXTURE_USAGE_SAMPLED_BIT,
             .rectangle        = 1,
             .external_storage = 1,

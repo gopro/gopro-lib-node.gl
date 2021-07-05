@@ -198,13 +198,14 @@ static int support_direct_rendering(struct ngl_node *node, struct sxplayer_frame
 
     CVPixelBufferRef cvpixbuf = (CVPixelBufferRef)frame->data;
     OSType cvformat = CVPixelBufferGetPixelFormatType(cvpixbuf);
-    int direct_rendering = s->supported_image_layouts & (1 << NGLI_IMAGE_LAYOUT_NV12);
+    int direct_rendering = 1;
 
     switch (cvformat) {
     case kCVPixelFormatType_32BGRA:
     case kCVPixelFormatType_32RGBA:
         break;
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+        direct_rendering = s->supported_image_layouts & (1 << NGLI_IMAGE_LAYOUT_NV12);
         if (direct_rendering && s->params.mipmap_filter) {
             LOG(WARNING, "IOSurface NV12 buffers do not support mipmapping: "
                 "disabling direct rendering");

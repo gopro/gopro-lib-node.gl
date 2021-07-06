@@ -344,13 +344,13 @@ static int texture_prefetch(struct ngl_node *node)
     return 0;
 }
 
-static void handle_media_frame(struct ngl_node *node)
+static int handle_media_frame(struct ngl_node *node)
 {
     struct texture_priv *s = node->priv_data;
     struct media_priv *media = s->data_src->priv_data;
     struct sxplayer_frame *frame = media->frame;
     if (!frame)
-        return;
+        return 0;
 
     /* Transfer frame ownership to hwupload and ensure it cannot be re-used
      * later on */
@@ -360,8 +360,12 @@ static void handle_media_frame(struct ngl_node *node)
     ngli_image_reset(&s->image);
 
     int ret = ngli_hwupload_upload_frame(node, frame, &s->image);
-    if (ret < 0)
+    if (ret < 0) {
         LOG(ERROR, "could not map media frame");
+        return ret;
+    }
+
+    return 0;
 }
 
 static int handle_buffer_frame(struct ngl_node *node)
@@ -392,7 +396,12 @@ static int texture_update(struct ngl_node *node, double t)
 
     switch (s->data_src->cls->id) {
         case NGL_NODE_MEDIA:
-            handle_media_frame(node);
+            /*
+             * Tolerate media frames mapping/upload failures because they are
+             * "likely" errors where we prefer to black-out part of the
+             * presentation instead of hard-failing.
+             */
+            (void)handle_media_frame(node);
             break;
         case NGL_NODE_ANIMATEDBUFFERFLOAT:
         case NGL_NODE_ANIMATEDBUFFERVEC2:

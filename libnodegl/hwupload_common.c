@@ -192,8 +192,10 @@ static int common_init(struct ngl_node *node, struct sxplayer_frame *frame)
     struct hwupload_common *common = hwupload->hwmap_priv_data;
 
     const struct format_desc *desc = common_get_format_desc(frame->pix_fmt);
-    if (!desc)
+    if (!desc) {
+        LOG(ERROR, "unsupported sxplayer pixel format (%d)", frame->pix_fmt);
         return NGL_ERROR_UNSUPPORTED;
+    }
 
     common->width = frame->width;
     common->height = frame->height;

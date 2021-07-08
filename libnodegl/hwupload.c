@@ -38,41 +38,34 @@ extern const struct hwmap_class ngli_hwmap_vt_darwin_gl_class;
 extern const struct hwmap_class ngli_hwmap_vt_ios_gl_class;
 extern const struct hwmap_class ngli_hwmap_vaapi_gl_class;
 
-static const struct hwmap_class *hwupload_gl_class_map[] = {
-    [SXPLAYER_PIXFMT_RGBA]        = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_BGRA]        = &ngli_hwmap_common_class,
-    [SXPLAYER_SMPFMT_FLT]         = &ngli_hwmap_common_class,
+static const struct hwmap_class *hwupload_gl_classes[] = {
 #ifdef BACKEND_GL
 #if defined(TARGET_ANDROID)
-    [SXPLAYER_PIXFMT_MEDIACODEC]  = &ngli_hwmap_mc_gl_class,
+    &ngli_hwmap_mc_gl_class,
 #elif defined(TARGET_DARWIN)
-    [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_darwin_gl_class,
+    &ngli_hwmap_vt_darwin_gl_class,
 #elif defined(TARGET_IPHONE)
-    [SXPLAYER_PIXFMT_VT]          = &ngli_hwmap_vt_ios_gl_class,
+    &ngli_hwmap_vt_ios_gl_class,
 #elif defined(HAVE_VAAPI)
-    [SXPLAYER_PIXFMT_VAAPI]       = &ngli_hwmap_vaapi_gl_class,
+    &ngli_hwmap_vaapi_gl_class,
 #endif
 #endif
-    [SXPLAYER_PIXFMT_NV12]        = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_YUV420P]     = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_YUV422P]     = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_YUV444P]     = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_P010LE]      = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_YUV420P10LE] = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_YUV422P10LE] = &ngli_hwmap_common_class,
-    [SXPLAYER_PIXFMT_YUV444P10LE] = &ngli_hwmap_common_class,
 };
 
 static const struct hwmap_class *get_hwmap_class(int backend, struct sxplayer_frame *frame)
 {
-    if (backend == NGL_BACKEND_OPENGL || backend == NGL_BACKEND_OPENGLES) {
-        if (frame->pix_fmt < 0 || frame->pix_fmt >= NGLI_ARRAY_NB(hwupload_gl_class_map))
-            return NULL;
+    const struct hwmap_class **hwmap_classes = NULL;
 
-        return hwupload_gl_class_map[frame->pix_fmt];
+    if (backend == NGL_BACKEND_OPENGL || backend == NGL_BACKEND_OPENGLES)
+        hwmap_classes = hwupload_gl_classes;
+
+    for (int i = 0; hwmap_classes && hwmap_classes[i]; i++) {
+        const struct hwmap_class *hwmap_class = hwmap_classes[i];
+        if (hwmap_class->hwformat == frame->pix_fmt)
+            return hwmap_class;
     }
 
-    return NULL;
+    return &ngli_hwmap_common_class;
 }
 
 static int init_hwconv(struct ngl_node *node)
@@ -158,10 +151,7 @@ int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *fra
         ngli_hwupload_uninit(node);
 
         const struct hwmap_class *hwmap_class = get_hwmap_class(config->backend, frame);
-        if (!hwmap_class) {
-            sxplayer_release_frame(frame);
-            return NGL_ERROR_UNSUPPORTED;
-        }
+        ngli_assert(hwmap_class);
         ngli_assert(hwmap_class->priv_size);
 
         hwupload->hwmap_priv_data = ngli_calloc(1, hwmap_class->priv_size);

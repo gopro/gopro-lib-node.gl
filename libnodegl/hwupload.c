@@ -33,31 +33,17 @@
 #include "nodes.h"
 
 extern const struct hwmap_class ngli_hwmap_common_class;
-extern const struct hwmap_class ngli_hwmap_mc_gl_class;
-extern const struct hwmap_class ngli_hwmap_vt_darwin_gl_class;
-extern const struct hwmap_class ngli_hwmap_vt_ios_gl_class;
-extern const struct hwmap_class ngli_hwmap_vaapi_gl_class;
 
-static const struct hwmap_class *hwupload_gl_classes[] = {
 #ifdef BACKEND_GL
-#if defined(TARGET_ANDROID)
-    &ngli_hwmap_mc_gl_class,
-#elif defined(TARGET_DARWIN)
-    &ngli_hwmap_vt_darwin_gl_class,
-#elif defined(TARGET_IPHONE)
-    &ngli_hwmap_vt_ios_gl_class,
-#elif defined(HAVE_VAAPI)
-    &ngli_hwmap_vaapi_gl_class,
+extern const struct hwmap_class *ngli_hwmap_gl_classes[];
 #endif
-#endif
-};
 
 static const struct hwmap_class *get_hwmap_class(int backend, struct sxplayer_frame *frame)
 {
     const struct hwmap_class **hwmap_classes = NULL;
 
     if (backend == NGL_BACKEND_OPENGL || backend == NGL_BACKEND_OPENGLES)
-        hwmap_classes = hwupload_gl_classes;
+        hwmap_classes = ngli_hwmap_gl_classes;
 
     for (int i = 0; hwmap_classes && hwmap_classes[i]; i++) {
         const struct hwmap_class *hwmap_class = hwmap_classes[i];

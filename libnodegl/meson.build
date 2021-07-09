@@ -315,6 +315,7 @@ gbackends_cfg = {
       'backends/gl/gpu_ctx_gl.c',
       'backends/gl/glcontext.c',
       'backends/gl/glstate.c',
+      'backends/gl/hwupload_gl.c',
       'backends/gl/pipeline_gl.c',
       'backends/gl/program_gl.c',
       'backends/gl/rendertarget_gl.c',

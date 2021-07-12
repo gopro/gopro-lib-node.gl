@@ -42,6 +42,7 @@ struct hwmap_class {
 };
 
 struct hwupload {
+    const struct hwmap_class **hwmap_classes;
     const struct hwmap_class *hwmap_class;
     void *hwmap_priv_data;
     int pix_fmt;
@@ -55,6 +56,7 @@ struct hwupload {
     int hwconv_initialized;
 };
 
+int ngli_hwupload_init(struct ngl_node *node);
 int ngli_hwupload_upload_frame(struct ngl_node *node, struct sxplayer_frame *frame, struct image *image);
 void ngli_hwupload_uninit(struct ngl_node *node);
 

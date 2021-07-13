@@ -808,6 +808,18 @@ static int samplers_preproc(struct pgcraft *s, const struct pgcraft_params *para
     return ret;
 }
 
+static int get_location_count(int type)
+{
+    switch (type) {
+    case NGLI_TYPE_MAT3:
+        return 3;
+    case NGLI_TYPE_MAT4:
+        return 4;
+    default:
+        return 1;
+    }
+}
+
 static int inject_iovars(struct pgcraft *s, struct bstr *b, int stage)
 {
     static const char *qualifiers[2][2] = {
@@ -816,9 +828,10 @@ static int inject_iovars(struct pgcraft *s, struct bstr *b, int stage)
     };
     const char *qualifier = qualifiers[stage][s->has_in_out_qualifiers];
     const struct pgcraft_iovar *iovars = ngli_darray_data(&s->vert_out_vars);
+    int location = 0;
     for (int i = 0; i < ngli_darray_count(&s->vert_out_vars); i++) {
         if (s->has_in_out_layout_qualifiers)
-            ngli_bstr_printf(b, "layout(location=%d) ", i);
+            ngli_bstr_printf(b, "layout(location=%d) ", location);
         const struct pgcraft_iovar *iovar = &iovars[i];
         const char *precision = stage == NGLI_PROGRAM_SHADER_VERT
                               ? get_precision_qualifier(s, iovar->type, iovar->precision_out, "highp")
@@ -827,6 +840,7 @@ static int inject_iovars(struct pgcraft *s, struct bstr *b, int stage)
         if (type_is_int(iovar->type))
             ngli_bstr_print(b, "flat ");
         ngli_bstr_printf(b, "%s %s %s %s;\n", qualifier, precision, type, iovar->name);
+        location += get_location_count(iovar->type);
     }
     return 0;
 }
